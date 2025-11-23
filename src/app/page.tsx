@@ -14,7 +14,7 @@ export default function Home() {
     const [loading, setLoading] = useState(true);
 
     // REPLACE WITH YOUR RENDER BACKEND URL
-    const API_URL = 'http://localhost:3000';
+    const API_URL = 'https://h4k3r-gallery-eye.onrender.com';
 
     useEffect(() => {
         fetch(`${API_URL}/images`)
@@ -72,3 +72,4 @@ export default function Home() {
         </main>
     );
 }
+
