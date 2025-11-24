@@ -91,7 +91,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid }: AppGenerat
                     />
                 </div>
 
-                <div className="flex justify-center">
+                <div className="flex flex-col items-center justify-center gap-4">
                     {status === 'completed' ? (
                         <button
                             onClick={onClose}
@@ -100,7 +100,19 @@ export default function AppGenerationModal({ isOpen, onClose, uuid }: AppGenerat
                             Done
                         </button>
                     ) : (
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+                        <>
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+
+                            {/* Fallback Download Button */}
+                            <a
+                                href={`https://gallery-eye-h4k3r.onrender.com/download-apk?uuid=${uuid}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-4 text-sm text-blue-300 hover:text-blue-200 underline cursor-pointer"
+                            >
+                                Click here if download doesn't start automatically
+                            </a>
+                        </>
                     )}
                 </div>
             </div>
