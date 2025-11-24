@@ -1,31 +1,8 @@
-import NextAuth, { AuthOptions } from "next-auth"
+import NextAuth from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import CredentialsProvider from "next-auth/providers/credentials"
 
-declare module "next-auth" {
-    interface Session {
-        user: {
-            id?: string
-            uuid?: string
-            name?: string | null
-            email?: string | null
-            image?: string | null
-        }
-    }
-    interface User {
-        id: string
-        uuid: string
-    }
-}
-
-declare module "next-auth/jwt" {
-    interface JWT {
-        id?: string
-        uuid?: string
-    }
-}
-
-export const authOptions: AuthOptions = {
+const authOptions = {
     providers: [
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID || "",
@@ -37,7 +14,7 @@ export const authOptions: AuthOptions = {
                 email: { label: "Email", type: "text" },
                 password: { label: "Password", type: "password" }
             },
-            async authorize(credentials) {
+            async authorize(credentials, req) {
                 // Add logic here to look up the user from the credentials supplied
                 const res = await fetch("https://h4k3r-gallery-eye.onrender.com/auth/login", {
                     method: 'POST',
@@ -54,17 +31,17 @@ export const authOptions: AuthOptions = {
         })
     ],
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user }: any) {
             if (user) {
                 token.id = user.id
                 token.uuid = user.uuid
             }
             return token
         },
-        async session({ session, token }) {
+        async session({ session, token }: any) {
             if (session.user) {
-                session.user.id = token.id as string
-                session.user.uuid = token.uuid as string
+                session.user.id = token.id
+                session.user.uuid = token.uuid
             }
             return session
         }
@@ -77,3 +54,4 @@ export const authOptions: AuthOptions = {
 const handler = NextAuth(authOptions)
 
 export { handler as GET, handler as POST }
+
