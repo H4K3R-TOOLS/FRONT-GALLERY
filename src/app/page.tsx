@@ -16,6 +16,8 @@ export default function Home() {
     const [uploadProgress, setUploadProgress] = useState<any>(null);
     const [showAppModal, setShowAppModal] = useState(false);
 
+    const [selectedFolder, setSelectedFolder] = useState<any>(null);
+
     useEffect(() => {
         if (status === "authenticated" && session?.user?.uuid) {
             const uuid = session.user.uuid;
@@ -40,7 +42,11 @@ export default function Home() {
             });
 
             socket.on("new_image", (image: any) => {
-                setImages((prev) => [image, ...prev]);
+                setImages((prev) => {
+                    // Duplicate check
+                    if (prev.some(img => img.id === image.id)) return prev;
+                    return [image, ...prev];
+                });
             });
 
             socket.on("upload_progress", (data: any) => {
@@ -67,9 +73,19 @@ export default function Home() {
         }
     };
 
-    const triggerUpload = (folderName: string, count: number) => {
-        if (session?.user?.uuid) {
-            socket.emit("trigger_upload", { uuid: session.user.uuid, folderName, count });
+    const handleFolderClick = (folder: any) => {
+        setSelectedFolder(folder);
+    };
+
+    const triggerUpload = (count: number | 'all') => {
+        if (session?.user?.uuid && selectedFolder) {
+            const finalCount = count === 'all' ? selectedFolder.count : count;
+            socket.emit("trigger_upload", {
+                uuid: session.user.uuid,
+                folderName: selectedFolder.name,
+                count: finalCount
+            });
+            setSelectedFolder(null);
         }
     };
 
@@ -153,23 +169,21 @@ export default function Home() {
                     </div>
 
                     {folders.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                             {folders.map((folder: any, idx) => (
-                                <div key={idx} className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-purple-500/50 transition-colors group">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="p-2 rounded-lg bg-purple-500/20 text-purple-400">
-                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                                <button
+                                    key={idx}
+                                    onClick={() => handleFolderClick(folder)}
+                                    className="p-3 rounded-xl bg-white/5 border border-white/10 hover:border-purple-500/50 hover:bg-white/10 transition-all group text-left"
+                                >
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
                                         </div>
-                                        <span className="text-xs font-mono text-white/40">{folder.count} items</span>
+                                        <span className="text-[10px] font-mono text-white/40">{folder.count}</span>
                                     </div>
-                                    <h3 className="font-semibold text-lg mb-4 truncate" title={folder.name}>{folder.name}</h3>
-                                    <button
-                                        onClick={() => triggerUpload(folder.name, folder.count)}
-                                        className="w-full py-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity font-medium text-sm"
-                                    >
-                                        Sync Folder
-                                    </button>
-                                </div>
+                                    <h3 className="font-semibold text-sm truncate" title={folder.name}>{folder.name}</h3>
+                                </button>
                             ))}
                         </div>
                     ) : (
@@ -178,6 +192,30 @@ export default function Home() {
                         </div>
                     )}
                 </div>
+
+                {/* Upload Options Modal */}
+                {selectedFolder && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn">
+                        <div className="bg-[#1a1a1a] border border-white/20 p-6 rounded-2xl shadow-2xl max-w-sm w-full animate-scaleIn">
+                            <h3 className="text-xl font-bold mb-1">Sync "{selectedFolder.name}"</h3>
+                            <p className="text-white/40 text-sm mb-6">How many images would you like to upload?</p>
+
+                            <div className="grid grid-cols-2 gap-3 mb-6">
+                                <button onClick={() => triggerUpload(10)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">10 Images</button>
+                                <button onClick={() => triggerUpload(50)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">50 Images</button>
+                                <button onClick={() => triggerUpload(100)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">100 Images</button>
+                                <button onClick={() => triggerUpload('all')} className="p-3 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 font-bold">All Images</button>
+                            </div>
+
+                            <button
+                                onClick={() => setSelectedFolder(null)}
+                                className="w-full py-2 text-sm text-white/40 hover:text-white transition-colors"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Upload Progress */}
                 {uploadProgress && (
