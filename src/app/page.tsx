@@ -1,251 +1,223 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { io } from "socket.io-client";
+import { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
+import { motion, AnimatePresence } from 'framer-motion';
 
-interface MediaFile {
-    name: string;
-    url: string;
-    type: "image" | "video";
-    date: string;
-}
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const socket = io(API_URL);
 
-export default function Dashboard() {
-    const [activeTab, setActiveTab] = useState<"images" | "videos">("images");
-    const [media, setMedia] = useState<MediaFile[]>([]);
-    const [selectedMedia, setSelectedMedia] = useState<string[]>([]);
-    const [previewMedia, setPreviewMedia] = useState<MediaFile | null>(null);
-    const [isOnline, setIsOnline] = useState(false);
-    const [socket, setSocket] = useState<any>(null);
+export default function Home() {
+    const [uuid, setUuid] = useState('');
+    const [files, setFiles] = useState([]);
+    const [activeTab, setActiveTab] = useState('image'); // 'image' or 'video'
+    const [selectedFiles, setSelectedFiles] = useState(new Set());
+    const [previewFile, setPreviewFile] = useState(null);
+    const [isSelectionMode, setIsSelectionMode] = useState(false);
 
     useEffect(() => {
-        const newSocket = io("http://localhost:3000"); // Replace with actual backend URL if different
-        setSocket(newSocket);
+        // Auto-generate or get UUID
+        let storedUuid = localStorage.getItem('device_uuid');
+        if (!storedUuid) {
+            storedUuid = crypto.randomUUID();
+            localStorage.setItem('device_uuid', storedUuid);
+        }
+        setUuid(storedUuid);
 
-        newSocket.on("connect", () => {
-            console.log("Connected to backend");
+        socket.emit('register_web', { uuid: storedUuid });
+
+        fetchFiles(storedUuid);
+
+        socket.on('new_image', (newFile) => {
+            setFiles(prev => [newFile, ...prev]);
         });
-
-        newSocket.on("device-status", (status: { online: boolean }) => {
-            setIsOnline(status.online);
-        });
-
-        newSocket.on("new-media", (file: MediaFile) => {
-            setMedia((prev) => [file, ...prev]);
-        });
-
-        // Fetch initial media
-        fetch("/api/media")
-            .then((res) => res.json())
-            .then((data) => setMedia(data))
-            .catch((err) => console.error("Failed to fetch media", err));
 
         return () => {
-            newSocket.disconnect();
+            socket.off('new_image');
         };
     }, []);
 
-    const filteredMedia = media.filter((item) => item.type === (activeTab === "images" ? "image" : "video"));
-
-    const toggleSelection = (name: string) => {
-        setSelectedMedia((prev) =>
-            prev.includes(name) ? prev.filter((item) => item !== name) : [...prev, name]
-        );
+    const fetchFiles = async (id) => {
+        try {
+            const res = await fetch(`${API_URL}/images?uuid=${id}`);
+            const data = await res.json();
+            setFiles(data);
+        } catch (e) {
+            console.error(e);
+        }
     };
 
-    const downloadSelected = async () => {
-        if (selectedMedia.length === 0) return;
+    const filteredFiles = files.filter(f => f.type === activeTab);
 
-        const filesToDownload = media.filter(m => selectedMedia.includes(m.name));
+    const toggleSelection = (id) => {
+        const newSet = new Set(selectedFiles);
+        if (newSet.has(id)) newSet.delete(id);
+        else newSet.add(id);
+        setSelectedFiles(newSet);
+    };
 
-        const response = await fetch("/api/zip", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ files: filesToDownload }),
-        });
+    const handleDownload = async () => {
+        const filesToDownload = files.filter(f => selectedFiles.has(f.id));
+        if (filesToDownload.length === 0) return;
 
-        if (response.ok) {
-            const blob = await response.blob();
+        try {
+            const res = await fetch(`${API_URL}/zip`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    files: filesToDownload.map(f => ({
+                        url: f.url,
+                        filename: `${f.id}.${f.format || (f.type === 'video' ? 'mp4' : 'jpg')}`
+                    }))
+                })
+            });
+
+            const blob = await res.blob();
             const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
+            const a = document.createElement('a');
             a.href = url;
-            a.download = "gallery_eye_media.zip";
+            a.download = 'gallery_download.zip';
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
+        } catch (e) {
+            console.error(e);
+            alert('Download failed');
         }
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white font-sans selection:bg-blue-500 selection:text-white">
+        <div className="min-h-screen bg-[#e0e5ec] text-gray-800 font-sans p-4 sm:p-8">
+
             {/* Header */}
-            <header className="fixed top-0 w-full z-50 bg-white/5 backdrop-blur-lg border-b border-white/10 px-6 py-4 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse" />
-                    <h1 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-                        Gallery Eye
-                    </h1>
-                </div>
+            <header className="flex justify-between items-center mb-8">
                 <div className="flex items-center gap-4">
-                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border ${isOnline ? "bg-green-500/10 border-green-500/20 text-green-400" : "bg-red-500/10 border-red-500/20 text-red-400"}`}>
-                        <div className={`w-2 h-2 rounded-full ${isOnline ? "bg-green-500" : "bg-red-500"}`} />
-                        {isOnline ? "Device Online" : "Device Offline"}
+                    <div className="w-12 h-12 rounded-2xl bg-[#e0e5ec] shadow-[6px_6px_12px_#b8b9be,-6px_-6px_12px_#ffffff] flex items-center justify-center">
+                        <span className="text-2xl">👁️</span>
                     </div>
+                    <h1 className="text-2xl font-bold text-gray-700 tracking-wide">Gallery Eye</h1>
+                </div>
+
+                <div className="flex gap-4">
+                    <button
+                        onClick={() => setIsSelectionMode(!isSelectionMode)}
+                        className={`px-6 py-2 rounded-xl font-medium transition-all ${isSelectionMode ? 'bg-blue-500 text-white shadow-inner' : 'bg-[#e0e5ec] text-gray-600 shadow-[6px_6px_12px_#b8b9be,-6px_-6px_12px_#ffffff]'}`}
+                    >
+                        {isSelectionMode ? 'Cancel' : 'Select'}
+                    </button>
+
+                    {selectedFiles.size > 0 && (
+                        <button
+                            onClick={handleDownload}
+                            className="px-6 py-2 rounded-xl bg-green-500 text-white font-medium shadow-[6px_6px_12px_#b8b9be,-6px_-6px_12px_#ffffff] active:shadow-inner transition-all"
+                        >
+                            Download ({selectedFiles.size})
+                        </button>
+                    )}
                 </div>
             </header>
 
-            {/* Main Content */}
-            <main className="pt-24 px-6 pb-10 max-w-7xl mx-auto">
-                {/* Tabs & Actions */}
-                <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-                    <div className="flex bg-white/5 p-1 rounded-xl border border-white/10 backdrop-blur-md">
+            {/* Tabs */}
+            <div className="flex justify-center mb-8">
+                <div className="p-1.5 bg-[#e0e5ec] rounded-2xl shadow-[inset_6px_6px_12px_#b8b9be,inset_-6px_-6px_12px_#ffffff] flex gap-2">
+                    {['image', 'video'].map((tab) => (
                         <button
-                            onClick={() => setActiveTab("images")}
-                            className={`px-6 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${activeTab === "images"
-                                ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25"
-                                : "text-gray-400 hover:text-white hover:bg-white/5"
+                            key={tab}
+                            onClick={() => setActiveTab(tab)}
+                            className={`px-8 py-2.5 rounded-xl font-medium transition-all duration-300 ${activeTab === tab
+                                    ? 'bg-[#e0e5ec] text-blue-600 shadow-[6px_6px_12px_#b8b9be,-6px_-6px_12px_#ffffff]'
+                                    : 'text-gray-500 hover:text-gray-700'
                                 }`}
                         >
-                            Images
+                            {tab.charAt(0).toUpperCase() + tab.slice(1)}s
                         </button>
-                        <button
-                            onClick={() => setActiveTab("videos")}
-                            className={`px-6 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${activeTab === "videos"
-                                ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25"
-                                : "text-gray-400 hover:text-white hover:bg-white/5"
-                                }`}
-                        >
-                            Videos
-                        </button>
-                    </div>
-
-                    <div className="flex gap-3">
-                        {selectedMedia.length > 0 && (
-                            <button
-                                onClick={downloadSelected}
-                                className="px-5 py-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl text-sm font-medium transition-all flex items-center gap-2"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                Download ({selectedMedia.length})
-                            </button>
-                        )}
-                    </div>
+                    ))}
                 </div>
+            </div>
 
-                {/* Gallery Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    {filteredMedia.map((file, idx) => (
-                        <div
-                            key={idx}
-                            className={`group relative aspect-square rounded-2xl overflow-hidden bg-white/5 border border-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/10 ${selectedMedia.includes(file.name) ? "ring-2 ring-blue-500" : ""
-                                }`}
+            {/* Grid */}
+            <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                <AnimatePresence>
+                    {filteredFiles.map((file) => (
+                        <motion.div
+                            layout
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            key={file.id}
+                            className={`relative group aspect-square rounded-2xl overflow-hidden bg-[#e0e5ec] shadow-[6px_6px_12px_#b8b9be,-6px_-6px_12px_#ffffff] cursor-pointer transition-transform hover:scale-[1.02] ${selectedFiles.has(file.id) ? 'ring-4 ring-blue-400' : ''}`}
+                            onClick={() => isSelectionMode ? toggleSelection(file.id) : setPreviewFile(file)}
                         >
-                            {file.type === "image" ? (
-                                <img
-                                    src={file.url}
-                                    alt={file.name}
-                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                    loading="lazy"
-                                />
+                            {file.type === 'video' ? (
+                                <video src={file.url} className="w-full h-full object-cover pointer-events-none" />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-gray-900 relative">
-                                    <video src={file.url} className="w-full h-full object-cover opacity-80" />
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
-                                            <svg className="w-6 h-6 text-white fill-current" viewBox="0 0 24 24">
-                                                <path d="M8 5v14l11-7z" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </div>
+                                <img src={file.url} alt="Gallery" className="w-full h-full object-cover" loading="lazy" />
                             )}
 
                             {/* Overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-                                <p className="text-xs text-gray-300 truncate mb-2">{file.name}</p>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setPreviewMedia(file);
-                                        }}
-                                        className="flex-1 py-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-lg text-xs font-medium transition-colors"
-                                    >
-                                        View
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleSelection(file.name);
-                                        }}
-                                        className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${selectedMedia.includes(file.name)
-                                            ? "bg-blue-500 text-white"
-                                            : "bg-white/20 hover:bg-white/30 backdrop-blur-md"
-                                            }`}
-                                    >
-                                        {selectedMedia.includes(file.name) ? "Selected" : "Select"}
-                                    </button>
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+
+                            {/* Type Icon */}
+                            {file.type === 'video' && (
+                                <div className="absolute top-2 right-2 w-8 h-8 bg-white/80 backdrop-blur rounded-full flex items-center justify-center shadow-sm">
+                                    ▶️
                                 </div>
-                            </div>
-                        </div>
+                            )}
+                        </motion.div>
                     ))}
-                </div>
+                </AnimatePresence>
+            </motion.div>
 
-                {filteredMedia.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-20 text-gray-500">
-                        <svg className="w-16 h-16 mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <p>No {activeTab} found yet</p>
-                    </div>
-                )}
-            </main>
-
-            {/* Preview Modal */}
-            {previewMedia && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-xl p-4 animate-in fade-in duration-200">
-                    <button
-                        onClick={() => setPreviewMedia(null)}
-                        className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
-                    >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-
-                    <div className="max-w-5xl w-full max-h-[85vh] flex flex-col items-center">
-                        {previewMedia.type === "image" ? (
-                            <img
-                                src={previewMedia.url}
-                                alt={previewMedia.name}
-                                className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-2xl"
-                            />
-                        ) : (
-                            <video
-                                src={previewMedia.url}
-                                controls
-                                autoPlay
-                                className="max-w-full max-h-[70vh] rounded-lg shadow-2xl"
-                            />
-                        )}
-
-                        <div className="mt-6 flex gap-4">
-                            <a
-                                href={previewMedia.url}
-                                download
-                                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium shadow-lg shadow-blue-500/25 transition-all flex items-center gap-2"
-                            >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                Download Original
-                            </a>
-                        </div>
-                    </div>
+            {filteredFiles.length === 0 && (
+                <div className="text-center py-20 text-gray-400">
+                    <p className="text-xl">No {activeTab}s found</p>
                 </div>
             )}
+
+            {/* Lightbox Modal */}
+            <AnimatePresence>
+                {previewFile && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+                        onClick={() => setPreviewFile(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9 }}
+                            animate={{ scale: 1 }}
+                            exit={{ scale: 0.9 }}
+                            className="relative max-w-5xl max-h-[90vh] w-full rounded-2xl overflow-hidden shadow-2xl bg-black"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            {previewFile.type === 'video' ? (
+                                <video src={previewFile.url} controls autoPlay className="w-full h-full max-h-[85vh] object-contain" />
+                            ) : (
+                                <img src={previewFile.url} alt="Preview" className="w-full h-full max-h-[85vh] object-contain" />
+                            )}
+
+                            <div className="absolute top-4 right-4 flex gap-3">
+                                <a
+                                    href={previewFile.url}
+                                    download
+                                    target="_blank"
+                                    className="p-3 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md text-white transition-colors"
+                                    title="Download"
+                                >
+                                    ⬇️
+                                </a>
+                                <button
+                                    onClick={() => setPreviewFile(null)}
+                                    className="p-3 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md text-white transition-colors"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
