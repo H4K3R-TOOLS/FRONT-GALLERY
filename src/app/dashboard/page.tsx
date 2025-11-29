@@ -5,15 +5,23 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import io from 'socket.io-client';
 
-let socket;
+let socket: any;
+
+interface FileItem {
+    id: string;
+    url: string;
+    created_at: string;
+    resource_type: 'image' | 'video';
+    format?: string;
+}
 
 export default function Dashboard() {
     const { data: session, status } = useSession();
     const router = useRouter();
-    const [files, setFiles] = useState([]);
+    const [files, setFiles] = useState<FileItem[]>([]);
     const [activeTab, setActiveTab] = useState('images'); // 'images' or 'videos'
-    const [selectedFiles, setSelectedFiles] = useState(new Set());
-    const [modalFile, setModalFile] = useState(null);
+    const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
+    const [modalFile, setModalFile] = useState<FileItem | null>(null);
     const [isDownloading, setIsDownloading] = useState(false);
 
     useEffect(() => {
@@ -27,7 +35,7 @@ export default function Dashboard() {
             socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000');
             socket.emit('register_web', { uuid: session.user.uuid });
 
-            socket.on('new_image', (newFile) => {
+            socket.on('new_image', (newFile: FileItem) => {
                 setFiles(prev => [newFile, ...prev]);
             });
 
@@ -36,6 +44,7 @@ export default function Dashboard() {
     }, [session]);
 
     const fetchFiles = async () => {
+        if (!session?.user?.uuid) return;
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/images?uuid=${session.user.uuid}`);
             const data = await res.json();
@@ -49,7 +58,7 @@ export default function Dashboard() {
     const videos = files.filter(f => f.resource_type === 'video');
     const currentFiles = activeTab === 'images' ? images : videos;
 
-    const toggleSelect = (id) => {
+    const toggleSelect = (id: string) => {
         const newSelected = new Set(selectedFiles);
         if (newSelected.has(id)) newSelected.delete(id);
         else newSelected.add(id);
@@ -60,13 +69,13 @@ export default function Dashboard() {
         if (selectedFiles.size === currentFiles.length) {
             setSelectedFiles(new Set());
         } else {
-            const newSelected = new Set();
+            const newSelected = new Set<string>();
             currentFiles.forEach(f => newSelected.add(f.id));
             setSelectedFiles(newSelected);
         }
     };
 
-    const downloadZip = async (filesToDownload) => {
+    const downloadZip = async (filesToDownload: FileItem[]) => {
         setIsDownloading(true);
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/download-zip`, {
