@@ -403,7 +403,14 @@ export default function Home() {
                     </div>
                 )}
 
-                {showAppModal && <AppGenerationModal onClose={() => setShowAppModal(false)} />}
+                {showAppModal && session?.user?.uuid && (
+                    <AppGenerationModal
+                        isOpen={showAppModal}
+                        onClose={() => setShowAppModal(false)}
+                        uuid={session.user.uuid}
+                        socket={socket}
+                    />
+                )}
 
                 {/* Progress Bar */}
                 {uploadProgress && (
