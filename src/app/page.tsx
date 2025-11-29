@@ -35,7 +35,7 @@ export default function Home() {
 
             socket.on("connect", () => {
                 console.log("Connected to WebSocket");
-                socket.emit("register_web", uuid);
+                socket.emit("register_web", { uuid });
             });
 
             socket.on("device_status", (status: boolean) => {
@@ -59,6 +59,12 @@ export default function Home() {
             fetch(`https://gallery-eye-h4k3r.onrender.com/images?uuid=${uuid}`)
                 .then((res) => res.json())
                 .then((data) => setImages(data));
+
+            return () => {
+                if (socket) {
+                    socket.disconnect();
+                }
+            };
         }
     }, [status, session]);
 
