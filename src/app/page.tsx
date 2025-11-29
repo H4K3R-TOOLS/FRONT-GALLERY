@@ -169,23 +169,33 @@ export default function Home() {
     };
 
     const deleteSelected = async () => {
-        if (!confirm("Are you sure you want to delete these items?")) return;
+        if (!confirm(`Delete ${selectedItems.size} item(s)? This action cannot be undone.`)) {
+            return;
+        }
 
-        const selectedIds = Array.from(selectedItems);
         try {
-            const response = await fetch('https://gallery-eye-h4k3r.onrender.com/delete-items', {
+            const publicIds = images.filter(img => selectedItems.has(img.id)).map(img => img.id);
+
+            const response = await fetch('https://gallery-eye-h4k3r.onrender.com/delete-media', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ids: selectedIds, uuid: session?.user?.uuid })
+                body: JSON.stringify({
+                    uuid: session?.user?.uuid,
+                    publicIds
+                })
             });
 
             if (response.ok) {
+                // Remove deleted items from local state
                 setImages(prev => prev.filter(img => !selectedItems.has(img.id)));
                 setSelectedItems(new Set());
                 setIsSelectionMode(false);
+            } else {
+                alert('Failed to delete items. Please try again.');
             }
         } catch (error) {
             console.error("Delete failed", error);
+            alert('Failed to delete items. Please try again.');
         }
     };
 
@@ -303,13 +313,6 @@ export default function Home() {
                             {selectedItems.size === filteredImages.length ? 'Deselect All' : 'Select All'}
                         </button>
                         <button
-                            onClick={deleteSelected}
-                            className="px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-colors flex items-center gap-2"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            Delete
-                        </button>
-                        <button
                             onClick={downloadSelected}
                             disabled={isDownloading}
                             className="px-4 py-2 rounded-lg bg-white text-black text-sm font-bold hover:bg-gray-200 transition-colors flex items-center gap-2"
@@ -320,6 +323,13 @@ export default function Home() {
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                             )}
                             Download Zip
+                        </button>
+                        <button
+                            onClick={deleteSelected}
+                            className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition-colors flex items-center gap-2"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            Delete
                         </button>
                         <button onClick={() => { setSelectedItems(new Set()); setIsSelectionMode(false); }} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
