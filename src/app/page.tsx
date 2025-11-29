@@ -1,231 +1,258 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useSession } from 'next-auth/react';
+import io from 'socket.io-client';
+import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-const socket = io(API_URL);
+// Glassmorphism Card Component
+const GlassCard = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
+    <div className={`backdrop-blur-xl bg-white/10 border border-white/20 shadow-xl rounded-2xl ${className}`}>
+        {children}
+    </div>
+);
 
-interface FileData {
-    id: string;
-    url: string;
-    type: string;
-    format?: string;
-    created_at: string;
-}
+export default function Dashboard() {
+    const { data: session } = useSession();
+    const [media, setMedia] = useState<any[]>([]);
+    const [filter, setFilter] = useState<'all' | 'image' | 'video'>('all');
+    const [selected, setSelected] = useState<string[]>([]);
+    const [previewItem, setPreviewItem] = useState<any | null>(null);
+    const [socket, setSocket] = useState<any>(null);
+    const [loading, setLoading] = useState(false);
 
-export default function Home() {
-    const [uuid, setUuid] = useState('');
-    const [files, setFiles] = useState<FileData[]>([]);
-    const [activeTab, setActiveTab] = useState('image'); // 'image' or 'video'
-    const [selectedFiles, setSelectedFiles] = useState(new Set());
-    const [previewFile, setPreviewFile] = useState(null);
-    const [isSelectionMode, setIsSelectionMode] = useState(false);
+    // Backend URL
+    const API_URL = 'http://localhost:3000'; // Replace with actual backend URL in prod
 
     useEffect(() => {
-        // Auto-generate or get UUID
-        let storedUuid = localStorage.getItem('device_uuid');
-        if (!storedUuid) {
-            storedUuid = crypto.randomUUID();
-            localStorage.setItem('device_uuid', storedUuid);
-        }
-        setUuid(storedUuid);
+        if (session?.user?.email) {
+            // Connect Socket
+            const newSocket = io(API_URL);
+            setSocket(newSocket);
 
-        socket.emit('register_web', { uuid: storedUuid });
+            // Fetch Initial Media
+            fetchMedia();
 
-        fetchFiles(storedUuid);
-
-        socket.on('new_image', (newFile) => {
-            setFiles(prev => [newFile, ...prev]);
-        });
-
-        return () => {
-            socket.off('new_image');
-        };
-    }, []);
-
-    const fetchFiles = async (id) => {
-        try {
-            const res = await fetch(`${API_URL}/images?uuid=${id}`);
-            const data = await res.json();
-            setFiles(data);
-        } catch (e) {
-            console.error(e);
-        }
-    };
-
-    const filteredFiles = files.filter(f => f.type === activeTab);
-
-    const toggleSelection = (id) => {
-        const newSet = new Set(selectedFiles);
-        if (newSet.has(id)) newSet.delete(id);
-        else newSet.add(id);
-        setSelectedFiles(newSet);
-    };
-
-    const handleDownload = async () => {
-        const filesToDownload = files.filter(f => selectedFiles.has(f.id));
-        if (filesToDownload.length === 0) return;
-
-        try {
-            const res = await fetch(`${API_URL}/zip`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    files: filesToDownload.map(f => ({
-                        url: f.url,
-                        filename: `${f.id}.${f.format || (f.type === 'video' ? 'mp4' : 'jpg')}`
-                    }))
-                })
+            // Listen for updates
+            newSocket.on('connect', () => {
+                // We need the UUID to join the room. 
+                // Assuming the backend handles auth and we can get the UUID or join by email?
+                // For now, let's assume we fetch the UUID from the user profile or the backend handles it.
+                // Actually, the backend emits to `web_${uuid}`. We need to know our UUID.
+                // Let's fetch the user profile first.
+                axios.post(`${API_URL}/auth/google`, { email: session.user.email })
+                    .then((res: any) => {
+                        const uuid = res.data.uuid;
+                        newSocket.emit('join_web', uuid);
+                    });
             });
 
-            const blob = await res.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'gallery_download.zip';
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-        } catch (e) {
-            console.error(e);
-            alert('Download failed');
+            newSocket.on('new_media', (newFile: any) => {
+                setMedia(prev => [newFile, ...prev]);
+            });
+
+            return () => {
+                newSocket.disconnect();
+            };
+        }
+    }, [session]);
+
+    const fetchMedia = async () => {
+        if (!session?.user?.email) return;
+        setLoading(true);
+        try {
+            // Get UUID first (should be optimized to context)
+            const authRes = await axios.post(`${API_URL}/auth/google`, { email: session.user.email });
+            const uuid = authRes.data.uuid;
+
+            const res = await axios.get(`${API_URL}/media?uuid=${uuid}`);
+            setMedia(res.data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
         }
     };
 
+    const filteredMedia = media.filter(item => filter === 'all' || item.type === filter);
+
+    const toggleSelect = (id: string) => {
+        setSelected(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+    };
+
+    const downloadFile = async (url: string, filename: string) => {
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+        } catch (error) {
+            console.error('Download failed', error);
+        }
+    };
+
+    const downloadSelected = async () => {
+        if (selected.length === 0) return;
+
+        const filesToDownload = media
+            .filter(m => selected.includes(m.id))
+            .map(m => ({ url: m.url, name: `${m.id}.${m.format}` }));
+
+        try {
+            const response = await axios.post(`${API_URL}/download-zip`, { files: filesToDownload }, { responseType: 'blob' });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'gallery_download.zip');
+            document.body.appendChild(link);
+            link.click();
+        } catch (error) {
+            console.error('Zip download failed', error);
+        }
+    };
+
+    if (!session) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black text-white">
+                <GlassCard className="p-8 text-center">
+                    <h1 className="text-3xl font-bold mb-4">Gallery Sync</h1>
+                    <p className="mb-6 text-gray-300">Please sign in to view your gallery.</p>
+                    <a href="/api/auth/signin" className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-full transition-all">
+                        Sign In with Google
+                    </a>
+                </GlassCard>
+            </div>
+        );
+    }
+
     return (
-        <div className="min-h-screen bg-[#e0e5ec] text-gray-800 font-sans p-4 sm:p-8">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6">
 
             {/* Header */}
             <header className="flex justify-between items-center mb-8">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-[#e0e5ec] shadow-[6px_6px_12px_#b8b9be,-6px_-6px_12px_#ffffff] flex items-center justify-center">
-                        <span className="text-2xl">👁️</span>
+                    <img src={session.user?.image || ''} alt="Profile" className="w-10 h-10 rounded-full border-2 border-blue-500" />
+                    <div>
+                        <h1 className="text-xl font-bold">{session.user?.name}</h1>
+                        <p className="text-xs text-gray-400">Connected</p>
                     </div>
-                    <h1 className="text-2xl font-bold text-gray-700 tracking-wide">Gallery Eye</h1>
                 </div>
 
-                <div className="flex gap-4">
-                    <button
-                        onClick={() => setIsSelectionMode(!isSelectionMode)}
-                        className={`px-6 py-2 rounded-xl font-medium transition-all ${isSelectionMode ? 'bg-blue-500 text-white shadow-inner' : 'bg-[#e0e5ec] text-gray-600 shadow-[6px_6px_12px_#b8b9be,-6px_-6px_12px_#ffffff]'}`}
-                    >
-                        {isSelectionMode ? 'Cancel' : 'Select'}
-                    </button>
-
-                    {selectedFiles.size > 0 && (
+                <div className="flex gap-2">
+                    {selected.length > 0 && (
                         <button
-                            onClick={handleDownload}
-                            className="px-6 py-2 rounded-xl bg-green-500 text-white font-medium shadow-[6px_6px_12px_#b8b9be,-6px_-6px_12px_#ffffff] active:shadow-inner transition-all"
+                            onClick={downloadSelected}
+                            className="px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg transition-all flex items-center gap-2"
                         >
-                            Download ({selectedFiles.size})
+                            <span>Download ({selected.length})</span>
                         </button>
                     )}
+                    <button onClick={() => fetchMedia()} className="p-2 bg-white/10 rounded-lg hover:bg-white/20">
+                        🔄
+                    </button>
                 </div>
             </header>
 
-            {/* Tabs */}
-            <div className="flex justify-center mb-8">
-                <div className="p-1.5 bg-[#e0e5ec] rounded-2xl shadow-[inset_6px_6px_12px_#b8b9be,inset_-6px_-6px_12px_#ffffff] flex gap-2">
-                    {['image', 'video'].map((tab) => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            className={`px-8 py-2.5 rounded-xl font-medium transition-all duration-300 ${activeTab === tab
-                                ? 'bg-[#e0e5ec] text-blue-600 shadow-[6px_6px_12px_#b8b9be,-6px_-6px_12px_#ffffff]'
-                                : 'text-gray-500 hover:text-gray-700'
-                                }`}
-                        >
-                            {tab.charAt(0).toUpperCase() + tab.slice(1)}s
-                        </button>
-                    ))}
-                </div>
+            {/* Filters */}
+            <div className="flex gap-4 mb-6">
+                {['all', 'image', 'video'].map((f) => (
+                    <button
+                        key={f}
+                        onClick={() => setFilter(f as any)}
+                        className={`px-6 py-2 rounded-full capitalize transition-all ${filter === f ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                            }`}
+                    >
+                        {f}s
+                    </button>
+                ))}
             </div>
 
             {/* Grid */}
-            <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                <AnimatePresence>
-                    {filteredFiles.map((file) => (
-                        <motion.div
-                            layout
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.8 }}
-                            key={file.id}
-                            className={`relative group aspect-square rounded-2xl overflow-hidden bg-[#e0e5ec] shadow-[6px_6px_12px_#b8b9be,-6px_-6px_12px_#ffffff] cursor-pointer transition-transform hover:scale-[1.02] ${selectedFiles.has(file.id) ? 'ring-4 ring-blue-400' : ''}`}
-                            onClick={() => isSelectionMode ? toggleSelection(file.id) : setPreviewFile(file)}
+            {loading ? (
+                <div className="text-center py-20 text-gray-500">Loading media...</div>
+            ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {filteredMedia.map((item) => (
+                        <div
+                            key={item.id}
+                            className={`relative group aspect-square rounded-xl overflow-hidden cursor-pointer border-2 transition-all ${selected.includes(item.id) ? 'border-blue-500 scale-95' : 'border-transparent hover:border-white/30'
+                                }`}
+                            onClick={() => toggleSelect(item.id)}
                         >
-                            {file.type === 'video' ? (
-                                <video src={file.url} className="w-full h-full object-cover pointer-events-none" />
+                            {item.type === 'video' ? (
+                                <div className="w-full h-full bg-gray-900 flex items-center justify-center relative">
+                                    <video src={item.url} className="w-full h-full object-cover opacity-80" />
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center">
+                                            ▶
+                                        </div>
+                                    </div>
+                                    <div className="absolute top-2 right-2 bg-black/50 px-2 py-1 rounded text-xs">Video</div>
+                                </div>
                             ) : (
-                                <img src={file.url} alt="Gallery" className="w-full h-full object-cover" loading="lazy" />
+                                <img src={item.url} alt="Gallery Item" className="w-full h-full object-cover" />
                             )}
 
-                            {/* Overlay */}
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                            {/* Overlay Actions */}
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setPreviewItem(item); }}
+                                    className="p-2 bg-white/20 rounded-full hover:bg-white/40 backdrop-blur-md"
+                                >
+                                    👁️
+                                </button>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); downloadFile(item.url, `${item.id}.${item.format}`); }}
+                                    className="p-2 bg-white/20 rounded-full hover:bg-white/40 backdrop-blur-md"
+                                >
+                                    ⬇️
+                                </button>
+                            </div>
 
-                            {/* Type Icon */}
-                            {file.type === 'video' && (
-                                <div className="absolute top-2 right-2 w-8 h-8 bg-white/80 backdrop-blur rounded-full flex items-center justify-center shadow-sm">
-                                    ▶️
+                            {/* Selection Indicator */}
+                            {selected.includes(item.id) && (
+                                <div className="absolute top-2 left-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-xs">
+                                    ✓
                                 </div>
                             )}
-                        </motion.div>
+                        </div>
                     ))}
-                </AnimatePresence>
-            </motion.div>
-
-            {filteredFiles.length === 0 && (
-                <div className="text-center py-20 text-gray-400">
-                    <p className="text-xl">No {activeTab}s found</p>
                 </div>
             )}
 
-            {/* Lightbox Modal */}
-            <AnimatePresence>
-                {previewFile && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
-                        onClick={() => setPreviewFile(null)}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9 }}
-                            animate={{ scale: 1 }}
-                            exit={{ scale: 0.9 }}
-                            className="relative max-w-5xl max-h-[90vh] w-full rounded-2xl overflow-hidden shadow-2xl bg-black"
-                            onClick={e => e.stopPropagation()}
+            {/* Preview Modal */}
+            {previewItem && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4" onClick={() => setPreviewItem(null)}>
+                    <div className="relative max-w-5xl max-h-[90vh] w-full" onClick={e => e.stopPropagation()}>
+                        <button
+                            onClick={() => setPreviewItem(null)}
+                            className="absolute -top-12 right-0 text-white hover:text-gray-300 text-xl"
                         >
-                            {previewFile.type === 'video' ? (
-                                <video src={previewFile.url} controls autoPlay className="w-full h-full max-h-[85vh] object-contain" />
-                            ) : (
-                                <img src={previewFile.url} alt="Preview" className="w-full h-full max-h-[85vh] object-contain" />
-                            )}
+                            Close ✕
+                        </button>
 
-                            <div className="absolute top-4 right-4 flex gap-3">
-                                <a
-                                    href={previewFile.url}
-                                    download
-                                    target="_blank"
-                                    className="p-3 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md text-white transition-colors"
-                                    title="Download"
-                                >
-                                    ⬇️
-                                </a>
-                                <button
-                                    onClick={() => setPreviewFile(null)}
-                                    className="p-3 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md text-white transition-colors"
-                                >
-                                    ✕
-                                </button>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                        <div className="rounded-2xl overflow-hidden shadow-2xl bg-black">
+                            {previewItem.type === 'video' ? (
+                                <video src={previewItem.url} controls autoPlay className="w-full max-h-[80vh]" />
+                            ) : (
+                                <img src={previewItem.url} alt="Preview" className="w-full max-h-[80vh] object-contain" />
+                            )}
+                        </div>
+
+                        <div className="mt-4 flex justify-center">
+                            <button
+                                onClick={() => downloadFile(previewItem.url, `${previewItem.id}.${previewItem.format}`)}
+                                className="px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-full font-semibold shadow-lg shadow-blue-500/30 transition-all"
+                            >
+                                Download Original
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 }
