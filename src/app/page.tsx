@@ -7,9 +7,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 const socket = io(API_URL);
 
+interface FileData {
+    id: string;
+    url: string;
+    type: string;
+    format?: string;
+    created_at: string;
+}
+
 export default function Home() {
     const [uuid, setUuid] = useState('');
-    const [files, setFiles] = useState([]);
+    const [files, setFiles] = useState<FileData[]>([]);
     const [activeTab, setActiveTab] = useState('image'); // 'image' or 'video'
     const [selectedFiles, setSelectedFiles] = useState(new Set());
     const [previewFile, setPreviewFile] = useState(null);
@@ -125,8 +133,8 @@ export default function Home() {
                             key={tab}
                             onClick={() => setActiveTab(tab)}
                             className={`px-8 py-2.5 rounded-xl font-medium transition-all duration-300 ${activeTab === tab
-                                    ? 'bg-[#e0e5ec] text-blue-600 shadow-[6px_6px_12px_#b8b9be,-6px_-6px_12px_#ffffff]'
-                                    : 'text-gray-500 hover:text-gray-700'
+                                ? 'bg-[#e0e5ec] text-blue-600 shadow-[6px_6px_12px_#b8b9be,-6px_-6px_12px_#ffffff]'
+                                : 'text-gray-500 hover:text-gray-700'
                                 }`}
                         >
                             {tab.charAt(0).toUpperCase() + tab.slice(1)}s
