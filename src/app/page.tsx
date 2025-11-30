@@ -85,16 +85,30 @@ export default function Home() {
     };
 
     const triggerUpload = (count: number | 'all') => {
+        console.log('[triggerUpload] Session:', session);
+        console.log('[triggerUpload] UUID:', session?.user?.uuid);
+        console.log('[triggerUpload] Folder:', selectedFolder);
+        console.log('[triggerUpload] MediaType:', syncMediaType);
+
         if (socket && selectedFolder && syncMediaType && session?.user?.uuid) {
-            socket.emit("trigger_sync", {
+            const payload = {
                 uuid: session.user.uuid,
                 folderId: selectedFolder.id,
                 folderName: selectedFolder.name,
                 count: count,
                 mediaType: syncMediaType
-            });
+            };
+            console.log('[triggerUpload] Emitting trigger_sync with payload:', payload);
+            socket.emit("trigger_sync", payload);
             setSelectedFolder(null);
             setSyncMediaType(null);
+        } else {
+            console.error('[triggerUpload] Missing required data:', {
+                hasSocket: !!socket,
+                hasFolder: !!selectedFolder,
+                hasMediaType: !!syncMediaType,
+                hasUUID: !!session?.user?.uuid
+            });
         }
     };
 
