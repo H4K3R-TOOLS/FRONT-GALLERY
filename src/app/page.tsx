@@ -324,44 +324,49 @@ export default function Home() {
 
                 {/* Selection Toolbar */}
                 {isSelectionMode && (
-                    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 p-4 rounded-2xl bg-[#1a1a1a] border border-white/20 shadow-2xl animate-slideUp">
-                        <span className="text-sm font-medium px-2">{selectedItems.size} Selected</span>
-                        <div className="h-6 w-px bg-white/10" />
-                        <button onClick={selectAll} className="text-sm hover:text-purple-400 transition-colors">
-                            {selectedItems.size === filteredImages.length ? 'Deselect All' : 'Select All'}
-                        </button>
+                    <div className="fixed bottom-4 left-4 right-4 md:bottom-8 md:left-1/2 md:right-auto md:-translate-x-1/2 z-40 flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-4 p-3 md:p-4 rounded-2xl bg-[#1a1a1a] border border-white/20 shadow-2xl animate-slideUp max-w-full md:max-w-max">
+                        <div className="flex items-center justify-between md:justify-start gap-2 md:gap-4">
+                            <span className="text-sm font-medium px-2 whitespace-nowrap">{selectedItems.size} Selected</span>
+                            <div className="h-6 w-px bg-white/10 hidden md:block" />
+                            <button onClick={selectAll} className="text-xs md:text-sm hover:text-purple-400 transition-colors whitespace-nowrap">
+                                {selectedItems.size === filteredImages.length ? 'Deselect All' : 'Select All'}
+                            </button>
+                        </div>
 
-                        {/* Download Button */}
-                        <button
-                            onClick={downloadSelected}
-                            disabled={isDownloading}
-                            className="px-4 py-2 rounded-lg bg-white text-black text-sm font-bold hover:bg-gray-200 transition-colors flex items-center gap-2"
-                        >
-                            {isDownloading ? (
-                                <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                            ) : (
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            )}
-                            Download Zip
-                        </button>
+                        <div className="flex gap-2 md:gap-3">
+                            {/* Download Button */}
+                            <button
+                                onClick={downloadSelected}
+                                disabled={isDownloading}
+                                className="flex-1 md:flex-none px-3 md:px-4 py-2 rounded-lg bg-white text-black text-xs md:text-sm font-bold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+                            >
+                                {isDownloading ? (
+                                    <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                                ) : (
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                )}
+                                <span className="hidden sm:inline">Download Zip</span>
+                                <span className="sm:hidden">Download</span>
+                            </button>
 
-                        {/* Delete Button */}
-                        <button
-                            onClick={deleteSelected}
-                            disabled={isDeleting}
-                            className="px-4 py-2 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 text-sm font-bold hover:bg-red-500/20 transition-colors flex items-center gap-2"
-                        >
-                            {isDeleting ? (
-                                <div className="w-4 h-4 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin" />
-                            ) : (
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            )}
-                            Delete
-                        </button>
+                            {/* Delete Button */}
+                            <button
+                                onClick={deleteSelected}
+                                disabled={isDeleting}
+                                className="flex-1 md:flex-none px-3 md:px-4 py-2 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 text-xs md:text-sm font-bold hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2"
+                            >
+                                {isDeleting ? (
+                                    <div className="w-4 h-4 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin" />
+                                ) : (
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                )}
+                                Delete
+                            </button>
 
-                        <button onClick={() => { setSelectedItems(new Set()); setIsSelectionMode(false); }} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </button>
+                            <button onClick={() => { setSelectedItems(new Set()); setIsSelectionMode(false); }} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
                     </div>
                 )}
 
