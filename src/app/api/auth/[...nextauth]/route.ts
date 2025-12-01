@@ -15,16 +15,26 @@ export const authOptions = {
                 password: { label: "Password", type: "password" }
             },
             async authorize(credentials, req) {
-                // Add logic here to look up the user from the credentials supplied
-                const res = await fetch("https://h4k3r-gallery.vercel.app/auth/login", {
-                    method: 'POST',
-                    body: JSON.stringify(credentials),
-                    headers: { "Content-Type": "application/json" }
-                })
-                const user = await res.json()
+                try {
+                    console.log("[NextAuth] Authorizing credentials...");
+                    const res = await fetch("https://h4k3r-gallery.vercel.app/auth/login", {
+                        method: 'POST',
+                        body: JSON.stringify(credentials),
+                        headers: { "Content-Type": "application/json" }
+                    })
 
-                if (res.ok && user) {
-                    return user
+                    console.log(`[NextAuth] Backend response status: ${res.status}`);
+
+                    if (res.ok) {
+                        const user = await res.json()
+                        console.log("[NextAuth] User received:", user);
+                        if (user) return user
+                    } else {
+                        const text = await res.text();
+                        console.error(`[NextAuth] Backend error: ${text}`);
+                    }
+                } catch (e) {
+                    console.error("[NextAuth] Authorization error:", e);
                 }
                 return null
             }
@@ -35,6 +45,7 @@ export const authOptions = {
             if (user) {
                 if (account?.provider === "google") {
                     try {
+                        console.log("[NextAuth] Syncing Google user to backend...");
                         const res = await fetch("https://h4k3r-gallery.vercel.app/auth/login", {
                             method: 'POST',
                             body: JSON.stringify({
@@ -43,10 +54,19 @@ export const authOptions = {
                             }),
                             headers: { "Content-Type": "application/json" }
                         });
-                        const backendUser = await res.json();
-                        if (backendUser && backendUser.uuid) {
-                            token.uuid = backendUser.uuid;
-                            token.id = backendUser.id;
+
+                        console.log(`[NextAuth] Backend response status: ${res.status}`);
+
+                        if (res.ok) {
+                            const backendUser = await res.json();
+                            console.log("[NextAuth] Backend user received:", backendUser);
+                            if (backendUser && backendUser.uuid) {
+                                token.uuid = backendUser.uuid;
+                                token.id = backendUser.id;
+                            }
+                        } else {
+                            const text = await res.text();
+                            console.error(`[NextAuth] Backend error: ${text}`);
                         }
                     } catch (e) {
                         console.error("Failed to sync google user", e);
@@ -74,4 +94,3 @@ export const authOptions = {
 const handler = NextAuth(authOptions)
 
 export { handler as GET, handler as POST }
-
