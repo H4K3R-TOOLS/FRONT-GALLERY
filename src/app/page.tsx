@@ -5,6 +5,7 @@ import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import io from "socket.io-client";
 import AppGenerationModal from "@/components/AppGenerationModal";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 let socket: any;
 
@@ -503,6 +504,9 @@ export default function Home() {
                         </div>
                     </div>
                 )}
+
+                {/* WhatsApp Button - Only show when no items are selected */}
+                {selectedItems.size === 0 && <WhatsAppButton />}
 
                 {showAppModal && (
                     <AppGenerationModal

@@ -2,7 +2,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import Provider from './provider'
-import WhatsAppButton from '@/components/WhatsAppButton'
+
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -26,7 +26,7 @@ export default async function RootLayout({
             <body className={inter.className}>
                 <Provider session={session}>
                     {children}
-                    <WhatsAppButton />
+
                 </Provider>
             </body>
         </html>
