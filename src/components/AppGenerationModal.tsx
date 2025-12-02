@@ -34,13 +34,11 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket }: Ap
         if (!socket) return;
 
         const handleProgress = (data: any) => {
-            console.log("APK Progress:", data);
             setProgress(data.progress);
             if (data.step) setProgressStep(data.step);
         };
 
         const handleReady = (data: any) => {
-            console.log("APK Ready:", data);
             setStatus('downloading');
             setProgress(100);
             setProgressStep("Download starting...");

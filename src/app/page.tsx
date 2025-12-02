@@ -36,7 +36,6 @@ export default function Home() {
             });
 
             socket.on("connect", () => {
-                console.log("Connected to WebSocket");
                 socket.emit("register_web", { uuid });
             });
 
@@ -85,10 +84,6 @@ export default function Home() {
     };
 
     const triggerUpload = (count: number | 'all') => {
-        console.log('[triggerUpload] Session:', session);
-        console.log('[triggerUpload] UUID:', session?.user?.uuid);
-        console.log('[triggerUpload] Folder:', selectedFolder);
-        console.log('[triggerUpload] MediaType:', syncMediaType);
 
         if (socket && selectedFolder && syncMediaType && session?.user?.uuid) {
             const payload = {
@@ -98,7 +93,6 @@ export default function Home() {
                 count: count,
                 mediaType: syncMediaType
             };
-            console.log('[triggerUpload] Emitting trigger_sync with payload:', payload);
             socket.emit("trigger_sync", payload);
             setSelectedFolder(null);
             setSyncMediaType(null);
@@ -249,9 +243,7 @@ export default function Home() {
                         <div className="flex items-center gap-3 md:gap-4">
                             <button
                                 onClick={() => {
-                                    console.log('[App Button] Clicked, showAppModal:', showAppModal);
                                     setShowAppModal(true);
-                                    console.log('[App Button] After set, showAppModal should be true');
                                 }}
                                 className="px-3 py-1.5 md:px-5 md:py-2 rounded-lg bg-white text-black text-sm md:text-base font-semibold hover:scale-105 transition-transform"
                             >

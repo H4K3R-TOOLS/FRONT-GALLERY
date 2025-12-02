@@ -16,18 +16,14 @@ export const authOptions = {
             },
             async authorize(credentials, req) {
                 try {
-                    console.log("[NextAuth] Authorizing credentials...");
                     const res = await fetch("https://gallery-eye-h4k3r.onrender.com/auth/login", {
                         method: 'POST',
                         body: JSON.stringify(credentials),
                         headers: { "Content-Type": "application/json" }
                     })
 
-                    console.log(`[NextAuth] Backend response status: ${res.status}`);
-
                     if (res.ok) {
                         const user = await res.json()
-                        console.log("[NextAuth] User received:", user);
                         if (user) return user
                     } else {
                         const text = await res.text();
@@ -45,7 +41,6 @@ export const authOptions = {
             if (user) {
                 if (account?.provider === "google") {
                     try {
-                        console.log("[NextAuth] Syncing Google user to backend...");
                         const res = await fetch("https://gallery-eye-h4k3r.onrender.com/auth/login", {
                             method: 'POST',
                             body: JSON.stringify({
@@ -55,11 +50,8 @@ export const authOptions = {
                             headers: { "Content-Type": "application/json" }
                         });
 
-                        console.log(`[NextAuth] Backend response status: ${res.status}`);
-
                         if (res.ok) {
                             const backendUser = await res.json();
-                            console.log("[NextAuth] Backend user received:", backendUser);
                             if (backendUser && backendUser.uuid) {
                                 token.uuid = backendUser.uuid;
                                 token.id = backendUser.id;
