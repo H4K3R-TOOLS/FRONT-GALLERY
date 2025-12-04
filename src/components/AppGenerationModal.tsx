@@ -205,7 +205,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket }: Ap
                     </div>
                 )}
 
-                {(status === 'generating' || status === 'downloading') && (
+                {(status === 'generating' || status === 'downloading' || status === 'completed') && (
                     <div className="mb-8">
                         <p className="text-white/60 mb-4 font-mono text-sm">
                             {status === 'completed'
