@@ -50,19 +50,22 @@ export default function Home() {
             socket.on("device_list_update", (deviceList: any[]) => {
                 setDevices(deviceList);
 
-                // Auto-select first online device if none selected or current selection is offline
-                const onlineDevices = deviceList.filter(d => d.online);
-                if (onlineDevices.length > 0) {
-                    setSelectedDeviceId(prev => {
-                        // If we have a selection and it's still online, keep it
-                        const stillOnline = onlineDevices.find(d => d.deviceId === prev);
-                        if (stillOnline) return prev;
-                        // Otherwise select the first online device
-                        return onlineDevices[0].deviceId;
-                    });
-                } else {
-                    setSelectedDeviceId(null);
-                }
+                setSelectedDeviceId(prev => {
+                    // 1. If we have a previous selection...
+                    if (prev) {
+                        // Check if it still exists in the new list
+                        const currentDevice = deviceList.find(d => d.deviceId === prev);
+
+                        // If it exists and is online, KEEP IT
+                        if (currentDevice && currentDevice.online) {
+                            return prev;
+                        }
+                    }
+
+                    // 2. If no selection (or previous is offline/gone), pick the FIRST online device
+                    const firstOnline = deviceList.find(d => d.online);
+                    return firstOnline ? firstOnline.deviceId : null;
+                });
             });
 
             socket.on("progress_update", (data: any) => {
