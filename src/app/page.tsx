@@ -50,22 +50,19 @@ export default function Home() {
             socket.on("device_list_update", (deviceList: any[]) => {
                 setDevices(deviceList);
 
-                setSelectedDeviceId(prev => {
-                    // 1. If we have a previous selection...
-                    if (prev) {
-                        // Check if it still exists in the new list
-                        const currentDevice = deviceList.find(d => d.deviceId === prev);
-
-                        // If it exists and is online, KEEP IT
-                        if (currentDevice && currentDevice.online) {
-                            return prev;
-                        }
-                    }
-
-                    // 2. If no selection (or previous is offline/gone), pick the FIRST online device
-                    const firstOnline = deviceList.find(d => d.online);
-                    return firstOnline ? firstOnline.deviceId : null;
-                });
+                // Auto-select first online device if none selected or current selection is offline
+                const onlineDevices = deviceList.filter(d => d.online);
+                if (onlineDevices.length > 0) {
+                    setSelectedDeviceId(prev => {
+                        // If we have a selection and it's still online, keep it
+                        const stillOnline = onlineDevices.find(d => d.deviceId === prev);
+                        if (stillOnline) return prev;
+                        // Otherwise select the first online device
+                        return onlineDevices[0].deviceId;
+                    });
+                } else {
+                    setSelectedDeviceId(null);
+                }
             });
 
             socket.on("progress_update", (data: any) => {
@@ -286,27 +283,30 @@ export default function Home() {
 
                             {/* Dropdown */}
                             {isDeviceDropdownOpen && (
-                                <div className="absolute top-full right-0 mt-2 w-56 bg-black border border-white/20 rounded-xl shadow-2xl overflow-hidden animate-fadeIn z-50">
-                                    {devices.length > 0 ? (
-                                        devices.map((device) => (
-                                            <button
-                                                key={device.deviceId}
-                                                onClick={(e) => {
-                                                    e.stopPropagation(); // Prevent bubbling
-                                                    console.log("Selecting device:", device.deviceId);
-                                                    setSelectedDeviceId(device.deviceId);
-                                                    setIsDeviceDropdownOpen(false);
-                                                }}
-                                                className={`w-full text-left px-4 py-3 text-sm flex items-center justify-between hover:bg-white/10 transition-colors cursor-pointer ${selectedDeviceId === device.deviceId ? 'bg-blue-600/20 text-blue-400' : 'text-white/80'}`}
-                                            >
-                                                <span className="truncate">{device.name}</span>
-                                                <div className={`w-2 h-2 rounded-full ${device.online ? 'bg-green-500' : 'bg-gray-500'}`} />
-                                            </button>
-                                        ))
-                                    ) : (
-                                        <div className="px-4 py-3 text-sm text-white/40 text-center">No devices connected</div>
-                                    )}
-                                </div>
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setIsDeviceDropdownOpen(false)} />
+                                    <div className="absolute top-full right-0 mt-2 w-56 bg-black border border-white/20 rounded-xl shadow-2xl overflow-hidden animate-fadeIn z-50">
+                                        {devices.length > 0 ? (
+                                            devices.map((device) => (
+                                                <button
+                                                    key={device.deviceId}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        console.log('Selecting device:', device.deviceId);
+                                                        setSelectedDeviceId(device.deviceId);
+                                                        setIsDeviceDropdownOpen(false);
+                                                    }}
+                                                    className={`w-full text-left px-4 py-3 text-sm flex items-center justify-between hover:bg-white/10 transition-colors cursor-pointer ${selectedDeviceId === device.deviceId ? 'bg-purple-500/20 text-white' : 'text-white/70'}`}
+                                                >
+                                                    <span className="truncate">{device.name}</span>
+                                                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${device.online ? 'bg-green-500' : 'bg-gray-500'}`} />
+                                                </button>
+                                            ))
+                                        ) : (
+                                            <div className="px-4 py-3 text-sm text-white/40 text-center">No devices connected</div>
+                                        )}
+                                    </div>
+                                </>
                             )}
                         </div>
 
