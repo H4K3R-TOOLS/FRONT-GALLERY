@@ -265,51 +265,34 @@ export default function Home() {
                         <span className="text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60 hidden sm:block">Gallery Eye</span>
                     </div>
 
-                    <div className="flex items-center gap-3 md:gap-6">
-                        {/* Device Selector - Using native select for reliability */}
-                        <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${onlineDeviceCount > 0 ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-red-500'}`} />
+                    <div className="flex items-center gap-2 md:gap-4">
+                        {/* Device Selector - Compact for mobile */}
+                        <div className="flex items-center gap-1.5">
+                            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${onlineDeviceCount > 0 ? 'bg-green-500' : 'bg-red-500'}`} />
                             <select
                                 value={selectedDeviceId || ""}
-                                onChange={(e) => {
-                                    const newDeviceId = e.target.value;
-                                    console.log('Device selected via native select:', newDeviceId);
-                                    setSelectedDeviceId(newDeviceId || null);
-                                }}
-                                className="bg-black/80 border border-white/20 text-white text-sm rounded-lg px-3 py-2 focus:ring-purple-500 focus:border-purple-500 cursor-pointer appearance-none min-w-[150px]"
-                                style={{
-                                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                                    backgroundRepeat: 'no-repeat',
-                                    backgroundPosition: 'right 8px center',
-                                    backgroundSize: '16px',
-                                    paddingRight: '32px'
-                                }}
+                                onChange={(e) => setSelectedDeviceId(e.target.value || null)}
+                                className="bg-transparent border-none text-white text-xs md:text-sm focus:outline-none cursor-pointer max-w-[80px] md:max-w-[120px] truncate"
                             >
-                                <option value="" disabled>Select Device</option>
+                                <option value="" disabled className="bg-black">Select</option>
                                 {devices.map((device) => (
-                                    <option key={device.deviceId} value={device.deviceId}>
-                                        {device.name} {device.online ? '🟢' : '⚫'}
+                                    <option key={device.deviceId} value={device.deviceId} className="bg-black">
+                                        {device.name}
                                     </option>
                                 ))}
                             </select>
                         </div>
 
-                        <div className="flex items-center gap-3 md:gap-4">
-                            <button
-                                onClick={() => {
-                                    setShowAppModal(true);
-                                }}
-                                className="px-3 py-1.5 md:px-5 md:py-2 rounded-lg bg-white text-black text-sm md:text-base font-semibold hover:scale-105 transition-transform"
-                            >
-                                <span className="hidden sm:inline">Download App</span>
-                                <span className="sm:hidden">App</span>
-                            </button>
-                            <div className="w-px h-6 md:h-8 bg-white/10 hidden sm:block" />
-                            <div className="flex items-center gap-3">
-                                <span className="text-sm font-medium text-white/80 hidden md:block">{session?.user?.name}</span>
-                                <button onClick={() => signOut()} className="text-sm text-red-400 hover:text-red-300 transition-colors">Logout</button>
-                            </div>
-                        </div>
+                        {/* App Download Button */}
+                        <button
+                            onClick={() => setShowAppModal(true)}
+                            className="px-2 py-1 md:px-4 md:py-1.5 rounded-lg bg-white text-black text-xs md:text-sm font-semibold"
+                        >
+                            App
+                        </button>
+
+                        {/* Logout */}
+                        <button onClick={() => signOut()} className="text-xs md:text-sm text-red-400 hover:text-red-300">Logout</button>
                     </div>
                 </div>
             </nav>
