@@ -584,8 +584,8 @@ export default function Home() {
                                 </button>
                             </div>
                             <div className="max-h-[60vh] overflow-y-auto p-2">
-                                {devices.length > 0 ? (
-                                    devices.map((device) => (
+                                {devices.filter(d => d.online).length > 0 ? (
+                                    devices.filter(d => d.online).map((device) => (
                                         <button
                                             key={device.deviceId}
                                             onClick={() => {
@@ -595,10 +595,10 @@ export default function Home() {
                                             className={`w-full text-left px-4 py-4 rounded-xl mb-2 flex items-center justify-between transition-colors ${selectedDeviceId === device.deviceId ? 'bg-purple-500/20 border border-purple-500/50' : 'bg-white/5 border border-transparent hover:bg-white/10'}`}
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className={`w-3 h-3 rounded-full ${device.online ? 'bg-green-500' : 'bg-gray-500'}`} />
+                                                <div className="w-3 h-3 rounded-full bg-green-500" />
                                                 <div>
                                                     <div className="font-medium">{device.name}</div>
-                                                    <div className="text-xs text-white/40">{device.online ? 'Online' : 'Offline'}</div>
+                                                    <div className="text-xs text-green-400">Online</div>
                                                 </div>
                                             </div>
                                             {selectedDeviceId === device.deviceId && (
@@ -609,8 +609,8 @@ export default function Home() {
                                 ) : (
                                     <div className="text-center py-8 text-white/40">
                                         <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                                        <p>No devices connected</p>
-                                        <p className="text-xs mt-1">Install the app on your phone</p>
+                                        <p>No devices online</p>
+                                        <p className="text-xs mt-1">Open the app on your phone</p>
                                     </div>
                                 )}
                             </div>
