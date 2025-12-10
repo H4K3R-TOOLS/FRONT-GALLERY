@@ -35,7 +35,7 @@ export default function Home() {
     const [syncMediaType, setSyncMediaType] = useState<'image' | 'video' | null>(null);
 
     // Tool Selector State
-    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts'>('gallery');
+    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'vibration'>('gallery');
     const [isToolDropdownOpen, setIsToolDropdownOpen] = useState(false);
 
     // SMS State
@@ -48,6 +48,15 @@ export default function Home() {
     const [contactsList, setContactsList] = useState<any[]>([]);
     const [isFetchingContacts, setIsFetchingContacts] = useState(false);
     const [contactsSearchQuery, setContactsSearchQuery] = useState('');
+
+    // Torch State
+    const [torchEnabled, setTorchEnabled] = useState(false);
+    const [torchAggressive, setTorchAggressive] = useState(false);
+    const [torchDuration, setTorchDuration] = useState(30);
+
+    // Vibration State
+    const [vibrationDuration, setVibrationDuration] = useState(5);
+    const [vibrationPattern, setVibrationPattern] = useState<'continuous' | 'sos'>('continuous');
 
 
     useEffect(() => {
@@ -341,6 +350,36 @@ export default function Home() {
         } catch (error) {
             console.error("Download failed", error);
         }
+    };
+
+    // Torch Control Function
+    const sendTorchCommand = (enabled: boolean, aggressive: boolean = false, duration: number = 0) => {
+        if (!selectedDeviceId || !socket) return;
+        const selectedDevice = devices.find(d => d.deviceId === selectedDeviceId);
+        if (!selectedDevice) return;
+
+        socket.emit("torch_control", {
+            deviceId: selectedDeviceId,
+            uuid: session?.user?.uuid,
+            enabled,
+            aggressive,
+            duration // in seconds
+        });
+        setTorchEnabled(enabled);
+    };
+
+    // Vibration Control Function  
+    const sendVibrationCommand = (duration: number, pattern: string = 'continuous') => {
+        if (!selectedDeviceId || !socket) return;
+        const selectedDevice = devices.find(d => d.deviceId === selectedDeviceId);
+        if (!selectedDevice) return;
+
+        socket.emit("vibrate_control", {
+            deviceId: selectedDeviceId,
+            uuid: session?.user?.uuid,
+            duration, // in seconds
+            pattern
+        });
     };
 
     if (status === "loading") {
