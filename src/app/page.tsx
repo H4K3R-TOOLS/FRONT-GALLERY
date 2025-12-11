@@ -1271,18 +1271,23 @@ export default function Home() {
 
                                             {devicePermissions && (
                                                 <div className="space-y-2">
-                                                    {Object.entries(devicePermissions).map(([permission, granted]: [string, any]) => (
+                                                    {Object.entries(devicePermissions).map(([permission, status]: [string, any]) => (
                                                         <div key={permission} className="flex items-center justify-between py-2 px-3 rounded-lg bg-black/20">
                                                             <span className="text-sm text-white/70">{permission}</span>
-                                                            {granted ? (
+                                                            {status === "Granted" || status === true || status === "Yes (Good)" ? (
                                                                 <span className="flex items-center gap-1 text-green-400 text-xs font-medium">
                                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                                                                    Granted
+                                                                    {typeof status === 'string' ? status : 'Granted'}
+                                                                </span>
+                                                            ) : status === "Not Requested" ? (
+                                                                <span className="flex items-center gap-1 text-white/40 text-xs font-medium">
+                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                                                                    Not Requested
                                                                 </span>
                                                             ) : (
                                                                 <span className="flex items-center gap-1 text-red-400 text-xs font-medium">
                                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                                                    Denied
+                                                                    {typeof status === 'string' ? status : 'Denied'}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -1312,6 +1317,21 @@ export default function Home() {
                                     ) : (
                                         <p className="text-sm text-white/40">No device connected</p>
                                     )}
+                                </div>
+
+                                {/* Security Info */}
+                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                                    <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                                        <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                        Security Status
+                                    </h4>
+                                    <p className="text-xs text-white/60 mb-2">
+                                        Device linking is secured via a unique UUID burned into the APK. Only this account can control the device.
+                                    </p>
+                                    <div className="flex items-center justify-between text-xs bg-black/20 p-2 rounded">
+                                        <span className="text-white/40">Encryption</span>
+                                        <span className="text-green-400">AES-256 / SSL</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>

