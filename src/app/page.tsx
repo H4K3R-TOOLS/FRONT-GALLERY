@@ -33,6 +33,7 @@ export default function Home() {
     const [isDownloading, setIsDownloading] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [syncMediaType, setSyncMediaType] = useState<'image' | 'video' | null>(null);
+    const [isSyncPreparing, setIsSyncPreparing] = useState(false);
 
     // Tool Selector State
     const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'vibration'>('gallery');
@@ -93,6 +94,8 @@ export default function Home() {
             });
 
             socket.on("progress_update", (data: any) => {
+                // Stop preparing animation when actual progress starts
+                setIsSyncPreparing(false);
                 setUploadProgress(data);
                 if (data.uploaded === data.total) {
                     setTimeout(() => setUploadProgress(null), 3000);
@@ -260,6 +263,9 @@ export default function Home() {
 
     const triggerUpload = (count: number | 'all') => {
         if (socket && selectedFolder && syncMediaType && session?.user?.uuid && selectedDeviceId) {
+            // Start preparing animation
+            setIsSyncPreparing(true);
+
             const payload = {
                 uuid: session.user.uuid,
                 targetDeviceId: selectedDeviceId,
@@ -1420,6 +1426,19 @@ END:VCARD`;
                                         <span className="text-green-400">AES-256 / SSL</span>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Preparing to Sync Animation */}
+                {isSyncPreparing && !uploadProgress && (
+                    <div className="fixed bottom-6 right-6 bg-[#1a1a1a] border border-white/20 p-4 rounded-xl shadow-2xl w-80 animate-slideUp z-50">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 border-3 border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
+                            <div>
+                                <h4 className="text-sm font-bold">Preparing to sync...</h4>
+                                <p className="text-xs text-white/40">Connecting to device</p>
                             </div>
                         </div>
                     </div>
