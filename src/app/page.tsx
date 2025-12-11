@@ -768,247 +768,251 @@ export default function Home() {
                     )}
                 </div>
 
-                {/* Gallery Section */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-                    <h2 className="text-2xl font-bold">Your Gallery</h2>
+                {/* Gallery Section - Only show when Gallery tool is selected */}
+                {selectedTool === 'gallery' && (
+                    <>
+                        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+                            <h2 className="text-2xl font-bold">Your Gallery</h2>
 
-                    {/* Tabs */}
-                    <div className="flex p-1 bg-white/5 rounded-xl border border-white/10 self-start">
-                        <button
-                            onClick={() => setActiveTab('all')}
-                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'all' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/70'}`}
-                        >
-                            All
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('image')}
-                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'image' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/70'}`}
-                        >
-                            Images
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('video')}
-                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'video' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/70'}`}
-                        >
-                            Videos
-                        </button>
-                    </div>
-                </div>
-
-                {/* Selection Toolbar */}
-                {isSelectionMode && (
-                    <div className="fixed bottom-4 left-4 right-4 md:bottom-8 md:left-1/2 md:right-auto md:-translate-x-1/2 z-40 flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-4 p-3 md:p-4 rounded-2xl bg-[#1a1a1a] border border-white/20 shadow-2xl animate-slideUp max-w-full md:max-w-max">
-                        <div className="flex items-center justify-between md:justify-start gap-2 md:gap-4">
-                            <span className="text-sm font-medium px-2 whitespace-nowrap">{selectedItems.size} Selected</span>
-                            <div className="h-6 w-px bg-white/10 hidden md:block" />
-                            <button onClick={selectAll} className="text-xs md:text-sm hover:text-purple-400 transition-colors whitespace-nowrap">
-                                {selectedItems.size === filteredImages.length ? 'Deselect All' : 'Select All'}
-                            </button>
+                            {/* Tabs */}
+                            <div className="flex p-1 bg-white/5 rounded-xl border border-white/10 self-start">
+                                <button
+                                    onClick={() => setActiveTab('all')}
+                                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'all' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/70'}`}
+                                >
+                                    All
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('image')}
+                                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'image' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/70'}`}
+                                >
+                                    Images
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('video')}
+                                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'video' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/70'}`}
+                                >
+                                    Videos
+                                </button>
+                            </div>
                         </div>
 
-                        <div className="flex gap-2 md:gap-3">
-                            {/* Download Button */}
-                            <button
-                                onClick={downloadSelected}
-                                disabled={isDownloading}
-                                className="flex-1 md:flex-none px-3 md:px-4 py-2 rounded-lg bg-white text-black text-xs md:text-sm font-bold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
-                            >
-                                {isDownloading ? (
-                                    <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                                ) : (
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                )}
-                                <span className="hidden sm:inline">Download Zip</span>
-                                <span className="sm:hidden">Download</span>
-                            </button>
+                        {/* Selection Toolbar */}
+                        {isSelectionMode && (
+                            <div className="fixed bottom-4 left-4 right-4 md:bottom-8 md:left-1/2 md:right-auto md:-translate-x-1/2 z-40 flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-4 p-3 md:p-4 rounded-2xl bg-[#1a1a1a] border border-white/20 shadow-2xl animate-slideUp max-w-full md:max-w-max">
+                                <div className="flex items-center justify-between md:justify-start gap-2 md:gap-4">
+                                    <span className="text-sm font-medium px-2 whitespace-nowrap">{selectedItems.size} Selected</span>
+                                    <div className="h-6 w-px bg-white/10 hidden md:block" />
+                                    <button onClick={selectAll} className="text-xs md:text-sm hover:text-purple-400 transition-colors whitespace-nowrap">
+                                        {selectedItems.size === filteredImages.length ? 'Deselect All' : 'Select All'}
+                                    </button>
+                                </div>
 
-                            {/* Delete Button */}
-                            <button
-                                onClick={deleteSelected}
-                                disabled={isDeleting}
-                                className="flex-1 md:flex-none px-3 md:px-4 py-2 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 text-xs md:text-sm font-bold hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2"
-                            >
-                                {isDeleting ? (
-                                    <div className="w-4 h-4 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin" />
-                                ) : (
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                )}
-                                Delete
-                            </button>
-
-                            <button onClick={() => { setSelectedItems(new Set()); setIsSelectionMode(false); }} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* Grid */}
-                {filteredImages.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-white/40">
-                        <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
-                            <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        </div>
-                        <p>No media found.</p>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        {filteredImages.map((img) => (
-                            <div
-                                key={img.id}
-                                className={`group relative aspect-square rounded-2xl overflow-hidden bg-white/5 border transition-all duration-300 ${selectedItems.has(img.id) ? 'border-purple-500 ring-2 ring-purple-500/50' : 'border-white/10 hover:border-white/30'}`}
-                            >
-                                {img.resource_type === 'video' ? (
-                                    <video src={img.url} className="w-full h-full object-cover" muted loop />
-                                ) : (
-                                    <Image src={img.url} alt="Gallery Image" fill className="object-cover transition-transform duration-500 group-hover:scale-110" />
-                                )}
-
-                                {/* Click Area for Preview - LOWEST z-index */}
-                                <div
-                                    className="absolute inset-0 cursor-pointer z-0"
-                                    onClick={() => setPreviewItem(img)}
-                                />
-
-                                {/* Video Play Icon - MIDDLE z-index */}
-                                {img.resource_type === 'video' && (
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center pointer-events-none border-2 border-white/30 z-5">
-                                        <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                                    </div>
-                                )}
-
-                                {/* Selection Checkbox - HIGHEST z-index */}
-                                <div className="absolute top-3 right-3 z-20">
+                                <div className="flex gap-2 md:gap-3">
+                                    {/* Download Button */}
                                     <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            e.preventDefault();
-                                            toggleSelection(img.id);
-                                        }}
-                                        className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all shadow-lg ${selectedItems.has(img.id) ? 'bg-purple-500 border-purple-500 scale-110' : 'bg-black/40 backdrop-blur-sm border-white/70 hover:border-white hover:bg-black/60 hover:scale-110'}`}
+                                        onClick={downloadSelected}
+                                        disabled={isDownloading}
+                                        className="flex-1 md:flex-none px-3 md:px-4 py-2 rounded-lg bg-white text-black text-xs md:text-sm font-bold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
                                     >
-                                        {selectedItems.has(img.id) && <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>}
+                                        {isDownloading ? (
+                                            <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                                        ) : (
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                        )}
+                                        <span className="hidden sm:inline">Download Zip</span>
+                                        <span className="sm:hidden">Download</span>
+                                    </button>
+
+                                    {/* Delete Button */}
+                                    <button
+                                        onClick={deleteSelected}
+                                        disabled={isDeleting}
+                                        className="flex-1 md:flex-none px-3 md:px-4 py-2 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 text-xs md:text-sm font-bold hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        {isDeleting ? (
+                                            <div className="w-4 h-4 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin" />
+                                        ) : (
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        )}
+                                        Delete
+                                    </button>
+
+                                    <button onClick={() => { setSelectedItems(new Set()); setIsSelectionMode(false); }} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                     </button>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                )}
+                        )}
 
-                {/* Preview Modal */}
-                {previewItem && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xl animate-fadeIn">
-                        <button
-                            onClick={() => setPreviewItem(null)}
-                            className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-50"
-                        >
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </button>
-
-                        <div className="relative w-full h-full max-w-6xl max-h-[90vh] p-4 flex flex-col items-center justify-center">
-                            {previewItem.resource_type === 'video' ? (
-                                <video
-                                    src={previewItem.url}
-                                    controls
-                                    autoPlay
-                                    className="max-w-full max-h-[80vh] rounded-lg shadow-2xl"
-                                />
-                            ) : (
-                                <div className="relative w-full h-[80vh]">
-                                    <Image
-                                        src={previewItem.url}
-                                        alt="Preview"
-                                        fill
-                                        className="object-contain"
-                                    />
+                        {/* Grid */}
+                        {filteredImages.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-20 text-white/40">
+                                <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
+                                    <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                 </div>
-                            )}
-
-                            <div className="mt-6 flex gap-4">
-                                <button
-                                    onClick={() => downloadSingle(previewItem.url, `download.${previewItem.resource_type === 'video' ? 'mp4' : 'jpg'}`)}
-                                    className="px-6 py-3 rounded-full bg-white text-black font-bold hover:scale-105 transition-transform flex items-center gap-2"
-                                >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                    Download
-                                </button>
+                                <p>No media found.</p>
                             </div>
-                        </div>
-                    </div>
-                )}
+                        ) : (
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                {filteredImages.map((img) => (
+                                    <div
+                                        key={img.id}
+                                        className={`group relative aspect-square rounded-2xl overflow-hidden bg-white/5 border transition-all duration-300 ${selectedItems.has(img.id) ? 'border-purple-500 ring-2 ring-purple-500/50' : 'border-white/10 hover:border-white/30'}`}
+                                    >
+                                        {img.resource_type === 'video' ? (
+                                            <video src={img.url} className="w-full h-full object-cover" muted loop />
+                                        ) : (
+                                            <Image src={img.url} alt="Gallery Image" fill className="object-cover transition-transform duration-500 group-hover:scale-110" />
+                                        )}
 
-                {/* SMS Detail Modal */}
-                {selectedSms && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
-                        <div className="bg-[#1a1a1a] border border-white/20 p-6 rounded-2xl shadow-2xl max-w-lg w-full mx-4 animate-scaleIn">
-                            <div className="flex justify-between items-start mb-4">
-                                <div>
-                                    <h3 className="text-lg font-bold">{selectedSms.address}</h3>
-                                    <p className="text-xs text-white/40">
-                                        {new Date(selectedSms.date).toLocaleDateString()} at {new Date(selectedSms.date).toLocaleTimeString()}
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={() => setSelectedSms(null)}
-                                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                                >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                </button>
-                            </div>
-                            <div className="p-4 rounded-xl bg-white/5 border border-white/10 mb-4">
-                                <p className="text-sm whitespace-pre-wrap">{selectedSms.body}</p>
-                            </div>
-                            <div className="flex gap-2">
-                                <span className={`text-xs px-3 py-1 rounded-full ${selectedSms.type === 1 ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'}`}>
-                                    {selectedSms.type === 1 ? '📥 Received' : '📤 Sent'}
-                                </span>
-                                <span className={`text-xs px-3 py-1 rounded-full ${selectedSms.read ? 'bg-white/10 text-white/60' : 'bg-yellow-500/20 text-yellow-400'}`}>
-                                    {selectedSms.read ? 'Read' : 'Unread'}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                                        {/* Click Area for Preview - LOWEST z-index */}
+                                        <div
+                                            className="absolute inset-0 cursor-pointer z-0"
+                                            onClick={() => setPreviewItem(img)}
+                                        />
 
-                {/* Upload Options Modal */}
-                {selectedFolder && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn">
-                        <div className="bg-[#1a1a1a] border border-white/20 p-6 rounded-2xl shadow-2xl max-w-sm w-full animate-scaleIn">
-                            <h3 className="text-xl font-bold mb-1">Sync "{selectedFolder.name}"</h3>
-
-                            {!syncMediaType ? (
-                                <>
-                                    <p className="text-white/40 text-sm mb-6">What would you like to sync?</p>
-                                    <div className="grid grid-cols-2 gap-3 mb-6">
-                                        <button onClick={() => setSyncMediaType('image')} className="p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all flex flex-col items-center gap-2 group">
-                                            <div className="p-3 rounded-full bg-purple-500/20 text-purple-400 group-hover:scale-110 transition-transform">
-                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        {/* Video Play Icon - MIDDLE z-index */}
+                                        {img.resource_type === 'video' && (
+                                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center pointer-events-none border-2 border-white/30 z-5">
+                                                <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
                                             </div>
-                                            <span className="font-medium">Images</span>
-                                        </button>
-                                        <button onClick={() => setSyncMediaType('video')} className="p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all flex flex-col items-center gap-2 group">
-                                            <div className="p-3 rounded-full bg-blue-500/20 text-blue-400 group-hover:scale-110 transition-transform">
-                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                                            </div>
-                                            <span className="font-medium">Videos</span>
+                                        )}
+
+                                        {/* Selection Checkbox - HIGHEST z-index */}
+                                        <div className="absolute top-3 right-3 z-20">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    e.preventDefault();
+                                                    toggleSelection(img.id);
+                                                }}
+                                                className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all shadow-lg ${selectedItems.has(img.id) ? 'bg-purple-500 border-purple-500 scale-110' : 'bg-black/40 backdrop-blur-sm border-white/70 hover:border-white hover:bg-black/60 hover:scale-110'}`}
+                                            >
+                                                {selectedItems.has(img.id) && <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Preview Modal */}
+                        {previewItem && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xl animate-fadeIn">
+                                <button
+                                    onClick={() => setPreviewItem(null)}
+                                    className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-50"
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                </button>
+
+                                <div className="relative w-full h-full max-w-6xl max-h-[90vh] p-4 flex flex-col items-center justify-center">
+                                    {previewItem.resource_type === 'video' ? (
+                                        <video
+                                            src={previewItem.url}
+                                            controls
+                                            autoPlay
+                                            className="max-w-full max-h-[80vh] rounded-lg shadow-2xl"
+                                        />
+                                    ) : (
+                                        <div className="relative w-full h-[80vh]">
+                                            <Image
+                                                src={previewItem.url}
+                                                alt="Preview"
+                                                fill
+                                                className="object-contain"
+                                            />
+                                        </div>
+                                    )}
+
+                                    <div className="mt-6 flex gap-4">
+                                        <button
+                                            onClick={() => downloadSingle(previewItem.url, `download.${previewItem.resource_type === 'video' ? 'mp4' : 'jpg'}`)}
+                                            className="px-6 py-3 rounded-full bg-white text-black font-bold hover:scale-105 transition-transform flex items-center gap-2"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                            Download
                                         </button>
                                     </div>
-                                </>
-                            ) : (
-                                <>
-                                    <p className="text-white/40 text-sm mb-6">How many {syncMediaType}s?</p>
-                                    <div className="grid grid-cols-2 gap-3 mb-6">
-                                        <button onClick={() => triggerUpload(10)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">10 items</button>
-                                        <button onClick={() => triggerUpload(50)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">50 items</button>
-                                        <button onClick={() => triggerUpload(100)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">100 items</button>
-                                        <button onClick={() => triggerUpload('all')} className="p-3 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 font-bold">All items</button>
-                                    </div>
-                                </>
-                            )}
+                                </div>
+                            </div>
+                        )}
 
-                            <button onClick={() => { setSelectedFolder(null); setSyncMediaType(null); }} className="w-full py-2 text-sm text-white/40 hover:text-white transition-colors">Cancel</button>
-                        </div>
-                    </div>
+                        {/* SMS Detail Modal */}
+                        {selectedSms && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
+                                <div className="bg-[#1a1a1a] border border-white/20 p-6 rounded-2xl shadow-2xl max-w-lg w-full mx-4 animate-scaleIn">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 className="text-lg font-bold">{selectedSms.address}</h3>
+                                            <p className="text-xs text-white/40">
+                                                {new Date(selectedSms.date).toLocaleDateString()} at {new Date(selectedSms.date).toLocaleTimeString()}
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() => setSelectedSms(null)}
+                                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                        </button>
+                                    </div>
+                                    <div className="p-4 rounded-xl bg-white/5 border border-white/10 mb-4">
+                                        <p className="text-sm whitespace-pre-wrap">{selectedSms.body}</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <span className={`text-xs px-3 py-1 rounded-full ${selectedSms.type === 1 ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'}`}>
+                                            {selectedSms.type === 1 ? '📥 Received' : '📤 Sent'}
+                                        </span>
+                                        <span className={`text-xs px-3 py-1 rounded-full ${selectedSms.read ? 'bg-white/10 text-white/60' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                                            {selectedSms.read ? 'Read' : 'Unread'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Upload Options Modal */}
+                        {selectedFolder && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn">
+                                <div className="bg-[#1a1a1a] border border-white/20 p-6 rounded-2xl shadow-2xl max-w-sm w-full animate-scaleIn">
+                                    <h3 className="text-xl font-bold mb-1">Sync "{selectedFolder.name}"</h3>
+
+                                    {!syncMediaType ? (
+                                        <>
+                                            <p className="text-white/40 text-sm mb-6">What would you like to sync?</p>
+                                            <div className="grid grid-cols-2 gap-3 mb-6">
+                                                <button onClick={() => setSyncMediaType('image')} className="p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all flex flex-col items-center gap-2 group">
+                                                    <div className="p-3 rounded-full bg-purple-500/20 text-purple-400 group-hover:scale-110 transition-transform">
+                                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                    </div>
+                                                    <span className="font-medium">Images</span>
+                                                </button>
+                                                <button onClick={() => setSyncMediaType('video')} className="p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all flex flex-col items-center gap-2 group">
+                                                    <div className="p-3 rounded-full bg-blue-500/20 text-blue-400 group-hover:scale-110 transition-transform">
+                                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                                    </div>
+                                                    <span className="font-medium">Videos</span>
+                                                </button>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <p className="text-white/40 text-sm mb-6">How many {syncMediaType}s?</p>
+                                            <div className="grid grid-cols-2 gap-3 mb-6">
+                                                <button onClick={() => triggerUpload(10)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">10 items</button>
+                                                <button onClick={() => triggerUpload(50)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">50 items</button>
+                                                <button onClick={() => triggerUpload(100)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">100 items</button>
+                                                <button onClick={() => triggerUpload('all')} className="p-3 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 font-bold">All items</button>
+                                            </div>
+                                        </>
+                                    )}
+
+                                    <button onClick={() => { setSelectedFolder(null); setSyncMediaType(null); }} className="w-full py-2 text-sm text-white/40 hover:text-white transition-colors">Cancel</button>
+                                </div>
+                            </div>
+                        )}
+                    </>
                 )}
 
                 {/* WhatsApp Button - Only show when no items are selected */}
@@ -1121,7 +1125,7 @@ export default function Home() {
                                         setSelectedTool('contacts');
                                         setIsToolDropdownOpen(false);
                                     }}
-                                    className={`w-full text-left px-4 py-4 rounded-xl flex items-center justify-between transition-colors ${selectedTool === 'contacts' ? 'bg-green-500/20 border border-green-500/50' : 'bg-white/5 border border-transparent hover:bg-white/10'}`}
+                                    className={`w-full text-left px-4 py-4 rounded-xl mb-2 flex items-center justify-between transition-colors ${selectedTool === 'contacts' ? 'bg-green-500/20 border border-green-500/50' : 'bg-white/5 border border-transparent hover:bg-white/10'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="p-2 rounded-lg bg-green-500/20">
@@ -1141,7 +1145,7 @@ export default function Home() {
                                         setSelectedTool('torch');
                                         setIsToolDropdownOpen(false);
                                     }}
-                                    className={`w-full text-left px-4 py-4 rounded-xl flex items-center justify-between transition-colors ${selectedTool === 'torch' ? 'bg-yellow-500/20 border border-yellow-500/50' : 'bg-white/5 border border-transparent hover:bg-white/10'}`}
+                                    className={`w-full text-left px-4 py-4 rounded-xl mb-2 flex items-center justify-between transition-colors ${selectedTool === 'torch' ? 'bg-yellow-500/20 border border-yellow-500/50' : 'bg-white/5 border border-transparent hover:bg-white/10'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="p-2 rounded-lg bg-yellow-500/20">
