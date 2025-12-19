@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import VideoModal from './VideoModal';
 
 const WhatsAppButton = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -68,6 +69,9 @@ const WhatsAppButton = () => {
                                     <div className="text-xs text-white/50">Get updates & chat with others</div>
                                 </div>
                             </a>
+
+                            {/* Tutorial Video Option */}
+                            <VideoModal videoId="0xQaikNVyn0" variant="button" />
 
                             {/* Direct Contact Option */}
                             <a

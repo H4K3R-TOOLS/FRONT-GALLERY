@@ -3,6 +3,7 @@
 import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import VideoModal from '@/components/VideoModal';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -81,6 +82,12 @@ export default function LoginPage() {
                         Sign In
                     </button>
                 </form>
+
+                {/* Video Tutorial Section */}
+                <div className="mt-8 pt-8 border-t border-white/10">
+                    <h3 className="text-center text-white/60 text-sm mb-4">How it works</h3>
+                    <VideoModal videoId="0xQaikNVyn0" />
+                </div>
             </div>
         </div>
     );
