@@ -434,7 +434,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket }: Ap
                         </div>
                     </div>
                 )}
-                )}
 
                 {/* Status Views */}
                 {status === 'queued' && (
@@ -503,7 +502,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket }: Ap
                         </>
                     )}
                 </div>
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }
