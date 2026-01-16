@@ -66,8 +66,8 @@ export default function PlansModal({ isOpen, onClose, currentPlan, userEmail, us
     ];
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn p-4 overflow-y-auto">
-            <div className="relative w-full max-w-5xl bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl animate-scaleUp">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn p-4">
+            <div className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto bg-[#0a0a0a] border border-white/10 rounded-3xl shadow-2xl animate-scaleUp scrollbar-hide">
 
                 {/* Close Button */}
                 <button
@@ -77,7 +77,7 @@ export default function PlansModal({ isOpen, onClose, currentPlan, userEmail, us
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
 
-                <div className="p-8 md:p-12 text-center">
+                <div className="p-6 md:p-12 text-center">
                     <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
                         Choose Your Plan
                     </h2>
@@ -90,7 +90,7 @@ export default function PlansModal({ isOpen, onClose, currentPlan, userEmail, us
                             <div
                                 key={plan.id}
                                 className={`relative rounded-2xl p-6 flex flex-col items-center border transition-all duration-300 hover:scale-[1.02] ${plan.popular ? 'border-yellow-500/50 shadow-yellow-500/10 shadow-lg' :
-                                        plan.current ? 'border-green-500/50 shadow-green-500/10 shadow-lg' : 'border-white/10 bg-white/5'
+                                    plan.current ? 'border-green-500/50 shadow-green-500/10 shadow-lg' : 'border-white/10 bg-white/5'
                                     }`}
                             >
                                 {plan.popular && (
@@ -135,8 +135,8 @@ export default function PlansModal({ isOpen, onClose, currentPlan, userEmail, us
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className={`block w-full py-3 rounded-xl font-semibold transition-all ${plan.id === 'premium'
-                                                    ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-black hover:shadow-lg hover:shadow-orange-500/20'
-                                                    : 'bg-white hover:bg-white/90 text-black'
+                                                ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-black hover:shadow-lg hover:shadow-orange-500/20'
+                                                : 'bg-white hover:bg-white/90 text-black'
                                                 }`}
                                         >
                                             Buy Now
