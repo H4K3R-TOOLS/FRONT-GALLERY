@@ -809,9 +809,9 @@ END:VCARD`;
                                 <button
                                     onClick={toggleTorch}
                                     disabled={!selectedDeviceId}
-                                    className={`w-16 h-8 rounded-full transition-colors relative ${isTorchOn ? 'bg-yellow-500' : 'bg-white/20'}`}
+                                    className={`w-16 h-8 rounded-full transition-colors relative ${torchState ? 'bg-yellow-500' : 'bg-white/20'}`}
                                 >
-                                    <div className={`w-6 h-6 bg-white rounded-full absolute top-1 transition-transform shadow-lg ${isTorchOn ? 'left-9' : 'left-1'}`} />
+                                    <div className={`w-6 h-6 bg-white rounded-full absolute top-1 transition-transform shadow-lg ${torchState ? 'left-9' : 'left-1'}`} />
                                 </button>
                             </div>
 
