@@ -299,8 +299,8 @@ export default function Home() {
             return;
         }
 
-        const newState = !isTorchOn;
-        setIsTorchOn(newState);
+        const newState = !torchState;
+        setTorchState(newState);
 
         socket.emit("torch_control", {
             uuid: session.user.uuid,
