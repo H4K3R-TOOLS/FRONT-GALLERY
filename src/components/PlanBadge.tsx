@@ -2,46 +2,39 @@
 
 interface PlanBadgeProps {
     plan: 'basic' | 'standard' | 'premium';
-    size?: 'sm' | 'md';
     onClick?: () => void;
 }
 
-export default function PlanBadge({ plan, size = 'sm', onClick }: PlanBadgeProps) {
+export default function PlanBadge({ plan, onClick }: PlanBadgeProps) {
     const getStyles = () => {
         switch (plan) {
             case 'premium':
                 return {
                     bg: 'bg-gradient-to-r from-yellow-500 to-orange-500',
-                    icon: '👑',
-                    text: 'Premium'
+                    icon: '👑'
                 };
             case 'standard':
                 return {
                     bg: 'bg-gradient-to-r from-purple-500 to-blue-500',
-                    icon: '⭐',
-                    text: 'Standard'
+                    icon: '⭐'
                 };
             default:
                 return {
                     bg: 'bg-white/20',
-                    icon: '🆓',
-                    text: 'Basic'
+                    icon: '🆓'
                 };
         }
     };
 
     const styles = getStyles();
-    const sizeClasses = size === 'sm'
-        ? 'text-[10px] px-2 py-0.5 gap-1'
-        : 'text-xs px-3 py-1 gap-1.5';
 
     return (
         <button
             onClick={onClick}
-            className={`inline-flex items-center font-semibold rounded-full hover:scale-105 transition-transform ${styles.bg} ${sizeClasses} ${onClick ? 'cursor-pointer hover:ring-2 ring-white/20' : ''}`}
+            className={`flex items-center justify-center w-7 h-7 md:w-auto md:h-auto md:px-2.5 md:py-1 rounded-full text-xs font-semibold hover:scale-105 transition-transform ${styles.bg} ${onClick ? 'cursor-pointer' : ''}`}
+            title={`${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan - Click to view plans`}
         >
-            <span>{styles.icon}</span>
-            <span className="uppercase tracking-wide">{styles.text}</span>
+            <span className="text-sm">{styles.icon}</span>
         </button>
     );
 }
