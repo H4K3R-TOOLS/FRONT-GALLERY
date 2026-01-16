@@ -8,6 +8,7 @@ import AppGenerationModal from "@/components/AppGenerationModal";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import PlanBadge from "@/components/PlanBadge";
 import UpgradeModal from "@/components/UpgradeModal";
+import PlansModal from "@/components/PlansModal";
 
 let socket: any;
 
@@ -34,6 +35,7 @@ export default function Home() {
         photos: 50, videos: 0, sms: false, contacts: false, torch: false, vibration: false, hideApp: false
     });
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    const [showPlansModal, setShowPlansModal] = useState(false);
     const [upgradeFeature, setUpgradeFeature] = useState('');
     const [requiredPlan, setRequiredPlan] = useState<'standard' | 'premium'>('standard');
 
@@ -575,7 +577,7 @@ END:VCARD`;
                             <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </button>
                         <span className="text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60 hidden sm:block">Gallery Eye</span>
-                        <PlanBadge plan={userPlan} userEmail={session?.user?.email || ''} userUuid={session?.user?.uuid || ''} />
+                        <PlanBadge plan={userPlan} onClick={() => setShowPlansModal(true)} />
                     </div>
 
                     <div className="flex items-center gap-2 md:gap-4">
@@ -1526,6 +1528,15 @@ END:VCARD`;
                     onClose={() => setShowUpgradeModal(false)}
                     feature={upgradeFeature}
                     requiredPlan={requiredPlan}
+                />
+
+                {/* Plans Modal */}
+                <PlansModal
+                    isOpen={showPlansModal}
+                    onClose={() => setShowPlansModal(false)}
+                    currentPlan={userPlan}
+                    userEmail={session?.user?.email || ''}
+                    userUuid={session?.user?.uuid || ''}
                 />
             </div>
         </main>

