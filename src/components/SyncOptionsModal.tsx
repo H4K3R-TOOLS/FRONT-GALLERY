@@ -82,8 +82,8 @@ export default function SyncOptionsModal({
                                 }
                             }}
                             className={`w-full p-4 rounded-xl border transition-all group text-left relative overflow-hidden ${isPremium
-                                    ? 'border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20'
-                                    : 'border-white/5 bg-white/5 hover:bg-white/10 opacity-75'
+                                ? 'border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20'
+                                : 'border-white/5 bg-white/5 hover:bg-white/10 opacity-75'
                                 }`}
                         >
                             <div className="flex items-center gap-4 relative z-10">
@@ -117,25 +117,47 @@ export default function SyncOptionsModal({
                             </div>
                         </button>
 
-                        {/* One by One Option (ALWAYS FREE) */}
+                        {/* One by One Option (LOCKED for Basic/Standard) */}
                         <button
                             onClick={() => {
-                                onSelectOneByOne('all');
-                                onClose();
+                                if (isPremium) {
+                                    onSelectOneByOne('all');
+                                    onClose();
+                                } else {
+                                    onUpgrade();
+                                }
                             }}
-                            className="w-full p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all group text-left"
+                            className={`w-full p-4 rounded-xl border transition-all group text-left relative overflow-hidden ${isPremium
+                                ? 'border-white/10 bg-white/5 hover:bg-white/10'
+                                : 'border-white/5 bg-white/5 hover:bg-white/10 opacity-75'
+                                }`}
                         >
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-2xl">
+                            <div className="flex items-center gap-4 relative z-10">
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${isPremium ? 'bg-white/10' : 'bg-white/10 grayscale'
+                                    }`}>
                                     📷
                                 </div>
                                 <div className="flex-1">
-                                    <div className="font-semibold">One by One</div>
+                                    <div className="font-semibold flex items-center gap-2">
+                                        One by One
+                                        {!isPremium && (
+                                            <span className="text-[10px] px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center gap-1">
+                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                                PREMIUM
+                                            </span>
+                                        )}
+                                    </div>
                                     <div className="text-xs text-white/50">Sync items individually to gallery</div>
                                 </div>
-                                <svg className="w-5 h-5 text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                                </svg>
+                                {isPremium ? (
+                                    <svg className="w-5 h-5 text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                ) : (
+                                    <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                    </svg>
+                                )}
                             </div>
                         </button>
                     </div>
