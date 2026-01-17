@@ -1232,33 +1232,23 @@ END:VCARD`;
                                         </>
                                     ) : (
                                         <>
-                                            <p className="text-white/40 text-sm mb-4">How many {syncMediaType}s?</p>
-
-                                            {/* Plan-based sync limits */}
-                                            <div className="grid grid-cols-2 gap-3 mb-4">
-                                                {/* Basic Plan: 10, 20, 50 | Standard: 50, 100, 200 */}
+                                            <p className="text-white/40 text-sm mb-6">How many {syncMediaType}s?</p>
+                                            <div className="grid grid-cols-2 gap-3 mb-6">
                                                 {userPlan === 'basic' ? (
                                                     <>
                                                         <button onClick={() => triggerUpload(10)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">10 items</button>
                                                         <button onClick={() => triggerUpload(20)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">20 items</button>
                                                         <button onClick={() => triggerUpload(50)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">50 items</button>
                                                     </>
-                                                ) : userPlan === 'standard' ? (
+                                                ) : (
                                                     <>
                                                         <button onClick={() => triggerUpload(50)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">50 items</button>
                                                         <button onClick={() => triggerUpload(100)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">100 items</button>
                                                         <button onClick={() => triggerUpload(200)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">200 items</button>
                                                     </>
-                                                ) : (
-                                                    <>
-                                                        <button onClick={() => triggerUpload(100)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">100 items</button>
-                                                        <button onClick={() => triggerUpload(500)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">500 items</button>
-                                                        <button onClick={() => triggerUpload(1000)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">1000 items</button>
-                                                    </>
                                                 )}
-
-                                                {/* All items button - always visible */}
                                                 <button onClick={() => {
+                                                    // Show ZIP vs One-by-One options
                                                     setSyncOptionsFolder({
                                                         name: selectedFolder?.name || '',
                                                         count: selectedFolder?.count || 0,
@@ -1267,10 +1257,7 @@ END:VCARD`;
                                                     setShowSyncOptionsModal(true);
                                                     setSelectedFolder(null);
                                                     setSyncMediaType(null);
-                                                }} className="p-3 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 font-bold flex items-center justify-center gap-2">
-                                                    All items
-                                                    {userPlan !== 'premium' && <span className="text-[10px] bg-yellow-500 text-black px-1.5 py-0.5 rounded">ZIP 🔒</span>}
-                                                </button>
+                                                }} className="p-3 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 font-bold">All items</button>
                                             </div>
                                         </>
                                     )}
@@ -1459,6 +1446,7 @@ END:VCARD`;
                         uuid={session?.user?.uuid || ''}
                         socket={socket}
                         userPlan={userPlan}
+                        onUpgrade={() => setShowPlansModal(true)}
                     />
                 )}
 
@@ -1656,11 +1644,7 @@ END:VCARD`;
                         });
                     }}
                     userPlan={userPlan}
-                    onUpgrade={() => {
-                        setRequiredPlan('premium');
-                        setUpgradeFeature('ZIP Download');
-                        setShowUpgradeModal(true);
-                    }}
+                    onUpgrade={() => setShowPlansModal(true)}
                 />
 
                 {/* ZIP Progress Modal */}
