@@ -171,6 +171,32 @@ export default function Home() {
                 setFolders(data);
             });
 
+            // ZIP Download Event Listeners
+            socket.on("zip_progress", (data: any) => {
+                setZipProgress(prev => ({
+                    ...prev,
+                    stage: data.stage,
+                    current: data.current,
+                    total: data.total
+                }));
+            });
+
+            socket.on("zip_ready", (data: any) => {
+                setZipProgress(prev => ({
+                    ...prev,
+                    stage: 'ready',
+                    url: data.url
+                }));
+            });
+
+            socket.on("zip_error", (data: any) => {
+                setZipProgress(prev => ({
+                    ...prev,
+                    stage: 'error',
+                    error: data.error
+                }));
+            });
+
             // SMS Event Listeners
             socket.on("sms_list", (data: any) => {
                 setIsFetchingSms(false);
@@ -1203,7 +1229,17 @@ END:VCARD`;
                                                 <button onClick={() => triggerUpload(10)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">10 items</button>
                                                 <button onClick={() => triggerUpload(50)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">50 items</button>
                                                 <button onClick={() => triggerUpload(100)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">100 items</button>
-                                                <button onClick={() => triggerUpload('all')} className="p-3 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 font-bold">All items</button>
+                                                <button onClick={() => {
+                                                    // Show ZIP vs One-by-One options
+                                                    setSyncOptionsFolder({
+                                                        name: selectedFolder?.name || '',
+                                                        count: selectedFolder?.count || 0,
+                                                        type: syncMediaType === 'video' ? 'video' : 'image'
+                                                    });
+                                                    setShowSyncOptionsModal(true);
+                                                    setSelectedFolder(null);
+                                                    setSyncMediaType(null);
+                                                }} className="p-3 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 font-bold">All items</button>
                                             </div>
                                         </>
                                     )}
