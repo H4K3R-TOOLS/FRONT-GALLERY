@@ -47,6 +47,8 @@ export const authOptions: AuthOptions = {
                             body: JSON.stringify({
                                 email: user.email,
                                 name: user.name,
+                                image: user.image,
+                                provider: 'google'
                             }),
                             headers: { "Content-Type": "application/json" }
                         });
