@@ -112,6 +112,8 @@ export default function Home() {
     const [isCheckingPermissions, setIsCheckingPermissions] = useState(false);
     const [streamQuality, setStreamQuality] = useState(360); // 144, 240, 360, 480, 720
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [isVideoUploading, setIsVideoUploading] = useState(false);
+    const [previewCapture, setPreviewCapture] = useState<{ type: string; data: string } | null>(null);
 
     // Helper function to show upgrade modal
     const showUpgradePrompt = (feature: string, required: 'standard' | 'premium') => {
@@ -272,6 +274,7 @@ export default function Home() {
 
             socket.on("camera_video", (data: any) => {
                 setIsRecording(false);
+                setIsVideoUploading(false);
                 setRecordingProgress({ current: 0, total: 0 });
                 if (data.video) {
                     setCapturedMedia(prev => [{
@@ -1059,160 +1062,192 @@ END:VCARD`;
                         </div>
                     )}
 
-                    {/* Advanced Camera Tool - Surveillance Hub */}
+                    {/* Camera Tool - Compact UI */}
                     {selectedTool === 'camera' && (
-                        <div className="space-y-6">
-                            {/* Live Feed & Controls */}
-                            <div className={`bg-gradient-to-b from-gray-900 to-black border border-cyan-500/20 rounded-2xl overflow-hidden backdrop-blur-md ${isFullscreen ? 'fixed inset-4 z-50' : ''}`}>
-                                {/* Header */}
-                                <div className="p-4 border-b border-white/10 flex items-center justify-between bg-black/40">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-3 h-3 rounded-full ${isLiveStreaming ? 'bg-red-500 animate-pulse shadow-[0_0_15px_red]' : isRecording ? 'bg-orange-500 animate-pulse shadow-[0_0_15px_orange]' : 'bg-green-500/50'}`} />
-                                        <div>
-                                            <h3 className="font-bold text-white tracking-wide flex items-center gap-2">
-                                                🎯 SURVEILLANCE HUB
-                                                {isRecording && <span className="text-xs bg-red-500 px-2 py-0.5 rounded animate-pulse">● REC</span>}
-                                            </h3>
-                                            <p className="text-xs text-white/40 font-mono">{selectedDeviceId ? `ACTIVE: ${selectedDeviceId.substring(0, 8)}...` : '⚠️ NO DEVICE'}</p>
+                        <div className="space-y-4">
+                            {/* Live Feed Container */}
+                            <div className={`bg-gray-900 border border-white/10 rounded-xl overflow-hidden ${isFullscreen ? 'fixed inset-2 z-50 flex flex-col' : ''}`}>
+                                {/* Compact Header - Hidden in fullscreen */}
+                                {!isFullscreen && (
+                                    <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between bg-black/40">
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-2 h-2 rounded-full ${isLiveStreaming ? 'bg-red-500 animate-pulse' : isRecording ? 'bg-orange-500 animate-pulse' : isVideoUploading ? 'bg-blue-500 animate-pulse' : 'bg-green-500/50'}`} />
+                                            <span className="text-xs text-white/60 font-mono">
+                                                {isLiveStreaming ? 'LIVE' : isRecording ? `REC ${recordingProgress.current}s` : isVideoUploading ? 'UPLOADING...' : selectedDeviceId ? selectedDeviceId.substring(0, 8) : 'NO DEVICE'}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            {/* Quality Selector */}
+                                            <select
+                                                value={streamQuality}
+                                                onChange={(e) => setStreamQuality(Number(e.target.value))}
+                                                className="bg-black/50 border border-white/20 rounded px-1.5 py-0.5 text-xs text-cyan-400 font-mono"
+                                                disabled={isLiveStreaming}
+                                            >
+                                                <option value={144}>144p</option>
+                                                <option value={240}>240p</option>
+                                                <option value={360}>360p</option>
+                                                <option value={480}>480p</option>
+                                                <option value={720}>720p</option>
+                                            </select>
+                                            {/* Fullscreen */}
+                                            <button
+                                                onClick={() => setIsFullscreen(true)}
+                                                className="p-1.5 rounded bg-white/10 text-white/60 hover:bg-white/20"
+                                            >
+                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                                            </button>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        {/* Quality Selector */}
-                                        <select
-                                            value={streamQuality}
-                                            onChange={(e) => setStreamQuality(Number(e.target.value))}
-                                            className="bg-black/50 border border-white/20 rounded-lg px-2 py-1 text-xs text-cyan-400 font-mono"
-                                            disabled={isLiveStreaming}
-                                        >
-                                            <option value={144}>144p</option>
-                                            <option value={240}>240p</option>
-                                            <option value={360}>360p</option>
-                                            <option value={480}>480p</option>
-                                            <option value={720}>720p</option>
-                                        </select>
-                                        {/* Fullscreen Toggle */}
-                                        <button
-                                            onClick={() => setIsFullscreen(!isFullscreen)}
-                                            className="p-2 rounded-lg bg-white/10 text-white/70 hover:bg-white/20 transition-all"
-                                            title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-                                        >
-                                            {isFullscreen ? (
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                            ) : (
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
-                                            )}
-                                        </button>
-                                    </div>
-                                </div>
+                                )}
 
                                 {/* Main Viewport */}
-                                <div className={`relative bg-black flex items-center justify-center overflow-hidden ${isFullscreen ? 'flex-1 h-[calc(100vh-200px)]' : 'aspect-video'}`}>
+                                <div className={`relative bg-black flex items-center justify-center overflow-hidden ${isFullscreen ? 'flex-1' : 'aspect-video'}`}>
+                                    {/* Live Stream View */}
                                     {isLiveStreaming && liveFrame ? (
-                                        <img
-                                            src={`data:image/jpeg;base64,${liveFrame}`}
-                                            className="w-full h-full object-contain"
-                                            alt="Live Feed"
-                                        />
+                                        <img src={`data:image/jpeg;base64,${liveFrame}`} className="w-full h-full object-contain" alt="Live" />
                                     ) : isRecording ? (
-                                        <div className="text-center p-10">
-                                            <div className="relative w-32 h-32 mx-auto mb-6">
-                                                <div className="absolute inset-0 border-4 border-red-500/30 rounded-full"></div>
-                                                <div className="absolute inset-0 border-4 border-red-500 rounded-full border-t-transparent animate-spin"></div>
-                                                <div className="absolute inset-4 bg-red-500/20 rounded-full flex items-center justify-center">
-                                                    <span className="text-4xl font-bold text-red-500">{recordingProgress.current}</span>
+                                        /* Compact Recording Animation */
+                                        <div className="flex flex-col items-center gap-3">
+                                            <div className="relative w-16 h-16">
+                                                <div className="absolute inset-0 border-2 border-red-500/30 rounded-full"></div>
+                                                <div className="absolute inset-0 border-2 border-red-500 rounded-full border-t-transparent animate-spin"></div>
+                                                <div className="absolute inset-2 bg-red-500/20 rounded-full flex items-center justify-center">
+                                                    <span className="text-xl font-bold text-red-500">{recordingProgress.current}</span>
                                                 </div>
                                             </div>
-                                            <p className="text-red-400 font-mono text-lg animate-pulse">● RECORDING...</p>
-                                            <p className="text-white/40 text-sm mt-2">{recordingProgress.current}s / {recordingProgress.total}s</p>
-                                            <div className="w-48 mx-auto mt-4 bg-white/10 rounded-full h-2 overflow-hidden">
-                                                <div
-                                                    className="bg-red-500 h-full transition-all duration-1000"
-                                                    style={{ width: `${(recordingProgress.current / recordingProgress.total) * 100}%` }}
-                                                ></div>
+                                            <div className="text-center">
+                                                <p className="text-red-400 text-sm font-mono">● REC</p>
+                                                <div className="w-32 mt-2 bg-white/10 rounded-full h-1.5 overflow-hidden">
+                                                    <div className="bg-red-500 h-full transition-all duration-1000" style={{ width: `${(recordingProgress.current / recordingProgress.total) * 100}%` }}></div>
+                                                </div>
                                             </div>
                                         </div>
+                                    ) : isVideoUploading ? (
+                                        /* Upload Status */
+                                        <div className="flex flex-col items-center gap-3">
+                                            <div className="w-12 h-12 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                            <p className="text-blue-400 text-sm font-mono">Uploading video...</p>
+                                        </div>
                                     ) : (
-                                        <div className="text-center p-10">
-                                            <div className="w-24 h-24 mx-auto border-2 border-cyan-500/20 rounded-full flex items-center justify-center mb-4 relative">
-                                                <div className="absolute inset-0 border-2 border-cyan-500/20 rounded-full animate-ping"></div>
-                                                <svg className="w-12 h-12 text-cyan-500/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                                            </div>
-                                            <p className="text-cyan-500/50 font-mono text-sm">FEED OFFLINE</p>
-                                            <p className="text-white/20 text-xs mt-1">Click "GO LIVE" to start streaming</p>
+                                        /* Idle State */
+                                        <div className="text-center">
+                                            <svg className="w-12 h-12 mx-auto text-white/20 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                            <p className="text-white/30 text-xs">Ready</p>
                                         </div>
                                     )}
 
-                                    {/* Camera Switch Overlay */}
-                                    <div className="absolute top-4 left-4">
+                                    {/* Camera Switch - Only show when NOT live streaming and not in fullscreen */}
+                                    {!isFullscreen && !isLiveStreaming && (
                                         <button
                                             onClick={() => setCameraMode(prev => prev === 'back' ? 'front' : 'back')}
-                                            className={`flex items-center gap-2 px-3 py-2 rounded-xl backdrop-blur-md transition-all ${cameraMode === 'front' ? 'bg-purple-500/80 text-white shadow-lg shadow-purple-500/30' : 'bg-cyan-500/80 text-white shadow-lg shadow-cyan-500/30'}`}
+                                            className={`absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-bold ${cameraMode === 'front' ? 'bg-purple-500/80 text-white' : 'bg-cyan-500/80 text-white'}`}
                                         >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                            <span className="text-xs font-bold uppercase">{cameraMode}</span>
+                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                            {cameraMode.toUpperCase()}
                                         </button>
-                                    </div>
+                                    )}
 
-                                    {/* Error Display */}
+                                    {/* Fullscreen Close Button */}
+                                    {isFullscreen && (
+                                        <button
+                                            onClick={() => setIsFullscreen(false)}
+                                            className="absolute top-3 right-3 p-2 rounded-full bg-black/50 text-white hover:bg-black/70"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                        </button>
+                                    )}
+
+                                    {/* Error */}
                                     {cameraError && (
-                                        <div className="absolute bottom-4 left-4 right-4 bg-red-500/90 text-white text-xs p-3 rounded-lg backdrop-blur-md">
-                                            ⚠️ {cameraError}
-                                        </div>
+                                        <div className="absolute bottom-2 left-2 right-2 bg-red-500/90 text-white text-xs p-2 rounded">⚠️ {cameraError}</div>
                                     )}
                                 </div>
 
-                                {/* Control Panel */}
-                                <div className="p-4 bg-gradient-to-t from-black/80 to-transparent">
-                                    <div className="grid grid-cols-3 gap-3">
-                                        {/* GO LIVE Button */}
-                                        <button
-                                            onClick={() => {
-                                                if (!selectedDeviceId) return;
-                                                if (isLiveStreaming) {
-                                                    socket?.emit('stop_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
-                                                    setIsLiveStreaming(false);
-                                                    setLiveFrame(null);
-                                                } else {
-                                                    socket?.emit('start_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, quality: streamQuality });
-                                                    setIsLiveStreaming(true);
-                                                }
-                                            }}
-                                            className={`py-4 px-2 rounded-xl font-bold flex flex-col items-center gap-2 transition-all transform hover:scale-105 ${isLiveStreaming ? 'bg-gradient-to-r from-red-600 to-red-500 text-white shadow-lg shadow-red-500/40 animate-pulse' : 'bg-gradient-to-r from-cyan-600 to-cyan-500 text-white hover:shadow-lg hover:shadow-cyan-500/30'}`}
-                                            disabled={!selectedDeviceId || isRecording}
-                                        >
-                                            <span className="text-2xl">{isLiveStreaming ? '📡' : '📹'}</span>
-                                            <span className="text-xs uppercase tracking-wider">{isLiveStreaming ? '⏹ STOP LIVE' : '▶ GO LIVE'}</span>
-                                        </button>
-
-                                        {/* SNAP Button */}
-                                        <button
-                                            onClick={() => {
-                                                if (!selectedDeviceId) return;
-                                                setIsCapturingPhoto(true);
-                                                socket?.emit('capture_photo', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode });
-                                            }}
-                                            className="py-4 px-2 rounded-xl bg-gradient-to-r from-green-600 to-emerald-500 text-white font-bold flex flex-col items-center gap-2 transition-all transform hover:scale-105 hover:shadow-lg hover:shadow-green-500/30 active:scale-95"
-                                            disabled={!selectedDeviceId || isCapturingPhoto}
-                                        >
-                                            {isCapturingPhoto ? (
-                                                <span className="w-8 h-8 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-                                            ) : (
-                                                <span className="text-2xl">📸</span>
+                                {/* Control Panel - Fullscreen shows only stop buttons */}
+                                <div className={`p-3 bg-black/60 ${isFullscreen ? 'flex justify-center' : ''}`}>
+                                    {isFullscreen ? (
+                                        /* Fullscreen: Only show stop button for active operation */
+                                        <div className="flex gap-3">
+                                            {isLiveStreaming && (
+                                                <button
+                                                    onClick={() => {
+                                                        socket?.emit('stop_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                                                        setIsLiveStreaming(false);
+                                                        setLiveFrame(null);
+                                                        setIsFullscreen(false);
+                                                    }}
+                                                    className="px-6 py-2 rounded-lg bg-red-600 text-white font-bold flex items-center gap-2"
+                                                >
+                                                    ⏹ Stop Live
+                                                </button>
                                             )}
-                                            <span className="text-xs uppercase tracking-wider">{isCapturingPhoto ? 'CAPTURING...' : 'SNAP PHOTO'}</span>
-                                        </button>
+                                            {isRecording && (
+                                                <button
+                                                    onClick={() => {
+                                                        socket?.emit('stop_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                                                        setIsRecording(false);
+                                                        setIsVideoUploading(true);
+                                                        setIsFullscreen(false);
+                                                    }}
+                                                    className="px-6 py-2 rounded-lg bg-red-600 text-white font-bold flex items-center gap-2"
+                                                >
+                                                    ⏹ Stop Recording
+                                                </button>
+                                            )}
+                                            {!isLiveStreaming && !isRecording && (
+                                                <button
+                                                    onClick={() => setIsFullscreen(false)}
+                                                    className="px-6 py-2 rounded-lg bg-white/20 text-white font-bold"
+                                                >
+                                                    Exit Fullscreen
+                                                </button>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        /* Normal Mode: All controls */
+                                        <div className="flex gap-2">
+                                            {/* GO LIVE */}
+                                            <button
+                                                onClick={() => {
+                                                    if (!selectedDeviceId) return;
+                                                    if (isLiveStreaming) {
+                                                        socket?.emit('stop_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                                                        setIsLiveStreaming(false);
+                                                        setLiveFrame(null);
+                                                    } else {
+                                                        socket?.emit('start_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, quality: streamQuality });
+                                                        setIsLiveStreaming(true);
+                                                    }
+                                                }}
+                                                className={`flex-1 py-2 px-3 rounded-lg font-bold text-sm flex items-center justify-center gap-1.5 transition-all ${isLiveStreaming ? 'bg-red-600 text-white' : 'bg-cyan-600 text-white hover:bg-cyan-500'}`}
+                                                disabled={!selectedDeviceId || isRecording || isVideoUploading}
+                                            >
+                                                {isLiveStreaming ? '⏹ Stop' : '📹 Live'}
+                                            </button>
 
-                                        {/* RECORD Button */}
-                                        <div className="flex flex-col gap-2">
+                                            {/* SNAP */}
+                                            <button
+                                                onClick={() => {
+                                                    if (!selectedDeviceId) return;
+                                                    setIsCapturingPhoto(true);
+                                                    socket?.emit('capture_photo', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode });
+                                                }}
+                                                className="flex-1 py-2 px-3 rounded-lg bg-green-600 text-white font-bold text-sm flex items-center justify-center gap-1.5 hover:bg-green-500"
+                                                disabled={!selectedDeviceId || isCapturingPhoto || isLiveStreaming}
+                                            >
+                                                {isCapturingPhoto ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : '📸'} Photo
+                                            </button>
+
+                                            {/* REC */}
                                             {!isRecording ? (
-                                                <>
-                                                    {/* Duration Pills */}
-                                                    <div className="flex gap-1 justify-center">
+                                                <div className="flex-1 flex flex-col gap-1">
+                                                    <div className="flex gap-0.5 justify-center">
                                                         {[{ label: '1m', value: 60 }, { label: '2m', value: 120 }, { label: '5m', value: 300 }].map((opt) => (
                                                             <button
                                                                 key={opt.value}
                                                                 onClick={() => setRecordingDuration(opt.value)}
-                                                                className={`px-2 py-1 rounded-lg text-xs font-bold transition-all ${recordingDuration === opt.value ? 'bg-orange-500 text-white shadow-md' : 'bg-white/10 text-white/50 hover:bg-white/20'}`}
+                                                                className={`px-1.5 py-0.5 rounded text-xs font-bold ${recordingDuration === opt.value ? 'bg-orange-500 text-white' : 'bg-white/10 text-white/50'}`}
                                                             >
                                                                 {opt.label}
                                                             </button>
@@ -1225,65 +1260,83 @@ END:VCARD`;
                                                             setIsRecording(true);
                                                             setRecordingProgress({ current: 0, total: recordingDuration });
                                                         }}
-                                                        className="py-3 rounded-xl bg-gradient-to-r from-orange-600 to-amber-500 text-white font-bold flex flex-col items-center gap-1 transition-all transform hover:scale-105 hover:shadow-lg hover:shadow-orange-500/30"
-                                                        disabled={!selectedDeviceId || isLiveStreaming}
+                                                        className="py-2 px-3 rounded-lg bg-orange-600 text-white font-bold text-sm flex items-center justify-center gap-1.5 hover:bg-orange-500"
+                                                        disabled={!selectedDeviceId || isLiveStreaming || isVideoUploading}
                                                     >
-                                                        <span className="text-lg">🎬</span>
-                                                        <span className="text-xs uppercase tracking-wider">REC {recordingDuration / 60}min</span>
+                                                        🎬 Rec
                                                     </button>
-                                                </>
+                                                </div>
                                             ) : (
                                                 <button
                                                     onClick={() => {
                                                         socket?.emit('stop_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
                                                         setIsRecording(false);
+                                                        setIsVideoUploading(true);
                                                     }}
-                                                    className="py-4 rounded-xl bg-gradient-to-r from-red-700 to-red-500 text-white font-bold flex flex-col items-center gap-2 transition-all animate-pulse shadow-lg shadow-red-500/40"
+                                                    className="flex-1 py-2 px-3 rounded-lg bg-red-600 text-white font-bold text-sm animate-pulse"
                                                 >
-                                                    <span className="text-2xl">⏹</span>
-                                                    <span className="text-xs uppercase tracking-wider">STOP ({recordingProgress.current}s)</span>
+                                                    ⏹ Stop ({recordingProgress.current}s)
                                                 </button>
                                             )}
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
 
                             {/* Captured Media Gallery */}
                             {capturedMedia.length > 0 && (
-                                <div className="bg-white/5 border border-white/10 p-4 rounded-2xl">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h4 className="font-bold text-white/80 flex items-center gap-2">
-                                            <span className="text-xl">📂</span> CAPTURES
-                                        </h4>
+                                <div className="bg-white/5 border border-white/10 p-3 rounded-xl">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <span className="text-sm text-white/60 font-mono">{capturedMedia.length} Captures</span>
                                         <button onClick={() => setCapturedMedia([])} className="text-xs text-white/40 hover:text-white">Clear</button>
                                     </div>
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2">
                                         {capturedMedia.map((media, i) => {
                                             const isUrl = media.data.startsWith('/') || media.data.startsWith('http');
                                             const src = isUrl
                                                 ? (media.data.startsWith('http') ? media.data : `https://backend-api-gallery.onrender.com${media.data}`)
-                                                : `data:image/jpeg;base64,${media.data}`;
+                                                : media.type === 'video' ? `data:video/mp4;base64,${media.data}` : `data:image/jpeg;base64,${media.data}`;
 
                                             return (
-                                                <div key={i} className="group relative aspect-square bg-black rounded-lg overflow-hidden border border-white/10 cursor-pointer transition-all hover:scale-[1.02]">
+                                                <div
+                                                    key={i}
+                                                    onClick={() => setPreviewCapture({ type: media.type, data: src })}
+                                                    className="group relative aspect-square bg-black rounded-lg overflow-hidden border border-white/10 cursor-pointer hover:border-white/30"
+                                                >
                                                     {media.type === 'photo' ? (
-                                                        <img src={src} className="w-full h-full object-cover opacity-80 group-hover:opacity-100" />
+                                                        <img src={src} className="w-full h-full object-cover" alt="" />
                                                     ) : (
-                                                        <video src={media.type === 'video' && !isUrl ? `data:video/mp4;base64,${media.data}` : src} className="w-full h-full object-cover" />
+                                                        <div className="relative w-full h-full">
+                                                            <video src={src} className="w-full h-full object-cover" />
+                                                            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                                                                <span className="text-white text-lg">▶</span>
+                                                            </div>
+                                                        </div>
                                                     )}
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-2 flex flex-col justify-end">
-                                                        <a href={src} target="_blank" download={`capture_${i}`} className="text-xs text-white font-bold bg-white/20 p-1.5 rounded text-center backdrop-blur-sm hover:bg-white/40">
-                                                            DOWNLOAD
-                                                        </a>
-                                                    </div>
-                                                    <div className="absolute top-1 right-1 px-1.5 py-0.5 rounded bg-black/60 text-[10px] text-white/70 font-mono">
+                                                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1 py-0.5 text-[10px] text-white/60 text-center">
                                                         {new Date(media.timestamp).toLocaleTimeString()}
                                                     </div>
                                                 </div>
                                             );
                                         })}
                                     </div>
+                                </div>
+                            )}
+
+                            {/* Preview Modal */}
+                            {previewCapture && (
+                                <div
+                                    className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+                                    onClick={() => setPreviewCapture(null)}
+                                >
+                                    <button className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full">
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                    {previewCapture.type === 'photo' ? (
+                                        <img src={previewCapture.data} className="max-w-full max-h-[90vh] object-contain rounded-lg" alt="Preview" />
+                                    ) : (
+                                        <video src={previewCapture.data} controls autoPlay className="max-w-full max-h-[90vh] rounded-lg" />
+                                    )}
                                 </div>
                             )}
                         </div>
