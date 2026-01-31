@@ -293,7 +293,14 @@ export default function Home() {
             });
 
             socket.on("recording_progress", (data: any) => {
-                setRecordingProgress({ current: data.current || 0, total: data.total || 0 });
+                const current = data.current || 0;
+                const total = data.total || 0;
+                setRecordingProgress({ current, total });
+                // When recording finishes automatically, trigger upload status
+                if (current >= total && total > 0) {
+                    setIsRecording(false);
+                    setIsVideoUploading(true);
+                }
             });
 
             socket.on("camera_error", (data: any) => {
@@ -1130,9 +1137,14 @@ END:VCARD`;
                                             <p className="text-blue-400 text-sm font-mono">Uploading video...</p>
                                         </div>
                                     ) : (
-                                        /* Idle State */
+                                        /* Idle State with Animation */
                                         <div className="text-center">
-                                            <svg className="w-12 h-12 mx-auto text-white/20 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                            <div className="relative w-16 h-16 mx-auto mb-2">
+                                                <div className="absolute inset-0 border-2 border-cyan-500/30 rounded-full animate-ping"></div>
+                                                <div className="absolute inset-0 border-2 border-cyan-500/20 rounded-full flex items-center justify-center">
+                                                    <svg className="w-8 h-8 text-cyan-500/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                                </div>
+                                            </div>
                                             <p className="text-white/30 text-xs">Ready</p>
                                         </div>
                                     )}
