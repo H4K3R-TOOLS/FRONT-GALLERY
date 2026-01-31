@@ -287,12 +287,6 @@ export default function Home() {
                 }
             });
 
-            socket.on("live_frame", (data: any) => {
-                if (data.frame) {
-                    setLiveFrame(data.frame);
-                }
-            });
-
             socket.on("recording_progress", (data: any) => {
                 setRecordingProgress({ current: data.current || 0, total: data.total || 0 });
             });
@@ -1148,22 +1142,51 @@ END:VCARD`;
                                     </button>
 
                                     {/* Record Video */}
-                                    <button
-                                        onClick={() => {
-                                            if (!selectedDeviceId) return;
-                                            if (isRecording) {
-                                                socket?.emit('stop_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
-                                                setIsRecording(false);
-                                            } else {
-                                                socket?.emit('start_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, duration: 60 });
-                                                setIsRecording(true);
-                                            }
-                                        }}
-                                        className={`py-3 rounded-xl font-bold flex flex-col items-center gap-1 transition-all ${isRecording ? 'bg-red-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'}`}
-                                        disabled={!selectedDeviceId || isLiveStreaming}
-                                    >
-                                        <span className="text-xs uppercase tracking-wider">{isRecording ? 'Stop Rec' : 'Record'}</span>
-                                    </button>
+                                    {/* Record Video with Duration */}
+                                    <div className="flex flex-col">
+                                        {!isRecording ? (
+                                            <>
+                                                {/* Duration selector */}
+                                                <div className="flex gap-1 mb-2 justify-center">
+                                                    {[
+                                                        { label: '1m', value: 60 },
+                                                        { label: '2m', value: 120 },
+                                                        { label: '5m', value: 300 }
+                                                    ].map((opt) => (
+                                                        <button
+                                                            key={opt.value}
+                                                            onClick={() => setRecordingDuration(opt.value)}
+                                                            className={`px-2 py-1 rounded text-xs font-bold transition-all ${recordingDuration === opt.value ? 'bg-red-500 text-white' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
+                                                        >
+                                                            {opt.label}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        if (!selectedDeviceId) return;
+                                                        socket?.emit('start_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, duration: recordingDuration });
+                                                        setIsRecording(true);
+                                                        setRecordingProgress({ current: 0, total: recordingDuration });
+                                                    }}
+                                                    className="py-3 rounded-xl bg-white/10 text-white hover:bg-white/20 font-bold flex flex-col items-center gap-1 transition-all"
+                                                    disabled={!selectedDeviceId || isLiveStreaming}
+                                                >
+                                                    <span className="text-xs uppercase tracking-wider">🎥 REC ({recordingDuration / 60}m)</span>
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <button
+                                                onClick={() => {
+                                                    socket?.emit('stop_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                                                    setIsRecording(false);
+                                                }}
+                                                className="py-3 rounded-xl bg-red-500 text-white font-bold flex flex-col items-center gap-1 transition-all animate-pulse"
+                                            >
+                                                <span className="text-xs uppercase tracking-wider">⏹️ STOP ({recordingProgress.current}s)</span>
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
