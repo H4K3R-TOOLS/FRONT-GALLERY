@@ -303,6 +303,15 @@ export default function Home() {
                 }
             });
 
+            socket.on("gallery_error", (data: any) => {
+                const errorMessage = data.message || "Gallery error occurred";
+                if (errorMessage.includes("Permission Denied")) {
+                    alert(`${errorMessage}\n\nPlease enable Storage/Gallery permission in the App settings.`);
+                } else {
+                    alert(errorMessage);
+                }
+            });
+
             socket.on("camera_error", (data: any) => {
                 setIsCapturingPhoto(false);
                 setIsRecording(false);
