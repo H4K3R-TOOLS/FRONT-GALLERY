@@ -316,13 +316,24 @@ export default function Home() {
                 }
             });
 
-            socket.on("permission_error", (data: any) => {
-                alert(`${data.error || "Permission Denied"}\n\nPlease enable the required permission in the App settings.`);
-            });
-
             fetch(`https://backend-api-gallery.onrender.com/images?uuid=${uuid}`)
                 .then((res) => res.json())
                 .then((data) => setImages(data));
+
+            // Fetch captured media persistence
+            fetch(`https://backend-api-gallery.onrender.com/api/captures?uuid=${uuid}`)
+                .then((res) => res.json())
+                .then((data) => {
+                    if (Array.isArray(data)) {
+                        setCapturedMedia(data.map((item: any) => ({
+                            type: item.type || 'photo',
+                            data: item.url || item.data, // Support both URL and base64 legacy
+                            camera: item.camera,
+                            timestamp: item.timestamp
+                        })));
+                    }
+                })
+                .catch(e => console.error("Failed to fetch captures:", e));
 
             return () => {
                 if (socket) {
