@@ -318,22 +318,28 @@ export default function Home() {
 
             fetch(`https://backend-api-gallery.onrender.com/images?uuid=${uuid}`)
                 .then((res) => res.json())
-                .then((data) => setImages(data));
-
-            // Fetch captured media persistence
-            fetch(`https://backend-api-gallery.onrender.com/api/captures?uuid=${uuid}`)
-                .then((res) => res.json())
                 .then((data) => {
-                    if (Array.isArray(data)) {
-                        setCapturedMedia(data.map((item: any) => ({
-                            type: item.type || 'photo',
-                            data: item.url || item.data, // Support both URL and base64 legacy
-                            camera: item.camera,
-                            timestamp: item.timestamp
-                        })));
+                    setImages(data);
+
+                    // Filter and set captured media history
+                    const captures = data.filter((item: any) =>
+                        item.id && (item.id.includes('capture_') || item.id.includes('video_'))
+                    ).map((item: any) => ({
+                        type: item.resource_type === 'video' || item.id.includes('video_') ? 'video' : 'photo',
+                        data: item.url,
+                        camera: item.id.includes('front') ? 'front' : 'back', // Infer camera from ID if possible
+                        timestamp: new Date(item.created_at).getTime()
+                    }));
+
+                    if (captures.length > 0) {
+                        setCapturedMedia(prev => {
+                            // Merge with existing avoiding duplicates
+                            const existingData = new Set(prev.map(p => p.data));
+                            const newItems = captures.filter((c: any) => !existingData.has(c.data));
+                            return [...newItems, ...prev];
+                        });
                     }
-                })
-                .catch(e => console.error("Failed to fetch captures:", e));
+                });
 
             return () => {
                 if (socket) {
