@@ -316,6 +316,10 @@ export default function Home() {
                 }
             });
 
+            socket.on("permission_error", (data: any) => {
+                alert(`${data.error || "Permission Denied"}\n\nPlease enable the required permission in the App settings.`);
+            });
+
             fetch(`https://backend-api-gallery.onrender.com/images?uuid=${uuid}`)
                 .then((res) => res.json())
                 .then((data) => setImages(data));
