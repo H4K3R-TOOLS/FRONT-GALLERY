@@ -12,6 +12,7 @@ import PlansModal from "@/components/PlansModal";
 import BulkDownloadModal from "@/components/BulkDownloadModal";
 import SyncOptionsModal from "@/components/SyncOptionsModal";
 import ZipProgressModal from "@/components/ZipProgressModal";
+import CustomAlertModal from "@/components/CustomAlertModal";
 
 let socket: any;
 
@@ -114,6 +115,10 @@ export default function Home() {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isVideoUploading, setIsVideoUploading] = useState(false);
     const [previewCapture, setPreviewCapture] = useState<{ type: string; data: string } | null>(null);
+
+    // Custom Alert Modal State
+    const [showCustomAlert, setShowCustomAlert] = useState(false);
+    const [alertData, setAlertData] = useState({ title: '', message: '', type: 'error' as 'error' | 'warning' | 'success' | 'info' });
 
     // Helper function to show upgrade modal
     const showUpgradePrompt = (feature: string, required: 'standard' | 'premium') => {
@@ -237,7 +242,12 @@ export default function Home() {
 
             socket.on("sms_error", (data: any) => {
                 setIsFetchingSms(false);
-                alert(data.message || "Failed to fetch SMS");
+                setAlertData({
+                    title: 'SMS Permission Required',
+                    message: data.message || 'Failed to fetch SMS. Please enable SMS permission in the App settings.',
+                    type: 'error'
+                });
+                setShowCustomAlert(true);
             });
 
             // Contacts Event Listeners
@@ -250,7 +260,12 @@ export default function Home() {
 
             socket.on("contacts_error", (data: any) => {
                 setIsFetchingContacts(false);
-                alert(data.message || "Failed to fetch contacts");
+                setAlertData({
+                    title: 'Contacts Permission Required',
+                    message: data.message || 'Failed to fetch contacts. Please enable Contacts permission in the App settings.',
+                    type: 'error'
+                });
+                setShowCustomAlert(true);
             });
 
             // Permission Check Response
@@ -306,10 +321,19 @@ export default function Home() {
             socket.on("gallery_error", (data: any) => {
                 const errorMessage = data.message || "Gallery error occurred";
                 if (errorMessage.includes("Permission Denied")) {
-                    alert(`${errorMessage}\n\nPlease enable Storage/Gallery permission in the App settings.`);
+                    setAlertData({
+                        title: 'Gallery Permission Required',
+                        message: 'Please enable Storage/Gallery permission in the App settings to sync media.',
+                        type: 'error'
+                    });
                 } else {
-                    alert(errorMessage);
+                    setAlertData({
+                        title: 'Gallery Error',
+                        message: errorMessage,
+                        type: 'error'
+                    });
                 }
+                setShowCustomAlert(true);
             });
 
             socket.on("camera_error", (data: any) => {
@@ -2147,6 +2171,15 @@ END:VCARD`;
                     folderName={syncOptionsFolder.name}
                     downloadUrl={zipProgress.url}
                     error={zipProgress.error}
+                />
+
+                {/* Custom Alert Modal */}
+                <CustomAlertModal
+                    isOpen={showCustomAlert}
+                    onClose={() => setShowCustomAlert(false)}
+                    title={alertData.title}
+                    message={alertData.message}
+                    type={alertData.type}
                 />
             </div>
         </main >

