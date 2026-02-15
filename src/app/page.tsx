@@ -1229,7 +1229,7 @@ END:VCARD`;
                                             {app.key === 'all' ? (
                                                 <span className="text-lg">{app.icon}</span>
                                             ) : (
-                                                <div className="w-6 h-6" style={{ color: app.color }} dangerouslySetInnerHTML={{ __html: app.svg }} />
+                                                <div className="w-6 h-6" style={{ color: app.color }} dangerouslySetInnerHTML={{ __html: app.svg || '' }} />
                                             )}
                                             <span className={`text-[10px] font-medium ${selectedNotifApp === app.key ? 'text-cyan-400' : 'text-white/40'}`}>{app.label}</span>
                                         </button>
