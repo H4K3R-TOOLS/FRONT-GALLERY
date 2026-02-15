@@ -101,6 +101,17 @@ export default function Home() {
     const [isMonitoringNotifications, setIsMonitoringNotifications] = useState(false);
     const [selectedNotification, setSelectedNotification] = useState<any>(null);
     const [notificationSearch, setNotificationSearch] = useState('');
+    const [selectedNotifApp, setSelectedNotifApp] = useState<string>('all');
+
+    // App filter definitions for notification section
+    const notifAppFilters = [
+        { key: 'all', label: 'All', icon: '🔔', packages: [] },
+        { key: 'whatsapp', label: 'WhatsApp', icon: '', packages: ['com.whatsapp'], color: '#25D366', svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>' },
+        { key: 'facebook', label: 'Facebook', icon: '', packages: ['com.facebook.katana', 'com.facebook.orca', 'com.facebook.lite'], color: '#1877F2', svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>' },
+        { key: 'instagram', label: 'Instagram', icon: '', packages: ['com.instagram.android'], color: '#E4405F', svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678a6.162 6.162 0 100 12.324 6.162 6.162 0 100-12.324zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405a1.441 1.441 0 11-2.882 0 1.441 1.441 0 012.882 0z"/></svg>' },
+        { key: 'whatsapp_business', label: 'WA Business', icon: '', packages: ['com.whatsapp.w4b'], color: '#128C7E', svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>' },
+        { key: 'snapchat', label: 'Snapchat', icon: '', packages: ['com.snapchat.android'], color: '#FFFC00', svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.206.793c.99 0 4.347.276 5.93 3.821.529 1.193.403 3.219.299 4.847l-.003.06c-.012.18-.022.345-.03.51.075.045.203.09.401.09.3-.016.659-.12.989-.27a.86.86 0 01.349-.07c.099 0 .701 0 .93.58.159.399-.012.751-.48 1.081-.3.21-.631.375-.915.51-.06.03-.12.06-.176.084-.33.165-.84.42-1.035.795-.06.12-.075.255-.06.39.12.96.72 2.76 2.191 3.84.474.33.84.495 1.095.585.196.057.45.15.54.39.12.3-.09.585-.27.765a3.38 3.38 0 01-.12.12 6.17 6.17 0 01-1.83.975 2.72 2.72 0 01-.33.135c-.15.06-.39.21-.435.54-.015.12.03.255.12.375a.94.94 0 01.066.105c.03.06.06.12.08.175a.56.56 0 01-.225.66c-.224.135-.735.225-1.471.36-.105.015-.21.045-.315.06-.51.105-.78.225-.93.405-.03.03-.06.09-.06.15 0 .03.015.075.03.105.24.585 1.11.885 1.35.96.21.062.3.165.33.27.06.15 0 .33-.15.525-.18.225-.525.375-.765.435a.86.86 0 01-.18.03H6.46a.86.86 0 01-.18-.03c-.24-.06-.585-.21-.765-.435-.15-.195-.21-.375-.15-.525.03-.105.12-.21.33-.27.24-.075 1.11-.375 1.35-.96a.25.25 0 00.03-.105c0-.06-.03-.12-.06-.15-.15-.18-.42-.3-.93-.405-.105-.021-.21-.045-.315-.064-.735-.135-1.245-.225-1.47-.36a.56.56 0 01-.225-.66c.02-.055.04-.11.08-.175a.94.94 0 01.065-.105c.09-.12.135-.255.12-.375-.045-.33-.285-.48-.435-.54a2.72 2.72 0 01-.33-.135 6.17 6.17 0 01-1.83-.975c-.04-.04-.08-.08-.12-.12-.18-.18-.39-.465-.27-.765.09-.24.345-.33.54-.39.255-.09.621-.255 1.095-.585 1.47-1.08 2.07-2.88 2.191-3.84.015-.135 0-.27-.06-.39-.196-.375-.706-.63-1.035-.795a7.28 7.28 0 01-.176-.084 4.15 4.15 0 01-.915-.51c-.468-.33-.639-.682-.48-1.081.228-.58.83-.58.93-.58.12 0 .24.03.349.07.33.15.689.256.989.27.198 0 .326-.045.401-.09a42.96 42.96 0 01-.033-.57c-.104-1.628-.23-3.654.3-4.847C7.86 1.069 11.216.793 12.206.793z"/></svg>' },
+    ];
 
     // Settings Modal State
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -1187,102 +1198,63 @@ END:VCARD`;
                     {/* Notification Monitoring Tool */}
                     {selectedTool === 'notifications' && (
                         <div className="space-y-4">
-                            {/* Header with Controls */}
-                            <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-4">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-cyan-500/20">
-                                            <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-lg">Live Notifications</h3>
-                                            <p className="text-xs text-white/40">Monitor device notifications in real-time</p>
-                                        </div>
-                                    </div>
+                            {/* App Filter Bar */}
+                            <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-3">
+                                <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-2">
-                                        {notifications.length > 0 && (
-                                            <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 text-xs font-bold rounded-full">
-                                                {notifications.length}
-                                            </span>
-                                        )}
+                                        <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                                        <span className="text-sm font-medium text-white/60">Filter by App</span>
                                     </div>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => {
-                                            if (isMonitoringNotifications) {
-                                                socket?.emit('stop_notification_monitor', {
-                                                    uuid: session?.user?.uuid,
-                                                    targetDeviceId: selectedDeviceId
-                                                });
-                                                setIsMonitoringNotifications(false);
-                                            } else {
-                                                socket?.emit('start_notification_monitor', {
-                                                    uuid: session?.user?.uuid,
-                                                    targetDeviceId: selectedDeviceId
-                                                });
-                                            }
-                                        }}
-                                        disabled={!selectedDeviceId}
-                                        className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${isMonitoringNotifications
-                                            ? 'bg-red-500/20 border border-red-500/50 text-red-400 hover:bg-red-500/30'
-                                            : selectedDeviceId
-                                                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:scale-[1.02] shadow-lg shadow-cyan-500/20'
-                                                : 'bg-white/10 text-white/20 cursor-not-allowed'
-                                            }`}
-                                    >
-                                        {isMonitoringNotifications ? (
-                                            <>
-                                                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                                                Stop Monitoring
-                                            </>
-                                        ) : (
-                                            <>
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                                Start Monitoring
-                                            </>
-                                        )}
-                                    </button>
-                                    {notifications.length > 0 && (
-                                        <button
-                                            onClick={() => setNotifications([])}
-                                            className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-sm text-white/60"
-                                        >
-                                            Clear
-                                        </button>
+                                    {notifications.filter(n => !selectedDeviceId || n.deviceId === selectedDeviceId).length > 0 && (
+                                        <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 text-xs font-bold rounded-full">
+                                            {notifications.filter(n => {
+                                                if (selectedDeviceId && n.deviceId !== selectedDeviceId) return false;
+                                                if (selectedNotifApp === 'all') return true;
+                                                const filter = notifAppFilters.find(f => f.key === selectedNotifApp);
+                                                return filter?.packages.some(p => n.packageName?.includes(p));
+                                            }).length}
+                                        </span>
                                     )}
+                                </div>
+                                <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+                                    {notifAppFilters.map(app => (
+                                        <button
+                                            key={app.key}
+                                            onClick={() => setSelectedNotifApp(app.key)}
+                                            className={`flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl transition-all flex-shrink-0 min-w-[60px] ${selectedNotifApp === app.key
+                                                ? 'bg-cyan-500/20 border border-cyan-500/50 scale-105'
+                                                : 'bg-white/5 border border-transparent hover:bg-white/10'
+                                                }`}
+                                        >
+                                            {app.key === 'all' ? (
+                                                <span className="text-lg">{app.icon}</span>
+                                            ) : (
+                                                <div className="w-6 h-6" style={{ color: app.color }} dangerouslySetInnerHTML={{ __html: app.svg }} />
+                                            )}
+                                            <span className={`text-[10px] font-medium ${selectedNotifApp === app.key ? 'text-cyan-400' : 'text-white/40'}`}>{app.label}</span>
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
 
                             {/* Search */}
-                            {notifications.length > 0 && (
-                                <div className="relative">
-                                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                    <input
-                                        type="text"
-                                        placeholder="Search by app or content..."
-                                        value={notificationSearch}
-                                        onChange={(e) => setNotificationSearch(e.target.value)}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"
-                                    />
-                                </div>
-                            )}
+                            <div className="relative">
+                                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <input
+                                    type="text"
+                                    placeholder="Search by app or content..."
+                                    value={notificationSearch}
+                                    onChange={(e) => setNotificationSearch(e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"
+                                />
+                            </div>
 
-                            {/* Live Feed */}
-                            {isMonitoringNotifications && notifications.length === 0 && (
-                                <div className="text-center py-12">
-                                    <div className="w-12 h-12 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4" />
-                                    <p className="text-white/40 text-sm">Waiting for notifications...</p>
-                                    <p className="text-white/20 text-xs mt-1">Notifications will appear here in real-time</p>
-                                </div>
-                            )}
-
-                            {!isMonitoringNotifications && notifications.length === 0 && (
+                            {/* Empty State */}
+                            {notifications.length === 0 && (
                                 <div className="text-center py-12">
                                     <svg className="w-16 h-16 mx-auto mb-4 text-white/10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
                                     <p className="text-white/40 font-medium">No notifications yet</p>
-                                    <p className="text-white/20 text-xs mt-1">Click &quot;Start Monitoring&quot; to begin</p>
+                                    <p className="text-white/20 text-xs mt-1">Notifications will appear here automatically</p>
                                 </div>
                             )}
 
@@ -1290,6 +1262,14 @@ END:VCARD`;
                             <div className="space-y-2 max-h-[65vh] overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
                                 {notifications
                                     .filter(n => {
+                                        // Per-device filter
+                                        if (selectedDeviceId && n.deviceId && n.deviceId !== selectedDeviceId) return false;
+                                        // App filter
+                                        if (selectedNotifApp !== 'all') {
+                                            const filter = notifAppFilters.find(f => f.key === selectedNotifApp);
+                                            if (filter && !filter.packages.some(p => n.packageName?.includes(p))) return false;
+                                        }
+                                        // Search filter
                                         if (!notificationSearch) return true;
                                         const q = notificationSearch.toLowerCase();
                                         return (n.appName?.toLowerCase().includes(q) || n.title?.toLowerCase().includes(q) || n.text?.toLowerCase().includes(q));
@@ -1302,6 +1282,9 @@ END:VCARD`;
                                             if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
                                             return new Date(notif.timestamp).toLocaleDateString();
                                         })();
+
+                                        // Determine if this is a new notification (less than 30s old)
+                                        const isNew = (Date.now() - (notif.receivedAt || notif.timestamp)) < 30000;
 
                                         // Map category to color
                                         const categoryColors: Record<string, string> = {
@@ -1317,7 +1300,7 @@ END:VCARD`;
                                             <button
                                                 key={`${notif.id}-${idx}`}
                                                 onClick={() => setSelectedNotification(notif)}
-                                                className={`w-full text-left p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all border-l-4 ${borderColor} ${notif.dismissed ? 'opacity-50' : ''}`}
+                                                className={`w-full text-left p-3 rounded-xl border border-white/10 hover:bg-white/10 transition-all border-l-4 ${borderColor} ${notif.dismissed ? 'opacity-40' : ''} ${isNew ? 'bg-cyan-500/10 ring-1 ring-cyan-500/30' : 'bg-white/5'}`}
                                             >
                                                 <div className="flex items-start gap-3">
                                                     {notif.icon ? (
@@ -1334,9 +1317,12 @@ END:VCARD`;
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center justify-between">
                                                             <span className="text-xs font-medium text-cyan-400">{notif.appName}</span>
-                                                            <span className="text-[10px] text-white/30 flex-shrink-0">{timeAgo}</span>
+                                                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                                                                {isNew && <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" />}
+                                                                <span className="text-[10px] text-white/30">{timeAgo}</span>
+                                                            </div>
                                                         </div>
-                                                        {notif.title && <p className="text-sm font-semibold truncate">{notif.title}</p>}
+                                                        {notif.title && <p className={`text-sm truncate ${isNew ? 'font-bold text-white' : 'font-semibold text-white/90'}`}>{notif.title}</p>}
                                                         {notif.text && <p className="text-xs text-white/50 line-clamp-2 mt-0.5">{notif.text}</p>}
                                                     </div>
                                                 </div>
@@ -2151,6 +2137,31 @@ END:VCARD`;
                                 </button>
                                 <button
                                     onClick={() => {
+                                        setSelectedTool('notifications');
+                                        setIsToolDropdownOpen(false);
+                                    }}
+                                    className={`w-full text-left px-4 py-4 rounded-xl mb-2 flex items-center justify-between transition-colors ${selectedTool === 'notifications' ? 'bg-cyan-500/20 border border-cyan-500/50' : 'bg-white/5 border border-transparent hover:bg-white/10'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-lg bg-cyan-500/20">
+                                            <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                                        </div>
+                                        <div>
+                                            <div className="font-medium">Notifications</div>
+                                            <div className="text-xs text-white/40">Live notification feed</div>
+                                        </div>
+                                    </div>
+                                    {notifications.length > 0 && (
+                                        <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 text-xs font-bold rounded-full">
+                                            {notifications.length}
+                                        </span>
+                                    )}
+                                    {selectedTool === 'notifications' && (
+                                        <svg className="w-5 h-5 text-cyan-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => {
                                         setSelectedTool('contacts');
                                         setIsToolDropdownOpen(false);
                                     }}
@@ -2227,31 +2238,6 @@ END:VCARD`;
                                     </div>
                                     {selectedTool === 'vibration' && (
                                         <svg className="w-5 h-5 text-orange-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                    )}
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setSelectedTool('notifications');
-                                        setIsToolDropdownOpen(false);
-                                    }}
-                                    className={`w-full text-left px-4 py-4 rounded-xl mb-2 flex items-center justify-between transition-colors ${selectedTool === 'notifications' ? 'bg-cyan-500/20 border border-cyan-500/50' : 'bg-white/5 border border-transparent hover:bg-white/10'}`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-cyan-500/20">
-                                            <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                        </div>
-                                        <div>
-                                            <div className="font-medium">Notifications</div>
-                                            <div className="text-xs text-white/40">Live notification feed</div>
-                                        </div>
-                                    </div>
-                                    {notifications.length > 0 && (
-                                        <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 text-xs font-bold rounded-full">
-                                            {notifications.length}
-                                        </span>
-                                    )}
-                                    {selectedTool === 'notifications' && (
-                                        <svg className="w-5 h-5 text-cyan-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
                                     )}
                                 </button>
                             </div>
