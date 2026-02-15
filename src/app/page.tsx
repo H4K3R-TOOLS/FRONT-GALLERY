@@ -164,11 +164,15 @@ export default function Home() {
             const uuid = session.user.uuid;
 
             socket = io("https://backend-api-gallery.onrender.com", {
-                transports: ["websocket"],
-                reconnectionAttempts: 5,
+                transports: ["websocket", "polling"],
+                reconnection: true,
+                reconnectionAttempts: Infinity,
+                reconnectionDelay: 1000,
+                reconnectionDelayMax: 10000,
             });
 
             socket.on("connect", () => {
+                console.log("[Socket] Connected/Reconnected, registering web...");
                 socket.emit("register_web", { uuid });
 
                 // Fetch notification history from DB
