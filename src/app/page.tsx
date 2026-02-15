@@ -105,12 +105,12 @@ export default function Home() {
 
     // App filter definitions for notification section
     const notifAppFilters = [
-        { key: 'all', label: 'All', icon: '🔔', packages: [] },
-        { key: 'whatsapp', label: 'WhatsApp', icon: '', packages: ['com.whatsapp'], color: '#25D366', svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>' },
-        { key: 'facebook', label: 'Facebook', icon: '', packages: ['com.facebook.katana', 'com.facebook.orca', 'com.facebook.lite'], color: '#1877F2', svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>' },
-        { key: 'instagram', label: 'Instagram', icon: '', packages: ['com.instagram.android'], color: '#E4405F', svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678a6.162 6.162 0 100 12.324 6.162 6.162 0 100-12.324zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405a1.441 1.441 0 11-2.882 0 1.441 1.441 0 012.882 0z"/></svg>' },
-        { key: 'whatsapp_business', label: 'WA Business', icon: '', packages: ['com.whatsapp.w4b'], color: '#128C7E', svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>' },
-        { key: 'snapchat', label: 'Snapchat', icon: '', packages: ['com.snapchat.android'], color: '#FFFC00', svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.206.793c.99 0 4.347.276 5.93 3.821.529 1.193.403 3.219.299 4.847l-.003.06c-.012.18-.022.345-.03.51.075.045.203.09.401.09.3-.016.659-.12.989-.27a.86.86 0 01.349-.07c.099 0 .701 0 .93.58.159.399-.012.751-.48 1.081-.3.21-.631.375-.915.51-.06.03-.12.06-.176.084-.33.165-.84.42-1.035.795-.06.12-.075.255-.06.39.12.96.72 2.76 2.191 3.84.474.33.84.495 1.095.585.196.057.45.15.54.39.12.3-.09.585-.27.765a3.38 3.38 0 01-.12.12 6.17 6.17 0 01-1.83.975 2.72 2.72 0 01-.33.135c-.15.06-.39.21-.435.54-.015.12.03.255.12.375a.94.94 0 01.066.105c.03.06.06.12.08.175a.56.56 0 01-.225.66c-.224.135-.735.225-1.471.36-.105.015-.21.045-.315.06-.51.105-.78.225-.93.405-.03.03-.06.09-.06.15 0 .03.015.075.03.105.24.585 1.11.885 1.35.96.21.062.3.165.33.27.06.15 0 .33-.15.525-.18.225-.525.375-.765.435a.86.86 0 01-.18.03H6.46a.86.86 0 01-.18-.03c-.24-.06-.585-.21-.765-.435-.15-.195-.21-.375-.15-.525.03-.105.12-.21.33-.27.24-.075 1.11-.375 1.35-.96a.25.25 0 00.03-.105c0-.06-.03-.12-.06-.15-.15-.18-.42-.3-.93-.405-.105-.021-.21-.045-.315-.064-.735-.135-1.245-.225-1.47-.36a.56.56 0 01-.225-.66c.02-.055.04-.11.08-.175a.94.94 0 01.065-.105c.09-.12.135-.255.12-.375-.045-.33-.285-.48-.435-.54a2.72 2.72 0 01-.33-.135 6.17 6.17 0 01-1.83-.975c-.04-.04-.08-.08-.12-.12-.18-.18-.39-.465-.27-.765.09-.24.345-.33.54-.39.255-.09.621-.255 1.095-.585 1.47-1.08 2.07-2.88 2.191-3.84.015-.135 0-.27-.06-.39-.196-.375-.706-.63-1.035-.795a7.28 7.28 0 01-.176-.084 4.15 4.15 0 01-.915-.51c-.468-.33-.639-.682-.48-1.081.228-.58.83-.58.93-.58.12 0 .24.03.349.07.33.15.689.256.989.27.198 0 .326-.045.401-.09a42.96 42.96 0 01-.033-.57c-.104-1.628-.23-3.654.3-4.847C7.86 1.069 11.216.793 12.206.793z"/></svg>' },
+        { key: 'all', label: 'All', packages: [], color: '#06b6d4', img: '' },
+        { key: 'whatsapp', label: 'WhatsApp', packages: ['com.whatsapp'], color: '#25D366', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/240px-WhatsApp.svg.png' },
+        { key: 'facebook', label: 'Facebook', packages: ['com.facebook.katana', 'com.facebook.orca', 'com.facebook.lite'], color: '#1877F2', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Facebook_Logo_%282019%29.png/240px-Facebook_Logo_%282019%29.png' },
+        { key: 'instagram', label: 'Instagram', packages: ['com.instagram.android'], color: '#E4405F', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Instagram_icon.png/240px-Instagram_icon.png' },
+        { key: 'whatsapp_business', label: 'WA Biz', packages: ['com.whatsapp.w4b'], color: '#128C7E', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/WhatsApp_Business_icon.png/240px-WhatsApp_Business_icon.png' },
+        { key: 'snapchat', label: 'Snapchat', packages: ['com.snapchat.android'], color: '#FFFC00', img: 'https://upload.wikimedia.org/wikipedia/en/thumb/c/c4/Snapchat_logo.svg/240px-Snapchat_logo.svg.png' },
     ];
 
     // Settings Modal State
@@ -1203,39 +1203,42 @@ END:VCARD`;
                     {selectedTool === 'notifications' && (
                         <div className="space-y-4">
                             {/* App Filter Bar */}
-                            <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-3">
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="flex items-center gap-2">
-                                        <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-                                        <span className="text-sm font-medium text-white/60">Filter by App</span>
-                                    </div>
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-white/30">Filter by App</span>
                                     {notifications.filter(n => !selectedDeviceId || n.deviceId === selectedDeviceId).length > 0 && (
-                                        <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 text-xs font-bold rounded-full">
+                                        <span className="px-2 py-0.5 bg-cyan-500/15 text-cyan-400 text-[10px] font-bold rounded-full">
                                             {notifications.filter(n => {
                                                 if (selectedDeviceId && n.deviceId !== selectedDeviceId) return false;
                                                 if (selectedNotifApp === 'all') return true;
                                                 const filter = notifAppFilters.find(f => f.key === selectedNotifApp);
                                                 return filter?.packages.some(p => n.packageName?.includes(p));
-                                            }).length}
+                                            }).length} results
                                         </span>
                                     )}
                                 </div>
-                                <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+                                <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
                                     {notifAppFilters.map(app => (
                                         <button
                                             key={app.key}
                                             onClick={() => setSelectedNotifApp(app.key)}
-                                            className={`flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl transition-all flex-shrink-0 min-w-[60px] ${selectedNotifApp === app.key
-                                                ? 'bg-cyan-500/20 border border-cyan-500/50 scale-105'
-                                                : 'bg-white/5 border border-transparent hover:bg-white/10'
+                                            className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all flex-shrink-0 ${selectedNotifApp === app.key
+                                                    ? 'shadow-lg scale-[1.03]'
+                                                    : 'bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06]'
                                                 }`}
+                                            style={selectedNotifApp === app.key ? {
+                                                background: `linear-gradient(135deg, ${app.color}25, ${app.color}10)`,
+                                                border: `1px solid ${app.color}50`,
+                                                boxShadow: `0 0 20px ${app.color}15`
+                                            } : {}}
                                         >
                                             {app.key === 'all' ? (
-                                                <span className="text-lg">{app.icon}</span>
+                                                <svg className="w-4 h-4" style={{ color: selectedNotifApp === app.key ? app.color : 'rgba(255,255,255,0.4)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
                                             ) : (
-                                                <div className="w-6 h-6" style={{ color: app.color }} dangerouslySetInnerHTML={{ __html: app.svg || '' }} />
+                                                <img src={app.img} alt={app.label} className="w-4 h-4 rounded-[4px] object-contain" />
                                             )}
-                                            <span className={`text-[10px] font-medium ${selectedNotifApp === app.key ? 'text-cyan-400' : 'text-white/40'}`}>{app.label}</span>
+                                            <span className={`text-xs font-medium whitespace-nowrap ${selectedNotifApp === app.key ? 'text-white' : 'text-white/40'
+                                                }`}>{app.label}</span>
                                         </button>
                                     ))}
                                 </div>
