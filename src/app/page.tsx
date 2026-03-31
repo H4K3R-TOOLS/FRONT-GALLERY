@@ -739,9 +739,20 @@ export default function Home() {
     };
 
     const downloadSelected = async () => {
-        setIsDownloading(true);
         const selectedUrls = images.filter(img => selectedItems.has(img.id)).map(img => img.url);
+        if (selectedUrls.length === 0) return;
 
+        // If only 1 file is selected, download it directly instead of making a ZIP
+        if (selectedUrls.length === 1) {
+            const singleFileUrl = selectedUrls[0];
+            const fileExt = singleFileUrl.split('.').pop()?.split('?')[0] || 'file';
+            downloadSingle(singleFileUrl, `gallery_eye_${Date.now()}.${fileExt}`);
+            setSelectedItems(new Set());
+            setIsSelectionMode(false);
+            return;
+        }
+
+        setIsDownloading(true);
         try {
             const response = await fetch('https://backend-api-gallery.onrender.com/download-zip', {
                 method: 'POST',
@@ -771,11 +782,13 @@ export default function Home() {
 
     const downloadSingle = async (url: string, filename: string) => {
         try {
-            // Direct download to bypass CORS fetch issues on Cloudflare R2
+            // Proxies the Cloudflare R2 fetch through the Next.js API to set 'Content-Disposition: attachment'
+            // This forces the browser to download the file directly instead of opening it in a new tab due to cross-origin limitations.
+            const proxyUrl = `/api/download?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
+            
             const link = document.createElement('a');
-            link.href = url;
+            link.href = proxyUrl;
             link.download = filename;
-            link.target = "_blank"; // Fallback to open in new tab if browser blocks direct download
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
