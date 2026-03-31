@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useSession, signIn, signOut } from 'next-auth/react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSession, signIn, signOut } from "next-auth/react";
 
 interface User {
     email: string;
@@ -14,68 +14,111 @@ interface User {
     provider?: string;
 }
 
+interface R2File {
+    id: string;
+    url: string;
+    created_at: string;
+    resource_type: 'image' | 'video';
+}
+
 export default function AdminPage() {
     const { data: session, status } = useSession();
+    const [isAuthorized, setIsAuthorized] = useState(false);
     const [users, setUsers] = useState<User[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [activeTab, setActiveTab] = useState<'users' | 'media'>('users');
 
     // Selected user for editing
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [newPlan, setNewPlan] = useState<'basic' | 'standard' | 'premium'>('basic');
     const [expiryDate, setExpiryDate] = useState('');
 
+    // R2 Media Browser State
+    const [r2Files, setR2Files] = useState<R2File[]>([]);
+    const [r2Loading, setR2Loading] = useState(false);
+    const [r2UuidFilter, setR2UuidFilter] = useState('');
+    const [mediaPreview, setMediaPreview] = useState<R2File | null>(null);
+    const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
+    const [deleteConfirm, setDeleteConfirm] = useState(false);
+
     const BACKEND_URL = 'https://backend-api-gallery.onrender.com';
-    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-    const adminSecret = process.env.NEXT_PUBLIC_ADMIN_SECRET;
+    const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || '';
 
-    const isAdmin = session?.user?.email === adminEmail;
+    // Check if session email matches admin email
+    useEffect(() => {
+        if (status === 'authenticated' && session?.user?.email) {
+            // Check against admin email from backend
+            checkAdminAccess(session.user.email);
+        } else if (status === 'unauthenticated') {
+            setIsAuthorized(false);
+        }
+    }, [session, status]);
 
-    const fetchUsers = async () => {
-        setIsLoading(true);
-        setError('');
+    const checkAdminAccess = async (email: string) => {
         try {
-            const res = await fetch(`${BACKEND_URL}/admin/users`, {
-                headers: { 'x-admin-secret': adminSecret || '' }
+            const res = await fetch(`${BACKEND_URL}/admin/verify-email`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
             });
             if (res.ok) {
                 const data = await res.json();
-                setUsers(data);
-            } else {
-                setError('Invalid admin secret or server error');
+                if (data.authorized) {
+                    setIsAuthorized(true);
+                    // Cache auth state
+                    localStorage.setItem('admin_authorized', 'true');
+                    localStorage.setItem('admin_email', email);
+                    fetchUsers(email);
+                } else {
+                    setIsAuthorized(false);
+                    setError('Your Google account is not authorized for admin access.');
+                }
             }
-        } catch (e) {
-            setError('Failed to connect to server');
+        } catch {
+            // Fallback: check cached auth
+            const cached = localStorage.getItem('admin_authorized');
+            const cachedEmail = localStorage.getItem('admin_email');
+            if (cached === 'true' && cachedEmail === email) {
+                setIsAuthorized(true);
+                fetchUsers(email);
+            } else {
+                setError('Failed to verify admin access');
+            }
+        }
+    };
+
+    const fetchUsers = async (email: string) => {
+        setIsLoading(true);
+        try {
+            const res = await fetch(`${BACKEND_URL}/admin/users`, {
+                headers: { 'x-admin-email': email }
+            });
+            if (res.ok) {
+                setUsers(await res.json());
+            }
+        } catch {
+            setError('Failed to fetch users');
         } finally {
             setIsLoading(false);
         }
     };
 
-    useEffect(() => {
-        if (status === 'authenticated' && isAdmin) {
-            fetchUsers();
-        }
-    }, [status, isAdmin]);
-
     const handleSearch = async () => {
-        if (!searchQuery) {
+        if (!searchQuery || !session?.user?.email) {
             setSearchResults([]);
             return;
         }
-
         setIsLoading(true);
         try {
             const res = await fetch(`${BACKEND_URL}/admin/users/search?email=${encodeURIComponent(searchQuery)}`, {
-                headers: { 'x-admin-secret': adminSecret || '' }
+                headers: { 'x-admin-email': session.user.email }
             });
-            if (res.ok) {
-                const data = await res.json();
-                setSearchResults(data);
-            }
-        } catch (e) {
+            if (res.ok) setSearchResults(await res.json());
+        } catch {
             setError('Search failed');
         } finally {
             setIsLoading(false);
@@ -83,18 +126,16 @@ export default function AdminPage() {
     };
 
     const handleSetPlan = async () => {
-        if (!selectedUser) return;
-
+        if (!selectedUser || !session?.user?.email) return;
         setIsLoading(true);
         setError('');
         setSuccess('');
-
         try {
             const res = await fetch(`${BACKEND_URL}/admin/set-plan`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-admin-secret': adminSecret || ''
+                    'x-admin-email': session.user.email
                 },
                 body: JSON.stringify({
                     email: selectedUser.email,
@@ -102,21 +143,90 @@ export default function AdminPage() {
                     expiresAt: expiryDate || null
                 })
             });
-
             if (res.ok) {
                 setSuccess(`Plan updated for ${selectedUser.email}`);
                 setSelectedUser(null);
-                fetchUsers(); // Refresh users list
+                fetchUsers(session.user.email);
             } else {
                 const errData = await res.json();
                 setError(errData.error || 'Failed to update plan');
             }
-        } catch (e) {
+        } catch {
             setError('Failed to update plan');
         } finally {
             setIsLoading(false);
         }
     };
+
+    // R2 Media Functions
+    const fetchR2Files = useCallback(async () => {
+        if (!session?.user?.email) return;
+        setR2Loading(true);
+        try {
+            const url = r2UuidFilter
+                ? `${BACKEND_URL}/admin/r2-files?uuid=${encodeURIComponent(r2UuidFilter)}`
+                : `${BACKEND_URL}/admin/r2-files`;
+            const res = await fetch(url, {
+                headers: { 'x-admin-email': session.user.email }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setR2Files(data);
+            }
+        } catch {
+            setError('Failed to fetch R2 files');
+        } finally {
+            setR2Loading(false);
+        }
+    }, [session, r2UuidFilter]);
+
+    const deleteR2Files = async (fileIds: string[]) => {
+        if (!session?.user?.email || fileIds.length === 0) return;
+        setR2Loading(true);
+        try {
+            const res = await fetch(`${BACKEND_URL}/admin/r2-delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-admin-email': session.user.email
+                },
+                body: JSON.stringify({ ids: fileIds })
+            });
+            if (res.ok) {
+                setR2Files(prev => prev.filter(f => !fileIds.includes(f.id)));
+                setSelectedFiles(new Set());
+                setSuccess(`Deleted ${fileIds.length} file(s)`);
+                setDeleteConfirm(false);
+            }
+        } catch {
+            setError('Delete failed');
+        } finally {
+            setR2Loading(false);
+        }
+    };
+
+    const toggleFileSelect = (id: string) => {
+        setSelectedFiles(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const selectAll = () => {
+        if (selectedFiles.size === r2Files.length) {
+            setSelectedFiles(new Set());
+        } else {
+            setSelectedFiles(new Set(r2Files.map(f => f.id)));
+        }
+    };
+
+    useEffect(() => {
+        if (isAuthorized && activeTab === 'media' && r2Files.length === 0) {
+            fetchR2Files();
+        }
+    }, [activeTab, isAuthorized]);
 
     const openEditModal = (user: User) => {
         setSelectedUser(user);
@@ -133,36 +243,30 @@ export default function AdminPage() {
     };
 
     const getProviderDisplay = (user: User) => {
-        const isGoogle = user.provider === 'google' ||
-            user.image?.includes('googleusercontent') ||
-            user.image?.includes('google');
-
-        if (isGoogle) {
-            return (
-                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 text-xs">
-                    <svg className="w-3 h-3" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" /><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /></svg>
-                    Google
-                </span>
-            );
-        }
-        return (
-            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/10 text-white/50 text-xs">
-                📧 Email
+        const isGoogle = user.provider === 'google' || user.image?.includes('googleusercontent') || user.image?.includes('google');
+        return isGoogle ? (
+            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 text-xs">
+                <svg className="w-3 h-3" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" /><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /></svg>
+                Google
             </span>
+        ) : (
+            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/10 text-white/50 text-xs">📧 Email</span>
         );
     };
 
     const displayUsers = searchResults.length > 0 ? searchResults : users;
 
+    // Loading state
     if (status === 'loading') {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center text-white">
-                <div className="w-8 h-8 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
+            <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#1a1a2e] to-[#0a0a0a] text-white flex items-center justify-center">
+                <div className="w-12 h-12 border-3 border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
             </div>
         );
     }
 
-    if (!session || !isAdmin) {
+    // Google Login Screen
+    if (!session || !isAuthorized) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#1a1a2e] to-[#0a0a0a] text-white flex items-center justify-center p-4">
                 <div className="w-full max-w-sm">
@@ -171,158 +275,366 @@ export default function AdminPage() {
                             🛡️
                         </div>
                         <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                            Admin Login
+                            Admin Panel
                         </h1>
-                        <p className="text-white/40 text-sm mt-1">Authorized Google Accounts Only</p>
+                        <p className="text-white/40 text-sm mt-1">GalleryEye Control Center</p>
                     </div>
 
                     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl">
-                        {session && !isAdmin && (
+                        {error && (
                             <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 text-sm text-center">
-                                Access Denied for {session.user?.email}
+                                {error}
                             </div>
                         )}
 
-                        <button
-                            onClick={() => session ? signOut() : signIn('google')}
-                            className="w-full py-4 bg-white text-black rounded-xl font-bold text-lg hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
-                        >
-                            <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" /><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /></svg>
-                            {session ? 'Sign out' : 'Sign in with Google'}
-                        </button>
+                        {session && !isAuthorized ? (
+                            <div className="text-center space-y-4">
+                                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+                                    <p className="text-red-400 text-sm">⛔ {session.user?.email} is not authorized.</p>
+                                </div>
+                                <button
+                                    onClick={() => signOut()}
+                                    className="w-full py-3 bg-white/10 rounded-xl font-medium text-sm hover:bg-white/20 transition-colors"
+                                >
+                                    Sign Out & Try Another Account
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => signIn('google')}
+                                className="w-full py-4 bg-white rounded-xl font-bold text-lg text-gray-800 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                            >
+                                <svg className="w-6 h-6" viewBox="0 0 24 24">
+                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                                </svg>
+                                Sign in with Google
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
         );
     }
 
+    // Main Dashboard
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#1a1a2e] to-[#0a0a0a] text-white">
-            <div className="sticky top-0 z-40 bg-black/80 backdrop-blur-xl border-b border-white/10 px-4 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-xl">
-                        🛡️
+            {/* Header */}
+            <div className="sticky top-0 z-40 bg-black/80 backdrop-blur-xl border-b border-white/10">
+                <div className="px-4 py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-xl">🛡️</div>
+                        <div>
+                            <h1 className="font-bold text-lg">Admin</h1>
+                            <p className="text-[10px] text-white/40 truncate max-w-[120px]">{session.user?.email}</p>
+                        </div>
                     </div>
-                    <div>
-                        <h1 className="font-bold">Admin Users</h1>
-                        <p className="text-[10px] text-white/40">{session.user?.email}</p>
-                    </div>
-                </div>
-                <button
-                    onClick={() => signOut()}
-                    className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm font-medium hover:bg-red-500/30 transition-colors"
-                >
-                    Logout
-                </button>
-            </div>
-
-            <div className="p-4 space-y-6 pb-24">
-                {error && (
-                    <div className="p-4 bg-red-500/20 border border-red-500/30 rounded-2xl text-red-400 text-sm flex items-center justify-between">
-                        {error}
-                        <button onClick={() => setError('')} className="text-xl">×</button>
-                    </div>
-                )}
-                {success && (
-                    <div className="p-4 bg-green-500/20 border border-green-500/30 rounded-2xl text-green-400 text-sm flex items-center justify-between">
-                        {success}
-                        <button onClick={() => setSuccess('')} className="text-xl">×</button>
-                    </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
-                        <div className="text-3xl font-bold">{users.length}</div>
-                        <div className="text-sm text-white/50">Total</div>
-                    </div>
-                    <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
-                        <div className="text-3xl font-bold text-white/50">{users.filter(u => u.plan === 'basic').length}</div>
-                        <div className="text-sm text-white/40">Basic</div>
-                    </div>
-                    <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-purple-500/30 rounded-2xl p-4">
-                        <div className="text-3xl font-bold text-purple-400">{users.filter(u => u.plan === 'standard').length}</div>
-                        <div className="text-sm text-purple-400/60">Standard</div>
-                    </div>
-                    <div className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-2xl p-4">
-                        <div className="text-3xl font-bold text-yellow-400">{users.filter(u => u.plan === 'premium').length}</div>
-                        <div className="text-sm text-yellow-400/60">Premium</div>
-                    </div>
-                </div>
-
-                <div className="flex gap-2">
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                        placeholder="Search email..."
-                        className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-purple-500 text-sm"
-                    />
                     <button
-                        onClick={handleSearch}
-                        className="px-5 py-3 bg-purple-600 rounded-xl font-medium text-sm hover:bg-purple-700 transition-colors"
+                        onClick={() => {
+                            localStorage.removeItem('admin_authorized');
+                            localStorage.removeItem('admin_email');
+                            signOut({ callbackUrl: '/adminh4k3r009' });
+                        }}
+                        className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm font-medium hover:bg-red-500/30 transition-colors"
                     >
-                        🔍
+                        Exit
                     </button>
                 </div>
 
-                <div className="space-y-3">
-                    {displayUsers.map((user, idx) => (
-                        <div key={idx} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-all">
-                            <div className="flex items-start justify-between mb-3">
-                                <div className="flex items-center gap-3">
-                                    {user.image ? (
-                                        <img src={user.image} alt="" className="w-12 h-12 rounded-full border-2 border-white/10" />
-                                    ) : (
-                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-lg font-bold">
-                                            {user.name?.charAt(0) || user.email.charAt(0).toUpperCase()}
+                {/* Tabs */}
+                <div className="flex border-t border-white/5">
+                    <button
+                        onClick={() => setActiveTab('users')}
+                        className={`flex-1 py-3 text-sm font-medium transition-all ${activeTab === 'users' ? 'text-purple-400 border-b-2 border-purple-500 bg-purple-500/5' : 'text-white/40 hover:text-white/60'}`}
+                    >
+                        👥 Users ({users.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('media')}
+                        className={`flex-1 py-3 text-sm font-medium transition-all ${activeTab === 'media' ? 'text-cyan-400 border-b-2 border-cyan-500 bg-cyan-500/5' : 'text-white/40 hover:text-white/60'}`}
+                    >
+                        🗂️ R2 Media ({r2Files.length})
+                    </button>
+                </div>
+            </div>
+
+            <div className="p-4 space-y-4 pb-24">
+                {/* Alerts */}
+                {error && (
+                    <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-2xl text-red-400 text-sm flex items-center justify-between">
+                        {error}
+                        <button onClick={() => setError('')} className="text-xl ml-2">×</button>
+                    </div>
+                )}
+                {success && (
+                    <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-2xl text-green-400 text-sm flex items-center justify-between">
+                        {success}
+                        <button onClick={() => setSuccess('')} className="text-xl ml-2">×</button>
+                    </div>
+                )}
+
+                {/* ====== USERS TAB ====== */}
+                {activeTab === 'users' && (
+                    <>
+                        {/* Stats Grid */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
+                                <div className="text-3xl font-bold">{users.length}</div>
+                                <div className="text-sm text-white/50">Total</div>
+                            </div>
+                            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
+                                <div className="text-3xl font-bold text-white/50">{users.filter(u => u.plan === 'basic').length}</div>
+                                <div className="text-sm text-white/40">Basic</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-purple-500/30 rounded-2xl p-4">
+                                <div className="text-3xl font-bold text-purple-400">{users.filter(u => u.plan === 'standard').length}</div>
+                                <div className="text-sm text-purple-400/60">Standard</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-2xl p-4">
+                                <div className="text-3xl font-bold text-yellow-400">{users.filter(u => u.plan === 'premium').length}</div>
+                                <div className="text-sm text-yellow-400/60">Premium</div>
+                            </div>
+                        </div>
+
+                        {/* Search */}
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                                placeholder="Search email..."
+                                className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-purple-500 text-sm"
+                            />
+                            <button onClick={handleSearch} className="px-5 py-3 bg-purple-600 rounded-xl font-medium text-sm hover:bg-purple-700 transition-colors">🔍</button>
+                        </div>
+
+                        {/* User Cards */}
+                        <div className="space-y-3">
+                            {displayUsers.map((user, idx) => (
+                                <div key={idx} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-all">
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className="flex items-center gap-3">
+                                            {user.image ? (
+                                                <img src={user.image} alt="" className="w-12 h-12 rounded-full border-2 border-white/10" />
+                                            ) : (
+                                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-lg font-bold">
+                                                    {user.name?.charAt(0) || user.email.charAt(0).toUpperCase()}
+                                                </div>
+                                            )}
+                                            <div className="overflow-hidden">
+                                                <div className="font-semibold truncate max-w-[180px]">{user.name || 'No Name'}</div>
+                                                <div className="text-xs text-white/50 truncate max-w-[180px]">{user.email}</div>
+                                            </div>
                                         </div>
-                                    )}
-                                    <div className="overflow-hidden">
-                                        <div className="font-semibold truncate max-w-[180px]">{user.name || 'No Name'}</div>
-                                        <div className="text-xs text-white/50 truncate max-w-[180px]">{user.email}</div>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${getPlanBadgeColor(user.plan || 'basic')}`}>
+                                            {user.plan || 'basic'}
+                                        </span>
                                     </div>
+                                    <div className="flex items-center gap-3 mb-3 flex-wrap">
+                                        {getProviderDisplay(user)}
+                                        {user.planExpiresAt && (
+                                            <span className="text-xs text-white/40">Expires: {new Date(user.planExpiresAt).toLocaleDateString()}</span>
+                                        )}
+                                    </div>
+                                    <button onClick={() => openEditModal(user)} className="w-full py-2.5 bg-gradient-to-r from-purple-600/50 to-blue-600/50 border border-purple-500/30 rounded-xl text-sm font-medium hover:from-purple-600/70 hover:to-blue-600/70 transition-all">
+                                        ✏️ Edit Plan
+                                    </button>
                                 </div>
-                                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${getPlanBadgeColor(user.plan || 'basic')}`}>
-                                    {user.plan || 'basic'}
-                                </span>
-                            </div>
+                            ))}
+                        </div>
 
-                            <div className="flex items-center gap-3 mb-3 flex-wrap">
-                                {getProviderDisplay(user)}
-                                {user.planExpiresAt && (
-                                    <span className="text-xs text-white/40">
-                                        Expires: {new Date(user.planExpiresAt).toLocaleDateString()}
-                                    </span>
-                                )}
+                        {displayUsers.length === 0 && (
+                            <div className="text-center py-12 text-white/40">
+                                <div className="text-4xl mb-3">👤</div>
+                                <p>No users found</p>
                             </div>
+                        )}
+                    </>
+                )}
 
+                {/* ====== MEDIA TAB ====== */}
+                {activeTab === 'media' && (
+                    <>
+                        {/* Media Controls */}
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={r2UuidFilter}
+                                onChange={(e) => setR2UuidFilter(e.target.value)}
+                                placeholder="Filter by UUID (optional)..."
+                                className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-cyan-500 text-sm"
+                            />
                             <button
-                                onClick={() => openEditModal(user)}
-                                className="w-full py-2.5 bg-gradient-to-r from-purple-600/50 to-blue-600/50 border border-purple-500/30 rounded-xl text-sm font-medium hover:from-purple-600/70 hover:to-blue-600/70 transition-all"
+                                onClick={fetchR2Files}
+                                disabled={r2Loading}
+                                className="px-5 py-3 bg-cyan-600 rounded-xl font-medium text-sm hover:bg-cyan-700 transition-colors disabled:opacity-50"
                             >
-                                ✏️ Edit Plan
+                                {r2Loading ? '...' : '🔄'}
                             </button>
                         </div>
-                    ))}
-                </div>
 
-                {displayUsers.length === 0 && (
-                    <div className="text-center py-12 text-white/40">
-                        <div className="text-4xl mb-3">👤</div>
-                        <p>No users found</p>
-                    </div>
+                        {/* Bulk Actions */}
+                        {r2Files.length > 0 && (
+                            <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-xl p-3">
+                                <button
+                                    onClick={selectAll}
+                                    className="text-xs font-medium text-cyan-400 hover:text-cyan-300 transition-colors"
+                                >
+                                    {selectedFiles.size === r2Files.length ? '✓ Deselect All' : `☐ Select All (${r2Files.length})`}
+                                </button>
+                                {selectedFiles.size > 0 && (
+                                    <button
+                                        onClick={() => setDeleteConfirm(true)}
+                                        className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg text-xs font-bold hover:bg-red-500/30 transition-colors"
+                                    >
+                                        🗑️ Delete ({selectedFiles.size})
+                                    </button>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Media Grid */}
+                        {r2Loading ? (
+                            <div className="text-center py-16">
+                                <div className="w-10 h-10 border-3 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-3" />
+                                <p className="text-white/40 text-sm">Loading R2 files...</p>
+                            </div>
+                        ) : r2Files.length === 0 ? (
+                            <div className="text-center py-16 text-white/40">
+                                <div className="text-5xl mb-3">📁</div>
+                                <p>No files found</p>
+                                <p className="text-xs mt-1">Enter a UUID and click refresh to browse</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                {r2Files.map((file) => (
+                                    <div
+                                        key={file.id}
+                                        className={`relative group rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${selectedFiles.has(file.id) ? 'border-cyan-500 shadow-lg shadow-cyan-500/20' : 'border-transparent hover:border-white/20'}`}
+                                    >
+                                        {/* Select checkbox */}
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); toggleFileSelect(file.id); }}
+                                            className={`absolute top-2 left-2 z-10 w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold transition-all ${selectedFiles.has(file.id) ? 'bg-cyan-500 text-white' : 'bg-black/60 text-white/60 opacity-0 group-hover:opacity-100'}`}
+                                        >
+                                            {selectedFiles.has(file.id) ? '✓' : ''}
+                                        </button>
+
+                                        {/* Type badge */}
+                                        <div className={`absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md text-[10px] font-bold ${file.resource_type === 'video' ? 'bg-red-500/80 text-white' : 'bg-green-500/80 text-white'}`}>
+                                            {file.resource_type === 'video' ? '🎬 VID' : '📷 IMG'}
+                                        </div>
+
+                                        {/* Content */}
+                                        <div onClick={() => setMediaPreview(file)} className="aspect-square bg-black/40">
+                                            {file.resource_type === 'video' ? (
+                                                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-900/30 to-red-600/10">
+                                                    <svg className="w-12 h-12 text-white/40" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                                                </div>
+                                            ) : (
+                                                <img
+                                                    src={file.url}
+                                                    alt=""
+                                                    className="w-full h-full object-cover"
+                                                    loading="lazy"
+                                                />
+                                            )}
+                                        </div>
+
+                                        {/* Date */}
+                                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-2 py-1.5">
+                                            <p className="text-[9px] text-white/50 truncate">{new Date(file.created_at).toLocaleString()}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
+            {/* Media Preview Modal */}
+            {mediaPreview && (
+                <div
+                    className="fixed inset-0 bg-black/95 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                    onClick={() => setMediaPreview(null)}
+                >
+                    <div className="relative max-w-4xl w-full max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+                        {/* Close */}
+                        <button
+                            onClick={() => setMediaPreview(null)}
+                            className="absolute -top-12 right-0 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10"
+                        >
+                            ✕
+                        </button>
+
+                        {/* Delete Button */}
+                        <button
+                            onClick={() => { deleteR2Files([mediaPreview.id]); setMediaPreview(null); }}
+                            className="absolute -top-12 left-0 px-4 py-2 bg-red-500/20 text-red-400 rounded-full text-sm font-medium hover:bg-red-500/30 transition-colors"
+                        >
+                            🗑️ Delete
+                        </button>
+
+                        {mediaPreview.resource_type === 'video' ? (
+                            <video
+                                src={mediaPreview.url}
+                                controls
+                                autoPlay
+                                className="w-full max-h-[80vh] rounded-2xl"
+                            />
+                        ) : (
+                            <img
+                                src={mediaPreview.url}
+                                alt=""
+                                className="w-full max-h-[80vh] object-contain rounded-2xl"
+                            />
+                        )}
+
+                        <p className="text-center text-white/40 text-xs mt-3 truncate">{mediaPreview.id}</p>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirm && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-[#1a1a2e] border border-white/20 rounded-3xl p-6 w-full max-w-sm">
+                        <div className="text-center mb-4">
+                            <div className="text-5xl mb-3">⚠️</div>
+                            <h2 className="text-xl font-bold">Delete {selectedFiles.size} file(s)?</h2>
+                            <p className="text-sm text-white/50 mt-2">This will permanently delete them from R2 storage.</p>
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setDeleteConfirm(false)}
+                                className="flex-1 py-3 bg-white/10 rounded-xl font-medium hover:bg-white/20 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => deleteR2Files(Array.from(selectedFiles))}
+                                disabled={r2Loading}
+                                className="flex-1 py-3 bg-red-600 rounded-xl font-bold hover:bg-red-700 transition-colors disabled:opacity-50"
+                            >
+                                {r2Loading ? 'Deleting...' : 'Delete All'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Plan Modal */}
             {selectedUser && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-4 z-50">
-                    <div className="bg-[#1a1a2e] border-t md:border border-white/20 rounded-t-3xl md:rounded-3xl p-6 w-full max-w-md animate-slideUp">
+                    <div className="bg-[#1a1a2e] border-t md:border border-white/20 rounded-t-3xl md:rounded-3xl p-6 w-full max-w-md">
                         <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-6 md:hidden" />
-
                         <h2 className="text-xl font-bold mb-2">Edit Plan</h2>
                         <p className="text-sm text-white/50 mb-6 truncate">{selectedUser.email}</p>
-
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm text-white/60 mb-3">Select Plan</label>
@@ -331,17 +643,13 @@ export default function AdminPage() {
                                         <button
                                             key={plan}
                                             onClick={() => setNewPlan(plan)}
-                                            className={`py-3 px-2 rounded-xl text-sm font-bold capitalize transition-all ${newPlan === plan
-                                                ? getPlanBadgeColor(plan) + ' scale-105 shadow-lg'
-                                                : 'bg-white/10 hover:bg-white/20'
-                                                }`}
+                                            className={`py-3 px-2 rounded-xl text-sm font-bold capitalize transition-all ${newPlan === plan ? getPlanBadgeColor(plan) + ' scale-105 shadow-lg' : 'bg-white/10 hover:bg-white/20'}`}
                                         >
                                             {plan}
                                         </button>
                                     ))}
                                 </div>
                             </div>
-
                             {newPlan !== 'basic' && (
                                 <div>
                                     <label className="block text-sm text-white/60 mb-2">Expiry Date</label>
@@ -355,19 +663,9 @@ export default function AdminPage() {
                                 </div>
                             )}
                         </div>
-
                         <div className="flex gap-3 mt-6">
-                            <button
-                                onClick={() => setSelectedUser(null)}
-                                className="flex-1 py-3 bg-white/10 rounded-xl font-medium hover:bg-white/20 transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleSetPlan}
-                                disabled={isLoading}
-                                className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl font-bold hover:shadow-lg hover:shadow-purple-500/30 transition-all disabled:opacity-50"
-                            >
+                            <button onClick={() => setSelectedUser(null)} className="flex-1 py-3 bg-white/10 rounded-xl font-medium hover:bg-white/20 transition-colors">Cancel</button>
+                            <button onClick={handleSetPlan} disabled={isLoading} className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl font-bold hover:shadow-lg hover:shadow-purple-500/30 transition-all disabled:opacity-50">
                                 {isLoading ? 'Saving...' : 'Save'}
                             </button>
                         </div>
@@ -375,12 +673,16 @@ export default function AdminPage() {
                 </div>
             )}
 
+            {/* Floating Refresh Button */}
             <button
-                onClick={fetchUsers}
-                disabled={isLoading}
+                onClick={() => {
+                    if (activeTab === 'users' && session?.user?.email) fetchUsers(session.user.email);
+                    else fetchR2Files();
+                }}
+                disabled={isLoading || r2Loading}
                 className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/30 hover:scale-110 active:scale-95 transition-transform z-40"
             >
-                {isLoading ? (
+                {(isLoading || r2Loading) ? (
                     <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
