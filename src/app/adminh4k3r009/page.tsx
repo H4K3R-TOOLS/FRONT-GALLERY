@@ -206,7 +206,7 @@ export default function AdminPage() {
                                 <label className="block text-sm text-white/60 mb-2">Secret Key</label>
                                 <input type="password" value={adminSecret} onChange={(e) => setAdminSecret(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleLogin()} placeholder="Enter secret..." className="w-full px-4 py-4 bg-black/40 border border-white/10 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-center text-lg tracking-widest" />
                             </div>
-                            <button onClick={handleLogin} disabled={isLoading} className="w-full py-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-purple-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50">
+                            <button onClick={() => handleLogin()} disabled={isLoading} className="w-full py-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-purple-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50">
                                 {isLoading ? (<span className="flex items-center justify-center gap-2"><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Connecting...</span>) : 'Access Panel'}
                             </button>
                         </div>
@@ -400,7 +400,7 @@ export default function AdminPage() {
                 </div>
             )}
 
-            <button onClick={handleLogin} disabled={isLoading} className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/30 hover:scale-110 active:scale-95 transition-transform z-40">
+            <button onClick={() => handleLogin()} disabled={isLoading} className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/30 hover:scale-110 active:scale-95 transition-transform z-40">
                 {isLoading ? (<div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />) : (<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>)}
             </button>
         </div>
