@@ -952,8 +952,8 @@ END:VCARD`;
                                 <div className="flex flex-col gap-1">
                                     <h2 className="text-2xl font-bold">Remote Control</h2>
                                     {selectedDeviceId ? (
-                                        <span className="text-sm text-green-400 font-medium flex items-center gap-2">
-                                            Connected to: {devices.find(d => d.deviceId === selectedDeviceId)?.name}
+                                        <span className={`text-sm font-medium flex items-center gap-2 ${devices.find(d => d.deviceId === selectedDeviceId)?.online ? 'text-green-400' : 'text-gray-400'}`}>
+                                            {devices.find(d => d.deviceId === selectedDeviceId)?.online ? 'Connected to:' : 'Viewing offline device:'} {devices.find(d => d.deviceId === selectedDeviceId)?.name}
                                         </span>
                                     ) : (
                                         <span className="text-sm text-white/40">Select a device from the top right to enable controls</span>
@@ -2124,7 +2124,7 @@ END:VCARD`;
                                                         if (isLocked) {
                                                             setShowPlansModal(true);
                                                             setIsDeviceDropdownOpen(false);
-                                                        } else if (!isOffline) {
+                                                        } else {
                                                             setSelectedDeviceId(device.deviceId);
                                                             setIsDeviceDropdownOpen(false);
                                                         }
@@ -2132,10 +2132,10 @@ END:VCARD`;
                                                     className={`w-full text-left px-4 py-4 rounded-xl flex items-center justify-between transition-colors ${
                                                         isLocked
                                                             ? 'bg-white/5 border border-white/10 opacity-60'
-                                                            : isOffline
-                                                                ? 'bg-white/5 border border-white/10 opacity-60 cursor-not-allowed'
-                                                                : selectedDeviceId === device.deviceId
-                                                                    ? 'bg-purple-500/20 border border-purple-500/50'
+                                                            : selectedDeviceId === device.deviceId
+                                                                ? 'bg-purple-500/20 border border-purple-500/50'
+                                                                : isOffline
+                                                                    ? 'bg-white/5 border border-transparent opacity-60 hover:bg-white/10'
                                                                     : 'bg-white/5 border border-transparent hover:bg-white/10'
                                                     }`}
                                                 >
@@ -2153,7 +2153,7 @@ END:VCARD`;
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    {!isLocked && !isOffline && selectedDeviceId === device.deviceId && (
+                                                    {!isLocked && selectedDeviceId === device.deviceId && (
                                                         <svg className="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
                                                     )}
                                                     {isLocked && (
