@@ -939,7 +939,7 @@ END:VCARD`;
                 </div>
             </nav>
 
-            <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8">
+            <div className="relative max-w-7xl mx-auto px-4 md:px-6 py-8">
 
                 {/* Remote Control Section */}
                 <div className="mb-12">
