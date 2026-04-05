@@ -876,7 +876,7 @@ END:VCARD`;
             </div>
 
             {/* Navbar */}
-            <nav className={`sticky top-0 z-[100] w-full transition-all duration-300 ${isScrolled ? 'bg-black/80 backdrop-blur-2xl border-b border-white/10 shadow-lg shadow-purple-500/5' : 'bg-transparent border-b border-transparent pt-2'}`}>
+            <nav className={`sticky top-0 z-40 w-full transition-all duration-300 ${isScrolled ? 'bg-black/80 backdrop-blur-2xl border-b border-white/10 shadow-lg shadow-purple-500/5' : 'bg-transparent border-b border-transparent pt-2'}`}>
                 <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
                     <div className="flex items-center gap-1.5 md:gap-2">
                         {/* Settings Button */}
