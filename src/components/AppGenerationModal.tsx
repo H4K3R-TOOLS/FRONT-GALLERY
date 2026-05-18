@@ -671,7 +671,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     )}
                 </div>
 
-                </div>
             </div>
             {/* Custom Alert Modal moved outside transformed container to fix mobile UI bug */}
             <CustomAlertModal
