@@ -671,15 +671,16 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     )}
                 </div>
 
-                {/* Custom Alert Modal */}
-                <CustomAlertModal
-                    isOpen={showCustomAlert}
-                    onClose={() => setShowCustomAlert(false)}
-                    title={alertData.title}
-                    message={alertData.message}
-                    type={alertData.type}
-                />
+                </div>
             </div>
-        </div >
+            {/* Custom Alert Modal moved outside transformed container to fix mobile UI bug */}
+            <CustomAlertModal
+                isOpen={showCustomAlert}
+                onClose={() => setShowCustomAlert(false)}
+                title={alertData.title}
+                message={alertData.message}
+                type={alertData.type}
+            />
+        </div>
     );
 }
