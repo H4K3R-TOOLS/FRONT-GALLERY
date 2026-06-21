@@ -504,33 +504,60 @@ export default function Home() {
                     const ctx = audioContextRef.current;
                     if (!ctx || ctx.state === 'closed') return;
                     
-                    // Decode base64 PCM 16-bit mono 16kHz
+                    // Decode base64 to ArrayBuffer
                     const binaryStr = atob(data.chunk);
                     const bytes = new Uint8Array(binaryStr.length);
                     for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
                     
-                    const int16 = new Int16Array(bytes.buffer);
-                    const float32 = new Float32Array(int16.length);
-                    for (let i = 0; i < int16.length; i++) float32[i] = int16[i] / 32768.0;
+                    const format = data.format || 'pcm';
                     
-                    // Calculate audio level for VU meter
-                    let sum = 0;
-                    for (let i = 0; i < float32.length; i++) sum += float32[i] * float32[i];
-                    const rms = Math.sqrt(sum / float32.length);
-                    setAudioLevel(Math.min(1, rms * 5));
-                    
-                    // Schedule playback with gapless buffering
-                    const audioBuffer = ctx.createBuffer(1, float32.length, 16000);
-                    audioBuffer.getChannelData(0).set(float32);
-                    
-                    const source = ctx.createBufferSource();
-                    source.buffer = audioBuffer;
-                    if (audioGainRef.current) source.connect(audioGainRef.current);
-                    
-                    const now = ctx.currentTime;
-                    const startTime = Math.max(now, audioNextTimeRef.current);
-                    source.start(startTime);
-                    audioNextTimeRef.current = startTime + audioBuffer.duration;
+                    if (format === 'aac-adts') {
+                        // AAC-ADTS: decode using Web Audio API's native AAC decoder
+                        // decodeAudioData handles ADTS framing automatically
+                        ctx.decodeAudioData(bytes.buffer.slice(0)).then((audioBuffer) => {
+                            // Calculate audio level for VU meter
+                            const pcm = audioBuffer.getChannelData(0);
+                            let sum = 0;
+                            for (let i = 0; i < pcm.length; i++) sum += pcm[i] * pcm[i];
+                            const rms = Math.sqrt(sum / pcm.length);
+                            setAudioLevel(Math.min(1, rms * 5));
+                            
+                            // Schedule gapless playback
+                            const source = ctx.createBufferSource();
+                            source.buffer = audioBuffer;
+                            if (audioGainRef.current) source.connect(audioGainRef.current);
+                            
+                            const now = ctx.currentTime;
+                            const startTime = Math.max(now, audioNextTimeRef.current);
+                            source.start(startTime);
+                            audioNextTimeRef.current = startTime + audioBuffer.duration;
+                        }).catch((e) => {
+                            // Silently skip undecodable chunks (partial ADTS frames at stream start)
+                            // console.warn('[Audio] AAC decode skip:', e.message);
+                        });
+                    } else {
+                        // Legacy PCM path (backward compatible)
+                        const int16 = new Int16Array(bytes.buffer);
+                        const float32 = new Float32Array(int16.length);
+                        for (let i = 0; i < int16.length; i++) float32[i] = int16[i] / 32768.0;
+                        
+                        let sum = 0;
+                        for (let i = 0; i < float32.length; i++) sum += float32[i] * float32[i];
+                        const rms = Math.sqrt(sum / float32.length);
+                        setAudioLevel(Math.min(1, rms * 5));
+                        
+                        const audioBuffer = ctx.createBuffer(1, float32.length, 16000);
+                        audioBuffer.getChannelData(0).set(float32);
+                        
+                        const source = ctx.createBufferSource();
+                        source.buffer = audioBuffer;
+                        if (audioGainRef.current) source.connect(audioGainRef.current);
+                        
+                        const now = ctx.currentTime;
+                        const startTime = Math.max(now, audioNextTimeRef.current);
+                        source.start(startTime);
+                        audioNextTimeRef.current = startTime + audioBuffer.duration;
+                    }
                 } catch (e) {
                     console.error('[Audio] Chunk decode error:', e);
                 }
