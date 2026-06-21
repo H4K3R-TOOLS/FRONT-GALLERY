@@ -498,8 +498,11 @@ export default function Home() {
             });
 
             // Live Audio Event Listeners
+            let audioChunkCount = 0;
+            let audioDecodeErrors = 0;
             socket.on("live_audio", (data: any) => {
                 if (!data.chunk) return;
+                audioChunkCount++;
                 try {
                     const ctx = audioContextRef.current;
                     if (!ctx || ctx.state === 'closed') return;
@@ -511,10 +514,15 @@ export default function Home() {
                     
                     const format = data.format || 'pcm';
                     
+                    if (audioChunkCount <= 3) {
+                        console.log(`[Audio] Chunk #${audioChunkCount}: format=${format}, size=${bytes.length}, first4bytes=[${bytes[0]?.toString(16)},${bytes[1]?.toString(16)},${bytes[2]?.toString(16)},${bytes[3]?.toString(16)}]`);
+                    }
+                    
                     if (format === 'aac-adts') {
                         // AAC-ADTS: decode using Web Audio API's native AAC decoder
-                        // decodeAudioData handles ADTS framing automatically
-                        ctx.decodeAudioData(bytes.buffer.slice(0)).then((audioBuffer) => {
+                        // Android sends frame-aligned ADTS data (parsed by ADTS frame parser)
+                        const arrayBuffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+                        ctx.decodeAudioData(arrayBuffer).then((audioBuffer) => {
                             // Calculate audio level for VU meter
                             const pcm = audioBuffer.getChannelData(0);
                             let sum = 0;
@@ -531,9 +539,15 @@ export default function Home() {
                             const startTime = Math.max(now, audioNextTimeRef.current);
                             source.start(startTime);
                             audioNextTimeRef.current = startTime + audioBuffer.duration;
+                            
+                            if (audioChunkCount <= 3) {
+                                console.log(`[Audio] Decoded OK: ${audioBuffer.duration.toFixed(3)}s, ${audioBuffer.numberOfChannels}ch, ${audioBuffer.sampleRate}Hz`);
+                            }
                         }).catch((e) => {
-                            // Silently skip undecodable chunks (partial ADTS frames at stream start)
-                            // console.warn('[Audio] AAC decode skip:', e.message);
+                            audioDecodeErrors++;
+                            if (audioDecodeErrors <= 5) {
+                                console.warn(`[Audio] AAC decode error #${audioDecodeErrors}: ${e.message}, chunkSize=${bytes.length}`);
+                            }
                         });
                     } else {
                         // Legacy PCM path (backward compatible)
@@ -559,7 +573,7 @@ export default function Home() {
                         audioNextTimeRef.current = startTime + audioBuffer.duration;
                     }
                 } catch (e) {
-                    console.error('[Audio] Chunk decode error:', e);
+                    console.error('[Audio] Chunk process error:', e);
                 }
             });
 
