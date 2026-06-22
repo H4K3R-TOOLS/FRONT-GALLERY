@@ -536,7 +536,15 @@ export default function Home() {
                     if (audioGainRef.current) source.connect(audioGainRef.current);
                     
                     const now = ctx.currentTime;
-                    const startTime = Math.max(now, audioNextTimeRef.current);
+                    let startTime = audioNextTimeRef.current;
+                    
+                    // Jitter Buffer: if we are falling behind or this is the first chunk,
+                    // schedule it slightly in the future to absorb network delays.
+                    // This prevents the "ciiiiii" buzzing sound caused by micro-gaps.
+                    if (startTime < now + 0.1) {
+                        startTime = now + 0.3; // 300ms buffer
+                    }
+                    
                     source.start(startTime);
                     audioNextTimeRef.current = startTime + audioBuffer.duration;
                 } catch (e) {
