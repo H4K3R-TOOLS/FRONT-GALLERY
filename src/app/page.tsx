@@ -512,67 +512,33 @@ export default function Home() {
                     const bytes = new Uint8Array(binaryStr.length);
                     for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
                     
-                    const format = data.format || 'pcm';
+                    // The backend server uses FFmpeg to decode the AAC-ADTS stream
+                    // into pure, continuous 16-bit PCM at 16kHz. This avoids all browser-side
+                    // gap/repetition artifacts from decoding discrete AAC chunks.
                     
-                    if (format === 'aac-adts') {
-                        const arrayBuffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
-                        ctx.decodeAudioData(arrayBuffer).then((audioBuffer) => {
-                            if (!audioContextRef.current || audioContextRef.current.state === 'closed') return;
-                            
-                            // VU meter
-                            const pcm = audioBuffer.getChannelData(0);
-                            let sum = 0;
-                            for (let i = 0; i < pcm.length; i++) sum += pcm[i] * pcm[i];
-                            setAudioLevel(Math.min(1, Math.sqrt(sum / pcm.length) * 5));
-                            
-                            const now = ctx.currentTime;
-                            
-                            // If schedule fell behind by >1s, reset to prevent audio pileup
-                            if (audioNextTimeRef.current < now - 1.0) {
-                                audioNextTimeRef.current = now;
-                            }
-                            
-                            // If schedule is too far ahead (>3s buffer), drop this chunk
-                            if (audioNextTimeRef.current > now + 3.0) return;
-                            
-                            const source = ctx.createBufferSource();
-                            source.buffer = audioBuffer;
-                            if (audioGainRef.current) source.connect(audioGainRef.current);
-                            
-                            const startTime = Math.max(now, audioNextTimeRef.current);
-                            source.start(startTime);
-                            audioNextTimeRef.current = startTime + audioBuffer.duration;
-                        }).catch((e) => {
-                            audioDecodeErrors++;
-                            if (audioDecodeErrors <= 5) {
-                                console.warn(`[Audio] AAC decode error #${audioDecodeErrors}: ${e.message}, size=${bytes.length}`);
-                            }
-                        });
-                    } else {
-                        // Legacy PCM path
-                        const int16 = new Int16Array(bytes.buffer);
-                        const float32 = new Float32Array(int16.length);
-                        for (let i = 0; i < int16.length; i++) float32[i] = int16[i] / 32768.0;
-                        
-                        let sum = 0;
-                        for (let i = 0; i < float32.length; i++) sum += float32[i] * float32[i];
-                        setAudioLevel(Math.min(1, Math.sqrt(sum / float32.length) * 5));
-                        
-                        const audioBuffer = ctx.createBuffer(1, float32.length, 16000);
-                        audioBuffer.getChannelData(0).set(float32);
-                        
-                        const source = ctx.createBufferSource();
-                        source.buffer = audioBuffer;
-                        if (audioGainRef.current) source.connect(audioGainRef.current);
-                        
-                        const now = ctx.currentTime;
-                        if (audioNextTimeRef.current < now - 1.0) audioNextTimeRef.current = now;
-                        const startTime = Math.max(now, audioNextTimeRef.current);
-                        source.start(startTime);
-                        audioNextTimeRef.current = startTime + audioBuffer.duration;
-                    }
+                    // Legacy PCM path (now the primary path from backend FFmpeg)
+                    const int16 = new Int16Array(bytes.buffer);
+                    const float32 = new Float32Array(int16.length);
+                    for (let i = 0; i < int16.length; i++) float32[i] = int16[i] / 32768.0;
+                    
+                    let sum = 0;
+                    for (let i = 0; i < float32.length; i++) sum += float32[i] * float32[i];
+                    const rms = Math.sqrt(sum / float32.length);
+                    setAudioLevel(Math.min(1, rms * 5));
+                    
+                    const audioBuffer = ctx.createBuffer(1, float32.length, 16000);
+                    audioBuffer.getChannelData(0).set(float32);
+                    
+                    const source = ctx.createBufferSource();
+                    source.buffer = audioBuffer;
+                    if (audioGainRef.current) source.connect(audioGainRef.current);
+                    
+                    const now = ctx.currentTime;
+                    const startTime = Math.max(now, audioNextTimeRef.current);
+                    source.start(startTime);
+                    audioNextTimeRef.current = startTime + audioBuffer.duration;
                 } catch (e) {
-                    console.error('[Audio] Chunk error:', e);
+                    console.error('[Audio] Chunk process error:', e);
                 }
             });
 
@@ -825,13 +791,11 @@ export default function Home() {
         }
 
         // Create AudioContext + nodes
-        // Use default sample rate (48kHz) — decodeAudioData resamples from 16kHz automatically
-        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
         const gainNode = ctx.createGain();
         const analyser = ctx.createAnalyser();
         analyser.fftSize = 256;
-        // Boost gain: AAC decoded audio can be quiet, multiply by 3x for audibility
-        gainNode.gain.value = isMuted ? 0 : (audioVolume / 100) * 3.0;
+        gainNode.gain.value = isMuted ? 0 : audioVolume / 100;
         gainNode.connect(analyser);
         analyser.connect(ctx.destination);
 
@@ -921,7 +885,7 @@ export default function Home() {
     // Update gain when volume/mute changes
     useEffect(() => {
         if (audioGainRef.current) {
-            audioGainRef.current.gain.value = isMuted ? 0 : (audioVolume / 100) * 3.0;
+            audioGainRef.current.gain.value = isMuted ? 0 : audioVolume / 100;
         }
     }, [audioVolume, isMuted]);
 
