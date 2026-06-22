@@ -537,15 +537,19 @@ export default function Home() {
                     
                     const now = ctx.currentTime;
                     
-                    // ULTRA-LOW LATENCY ALGORITHM
-                    // 1. If we fall behind (buffer underrun), jump to now + 50ms
+                    // 1. Buffer Underrun (or first chunk)
+                    // If we run out of audio (starve), we add a 200ms safety cushion 
+                    // before playing. This absorbs network bursts and prevents stuttering ("rok rok").
                     if (audioNextTimeRef.current < now) {
-                        audioNextTimeRef.current = now + 0.05;
+                        audioNextTimeRef.current = now + 0.2;
                     }
-                    // 2. If latency builds up > 200ms (network delay), DROP old frames to catch up!
-                    else if (audioNextTimeRef.current > now + 0.2) {
-                        console.warn("[Audio] Latency spike detected. Dropping old frames to catch up.");
-                        audioNextTimeRef.current = now + 0.05;
+                    
+                    // 2. Buffer Overrun (Massive Latency)
+                    // If the queue grows larger than 1.0 second, the network was paused and dumped 
+                    // a massive amount of old audio. We MUST drop this chunk to stay live.
+                    if (audioNextTimeRef.current > now + 1.0) {
+                        // We do NOT update audioNextTimeRef, we just drop the frame and return.
+                        return;
                     }
                     
                     const startTime = audioNextTimeRef.current;
