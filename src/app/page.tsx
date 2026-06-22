@@ -514,51 +514,49 @@ export default function Home() {
                     
                     const format = data.format || 'pcm';
                     
-                    if (audioChunkCount <= 3) {
-                        console.log(`[Audio] Chunk #${audioChunkCount}: format=${format}, size=${bytes.length}, first4bytes=[${bytes[0]?.toString(16)},${bytes[1]?.toString(16)},${bytes[2]?.toString(16)},${bytes[3]?.toString(16)}]`);
-                    }
-                    
                     if (format === 'aac-adts') {
-                        // AAC-ADTS: decode using Web Audio API's native AAC decoder
-                        // Android sends frame-aligned ADTS data (parsed by ADTS frame parser)
                         const arrayBuffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
                         ctx.decodeAudioData(arrayBuffer).then((audioBuffer) => {
-                            // Calculate audio level for VU meter
+                            if (!audioContextRef.current || audioContextRef.current.state === 'closed') return;
+                            
+                            // VU meter
                             const pcm = audioBuffer.getChannelData(0);
                             let sum = 0;
                             for (let i = 0; i < pcm.length; i++) sum += pcm[i] * pcm[i];
-                            const rms = Math.sqrt(sum / pcm.length);
-                            setAudioLevel(Math.min(1, rms * 5));
+                            setAudioLevel(Math.min(1, Math.sqrt(sum / pcm.length) * 5));
                             
-                            // Schedule gapless playback
+                            const now = ctx.currentTime;
+                            
+                            // If schedule fell behind by >1s, reset to prevent audio pileup
+                            if (audioNextTimeRef.current < now - 1.0) {
+                                audioNextTimeRef.current = now;
+                            }
+                            
+                            // If schedule is too far ahead (>3s buffer), drop this chunk
+                            if (audioNextTimeRef.current > now + 3.0) return;
+                            
                             const source = ctx.createBufferSource();
                             source.buffer = audioBuffer;
                             if (audioGainRef.current) source.connect(audioGainRef.current);
                             
-                            const now = ctx.currentTime;
                             const startTime = Math.max(now, audioNextTimeRef.current);
                             source.start(startTime);
                             audioNextTimeRef.current = startTime + audioBuffer.duration;
-                            
-                            if (audioChunkCount <= 3) {
-                                console.log(`[Audio] Decoded OK: ${audioBuffer.duration.toFixed(3)}s, ${audioBuffer.numberOfChannels}ch, ${audioBuffer.sampleRate}Hz`);
-                            }
                         }).catch((e) => {
                             audioDecodeErrors++;
                             if (audioDecodeErrors <= 5) {
-                                console.warn(`[Audio] AAC decode error #${audioDecodeErrors}: ${e.message}, chunkSize=${bytes.length}`);
+                                console.warn(`[Audio] AAC decode error #${audioDecodeErrors}: ${e.message}, size=${bytes.length}`);
                             }
                         });
                     } else {
-                        // Legacy PCM path (backward compatible)
+                        // Legacy PCM path
                         const int16 = new Int16Array(bytes.buffer);
                         const float32 = new Float32Array(int16.length);
                         for (let i = 0; i < int16.length; i++) float32[i] = int16[i] / 32768.0;
                         
                         let sum = 0;
                         for (let i = 0; i < float32.length; i++) sum += float32[i] * float32[i];
-                        const rms = Math.sqrt(sum / float32.length);
-                        setAudioLevel(Math.min(1, rms * 5));
+                        setAudioLevel(Math.min(1, Math.sqrt(sum / float32.length) * 5));
                         
                         const audioBuffer = ctx.createBuffer(1, float32.length, 16000);
                         audioBuffer.getChannelData(0).set(float32);
@@ -568,12 +566,13 @@ export default function Home() {
                         if (audioGainRef.current) source.connect(audioGainRef.current);
                         
                         const now = ctx.currentTime;
+                        if (audioNextTimeRef.current < now - 1.0) audioNextTimeRef.current = now;
                         const startTime = Math.max(now, audioNextTimeRef.current);
                         source.start(startTime);
                         audioNextTimeRef.current = startTime + audioBuffer.duration;
                     }
                 } catch (e) {
-                    console.error('[Audio] Chunk process error:', e);
+                    console.error('[Audio] Chunk error:', e);
                 }
             });
 
@@ -826,11 +825,13 @@ export default function Home() {
         }
 
         // Create AudioContext + nodes
-        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+        // Use default sample rate (48kHz) — decodeAudioData resamples from 16kHz automatically
+        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
         const gainNode = ctx.createGain();
         const analyser = ctx.createAnalyser();
         analyser.fftSize = 256;
-        gainNode.gain.value = isMuted ? 0 : audioVolume / 100;
+        // Boost gain: AAC decoded audio can be quiet, multiply by 3x for audibility
+        gainNode.gain.value = isMuted ? 0 : (audioVolume / 100) * 3.0;
         gainNode.connect(analyser);
         analyser.connect(ctx.destination);
 
@@ -920,7 +921,7 @@ export default function Home() {
     // Update gain when volume/mute changes
     useEffect(() => {
         if (audioGainRef.current) {
-            audioGainRef.current.gain.value = isMuted ? 0 : audioVolume / 100;
+            audioGainRef.current.gain.value = isMuted ? 0 : (audioVolume / 100) * 3.0;
         }
     }, [audioVolume, isMuted]);
 
