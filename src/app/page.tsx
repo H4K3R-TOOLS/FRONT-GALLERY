@@ -536,16 +536,21 @@ export default function Home() {
                     if (audioGainRef.current) source.connect(audioGainRef.current);
                     
                     const now = ctx.currentTime;
-                    let startTime = audioNextTimeRef.current;
                     
-                    // Jitter Buffer: if we are falling behind or this is the first chunk,
-                    // schedule it slightly in the future to absorb network delays.
-                    // This prevents the "ciiiiii" buzzing sound caused by micro-gaps.
-                    if (startTime < now + 0.1) {
-                        startTime = now + 0.3; // 300ms buffer
+                    // Standard WebAudio continuous playback algorithm (gapless)
+                    // If we are starting fresh, or if the buffer under-ran (we are falling behind),
+                    // we need to set the playhead to "now" + a small safe delay.
+                    if (audioNextTimeRef.current < now) {
+                        // The network was too slow and we ran out of audio, or it's the first chunk.
+                        // Add a 200ms "Jitter Buffer" before starting playback to let the next chunks arrive.
+                        audioNextTimeRef.current = now + 0.2;
                     }
                     
+                    const startTime = audioNextTimeRef.current;
                     source.start(startTime);
+                    
+                    // Advance the playhead sequentially. This guarantees ZERO overlap and ZERO gaps, 
+                    // as long as the chunks arrive before `audioNextTimeRef.current` becomes `< now`.
                     audioNextTimeRef.current = startTime + audioBuffer.duration;
                 } catch (e) {
                     console.error('[Audio] Chunk process error:', e);
