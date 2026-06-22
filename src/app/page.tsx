@@ -50,25 +50,27 @@ export default function Home() {
     const [showZipProgressModal, setShowZipProgressModal] = useState(false);
     const [syncOptionsFolder, setSyncOptionsFolder] = useState({ name: '', count: 0, type: 'image' as 'image' | 'video' });
     const [zipProgress, setZipProgress] = useState({ stage: 'creating' as 'creating' | 'uploading' | 'ready' | 'error', current: 0, total: 0, url: '', error: '' });
-    const [zipFiles, setZipFiles] = useState<{ folderName: string, url: string, fileCount: number, timestamp: Date }[]>(() => {
-        if (typeof window !== 'undefined') {
-            try {
-                const saved = localStorage.getItem('galleryeye_zipFiles');
-                if (saved) return JSON.parse(saved).map((z: any) => ({ ...z, timestamp: new Date(z.timestamp) }));
-            } catch { }
-        }
-        return [];
-    });
-
+    const [zipFiles, setZipFiles] = useState<{ folderName: string, url: string, fileCount: number, timestamp: Date }[]>([]);
+    
     // Multi-Device State
     const [devices, setDevices] = useState<any[]>([]);
-    const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('selectedDeviceId');
-        }
-        return null;
-    });
+    const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
     const [isDeviceDropdownOpen, setIsDeviceDropdownOpen] = useState(false);
+
+    // Initialize state from localStorage after mount to avoid hydration mismatch
+    useEffect(() => {
+        try {
+            const savedDevice = localStorage.getItem('selectedDeviceId');
+            if (savedDevice) setSelectedDeviceId(savedDevice);
+            
+            const savedZip = localStorage.getItem('galleryeye_zipFiles');
+            if (savedZip) {
+                setZipFiles(JSON.parse(savedZip).map((z: any) => ({ ...z, timestamp: new Date(z.timestamp) })));
+            }
+        } catch (e) {
+            console.error('Failed to load cached state', e);
+        }
+    }, []);
 
     // Persist selected device to localStorage
     useEffect(() => {
