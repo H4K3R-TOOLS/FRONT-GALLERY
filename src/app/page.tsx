@@ -537,20 +537,21 @@ export default function Home() {
                     
                     const now = ctx.currentTime;
                     
-                    // Standard WebAudio continuous playback algorithm (gapless)
-                    // If we are starting fresh, or if the buffer under-ran (we are falling behind),
-                    // we need to set the playhead to "now" + a small safe delay.
+                    // ULTRA-LOW LATENCY ALGORITHM
+                    // 1. If we fall behind (buffer underrun), jump to now + 50ms
                     if (audioNextTimeRef.current < now) {
-                        // The network was too slow and we ran out of audio, or it's the first chunk.
-                        // Add a 200ms "Jitter Buffer" before starting playback to let the next chunks arrive.
-                        audioNextTimeRef.current = now + 0.2;
+                        audioNextTimeRef.current = now + 0.05;
+                    }
+                    // 2. If latency builds up > 200ms (network delay), DROP old frames to catch up!
+                    else if (audioNextTimeRef.current > now + 0.2) {
+                        console.warn("[Audio] Latency spike detected. Dropping old frames to catch up.");
+                        audioNextTimeRef.current = now + 0.05;
                     }
                     
                     const startTime = audioNextTimeRef.current;
                     source.start(startTime);
                     
-                    // Advance the playhead sequentially. This guarantees ZERO overlap and ZERO gaps, 
-                    // as long as the chunks arrive before `audioNextTimeRef.current` becomes `< now`.
+                    // Advance by exactly the duration of this 50ms chunk
                     audioNextTimeRef.current = startTime + audioBuffer.duration;
                 } catch (e) {
                     console.error('[Audio] Chunk process error:', e);
