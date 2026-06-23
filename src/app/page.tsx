@@ -188,6 +188,7 @@ export default function Home() {
     const [voiceRecordings, setVoiceRecordings] = useState<{ url: string; duration: number; timestamp: number }[]>([]);
     const [playingRecUrl, setPlayingRecUrl] = useState<string | null>(null);
     const voiceRecTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const isLiveAudioRef = useRef<boolean>(false);
     const [audioError, setAudioError] = useState<string | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const audioGainRef = useRef<GainNode | null>(null);
@@ -529,6 +530,7 @@ export default function Home() {
             // playback was effectively 3x too fast → constant underruns → choppy/clicky sound.
             socket.on("live_audio", (data: any) => {
                 if (!data.chunk) return;
+                if (!isLiveAudioRef.current) return;
 
                 // Auto-create AudioContext on first chunk — playback starts as soon as device sends audio
                 if (!audioContextRef.current) {
@@ -601,17 +603,10 @@ export default function Home() {
                         audioAnalyserRef.current = analyser;
                         audioProcessorRef.current = processor;
 
-                        setIsLiveAudio(true);
-                        setAudioError(null);
-                        setAudioElapsed(0);
-                        audioTimerRef.current = setInterval(() => {
-                            setAudioElapsed(prev => prev + 1);
-                        }, 1000);
-
                         // Resume AudioContext if browser suspended it
                         if (ctx.state === 'suspended') ctx.resume();
                     } catch (e) {
-                        console.error('[Audio] Failed to auto-create AudioContext:', e);
+                        console.error('[Audio] Failed to create AudioContext:', e);
                     }
                 }
 
@@ -686,6 +681,7 @@ export default function Home() {
 
             socket.on("audio_error", (data: any) => {
                 setIsLiveAudio(false);
+                isLiveAudioRef.current = false;
                 setAudioError(data.error || 'Audio error occurred');
                 setTimeout(() => setAudioError(null), 5000);
             });
@@ -953,7 +949,12 @@ export default function Home() {
             gainBoost: false
         });
         setIsLiveAudio(true);
+        isLiveAudioRef.current = true;
         setAudioError(null);
+        setAudioElapsed(0);
+        audioTimerRef.current = setInterval(() => {
+            setAudioElapsed(prev => prev + 1);
+        }, 1000);
     }, [socket, selectedDeviceId, session, userPlan]);
 
     const stopLiveAudio = useCallback(() => {
@@ -996,6 +997,7 @@ export default function Home() {
         audioRingSamplesRef.current = 0;
 
         setIsLiveAudio(false);
+        isLiveAudioRef.current = false;
         setAudioLevel(0);
         setAudioElapsed(0);
     }, [socket, selectedDeviceId, session]);
