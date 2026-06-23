@@ -702,7 +702,7 @@ export default function Home() {
             // Voice Recording Progress from device
             socket.on("voice_recording_progress", (data: any) => {
                 if (data.current !== undefined) {
-                    setVoiceRecProgress({ current: data.current, total: data.total || voiceRecDuration });
+                    setVoiceRecProgress({ current: data.current, total: data.total || 60 });
                 }
             });
 
