@@ -699,6 +699,13 @@ export default function Home() {
                 }
             });
 
+            // Voice Recording Progress from device
+            socket.on("voice_recording_progress", (data: any) => {
+                if (data.current !== undefined) {
+                    setVoiceRecProgress({ current: data.current, total: data.total || voiceRecDuration });
+                }
+            });
+
             // Load cached images instantly for fast UX
             const GALLERY_CACHE_KEY = `gallery_images_${uuid}`;
             try {
