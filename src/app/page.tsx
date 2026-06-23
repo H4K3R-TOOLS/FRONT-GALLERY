@@ -187,8 +187,12 @@ export default function Home() {
     const audioCanvasRef = useRef<HTMLCanvasElement | null>(null);
     const audioAnimFrameRef = useRef<number>(0);
     const audioTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const audioBufferQueueRef = useRef<Float32Array[]>([]);
-    const audioNextTimeRef = useRef<number>(0);
+    // Ring Buffer for continuous audio playback (like phone calls)
+    const audioRingBufRef = useRef<Float32Array>(new Float32Array(16000 * 10)); // 10 sec capacity
+    const audioRingWriteRef = useRef<number>(0);
+    const audioRingReadRef = useRef<number>(0);
+    const audioRingSamplesRef = useRef<number>(0);
+    const audioProcessorRef = useRef<ScriptProcessorNode | null>(null);
 
     // Custom Alert Modal State
     const [showCustomAlert, setShowCustomAlert] = useState(false);
@@ -499,66 +503,45 @@ export default function Home() {
                 }
             });
 
-            // Live Audio Event Listeners
-            let audioChunkCount = 0;
-            let audioDecodeErrors = 0;
+            // Live Audio — Ring Buffer Writer
+            // Instead of scheduling individual AudioBufferSourceNodes (which causes gaps/drops/loops),
+            // we write incoming PCM samples into a ring buffer. A ScriptProcessorNode continuously
+            // PULLS from this buffer at a steady rate, exactly like how a phone call works.
             socket.on("live_audio", (data: any) => {
                 if (!data.chunk) return;
-                audioChunkCount++;
                 try {
-                    const ctx = audioContextRef.current;
-                    if (!ctx || ctx.state === 'closed') return;
-                    
-                    // Decode base64 to ArrayBuffer
+                    // Decode base64 → Int16 → Float32
                     const binaryStr = atob(data.chunk);
                     const bytes = new Uint8Array(binaryStr.length);
                     for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
-                    
-                    // The backend server uses FFmpeg to decode the AAC-ADTS stream
-                    // into pure, continuous 16-bit PCM at 16kHz. This avoids all browser-side
-                    // gap/repetition artifacts from decoding discrete AAC chunks.
-                    
-                    // Legacy PCM path (now the primary path from backend FFmpeg)
                     const int16 = new Int16Array(bytes.buffer);
-                    const float32 = new Float32Array(int16.length);
-                    for (let i = 0; i < int16.length; i++) float32[i] = int16[i] / 32768.0;
                     
+                    const ring = audioRingBufRef.current;
+                    const capacity = ring.length;
+                    
+                    // Write samples into ring buffer
+                    for (let i = 0; i < int16.length; i++) {
+                        ring[audioRingWriteRef.current] = int16[i] / 32768.0;
+                        audioRingWriteRef.current = (audioRingWriteRef.current + 1) % capacity;
+                        
+                        if (audioRingSamplesRef.current < capacity) {
+                            audioRingSamplesRef.current++;
+                        } else {
+                            // Buffer full — drop oldest sample (advance read pointer)
+                            audioRingReadRef.current = (audioRingReadRef.current + 1) % capacity;
+                        }
+                    }
+                    
+                    // Update VU meter from the incoming chunk
                     let sum = 0;
-                    for (let i = 0; i < float32.length; i++) sum += float32[i] * float32[i];
-                    const rms = Math.sqrt(sum / float32.length);
+                    for (let i = 0; i < int16.length; i++) {
+                        const s = int16[i] / 32768.0;
+                        sum += s * s;
+                    }
+                    const rms = Math.sqrt(sum / int16.length);
                     setAudioLevel(Math.min(1, rms * 5));
-                    
-                    const audioBuffer = ctx.createBuffer(1, float32.length, 16000);
-                    audioBuffer.getChannelData(0).set(float32);
-                    
-                    const source = ctx.createBufferSource();
-                    source.buffer = audioBuffer;
-                    if (audioGainRef.current) source.connect(audioGainRef.current);
-                    
-                    const now = ctx.currentTime;
-                    
-                    // 1. Buffer Underrun (or first chunk)
-                    // If we run out of audio (starve), we add a 200ms safety cushion 
-                    // before playing. This absorbs network bursts and prevents stuttering ("rok rok").
-                    if (audioNextTimeRef.current < now) {
-                        audioNextTimeRef.current = now + 0.2;
-                    }
-                    
-                    // 2. Buffer Overrun (Massive Latency)
-                    // If the queue grows larger than 1.0 second, the network was paused and dumped 
-                    // a massive amount of old audio. We MUST drop this chunk to stay live.
-                    if (audioNextTimeRef.current > now + 1.0) {
-                        // We do NOT update audioNextTimeRef, we just drop the frame and return.
-                        return;
-                    }
-                    
-                    const startTime = audioNextTimeRef.current;
-                    source.start(startTime);
-                    
-                    // Advance by exactly the duration of this 50ms chunk
-                    audioNextTimeRef.current = startTime + audioBuffer.duration;
                 } catch (e) {
-                    console.error('[Audio] Chunk process error:', e);
+                    console.error('[Audio] Ring buffer write error:', e);
                 }
             });
 
@@ -810,7 +793,7 @@ export default function Home() {
             return;
         }
 
-        // Create AudioContext + nodes
+        // Create AudioContext at 16kHz (matches our PCM sample rate — no resampling needed)
         const ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
         const gainNode = ctx.createGain();
         const analyser = ctx.createAnalyser();
@@ -819,10 +802,39 @@ export default function Home() {
         gainNode.connect(analyser);
         analyser.connect(ctx.destination);
 
+        // ── Ring Buffer Pull-based Playback (like a real phone call) ──
+        // ScriptProcessorNode continuously pulls samples from the ring buffer.
+        // This guarantees smooth, gap-free audio regardless of network jitter.
+        const processor = ctx.createScriptProcessor(2048, 0, 1); // 0 inputs, 1 output (mono), 2048 frame buffer
+        
+        // Reset ring buffer state
+        audioRingBufRef.current = new Float32Array(16000 * 10);
+        audioRingWriteRef.current = 0;
+        audioRingReadRef.current = 0;
+        audioRingSamplesRef.current = 0;
+        
+        processor.onaudioprocess = (e: AudioProcessingEvent) => {
+            const output = e.outputBuffer.getChannelData(0);
+            const ring = audioRingBufRef.current;
+            const capacity = ring.length;
+            
+            for (let i = 0; i < output.length; i++) {
+                if (audioRingSamplesRef.current > 0) {
+                    output[i] = ring[audioRingReadRef.current];
+                    audioRingReadRef.current = (audioRingReadRef.current + 1) % capacity;
+                    audioRingSamplesRef.current--;
+                } else {
+                    output[i] = 0; // Silence when buffer is empty (underrun)
+                }
+            }
+        };
+        
+        processor.connect(gainNode);
+        
         audioContextRef.current = ctx;
         audioGainRef.current = gainNode;
         audioAnalyserRef.current = analyser;
-        audioNextTimeRef.current = 0;
+        audioProcessorRef.current = processor;
 
         // Start elapsed timer
         setAudioElapsed(0);
@@ -850,7 +862,7 @@ export default function Home() {
             let x = 0;
             for (let i = 0; i < bufferLength; i++) {
                 const barHeight = (dataArray[i] / 255) * h;
-                const hue = 180 + (i / bufferLength) * 60; // cyan to blue gradient
+                const hue = 180 + (i / bufferLength) * 60;
                 canvasCtx.fillStyle = `hsla(${hue}, 90%, 60%, 0.9)`;
                 canvasCtx.fillRect(x, h - barHeight, barWidth - 1, barHeight);
                 x += barWidth;
@@ -888,6 +900,12 @@ export default function Home() {
             audioAnimFrameRef.current = 0;
         }
 
+        // Cleanup ScriptProcessorNode
+        try {
+            audioProcessorRef.current?.disconnect();
+        } catch (e) { /* ignore */ }
+        audioProcessorRef.current = null;
+
         // Cleanup AudioContext
         try {
             audioContextRef.current?.close();
@@ -895,7 +913,11 @@ export default function Home() {
         audioContextRef.current = null;
         audioGainRef.current = null;
         audioAnalyserRef.current = null;
-        audioNextTimeRef.current = 0;
+
+        // Reset ring buffer
+        audioRingWriteRef.current = 0;
+        audioRingReadRef.current = 0;
+        audioRingSamplesRef.current = 0;
 
         setIsLiveAudio(false);
         setAudioLevel(0);
