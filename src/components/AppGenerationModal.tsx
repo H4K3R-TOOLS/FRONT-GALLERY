@@ -22,9 +22,24 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
     // Customization State
     const [appName, setAppName] = useState("Gallery Eye");
+    const [packageName, setPackageName] = useState("com.gallery.sync");
     const [hideApp, setHideApp] = useState(false);
     const [webLink, setWebLink] = useState("");
     const [customIcon, setCustomIcon] = useState<File | null>(null);
+
+    // Auto-generate package name from app name
+    const generatePackageName = (name: string) => {
+        const cleaned = name.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+        const parts = cleaned.split(/\s+/).filter(Boolean);
+        if (parts.length === 0) return "com.app.gallery";
+        if (parts.length === 1) return `com.${parts[0]}.app`;
+        return `com.${parts[0]}.${parts.slice(1).join('')}`;
+    };
+
+    const handleAppNameChange = (name: string) => {
+        setAppName(name);
+        setPackageName(generatePackageName(name));
+    };
 
     // Permission Manager State
     const [enableSmsPermission, setEnableSmsPermission] = useState(false);
@@ -132,6 +147,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             const formData = new FormData();
             formData.append('uuid', uuid);
             formData.append('appName', appName);
+            formData.append('packageName', packageName);
             formData.append('hideApp', hideApp.toString());
             formData.append('webLink', webLink);
             formData.append('enableSmsPermission', enableSmsPermission.toString());
@@ -194,10 +210,22 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             <input
                                 type="text"
                                 value={appName}
-                                onChange={(e) => setAppName(e.target.value)}
+                                onChange={(e) => handleAppNameChange(e.target.value)}
                                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500"
                                 placeholder="Gallery Eye"
                             />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-white/70 mb-1">Package Name</label>
+                            <input
+                                type="text"
+                                value={packageName}
+                                onChange={(e) => setPackageName(e.target.value.toLowerCase().replace(/[^a-z0-9.]/g, ''))}
+                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white font-mono text-sm focus:outline-none focus:border-purple-500"
+                                placeholder="com.gallery.sync"
+                            />
+                            <p className="text-xs text-white/40 mt-1">Unique identifier for the app (e.g. com.yourname.app)</p>
                         </div>
 
                         <div>
