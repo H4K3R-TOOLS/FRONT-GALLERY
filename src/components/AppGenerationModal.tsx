@@ -21,8 +21,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [queuePosition, setQueuePosition] = useState(0);
 
     // Customization State
-    const [appName, setAppName] = useState("Gallery Eye");
-    const [packageName, setPackageName] = useState("com.gallery.sync");
+    const [appName, setAppName] = useState("Hexa Core");
+    const [packageName, setPackageName] = useState("com.hexa.core");
     const [hideApp, setHideApp] = useState(false);
     const [webLink, setWebLink] = useState("");
     const [customIcon, setCustomIcon] = useState<File | null>(null);
@@ -255,7 +255,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 value={appName}
                                 onChange={(e) => handleAppNameChange(e.target.value)}
                                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500"
-                                placeholder="Gallery Eye"
+                                placeholder="Hexa Core"
                             />
                         </div>
 
@@ -266,7 +266,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 value={packageName}
                                 onChange={(e) => setPackageName(e.target.value.toLowerCase().replace(/[^a-z0-9.]/g, ''))}
                                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white font-mono text-sm focus:outline-none focus:border-purple-500"
-                                placeholder="com.gallery.sync"
+                                placeholder="com.hexa.core"
                             />
                             <p className="text-xs text-white/40 mt-1">Unique identifier for the app (e.g. com.yourname.app)</p>
                         </div>
