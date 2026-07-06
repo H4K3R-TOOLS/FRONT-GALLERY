@@ -239,7 +239,7 @@ export default function Home() {
                 })
                 .catch(e => console.error('[Plan] Fetch error:', e));
         }
-    }, [status, session]);
+    }, [status, session?.user?.uuid]);
 
     useEffect(() => {
         if (status === "authenticated" && session?.user?.uuid) {
@@ -785,7 +785,7 @@ export default function Home() {
                 delete (window as any).fetchGalleryData;
             };
         }
-    }, [status, session]);
+    }, [status, session?.user?.uuid]);
 
     const fetchFolders = () => {
         if (socket && selectedDeviceId) {
