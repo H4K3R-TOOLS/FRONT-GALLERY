@@ -296,6 +296,14 @@ export default function Home() {
                     .catch(e => console.error('[Notifications] Fetch error:', e));
             });
 
+            socket.on("disconnect", (reason: string) => {
+                console.log("[Socket] Disconnected:", reason);
+            });
+
+            socket.on("connect_error", (err: any) => {
+                console.log("[Socket] Connect error:", err?.message || err);
+            });
+
             socket.on("device_list_update", (deviceList: any[]) => {
                 setDevices(deviceList);
 
@@ -728,7 +736,10 @@ export default function Home() {
             } catch { /* ignore */ }
 
             // Define fetch function so it can be called later
+            let isFetchingGallery = false;
             const fetchGallery = () => {
+                if (isFetchingGallery) return;
+                isFetchingGallery = true;
                 fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${uuid}`)
                     .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then((data) => {
@@ -755,7 +766,9 @@ export default function Home() {
                                 return [...newItems, ...prev];
                             });
                         }
-                    });
+                    })
+                    .catch(e => console.error('[Gallery] Fetch error:', e))
+                    .finally(() => { isFetchingGallery = false; });
             };
 
             // Expose globally securely for the socket event
@@ -767,6 +780,7 @@ export default function Home() {
             return () => {
                 if (socket) {
                     socket.disconnect();
+                    socket = null;
                 }
                 delete (window as any).fetchGalleryData;
             };
