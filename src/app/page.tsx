@@ -14,7 +14,7 @@ import SyncOptionsModal from "@/components/SyncOptionsModal";
 import ZipProgressModal from "@/components/ZipProgressModal";
 import CustomAlertModal from "@/components/CustomAlertModal";
 
-let socket: any;
+let socket: any = null;
 
 interface PlanLimits {
     photos: number;
@@ -230,7 +230,7 @@ export default function Home() {
     useEffect(() => {
         if (status === "authenticated" && session?.user?.uuid) {
             fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/user/plan?uuid=${session.user.uuid}`)
-                .then(res => res.json())
+                .then(res => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                 .then(data => {
                     if (data.plan) {
                         setUserPlan(data.plan);
@@ -245,21 +245,32 @@ export default function Home() {
         if (status === "authenticated" && session?.user?.uuid) {
             const uuid = session.user.uuid;
 
+            if (socket && socket.connected) return;
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+
             socket = io("https://p01--gallery-eye--9zr85m7yb6s4.code.run", {
                 transports: ["websocket", "polling"],
                 reconnection: true,
                 reconnectionAttempts: Infinity,
-                reconnectionDelay: 1000,
-                reconnectionDelayMax: 10000,
+                reconnectionDelay: 2000,
+                reconnectionDelayMax: 30000,
             });
+
+            let lastConnectFetch = 0;
 
             socket.on("connect", () => {
                 console.log("[Socket] Connected/Reconnected, registering web...");
                 socket.emit("register_web", { uuid });
 
-                // Fetch notification history from DB
+                const now = Date.now();
+                if (now - lastConnectFetch < 10000) return;
+                lastConnectFetch = now;
+
                 fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/notifications/${uuid}`)
-                    .then(res => res.json())
+                    .then(res => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then(data => {
                         if (data.notifications && data.notifications.length > 0) {
                             setNotifications((prev: any[]) => {
@@ -719,7 +730,7 @@ export default function Home() {
             // Define fetch function so it can be called later
             const fetchGallery = () => {
                 fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${uuid}`)
-                    .then((res) => res.json())
+                    .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then((data) => {
                         if (!Array.isArray(data)) return;
                         setImages(data);
