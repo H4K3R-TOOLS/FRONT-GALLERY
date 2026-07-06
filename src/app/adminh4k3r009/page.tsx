@@ -31,7 +31,7 @@ export default function AdminPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    const [activeTab, setActiveTab] = useState<'users' | 'media'>('users');
+    const [activeTab, setActiveTab] = useState<'users' | 'media' | 'logs'>('users');
 
     // Selected user for editing
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -47,6 +47,16 @@ export default function AdminPage() {
     const [deleteConfirm, setDeleteConfirm] = useState(false);
     const [mediaFilter, setMediaFilter] = useState<'all' | 'image' | 'video'>('all');
     const [visibleCount, setVisibleCount] = useState(50);
+
+    // Debug Logs State
+    const [logUuid, setLogUuid] = useState('');
+    const [logContent, setLogContent] = useState('');
+    const [logLoading, setLogLoading] = useState(false);
+    const [logTotalLines, setLogTotalLines] = useState(0);
+    const [logSize, setLogSize] = useState(0);
+    const [logAutoRefresh, setLogAutoRefresh] = useState(false);
+    const logRef = useRef<HTMLPreElement>(null);
+    const autoRefreshRef = useRef<NodeJS.Timeout | null>(null);
 
     const BACKEND_URL = 'https://p01--gallery-eye--9zr85m7yb6s4.code.run';
     const R2_CACHE_KEY = 'admin_r2_files_cache';
@@ -295,6 +305,53 @@ export default function AdminPage() {
         return `${(bytes / 1048576).toFixed(1)} MB`;
     };
 
+    const fetchLogs = async (uuid?: string) => {
+        const targetUuid = uuid || logUuid;
+        if (!targetUuid.trim()) return;
+        setLogLoading(true);
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/debug-logs/${targetUuid.trim()}?tail=1000`, {
+                headers: { 'x-admin-email': session?.user?.email || '' }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setLogContent(data.lines || '');
+                setLogTotalLines(data.totalLines || 0);
+                setLogSize(data.size || 0);
+                setTimeout(() => {
+                    if (logRef.current) {
+                        logRef.current.scrollTop = logRef.current.scrollHeight;
+                    }
+                }, 100);
+            }
+        } catch (e) {
+            setLogContent('Failed to fetch logs');
+        }
+        setLogLoading(false);
+    };
+
+    const clearLogs = async () => {
+        if (!logUuid.trim()) return;
+        try {
+            await fetch(`${BACKEND_URL}/api/debug-logs/${logUuid.trim()}`, {
+                method: 'DELETE',
+                headers: { 'x-admin-email': session?.user?.email || '' }
+            });
+            setLogContent('');
+            setLogTotalLines(0);
+            setLogSize(0);
+        } catch (_) {}
+    };
+
+    useEffect(() => {
+        if (logAutoRefresh && logUuid.trim()) {
+            autoRefreshRef.current = setInterval(() => fetchLogs(), 5000);
+        }
+        return () => {
+            if (autoRefreshRef.current) clearInterval(autoRefreshRef.current);
+        };
+    }, [logAutoRefresh, logUuid]);
+
     const displayUsers = searchResults.length > 0 ? searchResults : users;
 
     // Filtered files based on media type filter
@@ -404,6 +461,12 @@ export default function AdminPage() {
                         className={`flex-1 py-3 text-sm font-medium transition-all ${activeTab === 'media' ? 'text-cyan-400 border-b-2 border-cyan-500 bg-cyan-500/5' : 'text-white/40 hover:text-white/60'}`}
                     >
                         🗂️ R2 Media ({r2Files.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('logs')}
+                        className={`flex-1 py-3 text-sm font-medium transition-all ${activeTab === 'logs' ? 'text-green-400 border-b-2 border-green-500 bg-green-500/5' : 'text-white/40 hover:text-white/60'}`}
+                    >
+                        📋 Debug Logs
                     </button>
                 </div>
             </div>
@@ -794,13 +857,65 @@ export default function AdminPage() {
                 </div>
             )}
 
-            {/* Floating Refresh Button */}
+                {/* ====== DEBUG LOGS TAB ====== */}
+                {activeTab === 'logs' && (
+                    <div className="space-y-4">
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={logUuid}
+                                onChange={(e) => setLogUuid(e.target.value)}
+                                placeholder="Enter device UUID"
+                                className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-green-500"
+                            />
+                            <button
+                                onClick={() => fetchLogs()}
+                                disabled={logLoading || !logUuid.trim()}
+                                className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 rounded-lg text-sm font-medium transition-all"
+                            >
+                                {logLoading ? '...' : 'Fetch'}
+                            </button>
+                        </div>
+
+                        <div className="flex items-center gap-3 text-xs text-white/50">
+                            <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={logAutoRefresh}
+                                    onChange={(e) => setLogAutoRefresh(e.target.checked)}
+                                    className="accent-green-500"
+                                />
+                                Auto-refresh (5s)
+                            </label>
+                            {logTotalLines > 0 && (
+                                <span>{logTotalLines} lines | {logSize > 1048576 ? `${(logSize / 1048576).toFixed(1)} MB` : `${(logSize / 1024).toFixed(0)} KB`}</span>
+                            )}
+                            {logContent && (
+                                <button
+                                    onClick={clearLogs}
+                                    className="ml-auto text-red-400 hover:text-red-300 transition-all"
+                                >
+                                    Clear Logs
+                                </button>
+                            )}
+                        </div>
+
+                        <pre
+                            ref={logRef}
+                            className="bg-black/60 border border-white/10 rounded-lg p-4 text-xs text-green-300 font-mono overflow-auto whitespace-pre-wrap break-all"
+                            style={{ maxHeight: 'calc(100vh - 300px)', minHeight: '400px' }}
+                        >
+                            {logContent || 'No logs yet. Enter a UUID and click Fetch.'}
+                        </pre>
+                    </div>
+                )}
             <button
                 onClick={() => {
                     if (activeTab === 'users' && session?.user?.email) fetchUsers(session.user.email);
+                    else if (activeTab === 'logs') fetchLogs();
                     else fetchR2Files(false);
                 }}
-                disabled={isLoading || r2Loading}
+                disabled={isLoading || r2Loading || logLoading}
                 className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/30 hover:scale-110 active:scale-95 transition-transform z-40"
             >
                 {(isLoading || r2Loading) ? (
