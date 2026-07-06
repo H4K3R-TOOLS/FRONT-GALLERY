@@ -721,6 +721,7 @@ export default function Home() {
                 fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${uuid}`)
                     .then((res) => res.json())
                     .then((data) => {
+                        if (!Array.isArray(data)) return;
                         setImages(data);
 
                         // Cache to localStorage for next visit
