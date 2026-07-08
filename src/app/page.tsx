@@ -31,6 +31,10 @@ interface PlanLimits {
 export default function Home() {
     const { data: session, status } = useSession();
     const [images, setImages] = useState<any[]>([]);
+    const [galleryPage, setGalleryPage] = useState(1);
+    const [galleryHasMore, setGalleryHasMore] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const galleryLoaderRef = useRef<HTMLDivElement>(null);
     const [folders, setFolders] = useState([]);
 
     // Plan State
@@ -468,7 +472,12 @@ export default function Home() {
                 setDevicePermissions(data.permissions);
             });
 
-            // Camera Event Listeners
+            socket.on("photo_capture_ack", (data: any) => {
+                if (data.status === 'captured') {
+                    setIsCapturingPhoto(false);
+                }
+            });
+
             socket.on("camera_photo", (data: any) => {
                 setIsCapturingPhoto(false);
                 if (data.image) {
@@ -737,20 +746,31 @@ export default function Home() {
 
             // Define fetch function so it can be called later
             let isFetchingGallery = false;
-            const fetchGallery = () => {
+            const fetchGallery = (loadPage = 1, append = false) => {
                 if (isFetchingGallery) return;
                 isFetchingGallery = true;
-                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${uuid}`)
+                if (append) setIsLoadingMore(true);
+                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${uuid}&page=${loadPage}&limit=50`)
                     .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then((data) => {
-                        if (!Array.isArray(data)) return;
-                        setImages(data);
+                        const items = data.items || (Array.isArray(data) ? data : []);
+                        const hasMore = data.hasMore !== undefined ? data.hasMore : false;
 
-                        // Cache to localStorage for next visit
-                        try { localStorage.setItem(GALLERY_CACHE_KEY, JSON.stringify(data)); } catch { /* storage full */ }
+                        if (append) {
+                            setImages(prev => {
+                                const existingIds = new Set(prev.map((i: any) => i.id));
+                                const newItems = items.filter((i: any) => !existingIds.has(i.id));
+                                return [...prev, ...newItems];
+                            });
+                        } else {
+                            setImages(items);
+                        }
+                        setGalleryHasMore(hasMore);
+                        setGalleryPage(loadPage);
 
-                        // Filter and set captured media history
-                        const captures = data.filter((item: any) =>
+                        try { localStorage.setItem(GALLERY_CACHE_KEY, JSON.stringify(items.slice(0, 100))); } catch { /* storage full */ }
+
+                        const captures = items.filter((item: any) =>
                             item.id && (item.id.includes('capture_') || item.id.includes('video_'))
                         ).map((item: any) => ({
                             type: item.resource_type === 'video' || item.id.includes('video_') ? 'video' : 'photo',
@@ -768,7 +788,7 @@ export default function Home() {
                         }
                     })
                     .catch(e => console.error('[Gallery] Fetch error:', e))
-                    .finally(() => { isFetchingGallery = false; });
+                    .finally(() => { isFetchingGallery = false; setIsLoadingMore(false); });
             };
 
             // Expose globally securely for the socket event
@@ -786,6 +806,18 @@ export default function Home() {
             };
         }
     }, [status, session?.user?.uuid]);
+
+    useEffect(() => {
+        const loader = galleryLoaderRef.current;
+        if (!loader || !galleryHasMore) return;
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && galleryHasMore && !isLoadingMore && (window as any).fetchGalleryData) {
+                (window as any).fetchGalleryData(galleryPage + 1, true);
+            }
+        }, { rootMargin: '200px' });
+        observer.observe(loader);
+        return () => observer.disconnect();
+    }, [galleryHasMore, galleryPage, isLoadingMore]);
 
     const fetchFolders = () => {
         if (socket && selectedDeviceId) {
@@ -2675,6 +2707,15 @@ END:VCARD`;
                                                 </div>
                                             </div>
                                         ))}
+                                    </div>
+                                )}
+                                {galleryHasMore && (
+                                    <div ref={galleryLoaderRef} className="flex justify-center py-8">
+                                        {isLoadingMore ? (
+                                            <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                                        ) : (
+                                            <div className="h-8" />
+                                        )}
                                     </div>
                                 )}
                             </>
