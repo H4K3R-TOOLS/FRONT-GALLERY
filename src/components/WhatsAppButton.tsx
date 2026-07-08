@@ -32,7 +32,7 @@ const WhatsAppButton = () => {
 
             {/* Options Modal */}
             {isOpen && (
-                <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
+                <div className="fixed inset-0 z-[500] flex items-end md:items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
                     <div className="bg-[#1a1a1a] border-t md:border border-white/20 w-full md:w-80 md:rounded-2xl shadow-2xl animate-slideUp">
                         <div className="p-4 border-b border-white/10 flex justify-between items-center">
                             <div className="flex items-center gap-3">

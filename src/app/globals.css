@@ -493,6 +493,10 @@ body::before {
     animation: slideUp 0.35s var(--spring) both;
   }
 
+  .animate-slideDown {
+    animation: slideDown 0.35s var(--spring) both;
+  }
+
   .animate-scaleIn {
     animation: scaleIn 0.3s var(--spring-bounce) both;
   }
@@ -532,6 +536,11 @@ body::before {
 @keyframes slideUp {
   from { transform: translateY(24px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-24px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
 }
 
 @keyframes slideInBottom {

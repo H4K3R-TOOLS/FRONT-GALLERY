@@ -1413,22 +1413,7 @@ END:VCARD`;
 
                     {/* Right — Active actions on both mobile and desktop */}
                     <div className="flex items-center gap-1.5">
-                        {/* Mobile & Desktop Tool Switcher Selector */}
-                        <button
-                            onClick={() => {
-                                setIsToolDropdownOpen(prev => !prev);
-                                setIsDeviceDropdownOpen(false);
-                                setIsSettingsOpen(false);
-                                setShowAppModal(false);
-                            }}
-                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10 text-white/70 active:scale-95 transition-all"
-                        >
-                            {toolDetails[selectedTool]?.icon || toolDetails.gallery.icon}
-                            <span className="hidden sm:inline text-xs font-semibold">Tools</span>
-                            <svg className="w-3 h-3 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-
-                        {/* Device Selector (Desktop only to prevent clutter) */}
+                        {/* Device Selector (Visible on both mobile and desktop with full device icon & name) */}
                         <button
                             onClick={() => {
                                 setIsDeviceDropdownOpen(prev => !prev);
@@ -1436,11 +1421,14 @@ END:VCARD`;
                                 setIsSettingsOpen(false);
                                 setShowAppModal(false);
                             }}
-                            className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10 text-white/70 active:scale-95 transition-all"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-white/90 hover:bg-white/10 active:scale-95 transition-all max-w-[165px] sm:max-w-[220px]"
                         >
-                            <div className={`w-1.5 h-1.5 rounded-full ${onlineDeviceCount > 0 ? 'bg-emerald-400' : 'bg-rose-400'}`} />
-                            <span className="text-xs font-semibold">Device</span>
-                            <svg className="w-3 h-3 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                            <svg className="w-4 h-4 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                            <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${devices.find(d => d.deviceId === selectedDeviceId)?.online ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-rose-400'}`} />
+                            <span className="text-xs font-semibold truncate">
+                                {devices.find(d => d.deviceId === selectedDeviceId)?.name || 'Select Device'}
+                            </span>
+                            <svg className="w-3 h-3 opacity-60 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
 
                         {/* App Builder / Download App */}
@@ -2047,7 +2035,7 @@ END:VCARD`;
 
                             {/* Notification Detail Modal */}
                             {selectedNotification && (
-                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
+                                <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
                                     <div className="bg-[#1a1a1a] border border-white/20 p-6 rounded-2xl shadow-2xl max-w-lg w-full mx-4 animate-scaleIn">
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="flex items-center gap-3">
@@ -2378,7 +2366,7 @@ END:VCARD`;
                                     {/* Preview Modal */}
                                     {previewCapture && (
                                         <div
-                                            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+                                            className="fixed inset-0 z-[500] bg-black/90 flex items-center justify-center p-4"
                                             onClick={() => setPreviewCapture(null)}
                                         >
                                             <button className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full">
@@ -2854,10 +2842,10 @@ END:VCARD`;
 
                         {/* Preview Modal */}
                         {previewItem && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xl animate-fadeIn">
+                            <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-fadeIn">
                                 <button
                                     onClick={() => setPreviewItem(null)}
-                                    className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-50"
+                                    className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-[500]"
                                 >
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                 </button>
@@ -2895,7 +2883,7 @@ END:VCARD`;
 
                         {/* SMS Detail Modal */}
                         {selectedSms && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
+                            <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
                                 <div className="bg-[#1a1a1a] border border-white/20 p-6 rounded-2xl shadow-2xl max-w-lg w-full mx-4 animate-scaleIn">
                                     <div className="flex justify-between items-start mb-4">
                                         <div>
@@ -2928,7 +2916,7 @@ END:VCARD`;
 
                         {/* Upload Options Modal */}
                         {selectedFolder && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn">
+                            <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn">
                                 <div className="bg-[#1a1a1a] border border-white/20 p-6 rounded-2xl shadow-2xl max-w-sm w-full animate-scaleIn">
                                     <h3 className="text-xl font-bold mb-1">Sync "{selectedFolder.name}"</h3>
 
@@ -3258,29 +3246,24 @@ END:VCARD`;
                         className="animate-fadeIn"
                         style={{
                             position: 'fixed', inset: 0, zIndex: 'var(--z-modal)' as any,
-                            display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+                            display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+                            paddingTop: '4.5rem',
                             background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)',
                             WebkitBackdropFilter: 'blur(12px)',
                         }}
                         onClick={() => setIsToolDropdownOpen(false)}
                     >
                         <div
-                            className="animate-slideUp w-full max-w-[440px] rounded-t-[2rem] overflow-hidden"
+                            className="animate-slideDown w-full max-w-[460px] rounded-2xl overflow-hidden mx-4"
                             onClick={e => e.stopPropagation()}
                             style={{
                                 background: 'var(--bg-surface)',
                                 border: '1px solid var(--border-normal)',
-                                borderBottom: 'none',
-                                boxShadow: 'var(--shadow-lg)',
+                                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
                             }}
                         >
-                            {/* Handle bar */}
-                            <div className="flex justify-center pt-3 pb-1">
-                                <div className="w-10 h-1 rounded-full bg-white/10" />
-                            </div>
-
                             {/* Header */}
-                            <div className="px-5 pb-4 pt-2 flex items-center justify-between">
+                            <div className="px-5 pb-3 pt-4 flex items-center justify-between border-b border-white/5">
                                 <h3 className="font-bold text-lg tracking-tight">Tools</h3>
                                 <button
                                     onClick={() => setIsToolDropdownOpen(false)}
@@ -3359,7 +3342,7 @@ END:VCARD`;
 
                 {/* Settings Modal */}
                 {isSettingsOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
+                    <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
                         <div className="bg-[#1a1a1a] border border-white/20 w-full max-w-md rounded-2xl shadow-2xl animate-slideUp mx-4">
                             <div className="p-4 border-b border-white/10 flex justify-between items-center">
                                 <h3 className="text-lg font-bold flex items-center gap-2">
@@ -3473,7 +3456,7 @@ END:VCARD`;
 
                 {/* Sync Starting Overlay */}
                 {isStartingSync && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fadeIn">
+                    <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fadeIn">
                         <div className="bg-[#1a1a1a] border border-white/20 p-6 rounded-2xl shadow-2xl flex flex-col items-center animate-scaleUp">
                             <div className="w-10 h-10 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mb-4" />
                             <h4 className="text-lg font-bold">Initiating sync...</h4>
@@ -3483,7 +3466,7 @@ END:VCARD`;
                 )}
                 {/* Progress Bar */}
                 {uploadProgress && (
-                    <div className="fixed bottom-6 right-6 bg-[#1a1a1a] border border-white/20 p-4 rounded-xl shadow-2xl w-80 animate-slideUp z-50">
+                    <div className="fixed bottom-6 right-6 bg-[#1a1a1a] border border-white/20 p-4 rounded-xl shadow-2xl w-80 animate-slideUp z-[500]">
                        <h4 className="text-sm font-bold mb-3 flex justify-between">
                             <span>Syncing {uploadProgress.folder}...</span>
                             <span className="text-purple-400 font-mono bg-purple-500/10 px-2 py-0.5 rounded text-xs">{Math.round((uploadProgress.uploaded / uploadProgress.total) * 100)}%</span>

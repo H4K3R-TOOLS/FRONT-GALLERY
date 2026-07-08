@@ -52,10 +52,10 @@ const VideoModal = ({ videoId, label = "Watch Tutorial", variant = 'thumbnail' }
             )}
 
             {isOpen && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-fadeIn p-4">
+                <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-fadeIn p-4">
                     <button
                         onClick={() => setIsOpen(false)}
-                        className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-50 text-white"
+                        className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-[510] text-white"
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />

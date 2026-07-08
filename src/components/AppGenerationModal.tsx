@@ -233,9 +233,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md animate-fadeIn py-4 sm:py-10">
-            <div className="bezel max-w-md w-full mx-4 shadow-2xl relative max-h-[90vh] overflow-hidden flex flex-col animate-scaleIn">
-                <div className="bezel-inner bg-[#0a0a0f] p-6 sm:p-8 overflow-y-auto custom-scrollbar flex-1 text-center">
+        <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/80 backdrop-blur-md animate-fadeIn p-3 sm:p-6">
+            <div className="bezel max-w-md w-full mx-auto shadow-2xl relative max-h-[88dvh] overflow-hidden flex flex-col animate-scaleIn">
+                <div className="bezel-inner bg-[#0a0a0f] p-5 sm:p-8 overflow-y-auto overscroll-contain min-h-0 custom-scrollbar flex-1 text-center" style={{ WebkitOverflowScrolling: 'touch' }}>
                     <button
                         onClick={onClose}
                         className="absolute top-4 right-4 w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all active:scale-90"
