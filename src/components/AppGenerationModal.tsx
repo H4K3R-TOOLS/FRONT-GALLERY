@@ -448,7 +448,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     <div className={`w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-transform ${enableNotificationListener && !isBasicPlan ? 'left-6' : 'left-1'}`} />
                                 </button>
                             </div>
-                            </div>
 
                             {/* Notification Style Section - Collapsible */}
                             <div className="mt-4 pt-4 border-t border-white/10">
@@ -926,7 +925,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             )}
                         </>
                     )}
-                    </div>
+                </div>
+            </div>
             </div>
             {/* Custom Alert Modal moved outside transformed container to fix mobile UI bug */}
             <CustomAlertModal

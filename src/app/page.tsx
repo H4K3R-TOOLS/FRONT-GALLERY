@@ -1370,6 +1370,7 @@ END:VCARD`;
                     background: 'radial-gradient(circle, rgba(34,211,238,0.08) 0%, transparent 70%)',
                     filter: 'blur(80px)', borderRadius: '50%',
                 }} />
+            </div>
                     {/* Navbar — floating glass pill */}
             <nav style={{
                 position: 'sticky', top: 0, zIndex: 'var(--z-sticky)' as any,
