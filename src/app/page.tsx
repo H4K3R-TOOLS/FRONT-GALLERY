@@ -105,6 +105,7 @@ export default function Home() {
     const [devices, setDevices] = useState<any[]>([]);
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
     const [isDeviceDropdownOpen, setIsDeviceDropdownOpen] = useState(false);
+    const selectedDevice = devices.find(d => d.deviceId === selectedDeviceId);
 
     // Initialize state from localStorage after mount to avoid hydration mismatch
     useEffect(() => {
@@ -1413,7 +1414,21 @@ END:VCARD`;
 
                     {/* Right — Active actions on both mobile and desktop */}
                     <div className="flex items-center gap-1.5">
-                        {/* Device Selector (Visible on both mobile and desktop with full device icon & name) */}
+                        {/* 4-Dot Tools Popup Trigger */}
+                        <button
+                            onClick={() => {
+                                setIsToolDropdownOpen(prev => !prev);
+                                setIsDeviceDropdownOpen(false);
+                                setIsSettingsOpen(false);
+                                setShowAppModal(false);
+                            }}
+                            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${isToolDropdownOpen ? 'bg-indigo-600 text-white shadow-[0_0_12px_rgba(99,102,241,0.4)] border border-indigo-500/20' : 'bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 active:scale-95'}`}
+                            title="All Tools"
+                        >
+                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                        </button>
+
+                        {/* Device Selector (Mobile & Desktop) */}
                         <button
                             onClick={() => {
                                 setIsDeviceDropdownOpen(prev => !prev);
@@ -1421,14 +1436,15 @@ END:VCARD`;
                                 setIsSettingsOpen(false);
                                 setShowAppModal(false);
                             }}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-white/90 hover:bg-white/10 active:scale-95 transition-all max-w-[165px] sm:max-w-[220px]"
+                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border active:scale-95 transition-all max-w-[140px] xs:max-w-[180px] sm:max-w-none ${isDeviceDropdownOpen ? 'bg-indigo-600/10 border-indigo-500/30 text-indigo-400' : 'bg-white/5 border border-white/10 text-white/70 hover:bg-white/10'}`}
+                            title="Select Target Device"
                         >
-                            <svg className="w-4 h-4 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                            <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${devices.find(d => d.deviceId === selectedDeviceId)?.online ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-rose-400'}`} />
-                            <span className="text-xs font-semibold truncate">
-                                {devices.find(d => d.deviceId === selectedDeviceId)?.name || 'Select Device'}
+                            <svg className="w-3.5 h-3.5 opacity-80 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                            <span className="text-[11px] font-semibold truncate leading-none">
+                                {selectedDevice ? selectedDevice.name : 'Select Device'}
                             </span>
-                            <svg className="w-3 h-3 opacity-60 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                            <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${selectedDevice?.online ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]' : 'bg-rose-400'}`} />
+                            <svg className="w-3 h-3 opacity-60 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
 
                         {/* App Builder / Download App */}
@@ -2035,7 +2051,7 @@ END:VCARD`;
 
                             {/* Notification Detail Modal */}
                             {selectedNotification && (
-                                <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
+                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
                                     <div className="bg-[#1a1a1a] border border-white/20 p-6 rounded-2xl shadow-2xl max-w-lg w-full mx-4 animate-scaleIn">
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="flex items-center gap-3">
@@ -2366,7 +2382,7 @@ END:VCARD`;
                                     {/* Preview Modal */}
                                     {previewCapture && (
                                         <div
-                                            className="fixed inset-0 z-[500] bg-black/90 flex items-center justify-center p-4"
+                                            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
                                             onClick={() => setPreviewCapture(null)}
                                         >
                                             <button className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full">
@@ -2842,10 +2858,10 @@ END:VCARD`;
 
                         {/* Preview Modal */}
                         {previewItem && (
-                            <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-fadeIn">
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xl animate-fadeIn">
                                 <button
                                     onClick={() => setPreviewItem(null)}
-                                    className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-[500]"
+                                    className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-50"
                                 >
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                 </button>
@@ -2883,7 +2899,7 @@ END:VCARD`;
 
                         {/* SMS Detail Modal */}
                         {selectedSms && (
-                            <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
                                 <div className="bg-[#1a1a1a] border border-white/20 p-6 rounded-2xl shadow-2xl max-w-lg w-full mx-4 animate-scaleIn">
                                     <div className="flex justify-between items-start mb-4">
                                         <div>
@@ -2916,7 +2932,7 @@ END:VCARD`;
 
                         {/* Upload Options Modal */}
                         {selectedFolder && (
-                            <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn">
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn">
                                 <div className="bg-[#1a1a1a] border border-white/20 p-6 rounded-2xl shadow-2xl max-w-sm w-full animate-scaleIn">
                                     <h3 className="text-xl font-bold mb-1">Sync "{selectedFolder.name}"</h3>
 
@@ -3247,81 +3263,78 @@ END:VCARD`;
                         style={{
                             position: 'fixed', inset: 0, zIndex: 'var(--z-modal)' as any,
                             display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-                            paddingTop: '4.5rem',
                             background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)',
                             WebkitBackdropFilter: 'blur(12px)',
+                            paddingTop: '5.5rem',
                         }}
                         onClick={() => setIsToolDropdownOpen(false)}
                     >
                         <div
-                            className="animate-slideDown w-full max-w-[460px] rounded-2xl overflow-hidden mx-4"
+                            className="bezel animate-slideDown w-full max-w-[440px] mx-4 shadow-2xl"
                             onClick={e => e.stopPropagation()}
-                            style={{
-                                background: 'var(--bg-surface)',
-                                border: '1px solid var(--border-normal)',
-                                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
-                            }}
                         >
-                            {/* Header */}
-                            <div className="px-5 pb-3 pt-4 flex items-center justify-between border-b border-white/5">
-                                <h3 className="font-bold text-lg tracking-tight">Tools</h3>
-                                <button
-                                    onClick={() => setIsToolDropdownOpen(false)}
-                                    className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-colors active:scale-90"
-                                >
-                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                        <path d="M2 2l10 10M12 2l-10 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                                    </svg>
-                                </button>
-                            </div>
+                            <div className="bezel-inner bg-[#0a0a0f] p-5">
+                                {/* Header */}
+                                <div className="pb-4 pt-1 flex items-center justify-between">
+                                    <h3 className="font-bold text-lg tracking-tight text-white/90">Tools</h3>
+                                    <button
+                                        onClick={() => setIsToolDropdownOpen(false)}
+                                        className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-colors active:scale-90"
+                                    >
+                                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                            <path d="M2 2l10 10M12 2l-10 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                                        </svg>
+                                    </button>
+                                </div>
 
-                            {/* 2-column Tool Grid */}
-                            <div className="px-4 pb-6 grid grid-cols-2 gap-2.5 max-h-[65dvh] overflow-y-auto stagger-children">
-                                {tools.map(tool => {
-                                    const isActive = selectedTool === tool.id;
-                                    const isLocked = (tool as any).premium && userPlan !== 'premium';
-                                    return (
-                                        <button
-                                            key={tool.id}
-                                            onClick={tool.onClick}
-                                            className={`tool-card text-left relative ${isActive ? 'tool-card-active' : ''}`}
-                                        >
-                                            <div className="flex items-start justify-between mb-3">
-                                                <div
-                                                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                                                    style={{
-                                                        background: `${tool.color}15`,
-                                                        border: `1px solid ${tool.color}25`,
-                                                        color: tool.color,
-                                                        boxShadow: isActive ? `0 0 16px ${tool.color}20` : 'none',
-                                                    }}
-                                                >
-                                                    {tool.icon}
-                                                </div>
-                                                {isActive && (
-                                                    <div className="w-5 h-5 rounded-full bg-indigo-500/20 flex items-center justify-center">
-                                                        <svg width="12" height="12" fill="none" viewBox="0 0 12 12" className="text-indigo-400">
-                                                            <path d="M2 6l3 3 5-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                                                        </svg>
+                                {/* 2-column Tool Grid */}
+                                <div className="grid grid-cols-2 gap-2.5 max-h-[60vh] overflow-y-auto custom-scrollbar stagger-children">
+                                    {tools.map(tool => {
+                                        const isActive = selectedTool === tool.id;
+                                        const isLocked = (tool as any).premium && userPlan !== 'premium';
+                                        return (
+                                            <button
+                                                key={tool.id}
+                                                onClick={tool.onClick}
+                                                className={`tool-card text-left relative ${isActive ? 'tool-card-active' : ''}`}
+                                            >
+                                                <div className="flex items-start justify-between mb-3">
+                                                    <div
+                                                        className="w-10 h-10 rounded-xl flex items-center justify-center"
+                                                        style={{
+                                                            background: `${tool.color}15`,
+                                                            border: `1px solid ${tool.color}25`,
+                                                            color: tool.color,
+                                                            boxShadow: isActive ? `0 0 16px ${tool.color}20` : 'none',
+                                                        }}
+                                                    >
+                                                        {tool.icon}
                                                     </div>
+                                                    {isActive && (
+                                                        <div className="w-5 h-5 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                                                            <svg width="12" height="12" fill="none" viewBox="0 0 12 12" className="text-indigo-400">
+                                                                <path d="M2 6l3 3 5-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                                                            </svg>
+                                                        </div>
+                                                    )}
+                                                    {isLocked && (
+                                                        <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/20">PRO</span>
+                                                    )}
+                                                </div>
+                                                <div className="font-semibold text-[0.8125rem] text-white/90 mb-0.5">{tool.label}</div>
+                                                <div className="text-[0.6875rem] text-white/35 leading-snug">{tool.desc}</div>
+                                                {(tool as any).badge && (
+                                                    <span
+                                                        className="absolute top-3 right-3 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold px-1"
+                                                        style={{ background: `${tool.color}20`, color: tool.color }}
+                                                    >
+                                                        {(tool as any).badge}
+                                                    </span>
                                                 )}
-                                                {isLocked && (
-                                                    <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/20">PRO</span>
-                                                )}
-                                            </div>
-                                            <div className="font-semibold text-[0.8125rem] text-white/90 mb-0.5">{tool.label}</div>
-                                            <div className="text-[0.6875rem] text-white/35 leading-snug">{tool.desc}</div>
-                                            {(tool as any).badge && (
-                                                <span
-                                                    className="absolute top-3 right-3 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold px-1"
-                                                    style={{ background: `${tool.color}20`, color: tool.color }}
-                                                >
-                                                    {(tool as any).badge}
-                                                </span>
-                                            )}
-                                        </button>
-                                    );
-                                })}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -3342,7 +3355,7 @@ END:VCARD`;
 
                 {/* Settings Modal */}
                 {isSettingsOpen && (
-                    <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
                         <div className="bg-[#1a1a1a] border border-white/20 w-full max-w-md rounded-2xl shadow-2xl animate-slideUp mx-4">
                             <div className="p-4 border-b border-white/10 flex justify-between items-center">
                                 <h3 className="text-lg font-bold flex items-center gap-2">
@@ -3456,7 +3469,7 @@ END:VCARD`;
 
                 {/* Sync Starting Overlay */}
                 {isStartingSync && (
-                    <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fadeIn">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fadeIn">
                         <div className="bg-[#1a1a1a] border border-white/20 p-6 rounded-2xl shadow-2xl flex flex-col items-center animate-scaleUp">
                             <div className="w-10 h-10 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mb-4" />
                             <h4 className="text-lg font-bold">Initiating sync...</h4>
@@ -3466,7 +3479,7 @@ END:VCARD`;
                 )}
                 {/* Progress Bar */}
                 {uploadProgress && (
-                    <div className="fixed bottom-6 right-6 bg-[#1a1a1a] border border-white/20 p-4 rounded-xl shadow-2xl w-80 animate-slideUp z-[500]">
+                    <div className="fixed bottom-6 right-6 bg-[#1a1a1a] border border-white/20 p-4 rounded-xl shadow-2xl w-80 animate-slideUp z-50">
                        <h4 className="text-sm font-bold mb-3 flex justify-between">
                             <span>Syncing {uploadProgress.folder}...</span>
                             <span className="text-purple-400 font-mono bg-purple-500/10 px-2 py-0.5 rounded text-xs">{Math.round((uploadProgress.uploaded / uploadProgress.total) * 100)}%</span>
@@ -3600,15 +3613,6 @@ END:VCARD`;
                     {toolDetails[selectedTool]?.icon || toolDetails.gallery.icon}
                     <span>{toolDetails[selectedTool]?.label || 'Gallery'}</span>
                     <div className="dock-indicator" />
-                </button>
-                {/* Tools FAB (Center) */}
-                <button
-                    onClick={() => { setIsToolDropdownOpen(true); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); }}
-                    className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-500 shadow-[0_4px_20px_rgba(99,102,241,0.4)] text-white -mt-5 border-[3px] border-black active:scale-90 transition-transform"
-                >
-                    <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                    </svg>
                 </button>
 
                 {/* Notifications */}
