@@ -1293,8 +1293,16 @@ END:VCARD`;
 
     if (status === "loading") {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-black text-white">
-                <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-purple-500"></div>
+            <div className="min-h-[100dvh] flex items-center justify-center" style={{ background: 'var(--bg-base)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>
+                    <div style={{
+                        width: 48, height: 48, borderRadius: '50%',
+                        border: '2px solid rgba(91,94,244,0.2)',
+                        borderTopColor: 'var(--accent)',
+                        animation: 'spin 1s linear infinite',
+                    }} />
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Loading…</span>
+                </div>
             </div>
         );
     }
@@ -1304,79 +1312,148 @@ END:VCARD`;
     const onlineDeviceCount = devices.filter(d => d.online).length;
 
     return (
-        <main className="min-h-screen bg-[#0a0a0a] text-white selection:bg-purple-500/30 pb-24">
-            {/* Background Gradients */}
-            <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px]" />
+        <main className="min-h-[100dvh] pb-24" style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}>
+            {/* Ambient background orbs */}
+            <div style={{ position: 'fixed', inset: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+                <div style={{
+                    position: 'absolute', top: '-8%', left: '-8%', width: '45%', height: '45%',
+                    background: 'radial-gradient(circle, rgba(91,94,244,0.12) 0%, transparent 70%)',
+                    filter: 'blur(80px)', borderRadius: '50%',
+                }} />
+                <div style={{
+                    position: 'absolute', bottom: '-8%', right: '-8%', width: '40%', height: '40%',
+                    background: 'radial-gradient(circle, rgba(34,211,238,0.08) 0%, transparent 70%)',
+                    filter: 'blur(80px)', borderRadius: '50%',
+                }} />
             </div>
 
-            {/* Navbar */}
-            <nav className={`sticky top-0 z-40 w-full transition-all duration-300 ${isScrolled ? 'bg-black/80 backdrop-blur-2xl border-b border-white/10 shadow-lg shadow-purple-500/5' : 'bg-transparent border-b border-transparent pt-2'}`}>
-                <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 md:gap-2">
-                        {/* Settings Button */}
+            {/* Navbar — floating glass pill */}
+            <nav style={{
+                position: 'sticky', top: 0, zIndex: 'var(--z-sticky)' as any,
+                padding: '0.75rem 1rem',
+                transition: 'all 0.3s cubic-bezier(0.32,0.72,0,1)',
+            }}>
+                <div style={{
+                    maxWidth: 1280, margin: '0 auto',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '0.625rem 1rem',
+                    background: isScrolled ? 'rgba(6,11,26,0.85)' : 'rgba(13,20,38,0.60)',
+                    backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+                    border: '1px solid var(--border-normal)',
+                    borderRadius: '1rem',
+                    boxShadow: isScrolled ? 'var(--shadow-md)' : 'none',
+                    transition: 'background 0.3s cubic-bezier(0.32,0.72,0,1), box-shadow 0.3s cubic-bezier(0.32,0.72,0,1)',
+                }}>
+                    {/* Left — Logo + Plan */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
                         <button
                             onClick={() => setIsSettingsOpen(true)}
-                            className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center hover:scale-105 transition-transform"
                             title="Settings & Permission Check"
+                            style={{
+                                width: 36, height: 36, borderRadius: '0.75rem',
+                                background: 'var(--accent-dim)', border: '1px solid rgba(91,94,244,0.35)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                cursor: 'pointer', color: '#818cf8',
+                                transition: 'transform 0.2s cubic-bezier(0.32,0.72,0,1), background 0.2s',
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.05)')}
+                            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
                         >
-                            <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </button>
-                        {/* Plan Badge - Close to Settings */}
                         <PlanBadge plan={userPlan} onClick={() => setShowPlansModal(true)} />
-                        <span className="text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60 hidden sm:block">Gallery Eye</span>
+                        <span style={{
+                            fontWeight: 700, fontSize: '1rem', letterSpacing: '-0.025em',
+                            color: 'var(--text-primary)',
+                        }} className="hidden sm:block">Gallery Eye</span>
                     </div>
 
-                    <div className="flex items-center gap-2 md:gap-4">
-                        {/* Tools Selector - Matching Device Selector Style */}
+                    {/* Right — Tools + Device + Actions */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        {/* Tools Selector */}
                         <button
                             onClick={() => setIsToolDropdownOpen(true)}
-                            className="flex items-center gap-2 px-2 py-1.5 md:px-3 md:py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: '0.375rem',
+                                padding: '0.5rem 0.75rem',
+                                background: 'var(--bg-elevated)', border: '1px solid var(--border-normal)',
+                                borderRadius: '0.75rem', cursor: 'pointer',
+                                color: 'var(--text-secondary)',
+                                transition: 'background 0.2s cubic-bezier(0.32,0.72,0,1)',
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-overlay)')}
+                            onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-elevated)')}
                         >
-                            {selectedTool === 'gallery' && <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>}
-                            {selectedTool === 'sms' && <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>}
-                            {selectedTool === 'contacts' && <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>}
-                            {selectedTool === 'torch' && <svg className="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>}
-                            {selectedTool === 'vibration' && <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>}
-                            {selectedTool === 'camera' && <svg className="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>}
-                            {selectedTool === 'notifications' && <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>}
-                            {selectedTool === 'audio' && <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>}
-                            <span className="text-xs font-medium text-white/70">Tools</span>
-                            <svg className="w-3 h-3 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                            {selectedTool === 'gallery' && <svg style={{ color: '#818cf8' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>}
+                            {selectedTool === 'sms' && <svg style={{ color: '#38bdf8' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>}
+                            {selectedTool === 'contacts' && <svg style={{ color: '#10b981' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>}
+                            {selectedTool === 'torch' && <svg style={{ color: '#f59e0b' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>}
+                            {selectedTool === 'vibration' && <svg style={{ color: '#fb923c' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>}
+                            {selectedTool === 'camera' && <svg style={{ color: '#f472b6' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>}
+                            {selectedTool === 'notifications' && <svg style={{ color: '#22d3ee' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>}
+                            {selectedTool === 'audio' && <svg style={{ color: '#10b981' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>}
+                            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>Tools</span>
+                            <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
 
                         {/* Device Selector */}
                         <button
                             onClick={() => setIsDeviceDropdownOpen(true)}
-                            className="flex items-center gap-2 px-2 py-1.5 md:px-3 md:py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: '0.375rem',
+                                padding: '0.5rem 0.75rem',
+                                background: 'var(--bg-elevated)', border: '1px solid var(--border-normal)',
+                                borderRadius: '0.75rem', cursor: 'pointer',
+                                color: 'var(--text-secondary)',
+                                transition: 'background 0.2s cubic-bezier(0.32,0.72,0,1)',
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-overlay)')}
+                            onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-elevated)')}
                         >
-                            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${onlineDeviceCount > 0 ? 'bg-green-500' : 'bg-red-500'}`} />
-                            <span className="text-xs font-medium text-white/70">Device</span>
-                            <svg className="w-3 h-3 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                            <div style={{
+                                width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
+                                background: onlineDeviceCount > 0 ? 'var(--emerald)' : 'var(--rose)',
+                                ...(onlineDeviceCount > 0 ? { animation: 'pulse-online 2s infinite' } : {}),
+                            }} />
+                            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>Device</span>
+                            <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
 
-                        <div className="flex items-center gap-2 md:gap-3">
-                            <button
-                                onClick={() => {
-                                    setShowAppModal(true);
-                                }}
-                                className="px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-white text-black text-sm font-semibold hover:scale-105 transition-transform"
-                            >
-                                <span className="hidden sm:inline">Download App</span>
-                                <span className="sm:hidden">App</span>
-                            </button>
-                            <div className="w-px h-6 md:h-8 bg-white/10 hidden sm:block" />
-                            <div className="flex items-center gap-2 md:gap-3">
-                                <span className="text-sm font-medium text-white/80 hidden md:block">{session?.user?.name}</span>
-                                <button onClick={() => signOut()} className="text-sm text-red-400 hover:text-red-300 transition-colors">Logout</button>
-                            </div>
-                        </div>
+                        {/* Download App */}
+                        <button
+                            onClick={() => setShowAppModal(true)}
+                            style={{
+                                padding: '0.5rem 0.875rem',
+                                background: 'var(--accent)', color: '#fff',
+                                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                                fontWeight: 600, fontSize: '0.8125rem',
+                                borderRadius: '0.75rem', border: 'none', cursor: 'pointer',
+                                transition: 'transform 0.2s cubic-bezier(0.32,0.72,0,1), opacity 0.2s',
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.opacity = '0.88')}
+                            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+                        >
+                            <span className="hidden sm:inline">Download App</span>
+                            <span className="sm:hidden">App</span>
+                        </button>
+
+                        <div style={{ width: 1, height: 20, background: 'var(--border-subtle)' }} className="hidden sm:block" />
+                        <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', fontWeight: 500 }} className="hidden md:block">{session?.user?.name}</span>
+                        <button
+                            onClick={() => signOut()}
+                            style={{
+                                fontSize: '0.8125rem', color: 'var(--rose)', fontWeight: 500,
+                                background: 'none', border: 'none', cursor: 'pointer',
+                                transition: 'opacity 0.2s',
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.opacity = '0.7')}
+                            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+                        >Logout</button>
                     </div>
                 </div>
             </nav>
 
-            <div className="relative max-w-7xl mx-auto px-4 md:px-6 py-8">
+            <div className="relative max-w-7xl mx-auto px-4 md:px-6 py-8" style={{ zIndex: 1 }}>
 
                 {/* Remote Control Section */}
                 <div className="mb-12">

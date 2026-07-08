@@ -7,95 +7,171 @@ interface UpgradeModalProps {
     requiredPlan: 'standard' | 'premium';
 }
 
+const planConfig = {
+    standard: {
+        label: 'Standard',
+        accent: '#5b5ef4',
+        accentDim: 'rgba(91,94,244,0.12)',
+        accentBorder: 'rgba(91,94,244,0.30)',
+        icon: (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+            </svg>
+        ),
+        features: [
+            '100 Photos + 50 Videos sync',
+            'SMS & Contacts access',
+            'Flashlight & vibration control',
+            'Hide app icon',
+            'Up to 7 devices',
+        ],
+    },
+    premium: {
+        label: 'Premium',
+        accent: '#f59e0b',
+        accentDim: 'rgba(245,158,11,0.12)',
+        accentBorder: 'rgba(245,158,11,0.30)',
+        icon: (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
+        ),
+        features: [
+            'Unlimited photos & videos',
+            'All Standard features',
+            'Bulk folder download (ZIP)',
+            'Hidden camera & live audio',
+            'Priority support',
+        ],
+    },
+};
+
 export default function UpgradeModal({ isOpen, onClose, feature, requiredPlan }: UpgradeModalProps) {
     if (!isOpen) return null;
-
-    const planDetails = {
-        standard: {
-            icon: '⭐',
-            name: 'Standard',
-            color: 'from-purple-500 to-blue-500',
-            features: [
-                '100 Photos + 50 Videos sync',
-                'SMS Access',
-                'Contacts Access',
-                'Flashlight Control',
-                'Vibration Control',
-                'Hide App Icon',
-                'Advanced Permissions'
-            ]
-        },
-        premium: {
-            icon: '👑',
-            name: 'Premium',
-            color: 'from-yellow-500 to-orange-500',
-            features: [
-                'Unlimited Photos & Videos',
-                'All Standard Features',
-                'Bulk Folder Download',
-                'Cloud Backup (ZIP)',
-                'Priority Support'
-            ]
-        }
-    };
-
-    const plan = planDetails[requiredPlan];
+    const plan = planConfig[requiredPlan];
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn">
-            <div className="bg-[#1a1a1a] border border-white/20 p-6 md:p-8 rounded-3xl shadow-2xl max-w-md w-full mx-4 text-center">
-                {/* Lock Icon */}
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/10 flex items-center justify-center">
-                    <svg className="w-8 h-8 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                    </svg>
+        <div
+            className="animate-fadeIn"
+            style={{
+                position: 'fixed', inset: 0, zIndex: 'var(--z-modal)' as any,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'rgba(6,11,26,0.82)', backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)', padding: '1rem',
+            }}
+            onClick={onClose}
+        >
+            <div
+                className="animate-scaleIn"
+                onClick={e => e.stopPropagation()}
+                style={{
+                    width: '100%', maxWidth: 400,
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-normal)',
+                    borderRadius: '1.5rem',
+                    overflow: 'hidden',
+                    boxShadow: 'var(--shadow-lg)',
+                }}
+            >
+                {/* Accent header strip */}
+                <div style={{
+                    padding: '1.5rem', textAlign: 'center',
+                    background: plan.accentDim,
+                    borderBottom: `1px solid ${plan.accentBorder}`,
+                }}>
+                    <div style={{
+                        width: 56, height: 56, borderRadius: '1rem', margin: '0 auto 1rem',
+                        background: plan.accentDim,
+                        border: `1px solid ${plan.accentBorder}`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: plan.accent,
+                    }}>
+                        {plan.icon}
+                    </div>
+                    <div style={{
+                        fontFamily: "'Space Grotesk', monospace",
+                        fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em',
+                        textTransform: 'uppercase', color: plan.accent, marginBottom: '0.375rem',
+                    }}>
+                        {plan.label} required
+                    </div>
+                    <h2 style={{
+                        fontWeight: 700, fontSize: '1.25rem', letterSpacing: '-0.02em',
+                        color: 'var(--text-primary)',
+                    }}>
+                        {feature}
+                    </h2>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem', marginTop: '0.375rem' }}>
+                        Upgrade to unlock this feature
+                    </p>
                 </div>
 
-                <h2 className="text-2xl font-bold text-white mb-2">
-                    🔒 {feature}
-                </h2>
-                <p className="text-white/60 mb-6">
-                    This feature requires <span className={`font-semibold bg-gradient-to-r ${plan.color} bg-clip-text text-transparent`}>{plan.name}</span> plan
-                </p>
+                <div style={{ padding: '1.25rem' }}>
+                    {/* Feature list */}
+                    <div style={{
+                        background: 'var(--bg-elevated)',
+                        border: '1px solid var(--border-subtle)',
+                        borderRadius: '0.875rem', padding: '1rem',
+                        marginBottom: '1.25rem',
+                    }}>
+                        <p style={{
+                            fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)',
+                            textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.75rem',
+                        }}>
+                            {plan.label} includes
+                        </p>
+                        <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            {plan.features.map((f, i) => (
+                                <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                        <circle cx="7" cy="7" r="6.5" stroke={plan.accent} strokeOpacity="0.4" />
+                                        <path d="M4.5 7l2 2 3-3" stroke={plan.accent} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>{f}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
 
-                {/* Features List */}
-                <div className="text-left bg-white/5 rounded-xl p-4 mb-6">
-                    <h3 className="text-sm font-semibold text-white/80 mb-3 flex items-center gap-2">
-                        {plan.icon} {plan.name} includes:
-                    </h3>
-                    <ul className="space-y-2">
-                        {plan.features.map((f, i) => (
-                            <li key={i} className="text-sm text-white/60 flex items-center gap-2">
-                                <svg className="w-4 h-4 text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                </svg>
-                                {f}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-
-                {/* Contact Info */}
-                <p className="text-xs text-white/40 mb-6">
-                    Contact admin for upgrade via WhatsApp
-                </p>
-
-                {/* Buttons */}
-                <div className="flex gap-3">
-                    <button
-                        onClick={onClose}
-                        className="flex-1 py-3 bg-white/10 rounded-xl font-medium hover:bg-white/20 transition-colors"
-                    >
-                        Close
-                    </button>
-                    <a
-                        href="https://wa.me/923177407478?text=I%20want%20to%20upgrade%20my%20GalleryEye%20plan"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`flex-1 py-3 bg-gradient-to-r ${plan.color} rounded-xl font-semibold hover:scale-105 transition-transform`}
-                    >
-                        Upgrade Now
-                    </a>
+                    {/* Buttons */}
+                    <div style={{ display: 'flex', gap: '0.625rem' }}>
+                        <button
+                            onClick={onClose}
+                            style={{
+                                flex: 1, padding: '0.75rem',
+                                background: 'var(--bg-elevated)',
+                                border: '1px solid var(--border-normal)',
+                                borderRadius: '0.875rem', color: 'var(--text-secondary)',
+                                fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: '0.875rem',
+                                cursor: 'pointer', transition: 'background 0.2s cubic-bezier(0.32,0.72,0,1)',
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-overlay)')}
+                            onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-elevated)')}
+                        >
+                            Not now
+                        </button>
+                        <a
+                            href={`https://wa.me/923177407478?text=I%20want%20to%20upgrade%20to%20${plan.label}%20plan%20for%20GalleryEye`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                                flex: 1, padding: '0.75rem',
+                                background: plan.accent, color: '#fff',
+                                fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: '0.875rem',
+                                borderRadius: '0.875rem', border: 'none', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
+                                textDecoration: 'none',
+                                transition: 'transform 0.2s cubic-bezier(0.32,0.72,0,1), opacity 0.2s',
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.opacity = '0.88')}
+                            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+                        >
+                            Upgrade now
+                            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                <path d="M2 6.5h9M8 3.5l3 3-3 3" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

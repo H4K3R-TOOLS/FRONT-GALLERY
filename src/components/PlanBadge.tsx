@@ -5,36 +5,31 @@ interface PlanBadgeProps {
     onClick?: () => void;
 }
 
+const config = {
+    basic: {
+        label: 'BASIC',
+        className: 'plan-badge plan-badge-basic',
+    },
+    standard: {
+        label: 'STD',
+        className: 'plan-badge plan-badge-standard',
+    },
+    premium: {
+        label: 'PRO',
+        className: 'plan-badge plan-badge-premium',
+    },
+};
+
 export default function PlanBadge({ plan, onClick }: PlanBadgeProps) {
-    const getStyles = () => {
-        switch (plan) {
-            case 'premium':
-                return {
-                    bg: 'bg-gradient-to-r from-yellow-500 to-orange-500',
-                    icon: '👑'
-                };
-            case 'standard':
-                return {
-                    bg: 'bg-gradient-to-r from-purple-500 to-blue-500',
-                    icon: '⭐'
-                };
-            default:
-                return {
-                    bg: 'bg-white/20',
-                    icon: '🆓'
-                };
-        }
-    };
-
-    const styles = getStyles();
-
+    const { label, className } = config[plan] || config.basic;
     return (
         <button
+            className={className}
+            aria-label={`${plan} plan — click to manage`}
             onClick={onClick}
-            className={`flex items-center justify-center w-7 h-7 md:w-auto md:h-auto md:px-2.5 md:py-1 rounded-full text-xs font-semibold hover:scale-105 transition-transform ${styles.bg} ${onClick ? 'cursor-pointer' : ''}`}
-            title={`${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan - Click to view plans`}
+            style={{ cursor: onClick ? 'pointer' : 'default', background: 'none', border: 'none', padding: 0 }}
         >
-            <span className="text-sm">{styles.icon}</span>
+            {label}
         </button>
     );
 }

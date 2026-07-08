@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect } from 'react';
-
 interface CustomAlertModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -10,92 +8,121 @@ interface CustomAlertModalProps {
     type?: 'error' | 'warning' | 'success' | 'info';
 }
 
-export default function CustomAlertModal({ isOpen, onClose, title, message, type = 'info' }: CustomAlertModalProps) {
-    useEffect(() => {
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
-        };
-        if (isOpen) {
-            document.addEventListener('keydown', handleEscape);
-        }
-        return () => document.removeEventListener('keydown', handleEscape);
-    }, [isOpen, onClose]);
+const typeConfig = {
+    error: {
+        bg: 'rgba(244,63,94,0.10)',
+        border: 'rgba(244,63,94,0.25)',
+        iconBg: 'rgba(244,63,94,0.15)',
+        iconColor: '#f43f5e',
+        btnBg: '#f43f5e',
+        icon: (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" />
+            </svg>
+        ),
+    },
+    warning: {
+        bg: 'rgba(245,158,11,0.10)',
+        border: 'rgba(245,158,11,0.25)',
+        iconBg: 'rgba(245,158,11,0.15)',
+        iconColor: '#f59e0b',
+        btnBg: '#f59e0b',
+        icon: (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /><path d="M12 9v4M12 17h.01" />
+            </svg>
+        ),
+    },
+    success: {
+        bg: 'rgba(16,185,129,0.10)',
+        border: 'rgba(16,185,129,0.25)',
+        iconBg: 'rgba(16,185,129,0.15)',
+        iconColor: '#10b981',
+        btnBg: '#10b981',
+        icon: (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" /><path d="M9 12l2 2 4-4" />
+            </svg>
+        ),
+    },
+    info: {
+        bg: 'rgba(34,211,238,0.10)',
+        border: 'rgba(34,211,238,0.25)',
+        iconBg: 'rgba(34,211,238,0.15)',
+        iconColor: '#22d3ee',
+        btnBg: '#22d3ee',
+        icon: (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" />
+            </svg>
+        ),
+    },
+};
 
+export default function CustomAlertModal({ isOpen, onClose, title, message, type = 'error' }: CustomAlertModalProps) {
     if (!isOpen) return null;
-
-    const typeStyles = {
-        error: {
-            gradient: 'from-red-900/90 to-red-950/95',
-            border: 'border-red-500/30',
-            iconBg: 'bg-red-500/20',
-            iconColor: 'text-red-400',
-            icon: (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-            )
-        },
-        warning: {
-            gradient: 'from-yellow-900/90 to-yellow-950/95',
-            border: 'border-yellow-500/30',
-            iconBg: 'bg-yellow-500/20',
-            iconColor: 'text-yellow-400',
-            icon: (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-            )
-        },
-        success: {
-            gradient: 'from-green-900/90 to-green-950/95',
-            border: 'border-green-500/30',
-            iconBg: 'bg-green-500/20',
-            iconColor: 'text-green-400',
-            icon: (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            )
-        },
-        info: {
-            gradient: 'from-blue-900/90 to-blue-950/95',
-            border: 'border-blue-500/30',
-            iconBg: 'bg-blue-500/20',
-            iconColor: 'text-blue-400',
-            icon: (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            )
-        }
-    };
-
-    const style = typeStyles[type];
+    const cfg = typeConfig[type];
 
     return (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn" onClick={onClose}>
+        <div
+            className="animate-fadeIn"
+            style={{
+                position: 'fixed', inset: 0, zIndex: 'var(--z-modal)' as any,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'rgba(6,11,26,0.80)', backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)', padding: '1rem',
+            }}
+            onClick={onClose}
+        >
             <div
-                className={`bg-gradient-to-b ${style.gradient} rounded-2xl p-6 max-w-md mx-4 border ${style.border} shadow-2xl animate-scaleIn`}
-                onClick={(e) => e.stopPropagation()}
+                className="animate-scaleIn"
+                onClick={e => e.stopPropagation()}
+                style={{
+                    width: '100%', maxWidth: 400,
+                    background: 'var(--bg-surface)',
+                    border: `1px solid ${cfg.border}`,
+                    borderRadius: '1.5rem',
+                    padding: '1.75rem',
+                    boxShadow: 'var(--shadow-lg)',
+                }}
             >
-                <div className="flex items-start gap-4 mb-4">
-                    <div className={`w-12 h-12 rounded-full ${style.iconBg} flex items-center justify-center flex-shrink-0 ${style.iconColor}`}>
-                        {style.icon}
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="text-lg font-bold text-white mb-1">{title}</h3>
-                        <p className="text-sm text-white/80 leading-relaxed whitespace-pre-line">{message}</p>
-                    </div>
+                {/* Icon */}
+                <div style={{
+                    width: 52, height: 52, borderRadius: '1rem',
+                    background: cfg.iconBg, border: `1px solid ${cfg.border}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: cfg.iconColor, marginBottom: '1.25rem',
+                }}>
+                    {cfg.icon}
                 </div>
 
-                <div className="flex justify-end">
-                    <button
-                        onClick={onClose}
-                        className="px-6 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors text-sm font-medium"
-                    >
-                        OK
-                    </button>
-                </div>
+                <h3 style={{
+                    fontWeight: 700, fontSize: '1.125rem', letterSpacing: '-0.02em',
+                    color: 'var(--text-primary)', marginBottom: '0.5rem',
+                }}>
+                    {title}
+                </h3>
+                <p style={{
+                    color: 'var(--text-secondary)', fontSize: '0.875rem',
+                    lineHeight: 1.6, marginBottom: '1.5rem',
+                }}>
+                    {message}
+                </p>
+
+                <button
+                    onClick={onClose}
+                    style={{
+                        width: '100%', padding: '0.75rem',
+                        background: cfg.btnBg, color: '#fff',
+                        fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: '0.9375rem',
+                        borderRadius: '0.875rem', border: 'none', cursor: 'pointer',
+                        transition: 'transform 0.2s cubic-bezier(0.32,0.72,0,1), opacity 0.2s',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.opacity = '0.88')}
+                    onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+                >
+                    Got it
+                </button>
             </div>
         </div>
     );

@@ -1,9 +1,14 @@
 import './globals.css'
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Plus_Jakarta_Sans } from 'next/font/google'
 import Provider from './provider'
 
-const inter = Inter({ subsets: ['latin'] })
+const plusJakartaSans = Plus_Jakarta_Sans({
+    subsets: ['latin'],
+    weight: ['300', '400', '500', '600', '700', '800'],
+    display: 'swap',
+    variable: '--font-plus-jakarta',
+})
 
 export const metadata: Metadata = {
     title: 'Gallery Eye - Secure Gallery Sync & Remote Access',
@@ -40,8 +45,6 @@ export const metadata: Metadata = {
         description: 'Sync your gallery across devices securely. Access photos, videos, SMS remotely.',
         images: ['https://i.ibb.co/V0rWh957/logo-3-removebg-preview.png'],
     },
-    viewport: 'width=device-width, initial-scale=1',
-    themeColor: '#9333EA',
 }
 
 import { getServerSession } from 'next-auth'
@@ -55,13 +58,14 @@ export default async function RootLayout({
     const session = await getServerSession(authOptions)
 
     return (
-        <html lang="en">
+        <html lang="en" className={plusJakartaSans.variable}>
             <head>
                 <link rel="icon" href="https://i.ibb.co/V0rWh957/logo-3-removebg-preview.png" />
                 <link rel="apple-touch-icon" href="https://i.ibb.co/V0rWh957/logo-3-removebg-preview.png" />
-                <meta name="theme-color" content="#9333EA" />
+                <meta name="theme-color" content="#5b5ef4" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
             </head>
-            <body className={inter.className}>
+            <body className={plusJakartaSans.className}>
                 <Provider session={session}>
                     {children}
                 </Provider>
