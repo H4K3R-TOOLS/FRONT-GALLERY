@@ -1337,7 +1337,7 @@ END:VCARD`;
                     maxWidth: 1280, margin: '0 auto',
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     padding: '0.625rem 1rem',
-                    background: isScrolled ? 'rgba(6,11,26,0.85)' : 'rgba(13,20,38,0.60)',
+                    background: isScrolled ? 'rgba(10,10,15,0.88)' : 'rgba(18,18,26,0.60)',
                     backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
                     border: '1px solid var(--border-normal)',
                     borderRadius: '1rem',
@@ -1478,61 +1478,70 @@ END:VCARD`;
                 </div>
             </nav>
 
-            <div className="relative max-w-7xl mx-auto px-4 md:px-6 py-8">
+            <div className="relative max-w-7xl mx-auto px-4 md:px-6 py-8 content-safe">
 
                 {/* Remote Control Section */}
                 <div className="mb-12">
 
                     {/* Show Welcome Screen when no device is selected */}
                     {!selectedDeviceId && devices.filter(d => d.online).length === 0 ? (
-                        <div className="py-16 flex flex-col items-center justify-center">
-                            <div className="max-w-lg mx-auto text-center space-y-8">
-                                <div className="relative">
-                                    <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20 border border-white/10 flex items-center justify-center">
-                                        <svg className="w-10 h-10 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        <div className="py-12 flex flex-col items-center justify-center animate-fadeIn">
+                            <div className="max-w-md mx-auto text-center space-y-8">
+                                <div className="relative inline-block">
+                                    <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-indigo-500/15 to-violet-500/15 border border-indigo-500/20 flex items-center justify-center animate-float">
+                                        <svg className="w-10 h-10 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                                     </div>
-                                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center animate-pulse" style={{ left: 'calc(50% + 24px)' }}>
+                                    <div className="absolute -top-1 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shadow-[0_0_12px_rgba(52,211,153,0.4)]" style={{ left: 'calc(50% + 24px)' }}>
                                         <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                                     </div>
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-white mb-2">Welcome to GalleryEye</h3>
-                                    <p className="text-white/40 text-sm">Get started by connecting your device</p>
+                                    <h3 className="text-2xl font-bold tracking-tight text-white mb-2">Welcome to GalleryEye</h3>
+                                    <p className="text-white/35 text-sm">Get started by connecting your device</p>
                                 </div>
-                                <div className="grid gap-3 text-left">
-                                    <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                                        <div className="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center flex-shrink-0">
-                                            <span className="text-lg font-bold text-purple-400">1</span>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-white/80">Download the App</p>
-                                            <p className="text-xs text-white/30">Click &quot;Download App&quot; in the top right to generate your APK</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                                        <div className="w-10 h-10 rounded-xl bg-cyan-500/15 flex items-center justify-center flex-shrink-0">
-                                            <span className="text-lg font-bold text-cyan-400">2</span>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-white/80">Select Your Device</p>
-                                            <p className="text-xs text-white/30">Once installed, your device will appear in the &quot;Device&quot; menu at the top</p>
+                                <div className="grid gap-3 text-left stagger-children">
+                                    <div className="bezel animate-slideUp">
+                                        <div className="bezel-inner flex items-center gap-4 p-4">
+                                            <div className="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/20 flex items-center justify-center flex-shrink-0">
+                                                <span className="text-lg font-bold text-indigo-400 font-data">1</span>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold text-white/90">Download the app</p>
+                                                <p className="text-xs text-white/30">Tap &quot;Download App&quot; to generate your APK</p>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                                        <div className="w-10 h-10 rounded-xl bg-green-500/15 flex items-center justify-center flex-shrink-0">
-                                            <span className="text-lg font-bold text-green-400">3</span>
+                                    <div className="bezel animate-slideUp">
+                                        <div className="bezel-inner flex items-center gap-4 p-4">
+                                            <div className="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                                                <span className="text-lg font-bold text-cyan-400 font-data">2</span>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold text-white/90">Select your device</p>
+                                                <p className="text-xs text-white/30">Once installed, your device will appear in the &quot;Device&quot; menu</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-white/80">Use the Tools</p>
-                                            <p className="text-xs text-white/30">Pick from Gallery, Camera, Notifications, SMS &amp; more using the &quot;Tools&quot; menu</p>
+                                    </div>
+                                    <div className="bezel animate-slideUp">
+                                        <div className="bezel-inner flex items-center gap-4 p-4">
+                                            <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                                                <span className="text-lg font-bold text-emerald-400 font-data">3</span>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold text-white/90">Use the tools</p>
+                                                <p className="text-xs text-white/30">Pick from Gallery, Camera, SMS &amp; more using the Tools menu</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => setShowAppModal(true)}
-                                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-semibold hover:scale-[1.02] transition-transform shadow-lg shadow-purple-500/20"
+                                    className="btn-primary text-base px-8 py-3.5 shadow-[0_0_24px_rgba(99,102,241,0.25)]"
                                 >
-                                    Get Started — Download App
+                                    Get started
+                                    <span className="btn-icon-trail">
+                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                                    </span>
                                 </button>
                             </div>
                         </div>
@@ -1567,7 +1576,8 @@ END:VCARD`;
                                     {folders.length > 0 ? (
                                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                             {folders.map((folder: any, idx) => (
-                                                <button key={idx} onClick={() => handleFolderClick(folder)} className="p-3 rounded-xl bg-white/5 border border-white/10 hover:border-purple-500/50 hover:bg-white/10 transition-all group text-left">
+                                    <button key={idx} onClick={() => handleFolderClick(folder)} className="bezel group text-left">
+                                    <div className="bezel-inner p-4 transition-transform group-hover:scale-[1.01] group-active:scale-[0.97]">
                                                     <div className="flex justify-between items-start mb-2">
                                                         <div className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400">
                                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
@@ -1581,7 +1591,8 @@ END:VCARD`;
                                                                 ? `${folder.imageCount} images`
                                                                 : `${folder.videoCount} videos`}
                                                     </div>
-                                                </button>
+                                        </div>
+                                </button>
                                             ))}
                                         </div>
                                     ) : (
@@ -1849,7 +1860,8 @@ END:VCARD`;
 
                             {/* Vibration Tool */}
                             {selectedTool === 'vibration' && (
-                                <div className="bg-white/5 border border-white/10 p-6 rounded-2xl max-w-xl mx-auto">
+                                <div className="bezel max-w-xl mx-auto">
+                                    <div className="bezel-inner p-6">
                                     <div className="flex items-center justify-between mb-8">
                                         <div>
                                             <h3 className="text-xl font-bold mb-1">Vibration Control</h3>
@@ -1883,6 +1895,7 @@ END:VCARD`;
                                             Vibrate Now
                                         </button>
                                     </div>
+                                </div>
                                 </div>
                             )}
 
@@ -3239,47 +3252,41 @@ END:VCARD`;
                         style={{
                             position: 'fixed', inset: 0, zIndex: 'var(--z-modal)' as any,
                             display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-                            background: 'rgba(6,11,26,0.85)', backdropFilter: 'blur(12px)',
+                            background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)',
                             WebkitBackdropFilter: 'blur(12px)',
                         }}
                         onClick={() => setIsToolDropdownOpen(false)}
                     >
                         <div
-                            className="animate-slideUp"
+                            className="animate-slideUp w-full max-w-[440px] rounded-t-[2rem] overflow-hidden"
                             onClick={e => e.stopPropagation()}
                             style={{
-                                width: '100%', maxWidth: 420,
                                 background: 'var(--bg-surface)',
                                 border: '1px solid var(--border-normal)',
-                                borderRadius: '1.5rem 1.5rem 0 0',
+                                borderBottom: 'none',
                                 boxShadow: 'var(--shadow-lg)',
-                                overflow: 'hidden',
                             }}
                         >
+                            {/* Handle bar */}
+                            <div className="flex justify-center pt-3 pb-1">
+                                <div className="w-10 h-1 rounded-full bg-white/10" />
+                            </div>
+
                             {/* Header */}
-                            <div style={{
-                                padding: '1.125rem 1.25rem',
-                                borderBottom: '1px solid var(--border-subtle)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                            }}>
-                                <h3 style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>Select Tool</h3>
+                            <div className="px-5 pb-4 pt-2 flex items-center justify-between">
+                                <h3 className="font-bold text-lg tracking-tight">Tools</h3>
                                 <button
                                     onClick={() => setIsToolDropdownOpen(false)}
-                                    style={{
-                                        width: 30, height: 30, borderRadius: '0.5rem',
-                                        background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)',
-                                        color: 'var(--text-muted)', cursor: 'pointer',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    }}
+                                    className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-colors active:scale-90"
                                 >
-                                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                                        <path d="M1.5 1.5l10 10M11.5 1.5l-10 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                        <path d="M2 2l10 10M12 2l-10 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
                                     </svg>
                                 </button>
                             </div>
 
-                            {/* Tool list */}
-                            <div style={{ padding: '0.625rem', maxHeight: '70dvh', overflowY: 'auto' }}>
+                            {/* 2-column Tool Grid */}
+                            <div className="px-4 pb-6 grid grid-cols-2 gap-2.5 max-h-[65dvh] overflow-y-auto stagger-children">
                                 {tools.map(tool => {
                                     const isActive = selectedTool === tool.id;
                                     const isLocked = (tool as any).premium && userPlan !== 'premium';
@@ -3287,65 +3294,41 @@ END:VCARD`;
                                         <button
                                             key={tool.id}
                                             onClick={tool.onClick}
-                                            style={{
-                                                width: '100%', textAlign: 'left',
-                                                padding: '0.75rem 0.875rem',
-                                                borderRadius: '0.875rem', marginBottom: '0.25rem',
-                                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                                background: isActive ? `${tool.color}15` : 'var(--bg-elevated)',
-                                                border: `1px solid ${isActive ? `${tool.color}40` : 'var(--border-subtle)'}`,
-                                                cursor: 'pointer',
-                                                transition: 'background 0.2s cubic-bezier(0.32,0.72,0,1), border-color 0.2s',
-                                            }}
+                                            className={`tool-card text-left relative ${isActive ? 'tool-card-active' : ''}`}
                                         >
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                <div style={{
-                                                    width: 36, height: 36, borderRadius: '0.625rem', flexShrink: 0,
-                                                    background: `${tool.color}18`, border: `1px solid ${tool.color}28`,
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    color: tool.color,
-                                                }}>
+                                            <div className="flex items-start justify-between mb-3">
+                                                <div
+                                                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                                                    style={{
+                                                        background: `${tool.color}15`,
+                                                        border: `1px solid ${tool.color}25`,
+                                                        color: tool.color,
+                                                        boxShadow: isActive ? `0 0 16px ${tool.color}20` : 'none',
+                                                    }}
+                                                >
                                                     {tool.icon}
                                                 </div>
-                                                <div>
-                                                    <div style={{
-                                                        fontWeight: 600, fontSize: '0.9375rem',
-                                                        color: 'var(--text-primary)',
-                                                        display: 'flex', alignItems: 'center', gap: '0.5rem',
-                                                    }}>
-                                                        {tool.label}
-                                                        {isLocked && (
-                                                            <span style={{
-                                                                fontFamily: "'Space Grotesk', monospace",
-                                                                fontSize: '0.6rem', fontWeight: 700,
-                                                                letterSpacing: '0.08em', textTransform: 'uppercase',
-                                                                padding: '0.15rem 0.4rem', borderRadius: '0.25rem',
-                                                                background: 'rgba(245,158,11,0.15)',
-                                                                color: 'var(--amber)',
-                                                                border: '1px solid rgba(245,158,11,0.25)',
-                                                            }}>PRO</span>
-                                                        )}
-                                                    </div>
-                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.0625rem' }}>
-                                                        {tool.desc}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
-                                                {(tool as any).badge && (
-                                                    <span style={{
-                                                        padding: '0.125rem 0.5rem',
-                                                        background: `${tool.color}20`, color: tool.color,
-                                                        fontSize: '0.6875rem', fontWeight: 700,
-                                                        borderRadius: '999px',
-                                                    }}>{(tool as any).badge}</span>
-                                                )}
                                                 {isActive && (
-                                                    <svg width="16" height="16" fill="none" viewBox="0 0 16 16" style={{ color: tool.color }}>
-                                                        <path d="M3 8l3.5 3.5 6.5-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                                                    </svg>
+                                                    <div className="w-5 h-5 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                                                        <svg width="12" height="12" fill="none" viewBox="0 0 12 12" className="text-indigo-400">
+                                                            <path d="M2 6l3 3 5-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                                                        </svg>
+                                                    </div>
+                                                )}
+                                                {isLocked && (
+                                                    <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/20">PRO</span>
                                                 )}
                                             </div>
+                                            <div className="font-semibold text-[0.8125rem] text-white/90 mb-0.5">{tool.label}</div>
+                                            <div className="text-[0.6875rem] text-white/35 leading-snug">{tool.desc}</div>
+                                            {(tool as any).badge && (
+                                                <span
+                                                    className="absolute top-3 right-3 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold px-1"
+                                                    style={{ background: `${tool.color}20`, color: tool.color }}
+                                                >
+                                                    {(tool as any).badge}
+                                                </span>
+                                            )}
                                         </button>
                                     );
                                 })}
@@ -3602,52 +3585,64 @@ END:VCARD`;
                 />
             </div>
 
-            {/* Bottom App Dock (Mobile Only) */}
-            <div className="sm:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[400] w-[90%] max-w-sm glass rounded-[2rem] p-1.5 flex items-center justify-between shadow-2xl animate-slideUp">
-                {/* Device Button */}
+            {/* ── Bottom App Dock (Mobile Only) ── */}
+            <div className="sm:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-[400] w-[92%] max-w-sm glass-strong rounded-[2rem] px-2 py-2 flex items-center justify-around animate-slideInBottom">
+                {/* Device */}
                 <button
-                    onClick={() => {
-                        setIsDeviceDropdownOpen(true);
-                        setIsToolDropdownOpen(false);
-                        setIsSettingsOpen(false);
-                    }}
-                    className="flex flex-col items-center justify-center w-14 h-12 rounded-2xl hover:bg-white/5 transition-colors text-white/50 hover:text-white"
+                    onClick={() => { setIsDeviceDropdownOpen(true); setIsToolDropdownOpen(false); setIsSettingsOpen(false); }}
+                    className="dock-item"
                 >
-                    <div style={{
-                        width: 6, height: 6, borderRadius: '50%',
-                        background: onlineDeviceCount > 0 ? 'var(--emerald)' : 'var(--rose)',
-                        ...(onlineDeviceCount > 0 ? { animation: 'pulse-online 2s infinite' } : {}),
-                    }} className="mb-1" />
-                    <span className="text-[10px] font-medium">Device</span>
+                    <div className="relative">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        <div className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ${onlineDeviceCount > 0 ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]' : 'bg-rose-400'}`} />
+                    </div>
+                    <span>Device</span>
                 </button>
 
-                {/* Primary Tools Button (Center) */}
+                {/* Gallery */}
                 <button
-                    onClick={() => {
-                        setIsToolDropdownOpen(true);
-                        setIsDeviceDropdownOpen(false);
-                        setIsSettingsOpen(false);
-                    }}
-                    className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 shadow-[0_0_20px_rgba(91,94,244,0.4)] text-white -mt-6 border-[4px] border-[#0d1426] active:scale-95 transition-transform"
+                    onClick={() => { setSelectedTool('gallery'); setIsToolDropdownOpen(false); }}
+                    className={`dock-item ${selectedTool === 'gallery' ? 'dock-item-active' : ''}`}
                 >
-                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <span>Gallery</span>
+                    {selectedTool === 'gallery' && <div className="dock-indicator" />}
+                </button>
+
+                {/* Tools FAB (Center) */}
+                <button
+                    onClick={() => { setIsToolDropdownOpen(true); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); }}
+                    className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-500 shadow-[0_4px_20px_rgba(99,102,241,0.4)] text-white -mt-5 border-[3px] border-black active:scale-90 transition-transform"
+                >
+                    <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                     </svg>
                 </button>
 
-                {/* Settings / Profile Button */}
+                {/* Notifications */}
                 <button
-                    onClick={() => {
-                        setIsSettingsOpen(true);
-                        setIsToolDropdownOpen(false);
-                        setIsDeviceDropdownOpen(false);
-                    }}
-                    className="flex flex-col items-center justify-center w-14 h-12 rounded-2xl hover:bg-white/5 transition-colors text-white/50 hover:text-white"
+                    onClick={() => { setSelectedTool('notifications'); setIsToolDropdownOpen(false); }}
+                    className={`dock-item ${selectedTool === 'notifications' ? 'dock-item-active' : ''}`}
                 >
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" className="mb-1">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    </svg>
-                    <span className="text-[10px] font-medium">Settings</span>
+                    <div className="relative">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        {notifications.length > 0 && (
+                            <span className="absolute -top-1 -right-1.5 min-w-[14px] h-[14px] rounded-full bg-rose-500 text-[8px] font-bold text-white flex items-center justify-center px-0.5">
+                                {notifications.length > 99 ? '99+' : notifications.length}
+                            </span>
+                        )}
+                    </div>
+                    <span>Alerts</span>
+                    {selectedTool === 'notifications' && <div className="dock-indicator" />}
+                </button>
+
+                {/* Settings */}
+                <button
+                    onClick={() => { setIsSettingsOpen(true); setIsToolDropdownOpen(false); setIsDeviceDropdownOpen(false); }}
+                    className="dock-item"
+                >
+                    <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span>Settings</span>
                 </button>
             </div>
         </main>
