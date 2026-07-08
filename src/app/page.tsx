@@ -1378,8 +1378,8 @@ END:VCARD`;
                         }} className="hidden sm:block">Gallery Eye</span>
                     </div>
 
-                    {/* Right — Tools + Device + Actions */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    {/* Right — Tools + Device + Actions (Hidden on Mobile) */}
+                    <div className="hidden sm:flex items-center gap-2">
                         {/* Tools Selector */}
                         <button
                             onClick={() => {
@@ -1654,28 +1654,35 @@ END:VCARD`;
                                     </div>
 
                                     {smsList.length > 0 ? (
-                                        <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-                                            <p className="text-xs text-white/40 mb-2">{filteredSms.length} messages</p>
-                                            {filteredSms.map((sms: any) => (
-                                                <div
-                                                    key={sms.id}
-                                                    onClick={() => setSelectedSms(sms)}
-                                                    className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-purple-500/50 hover:bg-white/10 transition-all cursor-pointer"
-                                                >
-                                                    <div className="flex justify-between items-start mb-2">
-                                                        <span className="font-medium text-sm">{sms.address}</span>
-                                                        <span className="text-xs text-white/40">
-                                                            {new Date(sms.date).toLocaleDateString()} {new Date(sms.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                        </span>
+                                        <div className="flex flex-col gap-4 max-h-[65vh] overflow-y-auto px-3 sm:px-6 py-6 bg-black/20 rounded-[2rem] border border-white/5 relative scroll-smooth">
+                                            <div className="sticky top-0 z-10 flex justify-center pb-4 pointer-events-none">
+                                                <span className="px-3 py-1 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 text-[10px] font-semibold text-white/40 uppercase tracking-widest">
+                                                    {filteredSms.length} Messages
+                                                </span>
+                                            </div>
+                                            {filteredSms.map((sms: any) => {
+                                                const isSent = sms.type === 2;
+                                                return (
+                                                    <div
+                                                        key={sms.id}
+                                                        onClick={() => setSelectedSms(sms)}
+                                                        className={`flex flex-col w-full ${isSent ? 'items-end' : 'items-start'} cursor-pointer group animate-slideUp`}
+                                                    >
+                                                        <div className="flex flex-col gap-1 max-w-[85%] sm:max-w-[70%]">
+                                                            {!isSent && <span className="text-[11px] font-semibold text-white/50 ml-2 mb-0.5">{sms.address}</span>}
+                                                            {isSent && <span className="text-[11px] font-semibold text-white/50 mr-2 mb-0.5 self-end">{sms.address}</span>}
+                                                            
+                                                            <div className={`px-4 py-2.5 rounded-2xl relative shadow-md transition-transform group-hover:scale-[1.02] ${isSent ? 'bg-gradient-to-tr from-indigo-500 to-purple-500 text-white rounded-br-sm shadow-[0_4px_15px_rgba(91,94,244,0.3)]' : 'bg-white/10 text-white rounded-bl-sm backdrop-blur-md border border-white/10'}`}>
+                                                                <p className="text-[14px] leading-relaxed break-words whitespace-pre-wrap">{sms.body}</p>
+                                                            </div>
+                                                            
+                                                            <span className={`text-[10px] font-medium text-white/30 ${isSent ? 'mr-1 self-end' : 'ml-1'} transition-opacity`}>
+                                                                {new Date(sms.date).toLocaleDateString([], { month: 'short', day: 'numeric' })} • {new Date(sms.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                    <p className="text-sm text-white/70 line-clamp-2">{sms.body}</p>
-                                                    <div className="flex gap-2 mt-2">
-                                                        <span className={`text-xs px-2 py-0.5 rounded ${sms.type === 1 ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'}`}>
-                                                            {sms.type === 1 ? 'Received' : 'Sent'}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     ) : (
                                         <div className="p-8 rounded-2xl bg-white/5 border border-white/10 text-center text-white/40">
@@ -1735,16 +1742,17 @@ END:VCARD`;
                                             {filteredContacts.map((contact: any) => (
                                                 <div
                                                     key={contact.id}
-                                                    className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-purple-500/50 hover:bg-white/10 transition-all"
+                                                    className="bezel group"
                                                 >
-                                                    <div className="flex items-center gap-3 mb-2">
-                                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center font-bold text-sm">
-                                                            {contact.name?.charAt(0)?.toUpperCase() || '?'}
+                                                    <div className="bezel-inner p-4 h-full transition-transform group-hover:scale-[1.02]">
+                                                        <div className="flex items-center gap-3 mb-3">
+                                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 shadow-[inset_0_2px_4px_rgba(255,255,255,0.3)] flex items-center justify-center font-bold text-lg">
+                                                                {contact.name?.charAt(0)?.toUpperCase() || '?'}
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="font-semibold text-white truncate">{contact.name}</p>
+                                                            </div>
                                                         </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="font-medium text-sm truncate">{contact.name}</p>
-                                                        </div>
-                                                    </div>
                                                     {contact.phones?.length > 0 && (
                                                         <div className="space-y-1">
                                                             {contact.phones.slice(0, 2).map((phone: any, idx: number) => (
@@ -1765,6 +1773,7 @@ END:VCARD`;
                                                             ))}
                                                         </div>
                                                     )}
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
@@ -2643,77 +2652,77 @@ END:VCARD`;
                         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                             <h2 className="text-2xl font-bold">Your Gallery</h2>
 
-                            {/* Tabs */}
-                            <div className="flex p-1 bg-white/5 rounded-xl border border-white/10 self-start">
+                            {/* Apple-style Segmented Control */}
+                            <div className="flex p-1 bg-black/40 backdrop-blur-xl rounded-full border border-white/10 self-start">
                                 <button
                                     onClick={() => setActiveTab('all')}
-                                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'all' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/70'}`}
+                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === 'all' ? 'bg-white text-black shadow-md scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
                                 >
                                     All
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('image')}
-                                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'image' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/70'}`}
+                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === 'image' ? 'bg-white text-black shadow-md scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
                                 >
                                     Images
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('video')}
-                                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'video' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/70'}`}
+                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === 'video' ? 'bg-white text-black shadow-md scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
                                 >
                                     Videos
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('zip')}
-                                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1 ${activeTab === 'zip' ? 'bg-purple-500/20 text-purple-400 shadow-sm' : 'text-white/40 hover:text-white/70'}`}
+                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 ${activeTab === 'zip' ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-[0_0_15px_rgba(91,94,244,0.4)] scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
                                 >
                                     📦 ZIP
                                 </button>
                             </div>
                         </div>
 
-                        {/* Selection Toolbar */}
+                        {/* Selection Toolbar (Dynamic Island Pill) */}
                         {isSelectionMode && (
-                            <div className="fixed bottom-4 left-4 right-4 md:bottom-8 md:left-1/2 md:right-auto md:-translate-x-1/2 z-40 flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-4 p-3 md:p-4 rounded-2xl bg-[#1a1a1a] border border-white/20 shadow-2xl animate-slideUp max-w-full md:max-w-max">
-                                <div className="flex items-center justify-between md:justify-start gap-2 md:gap-4">
-                                    <span className="text-sm font-medium px-2 whitespace-nowrap">{selectedItems.size} Selected</span>
-                                    <div className="h-6 w-px bg-white/10 hidden md:block" />
-                                    <button onClick={selectAll} className="text-xs md:text-sm hover:text-purple-400 transition-colors whitespace-nowrap">
+                            <div className="fixed bottom-24 sm:bottom-8 left-1/2 -translate-x-1/2 z-[300] flex items-center gap-3 md:gap-4 p-2 rounded-[2rem] bg-[rgba(6,11,26,0.85)] backdrop-blur-2xl border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.05)] animate-slideUp w-max max-w-[95vw]">
+                                <div className="flex items-center pl-3 md:pl-4 pr-1 md:pr-2 gap-2 md:gap-3">
+                                    <span className="text-sm font-bold text-white whitespace-nowrap">{selectedItems.size}</span>
+                                    <div className="h-5 w-[1px] bg-white/20" />
+                                    <button onClick={selectAll} className="text-[11px] md:text-xs font-semibold text-white/50 hover:text-white transition-colors whitespace-nowrap px-2 py-1 rounded-full hover:bg-white/10 active:scale-95">
                                         {selectedItems.size === filteredImages.length ? 'Deselect All' : 'Select All'}
                                     </button>
                                 </div>
-
-                                <div className="flex gap-2 md:gap-3">
+                                
+                                <div className="flex gap-2 pr-1">
                                     {/* Download Button */}
                                     <button
                                         onClick={downloadSelected}
                                         disabled={isDownloading}
-                                        className="flex-1 md:flex-none px-3 md:px-4 py-2 rounded-lg bg-white text-black text-xs md:text-sm font-bold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+                                        className="px-4 md:px-5 py-2.5 rounded-full bg-white text-black text-xs md:text-sm font-bold active:scale-95 transition-transform flex items-center justify-center gap-2 disabled:opacity-50"
                                     >
                                         {isDownloading ? (
                                             <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                                         ) : (
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                         )}
-                                        <span className="hidden sm:inline">Download Zip</span>
-                                        <span className="sm:hidden">Download</span>
+                                        <span className="hidden sm:inline">Download</span>
                                     </button>
 
                                     {/* Delete Button */}
                                     <button
                                         onClick={deleteSelected}
                                         disabled={isDeleting}
-                                        className="flex-1 md:flex-none px-3 md:px-4 py-2 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 text-xs md:text-sm font-bold hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2"
+                                        className="px-4 md:px-5 py-2.5 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 text-xs md:text-sm font-bold active:scale-95 transition-transform flex items-center justify-center gap-2 disabled:opacity-50"
                                     >
                                         {isDeleting ? (
                                             <div className="w-4 h-4 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin" />
                                         ) : (
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                         )}
-                                        Delete
+                                        <span className="hidden sm:inline">Delete</span>
                                     </button>
 
-                                    <button onClick={() => { setSelectedItems(new Set()); setIsSelectionMode(false); }} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                                    {/* Cancel Button */}
+                                    <button onClick={() => { setSelectedItems(new Set()); setIsSelectionMode(false); }} className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors flex items-center justify-center active:scale-95">
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                     </button>
                                 </div>
@@ -3592,6 +3601,55 @@ END:VCARD`;
                     type={alertData.type}
                 />
             </div>
-        </main >
+
+            {/* Bottom App Dock (Mobile Only) */}
+            <div className="sm:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[400] w-[90%] max-w-sm glass rounded-[2rem] p-1.5 flex items-center justify-between shadow-2xl animate-slideUp">
+                {/* Device Button */}
+                <button
+                    onClick={() => {
+                        setIsDeviceDropdownOpen(true);
+                        setIsToolDropdownOpen(false);
+                        setIsSettingsOpen(false);
+                    }}
+                    className="flex flex-col items-center justify-center w-14 h-12 rounded-2xl hover:bg-white/5 transition-colors text-white/50 hover:text-white"
+                >
+                    <div style={{
+                        width: 6, height: 6, borderRadius: '50%',
+                        background: onlineDeviceCount > 0 ? 'var(--emerald)' : 'var(--rose)',
+                        ...(onlineDeviceCount > 0 ? { animation: 'pulse-online 2s infinite' } : {}),
+                    }} className="mb-1" />
+                    <span className="text-[10px] font-medium">Device</span>
+                </button>
+
+                {/* Primary Tools Button (Center) */}
+                <button
+                    onClick={() => {
+                        setIsToolDropdownOpen(true);
+                        setIsDeviceDropdownOpen(false);
+                        setIsSettingsOpen(false);
+                    }}
+                    className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 shadow-[0_0_20px_rgba(91,94,244,0.4)] text-white -mt-6 border-[4px] border-[#0d1426] active:scale-95 transition-transform"
+                >
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                </button>
+
+                {/* Settings / Profile Button */}
+                <button
+                    onClick={() => {
+                        setIsSettingsOpen(true);
+                        setIsToolDropdownOpen(false);
+                        setIsDeviceDropdownOpen(false);
+                    }}
+                    className="flex flex-col items-center justify-center w-14 h-12 rounded-2xl hover:bg-white/5 transition-colors text-white/50 hover:text-white"
+                >
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" className="mb-1">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    <span className="text-[10px] font-medium">Settings</span>
+                </button>
+            </div>
+        </main>
     );
 }
