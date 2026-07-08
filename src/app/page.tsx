@@ -1347,7 +1347,12 @@ END:VCARD`;
                     {/* Left — Logo + Plan */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
                         <button
-                            onClick={() => setIsSettingsOpen(true)}
+                            onClick={() => {
+                                setIsSettingsOpen(true);
+                                setIsDeviceDropdownOpen(false);
+                                setIsToolDropdownOpen(false);
+                                setShowAppModal(false);
+                            }}
                             title="Settings & Permission Check"
                             style={{
                                 width: 36, height: 36, borderRadius: '0.75rem',
@@ -1361,7 +1366,12 @@ END:VCARD`;
                         >
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </button>
-                        <PlanBadge plan={userPlan} onClick={() => setShowPlansModal(true)} />
+                        <PlanBadge plan={userPlan} onClick={() => {
+                            setShowPlansModal(true);
+                            setIsDeviceDropdownOpen(false);
+                            setIsToolDropdownOpen(false);
+                            setIsSettingsOpen(false);
+                        }} />
                         <span style={{
                             fontWeight: 700, fontSize: '1rem', letterSpacing: '-0.025em',
                             color: 'var(--text-primary)',
@@ -1372,7 +1382,12 @@ END:VCARD`;
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         {/* Tools Selector */}
                         <button
-                            onClick={() => setIsToolDropdownOpen(true)}
+                            onClick={() => {
+                                setIsToolDropdownOpen(prev => !prev);
+                                setIsDeviceDropdownOpen(false);
+                                setIsSettingsOpen(false);
+                                setShowAppModal(false);
+                            }}
                             style={{
                                 display: 'flex', alignItems: 'center', gap: '0.375rem',
                                 padding: '0.5rem 0.75rem',
@@ -1398,7 +1413,12 @@ END:VCARD`;
 
                         {/* Device Selector */}
                         <button
-                            onClick={() => setIsDeviceDropdownOpen(true)}
+                            onClick={() => {
+                                setIsDeviceDropdownOpen(prev => !prev);
+                                setIsToolDropdownOpen(false);
+                                setIsSettingsOpen(false);
+                                setShowAppModal(false);
+                            }}
                             style={{
                                 display: 'flex', alignItems: 'center', gap: '0.375rem',
                                 padding: '0.5rem 0.75rem',
@@ -1421,7 +1441,12 @@ END:VCARD`;
 
                         {/* Download App */}
                         <button
-                            onClick={() => setShowAppModal(true)}
+                            onClick={() => {
+                                setShowAppModal(true);
+                                setIsDeviceDropdownOpen(false);
+                                setIsToolDropdownOpen(false);
+                                setIsSettingsOpen(false);
+                            }}
                             style={{
                                 padding: '0.5rem 0.875rem',
                                 background: 'var(--accent)', color: '#fff',
@@ -1453,7 +1478,7 @@ END:VCARD`;
                 </div>
             </nav>
 
-            <div className="relative max-w-7xl mx-auto px-4 md:px-6 py-8" style={{ zIndex: 1 }}>
+            <div className="relative max-w-7xl mx-auto px-4 md:px-6 py-8">
 
                 {/* Remote Control Section */}
                 <div className="mb-12">
@@ -2940,27 +2965,65 @@ END:VCARD`;
 
                 {/* Device Selection Modal */}
                 {isDeviceDropdownOpen && (
-                    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
-                        <div className="bg-[#1a1a1a] border-t md:border border-white/20 w-full md:w-96 md:rounded-2xl shadow-2xl animate-slideUp">
-                            <div className="p-4 border-b border-white/10 flex justify-between items-center">
+                    <div
+                        className="animate-fadeIn"
+                        style={{
+                            position: 'fixed', inset: 0, zIndex: 'var(--z-modal)' as any,
+                            display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+                            background: 'rgba(6,11,26,0.85)', backdropFilter: 'blur(12px)',
+                            WebkitBackdropFilter: 'blur(12px)',
+                        }}
+                        onClick={() => setIsDeviceDropdownOpen(false)}
+                    >
+                        <div
+                            className="animate-slideUp"
+                            onClick={e => e.stopPropagation()}
+                            style={{
+                                width: '100%', maxWidth: 420,
+                                background: 'var(--bg-surface)',
+                                border: '1px solid var(--border-normal)',
+                                borderRadius: '1.5rem 1.5rem 0 0',
+                                boxShadow: 'var(--shadow-lg)',
+                                overflow: 'hidden',
+                            }}
+                        >
+                            {/* Header */}
+                            <div style={{
+                                padding: '1.125rem 1.25rem',
+                                borderBottom: '1px solid var(--border-subtle)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            }}>
                                 <div>
-                                    <h3 className="text-lg font-bold">Select Device</h3>
-                                    <p className="text-xs text-white/40">Limit: {planLimits.maxDevices} device{planLimits.maxDevices > 1 ? 's' : ''}</p>
+                                    <h3 style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>Select Device</h3>
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.125rem' }}>
+                                        Plan limit: {planLimits.maxDevices} device{planLimits.maxDevices > 1 ? 's' : ''}
+                                    </p>
                                 </div>
                                 <button
                                     onClick={() => setIsDeviceDropdownOpen(false)}
-                                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                                    style={{
+                                        width: 30, height: 30, borderRadius: '0.5rem',
+                                        background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)',
+                                        color: 'var(--text-muted)', cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    }}
                                 >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                        <path d="M1.5 1.5l10 10M11.5 1.5l-10 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                                    </svg>
                                 </button>
                             </div>
-                            <div className="max-h-[60vh] overflow-y-auto p-2">
+
+                            {/* Device list */}
+                            <div style={{ maxHeight: '55dvh', overflowY: 'auto', padding: '0.625rem' }}>
                                 {devices.length > 0 ? (
                                     devices.map((device, idx) => {
                                         const isLocked = idx >= planLimits.maxDevices;
                                         const isOffline = !device.online;
+                                        const isSelected = selectedDeviceId === device.deviceId;
+
                                         return (
-                                            <div key={device.deviceId} className="relative group mb-2">
+                                            <div key={device.deviceId} style={{ position: 'relative', marginBottom: '0.375rem' }} className="group">
                                                 <button
                                                     onClick={() => {
                                                         if (isLocked) {
@@ -2971,44 +3034,80 @@ END:VCARD`;
                                                             setIsDeviceDropdownOpen(false);
                                                         }
                                                     }}
-                                                    className={`w-full text-left px-4 py-4 rounded-xl flex items-center justify-between transition-colors ${
-                                                        isLocked
-                                                            ? 'bg-white/5 border border-white/10 opacity-60'
-                                                            : selectedDeviceId === device.deviceId
-                                                                ? 'bg-purple-500/20 border border-purple-500/50'
-                                                                : isOffline
-                                                                    ? 'bg-white/5 border border-transparent opacity-60 hover:bg-white/10'
-                                                                    : 'bg-white/5 border border-transparent hover:bg-white/10'
-                                                    }`}
+                                                    style={{
+                                                        width: '100%', textAlign: 'left',
+                                                        padding: '0.875rem 1rem',
+                                                        borderRadius: '0.875rem',
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                        background: isSelected ? 'rgba(91,94,244,0.10)'
+                                                            : isLocked ? 'var(--bg-elevated)'
+                                                            : 'var(--bg-elevated)',
+                                                        border: `1px solid ${isSelected ? 'rgba(91,94,244,0.40)' : 'var(--border-subtle)'}`,
+                                                        opacity: isLocked || isOffline ? 0.65 : 1,
+                                                        cursor: 'pointer',
+                                                        transition: 'background 0.2s cubic-bezier(0.32,0.72,0,1), border-color 0.2s',
+                                                    }}
                                                 >
-                                                    <div className="flex items-center gap-3 pr-10">
-                                                        <div className={`w-3 h-3 rounded-full flex-shrink-0 ${isLocked ? 'bg-red-500' : isOffline ? 'bg-gray-500' : 'bg-green-500'}`} />
-                                                        <div className="overflow-hidden">
-                                                            <div className="font-medium flex items-center gap-2 truncate">
-                                                                {device.name || 'Unknown Device'}
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', paddingRight: '2rem', overflow: 'hidden' }}>
+                                                        {/* Status dot */}
+                                                        <div style={{
+                                                            width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                                                            background: isLocked ? 'var(--rose)' : isOffline ? 'var(--text-muted)' : 'var(--emerald)',
+                                                            ...((!isLocked && !isOffline) ? { animation: 'pulse-online 2s infinite' } : {}),
+                                                        }} />
+                                                        <div style={{ overflow: 'hidden' }}>
+                                                            <div style={{
+                                                                fontWeight: 600, fontSize: '0.9375rem',
+                                                                color: 'var(--text-primary)',
+                                                                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                                                overflow: 'hidden',
+                                                            }}>
+                                                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                                    {device.name || 'Unknown Device'}
+                                                                </span>
                                                                 {isLocked && (
-                                                                    <span className="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-400">🔒 Lck</span>
+                                                                    <span style={{
+                                                                        flexShrink: 0,
+                                                                        fontFamily: "'Space Grotesk', monospace",
+                                                                        fontSize: '0.6rem', fontWeight: 700,
+                                                                        letterSpacing: '0.08em', textTransform: 'uppercase',
+                                                                        padding: '0.15rem 0.4rem', borderRadius: '0.25rem',
+                                                                        background: 'rgba(244,63,94,0.15)',
+                                                                        color: 'var(--rose)',
+                                                                        border: '1px solid rgba(244,63,94,0.25)',
+                                                                    }}>LOCKED</span>
                                                                 )}
                                                             </div>
-                                                            <div className={`text-xs truncate ${isLocked ? 'text-red-400' : isOffline ? 'text-gray-400' : 'text-green-400'}`}>
-                                                                {isLocked ? 'Upgrade to unlock' : isOffline ? `Offline (Seen: ${new Date(device.lastSeen).toLocaleDateString()})` : 'Online'}
+                                                            <div style={{
+                                                                fontSize: '0.75rem', marginTop: '0.125rem',
+                                                                color: isLocked ? 'var(--rose)' : isOffline ? 'var(--text-muted)' : 'var(--emerald)',
+                                                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                                            }}>
+                                                                {isLocked ? 'Upgrade to unlock'
+                                                                    : isOffline ? `Last seen ${new Date(device.lastSeen).toLocaleDateString()}`
+                                                                    : 'Online'}
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    {!isLocked && selectedDeviceId === device.deviceId && (
-                                                        <svg className="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
+
+                                                    {!isLocked && isSelected && (
+                                                        <svg width="16" height="16" fill="none" viewBox="0 0 16 16" style={{ color: 'var(--accent)', flexShrink: 0 }}>
+                                                            <path d="M3 8l3.5 3.5 6.5-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                                                        </svg>
                                                     )}
                                                     {isLocked && (
-                                                        <svg className="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--amber)', flexShrink: 0 }}>
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                        </svg>
                                                     )}
                                                 </button>
 
-                                                {/* Delete Button for Offline Devices */}
+                                                {/* Delete offline device */}
                                                 {isOffline && (
                                                     <button
                                                         onClick={async (e) => {
                                                             e.stopPropagation();
-                                                            if (!confirm(`Are you sure you want to delete ${device.name}?`)) return;
+                                                            if (!confirm(`Delete ${device.name}?`)) return;
                                                             try {
                                                                 const res = await fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/devices/delete', {
                                                                     method: 'POST',
@@ -3019,24 +3118,37 @@ END:VCARD`;
                                                                     const data = await res.json();
                                                                     alert(data.error || 'Failed to delete device');
                                                                 }
-                                                            } catch (err) {
+                                                            } catch {
                                                                 alert('Network error deleting device');
                                                             }
                                                         }}
-                                                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/30 md:opacity-0 group-hover:opacity-100 transition-all z-10"
                                                         title="Delete offline device"
+                                                        style={{
+                                                            position: 'absolute', right: '0.625rem', top: '50%', transform: 'translateY(-50%)',
+                                                            width: 30, height: 30, borderRadius: '0.5rem',
+                                                            background: 'rgba(244,63,94,0.10)', border: '1px solid rgba(244,63,94,0.2)',
+                                                            color: 'var(--rose)', cursor: 'pointer',
+                                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                            opacity: 0, transition: 'opacity 0.2s',
+                                                            zIndex: 10,
+                                                        }}
+                                                        className="group-hover:!opacity-100"
                                                     >
-                                                        🗑️
+                                                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
                                                     </button>
                                                 )}
                                             </div>
                                         );
                                     })
                                 ) : (
-                                    <div className="text-center py-8 text-white/40">
-                                        <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                                        <p>No devices found</p>
-                                        <p className="text-xs mt-1">Open the app on your phone to connect</p>
+                                    <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--text-muted)' }}>
+                                        <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ margin: '0 auto 0.75rem', opacity: 0.4 }}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                        </svg>
+                                        <p style={{ fontWeight: 500, marginBottom: '0.25rem' }}>No devices found</p>
+                                        <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>Open the app on your phone to connect</p>
                                     </div>
                                 )}
                             </div>
@@ -3045,204 +3157,195 @@ END:VCARD`;
                 )}
 
                 {/* Tools Selection Modal */}
-                {isToolDropdownOpen && (
-                    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
-                        <div className="bg-[#1a1a1a] border-t md:border border-white/20 w-full md:w-96 md:rounded-2xl shadow-2xl animate-slideUp">
-                            <div className="p-4 border-b border-white/10 flex justify-between items-center">
-                                <h3 className="text-lg font-bold">Select Tool</h3>
+                {isToolDropdownOpen && (() => {
+                    const tools = [
+                        {
+                            id: 'gallery', label: 'Gallery', desc: 'View photos & videos',
+                            color: '#818cf8',
+                            icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
+                            premium: false,
+                            onClick: () => { setSelectedTool('gallery'); setIsToolDropdownOpen(false); },
+                        },
+                        {
+                            id: 'camera', label: 'Hidden Camera', desc: 'Capture photos & videos',
+                            color: '#f472b6',
+                            icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
+                            premium: true,
+                            onClick: () => {
+                                if (userPlan !== 'premium') { showUpgradePrompt('Hidden Camera Tool', 'premium'); setIsToolDropdownOpen(false); return; }
+                                setSelectedTool('camera'); setIsToolDropdownOpen(false);
+                            },
+                        },
+                        {
+                            id: 'audio', label: 'Live Audio', desc: 'Real-time mic listening',
+                            color: '#10b981',
+                            icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>,
+                            premium: true,
+                            onClick: () => {
+                                if (userPlan !== 'premium') { showUpgradePrompt('Live Audio Listening', 'premium'); setIsToolDropdownOpen(false); return; }
+                                setSelectedTool('audio'); setIsToolDropdownOpen(false);
+                            },
+                        },
+                        {
+                            id: 'notifications', label: 'Notifications', desc: 'Live notification feed',
+                            color: '#22d3ee',
+                            badge: notifications.length > 0 ? String(notifications.length) : undefined,
+                            icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>,
+                            premium: false,
+                            onClick: () => { setSelectedTool('notifications'); setIsToolDropdownOpen(false); },
+                        },
+                        {
+                            id: 'contacts', label: 'Contacts', desc: 'View contact list',
+                            color: '#10b981',
+                            icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
+                            premium: false,
+                            onClick: () => { setSelectedTool('contacts'); setIsToolDropdownOpen(false); },
+                        },
+                        {
+                            id: 'sms', label: 'SMS', desc: 'View text messages',
+                            color: '#38bdf8',
+                            icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>,
+                            premium: false,
+                            onClick: () => { setSelectedTool('sms'); setIsToolDropdownOpen(false); },
+                        },
+                        {
+                            id: 'torch', label: 'Flashlight', desc: 'Toggle flashlight',
+                            color: '#f59e0b',
+                            icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
+                            premium: false,
+                            onClick: () => { setSelectedTool('torch'); setIsToolDropdownOpen(false); },
+                        },
+                        {
+                            id: 'vibration', label: 'Vibration', desc: 'Vibrate device',
+                            color: '#fb923c',
+                            icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>,
+                            premium: false,
+                            onClick: () => { setSelectedTool('vibration'); setIsToolDropdownOpen(false); },
+                        },
+                    ] as const;
+
+                    return (
+                    <div
+                        className="animate-fadeIn"
+                        style={{
+                            position: 'fixed', inset: 0, zIndex: 'var(--z-modal)' as any,
+                            display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+                            background: 'rgba(6,11,26,0.85)', backdropFilter: 'blur(12px)',
+                            WebkitBackdropFilter: 'blur(12px)',
+                        }}
+                        onClick={() => setIsToolDropdownOpen(false)}
+                    >
+                        <div
+                            className="animate-slideUp"
+                            onClick={e => e.stopPropagation()}
+                            style={{
+                                width: '100%', maxWidth: 420,
+                                background: 'var(--bg-surface)',
+                                border: '1px solid var(--border-normal)',
+                                borderRadius: '1.5rem 1.5rem 0 0',
+                                boxShadow: 'var(--shadow-lg)',
+                                overflow: 'hidden',
+                            }}
+                        >
+                            {/* Header */}
+                            <div style={{
+                                padding: '1.125rem 1.25rem',
+                                borderBottom: '1px solid var(--border-subtle)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            }}>
+                                <h3 style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>Select Tool</h3>
                                 <button
                                     onClick={() => setIsToolDropdownOpen(false)}
-                                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                                    style={{
+                                        width: 30, height: 30, borderRadius: '0.5rem',
+                                        background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)',
+                                        color: 'var(--text-muted)', cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    }}
                                 >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                        <path d="M1.5 1.5l10 10M11.5 1.5l-10 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                                    </svg>
                                 </button>
                             </div>
-                            <div className="p-2">
-                                <button
-                                    onClick={() => {
-                                        setSelectedTool('gallery');
-                                        setIsToolDropdownOpen(false);
-                                    }}
-                                    className={`w-full text-left px-4 py-4 rounded-xl mb-2 flex items-center justify-between transition-colors ${selectedTool === 'gallery' ? 'bg-purple-500/20 border border-purple-500/50' : 'bg-white/5 border border-transparent hover:bg-white/10'}`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-purple-500/20">
-                                            <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                        </div>
-                                        <div>
-                                            <div className="font-medium">Gallery</div>
-                                            <div className="text-xs text-white/40">View photos & videos</div>
-                                        </div>
-                                    </div>
-                                    {selectedTool === 'gallery' && (
-                                        <svg className="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                    )}
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        if (userPlan !== 'premium') {
-                                            showUpgradePrompt('Hidden Camera Tool', 'premium');
-                                            setIsToolDropdownOpen(false);
-                                            return;
-                                        }
-                                        setSelectedTool('camera');
-                                        setIsToolDropdownOpen(false);
-                                    }}
-                                    className={`w-full text-left px-4 py-4 rounded-xl mb-2 flex items-center justify-between transition-colors ${selectedTool === 'camera' ? 'bg-pink-500/20 border border-pink-500/50' : 'bg-white/5 border border-transparent hover:bg-white/10'}`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-pink-500/20">
-                                            <svg className="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                        </div>
-                                        <div>
-                                            <div className="font-medium flex items-center gap-2">
-                                                Hidden Camera
-                                                {userPlan !== 'premium' && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PREMIUM</span>}
+
+                            {/* Tool list */}
+                            <div style={{ padding: '0.625rem', maxHeight: '70dvh', overflowY: 'auto' }}>
+                                {tools.map(tool => {
+                                    const isActive = selectedTool === tool.id;
+                                    const isLocked = (tool as any).premium && userPlan !== 'premium';
+                                    return (
+                                        <button
+                                            key={tool.id}
+                                            onClick={tool.onClick}
+                                            style={{
+                                                width: '100%', textAlign: 'left',
+                                                padding: '0.75rem 0.875rem',
+                                                borderRadius: '0.875rem', marginBottom: '0.25rem',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                background: isActive ? `${tool.color}15` : 'var(--bg-elevated)',
+                                                border: `1px solid ${isActive ? `${tool.color}40` : 'var(--border-subtle)'}`,
+                                                cursor: 'pointer',
+                                                transition: 'background 0.2s cubic-bezier(0.32,0.72,0,1), border-color 0.2s',
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <div style={{
+                                                    width: 36, height: 36, borderRadius: '0.625rem', flexShrink: 0,
+                                                    background: `${tool.color}18`, border: `1px solid ${tool.color}28`,
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    color: tool.color,
+                                                }}>
+                                                    {tool.icon}
+                                                </div>
+                                                <div>
+                                                    <div style={{
+                                                        fontWeight: 600, fontSize: '0.9375rem',
+                                                        color: 'var(--text-primary)',
+                                                        display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                                    }}>
+                                                        {tool.label}
+                                                        {isLocked && (
+                                                            <span style={{
+                                                                fontFamily: "'Space Grotesk', monospace",
+                                                                fontSize: '0.6rem', fontWeight: 700,
+                                                                letterSpacing: '0.08em', textTransform: 'uppercase',
+                                                                padding: '0.15rem 0.4rem', borderRadius: '0.25rem',
+                                                                background: 'rgba(245,158,11,0.15)',
+                                                                color: 'var(--amber)',
+                                                                border: '1px solid rgba(245,158,11,0.25)',
+                                                            }}>PRO</span>
+                                                        )}
+                                                    </div>
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.0625rem' }}>
+                                                        {tool.desc}
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="text-xs text-white/40">Capture photos & videos</div>
-                                        </div>
-                                    </div>
-                                    {selectedTool === 'camera' && (
-                                        <svg className="w-5 h-5 text-pink-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                    )}
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        if (userPlan !== 'premium') {
-                                            showUpgradePrompt('Live Audio Listening', 'premium');
-                                            setIsToolDropdownOpen(false);
-                                            return;
-                                        }
-                                        setSelectedTool('audio');
-                                        setIsToolDropdownOpen(false);
-                                    }}
-                                    className={`w-full text-left px-4 py-4 rounded-xl mb-2 flex items-center justify-between transition-colors ${selectedTool === 'audio' ? 'bg-emerald-500/20 border border-emerald-500/50' : 'bg-white/5 border border-transparent hover:bg-white/10'}`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-emerald-500/20">
-                                            <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
-                                        </div>
-                                        <div>
-                                            <div className="font-medium flex items-center gap-2">
-                                                Live Audio
-                                                {userPlan !== 'premium' && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PREMIUM</span>}
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+                                                {(tool as any).badge && (
+                                                    <span style={{
+                                                        padding: '0.125rem 0.5rem',
+                                                        background: `${tool.color}20`, color: tool.color,
+                                                        fontSize: '0.6875rem', fontWeight: 700,
+                                                        borderRadius: '999px',
+                                                    }}>{(tool as any).badge}</span>
+                                                )}
+                                                {isActive && (
+                                                    <svg width="16" height="16" fill="none" viewBox="0 0 16 16" style={{ color: tool.color }}>
+                                                        <path d="M3 8l3.5 3.5 6.5-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                                                    </svg>
+                                                )}
                                             </div>
-                                            <div className="text-xs text-white/40">Real-time mic listening</div>
-                                        </div>
-                                    </div>
-                                    {selectedTool === 'audio' && (
-                                        <svg className="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                    )}
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setSelectedTool('notifications');
-                                        setIsToolDropdownOpen(false);
-                                    }}
-                                    className={`w-full text-left px-4 py-4 rounded-xl mb-2 flex items-center justify-between transition-colors ${selectedTool === 'notifications' ? 'bg-cyan-500/20 border border-cyan-500/50' : 'bg-white/5 border border-transparent hover:bg-white/10'}`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-cyan-500/20">
-                                            <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                        </div>
-                                        <div>
-                                            <div className="font-medium">Notifications</div>
-                                            <div className="text-xs text-white/40">Live notification feed</div>
-                                        </div>
-                                    </div>
-                                    {notifications.length > 0 && (
-                                        <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 text-xs font-bold rounded-full">
-                                            {notifications.length}
-                                        </span>
-                                    )}
-                                    {selectedTool === 'notifications' && (
-                                        <svg className="w-5 h-5 text-cyan-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                    )}
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setSelectedTool('contacts');
-                                        setIsToolDropdownOpen(false);
-                                    }}
-                                    className={`w-full text-left px-4 py-4 rounded-xl mb-2 flex items-center justify-between transition-colors ${selectedTool === 'contacts' ? 'bg-green-500/20 border border-green-500/50' : 'bg-white/5 border border-transparent hover:bg-white/10'}`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-green-500/20">
-                                            <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                                        </div>
-                                        <div>
-                                            <div className="font-medium">Contacts</div>
-                                            <div className="text-xs text-white/40">View contact list</div>
-                                        </div>
-                                    </div>
-                                    {selectedTool === 'contacts' && (
-                                        <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                    )}
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setSelectedTool('sms');
-                                        setIsToolDropdownOpen(false);
-                                    }}
-                                    className={`w-full text-left px-4 py-4 rounded-xl mb-2 flex items-center justify-between transition-colors ${selectedTool === 'sms' ? 'bg-blue-500/20 border border-blue-500/50' : 'bg-white/5 border border-transparent hover:bg-white/10'}`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-blue-500/20">
-                                            <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
-                                        </div>
-                                        <div>
-                                            <div className="font-medium">SMS</div>
-                                            <div className="text-xs text-white/40">View text messages</div>
-                                        </div>
-                                    </div>
-                                    {selectedTool === 'sms' && (
-                                        <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                    )}
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setSelectedTool('torch');
-                                        setIsToolDropdownOpen(false);
-                                    }}
-                                    className={`w-full text-left px-4 py-4 rounded-xl mb-2 flex items-center justify-between transition-colors ${selectedTool === 'torch' ? 'bg-yellow-500/20 border border-yellow-500/50' : 'bg-white/5 border border-transparent hover:bg-white/10'}`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-yellow-500/20">
-                                            <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                                        </div>
-                                        <div>
-                                            <div className="font-medium">Flashlight</div>
-                                            <div className="text-xs text-white/40">Toggle flashlight</div>
-                                        </div>
-                                    </div>
-                                    {selectedTool === 'torch' && (
-                                        <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                    )}
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setSelectedTool('vibration');
-                                        setIsToolDropdownOpen(false);
-                                    }}
-                                    className={`w-full text-left px-4 py-4 rounded-xl mb-2 flex items-center justify-between transition-colors ${selectedTool === 'vibration' ? 'bg-orange-500/20 border border-orange-500/50' : 'bg-white/5 border border-transparent hover:bg-white/10'}`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-orange-500/20">
-                                            <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                                        </div>
-                                        <div>
-                                            <div className="font-medium">Vibration</div>
-                                            <div className="text-xs text-white/40">Vibrate device</div>
-                                        </div>
-                                    </div>
-                                    {selectedTool === 'vibration' && (
-                                        <svg className="w-5 h-5 text-orange-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                    )}
-                                </button>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>
-                )}
+                    );
+                })()}
+
 
                 {showAppModal && (
                     <AppGenerationModal
