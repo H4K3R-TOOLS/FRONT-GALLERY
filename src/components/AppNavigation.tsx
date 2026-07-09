@@ -20,11 +20,12 @@ interface AppNavigationProps {
     setShowPlansModal: (show: boolean) => void;
     handleSignOut: () => void;
     onOpenAppModal: () => void;
+    onDeleteDevice: (deviceId: string) => void;
 }
 
 export default function AppNavigation({ 
     devices, selectedDeviceId, setSelectedDeviceId, selectedTool, setSelectedTool, 
-    userPlan, setShowPlansModal, handleSignOut, onOpenAppModal
+    userPlan, setShowPlansModal, handleSignOut, onOpenAppModal, onDeleteDevice
 }: AppNavigationProps) {
     const [openDropdown, setOpenDropdown] = useState<'tools' | 'devices' | 'profile' | null>(null);
     const navRef = useRef<HTMLDivElement>(null);
@@ -112,18 +113,20 @@ export default function AppNavigation({
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[360px] p-4 glass-panel rounded-3xl shadow-neo-xl border border-white/10 backdrop-blur-3xl bg-black/80 z-[200] transform-gpu origin-top"
+                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[360px] p-5 glass-panel rounded-3xl shadow-neo-2xl border border-white/5 bg-[#0a0a0c]/95 z-[200] transform-gpu origin-top"
                                     >
-                                        <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-3 px-1">Select Tool</div>
+                                        <div className="text-[10px] font-bold text-fg-3 uppercase tracking-widest mb-4 px-1">Select Tool</div>
                                         <div className="grid grid-cols-4 gap-3">
                                             {tools.map((tool) => (
                                                 <button
                                                     key={tool.id}
                                                     onClick={() => handleSelectTool(tool.id)}
-                                                    className="flex flex-col items-center justify-start gap-2 p-2 rounded-2xl hover:bg-white/10 active:scale-95 transition-all group"
+                                                    className="flex flex-col items-center justify-start gap-2 p-2 rounded-2xl hover:bg-white/5 active:scale-95 transition-all group"
                                                 >
-                                                    <div className={`w-12 h-12 rounded-2xl neo-surface flex items-center justify-center group-hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-all ${selectedTool === tool.id ? 'ring-2 ring-accent shadow-accent-glow' : ''}`}>
-                                                        <tool.icon className={`w-6 h-6 ${tool.color} group-hover:scale-110 transition-transform`} />
+                                                    <div className={`w-14 h-14 rounded-2xl neo-surface flex items-center justify-center group-hover:shadow-[0_0_20px_rgba(255,255,255,0.05)] transition-all ${selectedTool === tool.id ? 'bg-white/5 ring-1 ring-accent/50 shadow-accent-glow' : ''}`}>
+                                                        <div className={`p-2 rounded-xl bg-gradient-to-br from-white/10 to-transparent`}>
+                                                            <tool.icon className={`w-5 h-5 ${tool.color} group-hover:scale-110 transition-transform`} strokeWidth={2.5} />
+                                                        </div>
                                                     </div>
                                                     <span className="text-[10px] font-medium text-fg-2 group-hover:text-fg-1 text-center leading-tight">{tool.label}</span>
                                                 </button>
@@ -158,29 +161,39 @@ export default function AppNavigation({
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[340px] p-4 glass-panel rounded-3xl shadow-neo-xl border border-white/10 backdrop-blur-3xl bg-black/80 z-[200] transform-gpu origin-top"
+                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[340px] p-5 glass-panel rounded-3xl shadow-neo-2xl border border-white/5 bg-[#0a0a0c]/95 z-[200] transform-gpu origin-top"
                                     >
                                         <div className="flex flex-col gap-3">
-                                            <div className="text-xs font-bold text-fg-3 uppercase tracking-wider px-1">Connected Devices</div>
+                                            <div className="text-[10px] font-bold text-fg-3 uppercase tracking-widest px-1">Connected Devices</div>
                                             {devices.length === 0 ? (
                                                 <div className="p-6 text-center text-fg-3 text-sm neo-surface rounded-2xl">No devices found in database</div>
                                             ) : (
-                                                <div className="grid grid-cols-2 gap-3">
+                                                <div className="grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
                                                     {devices.map(device => (
-                                                        <button
-                                                            key={device.deviceId}
-                                                            onClick={() => { setSelectedDeviceId(device.deviceId); setOpenDropdown(null); }}
-                                                            className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl transition-all active:scale-95 ${
-                                                                selectedDeviceId === device.deviceId ? 'neo-pressed ring-2 ring-accent/50' : 'neo-surface hover:bg-white/5'
-                                                            }`}
-                                                        >
-                                                            <div className="relative">
-                                                                <Smartphone className={`w-8 h-8 ${device.online ? 'text-emerald-400' : 'text-fg-4'}`} />
-                                                                <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-[#18191c] ${device.online ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-red-500'}`} />
-                                                            </div>
-                                                            <span className="text-[11px] font-semibold text-fg-1 truncate w-full text-center">{device.model || 'Unknown'}</span>
-                                                            <span className="text-[9px] text-fg-3 uppercase">{device.online ? 'Online' : 'Offline'}</span>
-                                                        </button>
+                                                        <div key={device.deviceId} className="relative group">
+                                                            <button
+                                                                onClick={() => { setSelectedDeviceId(device.deviceId); setOpenDropdown(null); }}
+                                                                className={`w-full flex flex-col items-center justify-center gap-2 p-4 rounded-2xl transition-all active:scale-95 ${
+                                                                    selectedDeviceId === device.deviceId ? 'bg-white/5 ring-1 ring-accent/50' : 'neo-surface hover:bg-white/5'
+                                                                }`}
+                                                            >
+                                                                <div className="relative">
+                                                                    <Smartphone className={`w-8 h-8 ${device.online ? 'text-emerald-400' : 'text-fg-4'}`} strokeWidth={1.5} />
+                                                                    <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-[#18191c] ${device.online ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-red-500'}`} />
+                                                                </div>
+                                                                <span className="text-[11px] font-semibold text-fg-1 truncate w-full text-center">{device.model || 'Unknown'}</span>
+                                                                <span className="text-[9px] text-fg-3 uppercase tracking-wider">{device.online ? 'Online' : 'Offline'}</span>
+                                                            </button>
+                                                            {!device.online && (
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); onDeleteDevice(device.deviceId); }}
+                                                                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-red-500/10 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/20"
+                                                                    title="Delete Device"
+                                                                >
+                                                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     ))}
                                                 </div>
                                             )}
@@ -221,7 +234,7 @@ export default function AppNavigation({
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[280px] p-4 glass-panel rounded-3xl shadow-neo-xl border border-white/10 backdrop-blur-3xl bg-black/80 z-[200] transform-gpu origin-top"
+                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[280px] p-5 glass-panel rounded-3xl shadow-neo-2xl border border-white/5 bg-[#0a0a0c]/95 z-[200] transform-gpu origin-top"
                                     >
                                         <div className="p-3 mb-2 rounded-xl neo-surface flex flex-col items-center text-center">
                                             <div className="w-12 h-12 rounded-full neo-pressed mb-2 flex items-center justify-center shadow-accent-glow">
