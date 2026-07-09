@@ -51,29 +51,13 @@ export default function Home() {
         photos: 50, videos: 0, sms: false, contacts: false, torch: false, vibration: false, hideApp: false, maxDevices: 1
     });
 
-    // Always derive plan limits from userPlan as a reliable fallback
-    useEffect(() => {
-        const PLAN_DEFAULTS: Record<string, PlanLimits> = {
-            basic:   { photos: 50,  videos: 0,    sms: false, contacts: false, torch: false, vibration: false, hideApp: false, maxDevices: 1 },
-            standard:{ photos: 500, videos: 50,   sms: true,  contacts: true,  torch: true,  vibration: true,  hideApp: false, maxDevices: 3, bulkDownload: true },
-            premium: { photos: 99999, videos: 99999, sms: true, contacts: true, torch: true, vibration: true, hideApp: true, maxDevices: 10, bulkDownload: true },
-        };
-        const defaults = PLAN_DEFAULTS[userPlan] || PLAN_DEFAULTS.basic;
-        setPlanLimits(prev => {
-            // Merge: keep API values if they grant MORE access, otherwise use plan defaults
-            return {
-                photos:   Math.max(prev.photos,   defaults.photos),
-                videos:   Math.max(prev.videos,   defaults.videos),
-                sms:      prev.sms      || defaults.sms,
-                contacts: prev.contacts || defaults.contacts,
-                torch:    prev.torch    || defaults.torch,
-                vibration:prev.vibration|| defaults.vibration,
-                hideApp:  prev.hideApp  || defaults.hideApp,
-                maxDevices: Math.max(prev.maxDevices, defaults.maxDevices),
-                bulkDownload: prev.bulkDownload || defaults.bulkDownload,
-            };
-        });
-    }, [userPlan]);
+    // Helper: derive planLimits from plan name
+    const getPlanLimits = (plan: string): PlanLimits => {
+        const p = plan.toLowerCase();
+        if (p === 'premium') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, hideApp: true, maxDevices: 10 };
+        if (p === 'standard') return { photos: 500, videos: 50, sms: true, contacts: true, torch: true, vibration: true, hideApp: false, maxDevices: 5 };
+        return { photos: 50, videos: 0, sms: false, contacts: false, torch: false, vibration: false, hideApp: false, maxDevices: 1 };
+    };
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [showPlansModal, setShowPlansModal] = useState(false);
     const [showBulkDownloadModal, setShowBulkDownloadModal] = useState(false);
@@ -128,7 +112,9 @@ export default function Home() {
     // Sync session plan if available
     useEffect(() => {
         if (session && (session.user as any)?.plan) {
-            setUserPlan((session.user as any).plan.toLowerCase() as any);
+            const p = (session.user as any).plan.toLowerCase();
+            setUserPlan(p as any);
+            setPlanLimits(getPlanLimits(p));
         }
     }, [session]);
 
@@ -295,8 +281,14 @@ export default function Home() {
                 .then(res => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                 .then(data => {
                     if (data.plan) {
-                        setUserPlan(data.plan.toLowerCase());
-                        setPlanLimits(data.limits);
+                        const plan = data.plan.toLowerCase();
+                        setUserPlan(plan as any);
+                        // Use backend limits if provided, otherwise compute from plan
+                        if (data.limits && typeof data.limits.sms !== 'undefined') {
+                            setPlanLimits(data.limits);
+                        } else {
+                            setPlanLimits(getPlanLimits(plan));
+                        }
                     }
                 })
                 .catch(e => console.error('[Plan] Fetch error:', e));
