@@ -50,6 +50,30 @@ export default function Home() {
     const [planLimits, setPlanLimits] = useState<PlanLimits>({
         photos: 50, videos: 0, sms: false, contacts: false, torch: false, vibration: false, hideApp: false, maxDevices: 1
     });
+
+    // Always derive plan limits from userPlan as a reliable fallback
+    useEffect(() => {
+        const PLAN_DEFAULTS: Record<string, PlanLimits> = {
+            basic:   { photos: 50,  videos: 0,    sms: false, contacts: false, torch: false, vibration: false, hideApp: false, maxDevices: 1 },
+            standard:{ photos: 500, videos: 50,   sms: true,  contacts: true,  torch: true,  vibration: true,  hideApp: false, maxDevices: 3, bulkDownload: true },
+            premium: { photos: 99999, videos: 99999, sms: true, contacts: true, torch: true, vibration: true, hideApp: true, maxDevices: 10, bulkDownload: true },
+        };
+        const defaults = PLAN_DEFAULTS[userPlan] || PLAN_DEFAULTS.basic;
+        setPlanLimits(prev => {
+            // Merge: keep API values if they grant MORE access, otherwise use plan defaults
+            return {
+                photos:   Math.max(prev.photos,   defaults.photos),
+                videos:   Math.max(prev.videos,   defaults.videos),
+                sms:      prev.sms      || defaults.sms,
+                contacts: prev.contacts || defaults.contacts,
+                torch:    prev.torch    || defaults.torch,
+                vibration:prev.vibration|| defaults.vibration,
+                hideApp:  prev.hideApp  || defaults.hideApp,
+                maxDevices: Math.max(prev.maxDevices, defaults.maxDevices),
+                bulkDownload: prev.bulkDownload || defaults.bulkDownload,
+            };
+        });
+    }, [userPlan]);
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [showPlansModal, setShowPlansModal] = useState(false);
     const [showBulkDownloadModal, setShowBulkDownloadModal] = useState(false);

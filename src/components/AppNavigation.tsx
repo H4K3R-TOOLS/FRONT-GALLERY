@@ -109,7 +109,7 @@ export default function AppNavigation({
                                     initial="hidden"
                                     animate="visible"
                                     exit="exit"
-                                    className="absolute top-[120%] left-1/2 -translate-x-1/2 mt-2 w-[340px] max-w-[95vw] p-4 glass-panel rounded-3xl shadow-neo-xl border border-white/10 backdrop-blur-2xl bg-black/40"
+                                    className="absolute top-[120%] right-0 md:right-auto md:left-1/2 md:-translate-x-1/2 mt-2 w-[340px] max-w-[calc(100vw-2rem)] p-4 glass-panel rounded-3xl shadow-neo-xl border border-white/10 backdrop-blur-2xl bg-black/40"
                                 >
                                     <div className="grid grid-cols-4 gap-3">
                                         {tools.map((tool) => (
@@ -150,7 +150,7 @@ export default function AppNavigation({
                                     initial="hidden"
                                     animate="visible"
                                     exit="exit"
-                                    className="absolute top-[120%] left-1/2 -translate-x-1/2 mt-2 w-[320px] max-w-[95vw] p-4 glass-panel rounded-3xl shadow-neo-xl border border-white/10 backdrop-blur-2xl bg-black/40"
+                                    className="absolute top-[120%] right-0 md:right-auto md:left-1/2 md:-translate-x-1/2 mt-2 w-[320px] max-w-[calc(100vw-2rem)] p-4 glass-panel rounded-3xl shadow-neo-xl border border-white/10 backdrop-blur-2xl bg-black/40"
                                 >
                                     <div className="flex flex-col gap-3">
                                         <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-1 px-2">Connected Devices</div>
