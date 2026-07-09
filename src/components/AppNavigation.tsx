@@ -68,9 +68,9 @@ export default function AppNavigation({
     };
 
     const dropdownVariants = {
-        hidden: { opacity: 0, y: 20, scale: 0.95 },
+        hidden: { opacity: 0, y: -15, scale: 0.95 },
         visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring' as const, stiffness: 400, damping: 30 } },
-        exit: { opacity: 0, y: 20, scale: 0.95, transition: { duration: 0.2 } }
+        exit: { opacity: 0, y: -15, scale: 0.95, transition: { duration: 0.2 } }
     };
 
     return (
@@ -112,7 +112,7 @@ export default function AppNavigation({
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="fixed bottom-0 left-0 w-full sm:bottom-auto sm:left-1/2 sm:-translate-x-1/2 sm:top-[72px] sm:w-[340px] p-6 pb-10 sm:p-4 glass-panel rounded-t-3xl sm:rounded-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)] sm:shadow-neo-xl border-t sm:border border-white/10 backdrop-blur-3xl bg-black/80 sm:bg-black/60 z-[200]"
+                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[360px] p-4 glass-panel rounded-3xl shadow-neo-xl border border-white/10 backdrop-blur-3xl bg-black/80 z-[200] transform-gpu origin-top"
                                     >
                                         <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-3 px-1">Select Tool</div>
                                         <div className="grid grid-cols-4 gap-3">
@@ -158,7 +158,7 @@ export default function AppNavigation({
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="fixed bottom-0 left-0 w-full sm:bottom-auto sm:left-1/2 sm:-translate-x-1/2 sm:top-[72px] sm:w-[320px] p-6 pb-10 sm:p-4 glass-panel rounded-t-3xl sm:rounded-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)] sm:shadow-neo-xl border-t sm:border border-white/10 backdrop-blur-3xl bg-black/80 sm:bg-black/60 z-[200]"
+                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[340px] p-4 glass-panel rounded-3xl shadow-neo-xl border border-white/10 backdrop-blur-3xl bg-black/80 z-[200] transform-gpu origin-top"
                                     >
                                         <div className="flex flex-col gap-3">
                                             <div className="text-xs font-bold text-fg-3 uppercase tracking-wider px-1">Connected Devices</div>
@@ -221,7 +221,7 @@ export default function AppNavigation({
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="fixed bottom-0 left-0 w-full sm:bottom-auto sm:left-1/2 sm:-translate-x-1/2 sm:top-[72px] sm:w-[280px] p-6 pb-10 sm:p-4 glass-panel rounded-t-3xl sm:rounded-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)] sm:shadow-neo-xl border-t sm:border border-white/10 backdrop-blur-3xl bg-black/80 sm:bg-black/60 z-[200]"
+                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[280px] p-4 glass-panel rounded-3xl shadow-neo-xl border border-white/10 backdrop-blur-3xl bg-black/80 z-[200] transform-gpu origin-top"
                                     >
                                         <div className="p-3 mb-2 rounded-xl neo-surface flex flex-col items-center text-center">
                                             <div className="w-12 h-12 rounded-full neo-pressed mb-2 flex items-center justify-center shadow-accent-glow">
