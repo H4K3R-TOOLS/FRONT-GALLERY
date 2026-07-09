@@ -1655,20 +1655,11 @@ END:VCARD`;
             case 'camera':
                 return (
                     <div className={`space-y-6 animate-in fade-in zoom-in-95 duration-300 ${isCameraFullscreen ? 'fixed inset-0 z-[300] bg-[#0a0a0c] p-4 md:p-8' : ''}`}>
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/5 p-6 rounded-3xl border border-white/10 shadow-neo-xl">
-                            <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.15)]">
-                                    <Camera size={28} className="text-cyan-400" />
-                                </div>
-                                <div>
-                                    <h2 className="text-2xl font-bold tracking-tight">Camera Engine</h2>
-                                    <p className="text-sm text-cyan-400/70 font-data tracking-wider uppercase">Live feed, snapshots & recording</p>
-                                </div>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-3">
-                                <div className="flex items-center bg-black/40 border border-white/10 p-1.5 rounded-2xl">
-                                    <button onClick={() => setCameraMode('back')} className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${cameraMode === 'back' ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.4)]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}>Rear Camera</button>
-                                    <button onClick={() => setCameraMode('front')} className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${cameraMode === 'front' ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.4)]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}>Front Camera</button>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/5 px-6 py-4 rounded-[2rem] border border-white/10 shadow-neo-xl">
+                            <div className="flex flex-wrap items-center gap-3 w-full justify-between">
+                                <div className="flex items-center bg-black/40 border border-white/10 p-1.5 rounded-2xl w-full sm:w-auto justify-center sm:justify-start">
+                                    <button onClick={() => setCameraMode('back')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${cameraMode === 'back' ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.4)]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}>Rear Camera</button>
+                                    <button onClick={() => setCameraMode('front')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${cameraMode === 'front' ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.4)]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}>Front Camera</button>
                                 </div>
                                 {isCameraFullscreen && (
                                     <button onClick={() => setIsCameraFullscreen(false)} className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/10 text-white hover:bg-white/20 transition-all border border-white/10 shadow-neo-lg">
@@ -1739,12 +1730,18 @@ END:VCARD`;
                                     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-6 p-3 bg-black/80 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-2xl">
                                         <button 
                                             onClick={() => {
+                                                const device = devices.find(d => d.id === selectedDeviceId);
+                                                if (!device?.online) {
+                                                    setAlertData({ title: 'Device Offline', message: 'Cannot start live feed on an offline device.', type: 'error' });
+                                                    return;
+                                                }
                                                 if (isLiveStreaming) {
                                                     socket?.emit('stop_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
                                                     setIsLiveStreaming(false);
                                                 } else {
                                                     socket?.emit('start_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, quality: cameraQuality });
                                                     setIsLiveStreaming(true);
+                                                    setLiveFrame(null);
                                                 }
                                             }}
                                             className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all ${isLiveStreaming ? 'bg-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)] scale-105' : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'}`}
@@ -1755,7 +1752,15 @@ END:VCARD`;
                                         </button>
                                         
                                         <button 
-                                            onClick={() => { setIsCapturingPhoto(true); socket?.emit('capture_photo', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode }); }}
+                                            onClick={() => { 
+                                                const device = devices.find(d => d.id === selectedDeviceId);
+                                                if (!device?.online) {
+                                                    setAlertData({ title: 'Device Offline', message: 'Cannot capture photo on an offline device.', type: 'error' });
+                                                    return;
+                                                }
+                                                setIsCapturingPhoto(true); 
+                                                socket?.emit('capture_photo', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode }); 
+                                            }}
                                             disabled={isCapturingPhoto}
                                             className={`w-20 h-20 rounded-full flex items-center justify-center border-[4px] transition-all group ${isCapturingPhoto ? 'border-cyan-500 bg-cyan-500/20' : 'border-white bg-white/10 hover:bg-white/20 hover:scale-105'} shadow-[0_0_30px_rgba(255,255,255,0.1)]`}
                                             title="Capture Photo"
@@ -1769,6 +1774,11 @@ END:VCARD`;
 
                                         <button 
                                             onClick={() => {
+                                                const device = devices.find(d => d.id === selectedDeviceId);
+                                                if (!device?.online) {
+                                                    setAlertData({ title: 'Device Offline', message: 'Cannot record video on an offline device.', type: 'error' });
+                                                    return;
+                                                }
                                                 if (isRecording) {
                                                     socket?.emit('stop_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
                                                     setIsRecording(false);
@@ -1790,9 +1800,9 @@ END:VCARD`;
                                 {/* Settings Bar */}
                                 <div className="flex flex-wrap items-center justify-between gap-4 bg-white/5 p-4 rounded-3xl border border-white/10">
                                     <div className="flex items-center gap-4">
-                                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/40 border border-white/5">
-                                            <Settings2 size={16} className="text-cyan-400" />
-                                            <span className="text-xs font-bold text-white/70 uppercase tracking-widest">Quality:</span>
+                                        <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black/40 border border-white/5 hover:border-cyan-500/30 transition-colors">
+                                            <Settings2 size={18} className="text-cyan-400" />
+                                            <span className="text-xs font-bold text-white/70 uppercase tracking-widest hidden sm:inline">Quality:</span>
                                             <select value={cameraQuality} onChange={(e) => setCameraQuality(Number(e.target.value))} className="bg-transparent text-sm font-bold text-white focus:outline-none cursor-pointer">
                                                 <option value={144} className="bg-black">144p (Fast)</option>
                                                 <option value={240} className="bg-black">240p</option>
@@ -1802,9 +1812,14 @@ END:VCARD`;
                                             </select>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3 bg-black/40 px-4 py-2 rounded-xl border border-white/5">
-                                        <label className="text-xs font-bold text-white/70 uppercase tracking-widest">Video Duration (s):</label>
-                                        <input type="number" min="5" max="300" value={recordingDuration} onChange={(e) => setRecordingDuration(Number(e.target.value))} className="bg-white/10 border border-white/10 rounded-lg px-3 py-1 w-20 text-center text-sm font-bold focus:outline-none focus:border-cyan-500 transition-colors" />
+                                    <div className="flex items-center gap-3 bg-black/40 px-4 py-2 rounded-xl border border-white/5 hover:border-red-500/30 transition-colors">
+                                        <label className="text-xs font-bold text-white/70 uppercase tracking-widest hidden sm:inline">Duration:</label>
+                                        <select value={recordingDuration} onChange={(e) => setRecordingDuration(Number(e.target.value))} className="bg-transparent text-sm font-bold text-white focus:outline-none cursor-pointer">
+                                            <option value={30} className="bg-black">30 Sec</option>
+                                            <option value={60} className="bg-black">1 Min</option>
+                                            <option value={120} className="bg-black">2 Mins</option>
+                                            <option value={300} className="bg-black">5 Mins</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -1826,9 +1841,9 @@ END:VCARD`;
                                             Full Gallery &rarr;
                                         </button>
                                     </div>
-                                    <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pr-2">
+                                    <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pr-2 pb-4">
                                         {filteredImages.slice(0, 6).map((img: any) => (
-                                            <div key={img.id} className="relative rounded-2xl overflow-hidden group cursor-pointer flex-shrink-0 border-2 border-transparent hover:border-pink-500/50 transition-all hover:shadow-[0_0_20px_rgba(236,72,153,0.15)]" onClick={() => { setSelectedTool('gallery'); setActiveTab('all'); }}>
+                                            <div key={img.id} className="relative rounded-2xl overflow-hidden group cursor-pointer flex-shrink-0 border border-white/5 hover:border-pink-500/50 transition-all hover:shadow-[0_0_20px_rgba(236,72,153,0.15)] shadow-xl" onClick={() => { setSelectedTool('gallery'); setActiveTab('all'); }}>
                                                 {img.resource_type === 'video' ? (
                                                     <div className="aspect-video relative">
                                                         <video src={img.url} className="w-full h-full object-cover" />
