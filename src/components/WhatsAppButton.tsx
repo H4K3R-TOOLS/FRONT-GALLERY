@@ -33,7 +33,7 @@ const WhatsAppButton = () => {
             {/* Options Modal */}
             {isOpen && (
                 <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
-                    <div className="bg-[#1a1a1a] border-t md:border border-white/20 w-full md:w-80 md:rounded-2xl shadow-2xl animate-slideUp">
+                    <div className="bg-surface-2 border-t md:border border-white/[0.07] w-full md:w-80 md:rounded-2xl shadow-2xl animate-slideUp">
                         <div className="p-4 border-b border-white/10 flex justify-between items-center">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-[#25D366] rounded-full flex items-center justify-center">
@@ -81,8 +81,8 @@ const WhatsAppButton = () => {
                                 onClick={() => setIsOpen(false)}
                                 className="w-full flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
                             >
-                                <div className="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center">
-                                    <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center">
+                                    <svg className="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                                     </svg>
                                 </div>

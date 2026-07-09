@@ -570,15 +570,15 @@ export default function Home() {
                 }
             });
 
-            // Live Audio — Ring Buffer Writer with cubic-interpolation resampling.
+            // Live Audio Ã¢â‚¬â€ Ring Buffer Writer with cubic-interpolation resampling.
             // Incoming PCM is 16kHz from the device, but AudioContext usually runs at 48kHz
             // (browsers ignore the sampleRate hint on Windows/macOS). Without resampling here,
-            // playback was effectively 3x too fast → constant underruns → choppy/clicky sound.
+            // playback was effectively 3x too fast Ã¢â€ â€™ constant underruns Ã¢â€ â€™ choppy/clicky sound.
             socket.on("live_audio", (data: any) => {
                 if (!data.chunk) return;
                 if (!isLiveAudioRef.current) return;
 
-                // Auto-create AudioContext on first chunk — playback starts as soon as device sends audio
+                // Auto-create AudioContext on first chunk Ã¢â‚¬â€ playback starts as soon as device sends audio
                 if (!audioContextRef.current) {
                     try {
                         const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -732,7 +732,7 @@ export default function Home() {
                 setTimeout(() => setAudioError(null), 5000);
             });
 
-            // Voice Recording Ready — device finished recording, server uploaded to R2
+            // Voice Recording Ready Ã¢â‚¬â€ device finished recording, server uploaded to R2
             socket.on("voice_recording_ready", (data: any) => {
                 if (data.url) {
                     setVoiceRecordings(prev => [{ url: data.url, duration: data.duration || 0, timestamp: data.timestamp || Date.now() }, ...prev]);
@@ -1315,11 +1315,11 @@ END:VCARD`;
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>
                     <div style={{
                         width: 48, height: 48, borderRadius: '50%',
-                        border: '2px solid rgba(59,130,246,0.2)',
+                        border: '2px solid rgba(16,185,129,0.2)',
                         borderTopColor: 'var(--accent)',
                         animation: 'spin 1s linear infinite',
                     }} />
-                    <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Loading…</span>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>LoadingÃ¢â‚¬Â¦</span>
                 </div>
             </div>
         );
@@ -1335,22 +1335,22 @@ END:VCARD`;
             <div style={{ position: 'fixed', inset: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
                 <div style={{
                     position: 'absolute', top: '-8%', left: '-8%', width: '45%', height: '45%',
-                    background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)',
+                    background: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)',
                     filter: 'blur(80px)', borderRadius: '50%',
                 }} />
                 <div style={{
                     position: 'absolute', bottom: '-8%', right: '-8%', width: '40%', height: '40%',
-                    background: 'radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 70%)',
+                    background: 'radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 70%)',
                     filter: 'blur(80px)', borderRadius: '50%',
                 }} />
                 <div style={{
                     position: 'absolute', top: '30%', right: '-5%', width: '35%', height: '35%',
-                    background: 'radial-gradient(circle, rgba(129,140,248,0.04) 0%, transparent 70%)',
+                    background: 'radial-gradient(circle, rgba(52,211,153,0.04) 0%, transparent 70%)',
                     filter: 'blur(120px)', borderRadius: '50%',
                 }} />
             </div>
 
-            {/* Navbar — floating glass pill */}
+            {/* Navbar Ã¢â‚¬â€ floating glass pill */}
             <nav style={{
                 position: 'sticky', top: 0, zIndex: 'var(--z-sticky)' as any,
                 padding: '0.75rem 1rem',
@@ -1367,7 +1367,7 @@ END:VCARD`;
                     boxShadow: isScrolled ? '0 4px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)' : 'none',
                     transition: 'background 0.3s cubic-bezier(0.32,0.72,0,1), box-shadow 0.3s cubic-bezier(0.32,0.72,0,1)',
                 }}>
-                    {/* Left — Logo + Plan */}
+                    {/* Left Ã¢â‚¬â€ Logo + Plan */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
                         <button
                             onClick={() => {
@@ -1379,9 +1379,9 @@ END:VCARD`;
                             title="Settings & Permission Check"
                             style={{
                                 width: 36, height: 36, borderRadius: '0.75rem',
-                                background: 'var(--accent-dim)', border: '1px solid rgba(99,102,241,0.35)',
+                                background: 'var(--accent-dim)', border: '1px solid rgba(16,185,129,0.35)',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                cursor: 'pointer', color: '#818cf8',
+                                cursor: 'pointer', color: '#34d399',
                                 transition: 'transform 0.2s cubic-bezier(0.32,0.72,0,1), background 0.2s',
                             }}
                             onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.05)')}
@@ -1401,7 +1401,7 @@ END:VCARD`;
                         }} className="hidden sm:block">Gallery Eye</span>
                     </div>
 
-                    {/* Right — Tools + Device + Actions (Hidden on Mobile) */}
+                    {/* Right Ã¢â‚¬â€ Tools + Device + Actions (Hidden on Mobile) */}
                     <div className="hidden sm:flex items-center gap-2">
                         {/* Tools Selector */}
                         <button
@@ -1422,7 +1422,7 @@ END:VCARD`;
                             onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-overlay)')}
                             onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-elevated)')}
                         >
-                            {selectedTool === 'gallery' && <svg style={{ color: '#818cf8' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>}
+                            {selectedTool === 'gallery' && <svg style={{ color: '#34d399' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>}
                             {selectedTool === 'sms' && <svg style={{ color: '#38bdf8' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>}
                             {selectedTool === 'contacts' && <svg style={{ color: '#10b981' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>}
                             {selectedTool === 'torch' && <svg style={{ color: '#f59e0b' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>}
@@ -1472,7 +1472,7 @@ END:VCARD`;
                             }}
                             style={{
                                 padding: '0.5rem 0.875rem',
-                                background: 'linear-gradient(135deg, #6366f1, #818cf8)', color: '#fff',
+                                background: 'linear-gradient(135deg, #10b981, #34d399)', color: '#09090b',
                                 fontFamily: "'Plus Jakarta Sans', sans-serif",
                                 fontWeight: 600, fontSize: '0.8125rem',
                                 borderRadius: '0.75rem', border: 'none', cursor: 'pointer',
@@ -1511,8 +1511,8 @@ END:VCARD`;
                         <div className="py-16 flex flex-col items-center justify-center">
                             <div className="max-w-lg mx-auto text-center space-y-8">
                                 <div className="relative">
-                                    <div className="w-24 h-24 mx-auto rounded-3xl glass flex items-center justify-center animate-float" style={{ boxShadow: '0 0 40px rgba(59,130,246,0.15)' }}>
-                                        <svg className="w-10 h-10 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                    <div className="w-24 h-24 mx-auto rounded-3xl glass flex items-center justify-center animate-float" style={{ boxShadow: '0 0 40px rgba(16,185,129,0.15)' }}>
+                                        <svg className="w-10 h-10 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                                     </div>
                                     <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center animate-pulse" style={{ left: 'calc(50% + 24px)' }}>
                                         <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
@@ -1524,8 +1524,8 @@ END:VCARD`;
                                 </div>
                                 <div className="grid gap-3 text-left">
                                     <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                                        <div className="w-10 h-10 rounded-xl bg-indigo-500/15 flex items-center justify-center flex-shrink-0">
-                                            <span className="text-lg font-bold text-indigo-400">1</span>
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
+                                            <span className="text-lg font-bold text-emerald-400">1</span>
                                         </div>
                                         <div>
                                             <p className="text-sm font-medium text-white/80">Download the App</p>
@@ -1553,126 +1553,24 @@ END:VCARD`;
                                 </div>
                                 <button
                                     onClick={() => setShowAppModal(true)}
-                                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-semibold hover:scale-[1.02] transition-transform shadow-lg shadow-purple-500/20"
+                                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-400 text-white font-semibold hover:scale-[1.02] transition-transform shadow-lg shadow-emerald-500/20"
                                 >
-                                    Get Started — Download App
+                                    Get Started Ã¢â‚¬â€ Download App
                                 </button>
                             </div>
                         </div>
                     ) : (
                         <>
-                            {/* App Workspace Header & Live Device Telemetry Bar */}
-                            <div className="mb-6 app-bezel-outer" style={{ background: 'rgba(13, 15, 22, 0.75)' }}>
-                                <div className="app-bezel-inner p-4 sm:p-5 flex flex-col gap-4">
-                                    <div className="flex flex-wrap items-center justify-between gap-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">Active Instrument Control</h2>
-                                                    {selectedDeviceId && (
-                                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${devices.find(d => d.deviceId === selectedDeviceId)?.online ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'}`}>
-                                                            <span className={`w-1.5 h-1.5 rounded-full ${devices.find(d => d.deviceId === selectedDeviceId)?.online ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`} />
-                                                            {devices.find(d => d.deviceId === selectedDeviceId)?.online ? 'ONLINE STREAM' : 'OFFLINE MODE'}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                {selectedDeviceId ? (
-                                                    <p className="text-xs sm:text-sm text-white/60 mt-0.5">
-                                                        Telemetry target: <strong className="text-white font-medium">{devices.find(d => d.deviceId === selectedDeviceId)?.name || selectedDeviceId}</strong>
-                                                    </p>
-                                                ) : (
-                                                    <p className="text-xs sm:text-sm text-amber-400/80 mt-0.5">
-                                                        Select an online device from the top switcher to activate hardware tools
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {selectedDeviceId && (
-                                            <div className="flex items-center gap-2">
-                                                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.07] text-xs text-white/70">
-                                                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                                                    <span>Signal Latency: <strong>14ms</strong></span>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* 3D Interactive Tools Ribbon Deck (Always Accessible) */}
-                                    <div className="pt-2 border-t border-white/[0.06]">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="text-[11px] font-bold uppercase tracking-wider text-white/40">Hardware Tools Hub</span>
-                                            <span className="text-[11px] font-medium text-indigo-400">Tap to instantly switch instrument</span>
-                                        </div>
-                                        <div className="flex items-center gap-2.5 overflow-x-auto pb-2 pt-1 no-scrollbar">
-                                            {[
-                                                { id: 'gallery', label: 'Gallery', badge: null, color: '#6366f1', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /> },
-                                                { id: 'camera', label: 'Surveillance HUD', badge: 'PRO', color: '#f472b6', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z M15 13a3 3 0 11-6 0 3 3 0 016 0z" /> },
-                                                { id: 'audio', label: 'Live Telemetry', badge: 'PRO', color: '#10b981', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /> },
-                                                { id: 'notifications', label: 'Notifications', badge: notifications.length > 0 ? String(notifications.length) : null, color: '#22d3ee', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /> },
-                                                { id: 'sms', label: 'SMS Messages', badge: null, color: '#38bdf8', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /> },
-                                                { id: 'contacts', label: 'Contacts Vault', badge: null, color: '#10b981', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /> },
-                                                { id: 'torch', label: 'Tactical Torch', badge: isTorchOn ? 'ON' : null, color: '#f59e0b', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M13 10V3L4 14h7v7l9-11h-7z" /> },
-                                                { id: 'vibration', label: 'Haptic Seismic', badge: null, color: '#fb923c', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /> },
-                                            ].map((tool) => {
-                                                const isActive = selectedTool === tool.id;
-                                                return (
-                                                    <button
-                                                        key={tool.id}
-                                                        onClick={() => {
-                                                            if (tool.badge === 'PRO' && userPlan !== 'premium') {
-                                                                showUpgradePrompt(`${tool.label} Instrument`, 'premium');
-                                                                return;
-                                                            }
-                                                            setSelectedTool(tool.id as any);
-                                                        }}
-                                                        className={`tool-ribbon-card flex-shrink-0 ${isActive ? 'active' : ''}`}
-                                                        style={{
-                                                            minWidth: '155px',
-                                                            borderColor: isActive ? tool.color : undefined,
-                                                            boxShadow: isActive ? `0 8px 24px ${tool.color}33, inset 0 1px 0 rgba(255,255,255,0.15)` : undefined,
-                                                        }}
-                                                    >
-                                                        <div
-                                                            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform"
-                                                            style={{
-                                                                background: isActive ? `${tool.color}25` : 'rgba(255,255,255,0.05)',
-                                                                color: isActive ? tool.color : 'var(--text-secondary)',
-                                                                border: `1px solid ${isActive ? tool.color + '60' : 'rgba(255,255,255,0.06)'}`,
-                                                            }}
-                                                        >
-                                                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                {tool.icon}
-                                                            </svg>
-                                                        </div>
-                                                        <div className="flex flex-col items-start text-left">
-                                                            <span className="text-xs font-bold text-white tracking-tight whitespace-nowrap">
-                                                                {tool.label}
-                                                            </span>
-                                                            <span className="text-[10px] font-medium text-white/50">
-                                                                {isActive ? 'ACTIVE VIEW' : 'Standby'}
-                                                            </span>
-                                                        </div>
-                                                        {tool.badge && (
-                                                            <span
-                                                                className="ml-auto px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider"
-                                                                style={{
-                                                                    background: tool.badge === 'ON' ? '#f59e0b25' : tool.badge === 'PRO' ? '#f472b625' : '#22d3ee25',
-                                                                    color: tool.badge === 'ON' ? '#fbbf24' : tool.badge === 'PRO' ? '#f472b6' : '#22d3ee',
-                                                                    border: `1px solid ${tool.badge === 'ON' ? '#f59e0b50' : tool.badge === 'PRO' ? '#f472b650' : '#22d3ee50'}`,
-                                                                }}
-                                                            >
-                                                                {tool.badge}
-                                                            </span>
-                                                        )}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex flex-col gap-1">
+                                    <h2 className="text-2xl font-bold">Remote Control</h2>
+                                    {selectedDeviceId ? (
+                                        <span className={`text-sm font-medium flex items-center gap-2 ${devices.find(d => d.deviceId === selectedDeviceId)?.online ? 'text-green-400' : 'text-gray-400'}`}>
+                                            {devices.find(d => d.deviceId === selectedDeviceId)?.online ? 'Connected to:' : 'Viewing offline device:'} {devices.find(d => d.deviceId === selectedDeviceId)?.name}
+                                        </span>
+                                    ) : (
+                                        <span className="text-sm text-white/40">Select a device from the top right to enable controls</span>
+                                    )}
                                 </div>
                             </div>
 
@@ -1692,7 +1590,7 @@ END:VCARD`;
                                     {folders.length > 0 ? (
                                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                             {folders.map((folder: any, idx) => (
-                                                <button key={idx} onClick={() => handleFolderClick(folder)} className="p-3 rounded-xl bg-white/5 border border-white/10 hover:border-blue-500/40 hover:bg-white/10 hover:scale-[1.02] transition-transform transition-all group text-left">
+                                                <button key={idx} onClick={() => handleFolderClick(folder)} className="p-3 rounded-xl bg-white/5 border border-white/[0.07] hover:border-emerald-500/30 hover:bg-white/10 hover:scale-[1.02] transition-transform transition-all group text-left">
                                                     <div className="flex justify-between items-start mb-2">
                                                         <div className="p-1.5 rounded-lg bg-blue-500/15 text-blue-400">
                                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
@@ -1701,7 +1599,7 @@ END:VCARD`;
                                                     <div className="truncate font-medium text-sm">{folder.name}</div>
                                                     <div className="text-xs text-white/40">
                                                         {folder.imageCount > 0 && folder.videoCount > 0
-                                                            ? `${folder.imageCount} 📷 • ${folder.videoCount} 🎥`
+                                                            ? `${folder.imageCount} Ã°Å¸â€œÂ· Ã¢â‚¬Â¢ ${folder.videoCount} Ã°Å¸Å½Â¥`
                                                             : folder.imageCount > 0
                                                                 ? `${folder.imageCount} images`
                                                                 : `${folder.videoCount} videos`}
@@ -1712,8 +1610,8 @@ END:VCARD`;
                                     ) : (
                                         <div className="py-12 flex flex-col items-center justify-center">
                                             <div className="max-w-sm mx-auto text-center space-y-4">
-                                                <div className="w-16 h-16 mx-auto rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                                                    <svg className="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                                                    <svg className="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                                 </div>
                                                 <div>
                                                     <p className="text-white/60 font-medium">No albums loaded yet</p>
@@ -1721,7 +1619,7 @@ END:VCARD`;
                                                 </div>
                                                 <button
                                                     onClick={fetchFolders}
-                                                    className="px-5 py-2.5 rounded-xl bg-white/10 border border-white/10 text-white/70 text-sm font-medium hover:bg-white/15 transition-colors"
+                                                    className="px-5 py-2.5 rounded-xl bg-white/10 border border-white/[0.07] text-white/70 text-sm font-medium hover:bg-white/15 transition-colors"
                                                 >
                                                     Load Albums
                                                 </button>
@@ -1752,7 +1650,7 @@ END:VCARD`;
                                                 <>
                                                     <button
                                                         onClick={resetSmsSync}
-                                                        className="px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-white/70 text-sm hover:bg-white/10 transition-colors"
+                                                        className="px-3 py-2 rounded-lg border border-white/[0.07] bg-white/5 text-white/70 text-sm hover:bg-white/10 transition-colors"
                                                     >
                                                         Reset
                                                     </button>
@@ -1772,7 +1670,7 @@ END:VCARD`;
                                                 placeholder="Search SMS..."
                                                 value={smsSearchQuery}
                                                 onChange={(e) => setSmsSearchQuery(e.target.value)}
-                                                className="w-full px-4 py-2 pl-10 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-indigo-500/50"
+                                                className="w-full px-4 py-2 pl-10 rounded-lg bg-white/5 border border-white/[0.07] text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50"
                                             />
                                             <svg className="w-4 h-4 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                                         </div>
@@ -1781,7 +1679,7 @@ END:VCARD`;
                                     {smsList.length > 0 ? (
                                         <div className="flex flex-col gap-4 max-h-[65vh] overflow-y-auto px-3 sm:px-6 py-6 bg-black/20 rounded-[2rem] border border-white/5 relative scroll-smooth">
                                             <div className="sticky top-0 z-10 flex justify-center pb-4 pointer-events-none">
-                                                <span className="px-3 py-1 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 text-[10px] font-semibold text-white/40 uppercase tracking-widest">
+                                                <span className="px-3 py-1 rounded-full bg-white/5 backdrop-blur-xl border border-white/[0.07] text-[10px] font-semibold text-white/40 uppercase tracking-widest">
                                                     {filteredSms.length} Messages
                                                 </span>
                                             </div>
@@ -1797,12 +1695,12 @@ END:VCARD`;
                                                             {!isSent && <span className="text-[11px] font-semibold text-white/50 ml-2 mb-0.5">{sms.address}</span>}
                                                             {isSent && <span className="text-[11px] font-semibold text-white/50 mr-2 mb-0.5 self-end">{sms.address}</span>}
                                                             
-                                                            <div className={`px-4 py-2.5 rounded-2xl relative shadow-md transition-transform group-hover:scale-[1.02] ${isSent ? 'bg-gradient-to-tr from-indigo-500 to-indigo-400 text-white rounded-br-sm shadow-[0_4px_15px_rgba(59,130,246,0.3)]' : 'bg-white/10 text-white rounded-bl-sm backdrop-blur-md border border-white/10'}`}>
+                                                            <div className={`px-4 py-2.5 rounded-2xl relative shadow-md transition-transform group-hover:scale-[1.02] ${isSent ? 'bg-gradient-to-tr from-emerald-500 to-emerald-400 text-white rounded-br-sm shadow-[0_4px_15px_rgba(16,185,129,0.3)]' : 'bg-white/10 text-white rounded-bl-sm backdrop-blur-md border border-white/10'}`}>
                                                                 <p className="text-[14px] leading-relaxed break-words whitespace-pre-wrap">{sms.body}</p>
                                                             </div>
                                                             
                                                             <span className={`text-[10px] font-medium text-white/30 ${isSent ? 'mr-1 self-end' : 'ml-1'} transition-opacity`}>
-                                                                {new Date(sms.date).toLocaleDateString([], { month: 'short', day: 'numeric' })} • {new Date(sms.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                {new Date(sms.date).toLocaleDateString([], { month: 'short', day: 'numeric' })} Ã¢â‚¬Â¢ {new Date(sms.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -1810,7 +1708,7 @@ END:VCARD`;
                                             })}
                                         </div>
                                     ) : (
-                                        <div className="p-8 rounded-2xl bg-white/5 border border-white/10 text-center text-white/40">
+                                        <div className="p-8 rounded-2xl bg-white/5 border border-white/[0.07] text-center text-white/40">
                                             <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
                                             {!selectedDeviceId
                                                 ? "Select a device to view SMS"
@@ -1855,7 +1753,7 @@ END:VCARD`;
                                                 placeholder="Search contacts..."
                                                 value={contactsSearchQuery}
                                                 onChange={(e) => setContactsSearchQuery(e.target.value)}
-                                                className="w-full px-4 py-2 pl-10 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-indigo-500/50"
+                                                className="w-full px-4 py-2 pl-10 rounded-lg bg-white/5 border border-white/[0.07] text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50"
                                             />
                                             <svg className="w-4 h-4 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                                         </div>
@@ -1867,11 +1765,11 @@ END:VCARD`;
                                             {filteredContacts.map((contact: any) => (
                                                 <div
                                                     key={contact.id}
-                                                    className="app-bezel-outer group"
+                                                    className="bezel group"
                                                 >
-                                                    <div className="app-bezel-inner p-4 h-full transition-transform group-hover:scale-[1.01]">
+                                                    <div className="bezel-inner p-4 h-full transition-transform group-hover:scale-[1.02]">
                                                         <div className="flex items-center gap-3 mb-3">
-                                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-400 shadow-[inset_0_2px_4px_rgba(255,255,255,0.3)] flex items-center justify-center font-bold text-lg">
+                                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-400 shadow-[inset_0_2px_4px_rgba(255,255,255,0.3)] flex items-center justify-center font-bold text-lg">
                                                                 {contact.name?.charAt(0)?.toUpperCase() || '?'}
                                                             </div>
                                                             <div className="flex-1 min-w-0">
@@ -1903,7 +1801,7 @@ END:VCARD`;
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="p-8 rounded-2xl bg-white/5 border border-white/10 text-center text-white/40">
+                                        <div className="p-8 rounded-2xl bg-white/5 border border-white/[0.07] text-center text-white/40">
                                             <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                                             {!selectedDeviceId
                                                 ? "Select a device to view contacts"
@@ -1915,218 +1813,98 @@ END:VCARD`;
                                 </div>
                             )}
 
-                            {/* Tactical Lumens Deck (Torch Tool) */}
+                            {/* Torch Tool */}
                             {selectedTool === 'torch' && (
-                                <div className="max-w-2xl mx-auto space-y-6">
-                                    <div className="app-bezel-outer">
-                                        <div className="app-bezel-inner p-6 sm:p-8">
-                                            {/* Header */}
-                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/[0.08]">
-                                                <div className="flex items-center gap-3.5">
-                                                    <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="text-xl font-bold text-white tracking-tight">Tactical Lumens Deck</h3>
-                                                        <p className="text-xs sm:text-sm text-white/50">Hardware LED Flashlight Telemetry & Override</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${isTorchOn ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse' : 'bg-white/5 text-white/40 border border-white/10'}`}>
-                                                        {isTorchOn ? 'BEAM ACTIVE' : 'STANDBY'}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {/* 3D Visualizer Bulb & Beam Cone */}
-                                            <div className="my-8 py-8 px-6 rounded-2xl bg-black/40 border border-white/[0.06] flex flex-col items-center justify-center relative overflow-hidden">
-                                                {isTorchOn && (
-                                                    <div
-                                                        className="absolute inset-x-0 top-0 h-48 pointer-events-none animate-beam-pulse"
-                                                        style={{
-                                                            background: 'radial-gradient(ellipse at center top, rgba(245, 158, 11, 0.45) 0%, rgba(245, 158, 11, 0.12) 45%, transparent 75%)',
-                                                        }}
-                                                    />
-                                                )}
-
-                                                <div className="relative z-10 flex flex-col items-center">
-                                                    <div
-                                                        className="w-24 h-24 rounded-full flex items-center justify-center transition-all duration-500"
-                                                        style={{
-                                                            background: isTorchOn
-                                                                ? 'radial-gradient(circle, #fbbf24 0%, #f59e0b 60%, #b45309 100%)'
-                                                                : 'rgba(255,255,255,0.04)',
-                                                            boxShadow: isTorchOn
-                                                                ? '0 0 50px rgba(245, 158, 11, 0.8), 0 0 100px rgba(245, 158, 11, 0.4)'
-                                                                : 'inset 0 2px 4px rgba(0,0,0,0.6)',
-                                                            border: `2px solid ${isTorchOn ? '#fde68a' : 'rgba(255,255,255,0.1)'}`,
-                                                        }}
-                                                    >
-                                                        <svg className={`w-11 h-11 transition-all duration-500 ${isTorchOn ? 'text-black drop-shadow-md scale-110' : 'text-white/30'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                                        </svg>
-                                                    </div>
-
-                                                    <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-white/60">
-                                                        {isTorchOn ? 'High-Intensity LED Active' : 'LED Emitter Offline'}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            {/* Tactical Toggle & Aggressive Mode */}
-                                            <div className="space-y-4">
-                                                <button
-                                                    onClick={toggleTorch}
-                                                    disabled={!selectedDeviceId}
-                                                    className={`w-full py-4 px-6 rounded-2xl font-bold text-base transition-all duration-300 flex items-center justify-center gap-3 ${
-                                                        !selectedDeviceId
-                                                            ? 'bg-white/5 text-white/30 cursor-not-allowed border border-white/5'
-                                                            : isTorchOn
-                                                                ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-lg shadow-amber-500/30 hover:brightness-110'
-                                                                : 'bg-white/10 text-white hover:bg-white/15 border border-white/15'
-                                                    }`}
-                                                >
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                                    <span>{isTorchOn ? 'EXTINGUISH BEAM (TURN OFF)' : 'IGNITE BEAM (TURN ON)'}</span>
-                                                </button>
-
-                                                <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.07] flex flex-col gap-4">
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="p-2 rounded-lg bg-rose-500/15 text-rose-400 border border-rose-500/30">
-                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                                                            </div>
-                                                            <div>
-                                                                <p className="font-semibold text-sm text-white">Aggressive Enforcement Mode</p>
-                                                                <p className="text-xs text-white/50">Automatically re-ignite flashlight if target attempts to toggle off</p>
-                                                            </div>
-                                                        </div>
-                                                        <button
-                                                            onClick={() => setTorchAggressive(!torchAggressive)}
-                                                            className={`w-14 h-7 rounded-full transition-colors relative p-1 ${torchAggressive ? 'bg-rose-500' : 'bg-white/20'}`}
-                                                        >
-                                                            <div className={`w-5 h-5 bg-white rounded-full transition-transform duration-300 shadow-md ${torchAggressive ? 'translate-x-7' : 'translate-x-0'}`} />
-                                                        </button>
-                                                    </div>
-
-                                                    {torchAggressive && (
-                                                        <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between gap-4">
-                                                            <span className="text-xs font-medium text-white/70">Enforcement Window:</span>
-                                                            <div className="flex items-center gap-3 flex-1 max-w-xs">
-                                                                <input
-                                                                    type="range"
-                                                                    min="1"
-                                                                    max="5"
-                                                                    step="1"
-                                                                    value={torchDuration / 60000}
-                                                                    onChange={(e) => setTorchDuration(parseInt(e.target.value) * 60000)}
-                                                                    className="flex-1 accent-rose-500 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer"
-                                                                />
-                                                                <span className="text-xs font-bold text-rose-400 bg-rose-500/15 px-2 py-1 rounded-md border border-rose-500/30">
-                                                                    {torchDuration / 60000} MIN
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
+                                <div className="glass-light p-6 rounded-2xl max-w-xl mx-auto">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <div>
+                                            <h3 className="text-xl font-bold mb-1">Flashlight Control</h3>
+                                            <p className="text-white/40 text-sm">Control device flashlight remotely</p>
                                         </div>
+                                        <button
+                                            onClick={toggleTorch}
+                                            disabled={!selectedDeviceId}
+                                            className={`w-16 h-8 rounded-full transition-colors relative ${isTorchOn ? 'bg-yellow-500' : 'bg-white/20'}`}
+                                        >
+                                            <div className={`w-6 h-6 bg-white rounded-full absolute top-1 transition-transform shadow-lg ${isTorchOn ? 'left-9' : 'left-1'}`} />
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-4 pt-4 border-t border-white/[0.06]">
+                                        <div className="flex items-center justify-between p-4 rounded-xl bg-black/20">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 rounded-lg bg-red-500/20 text-red-400">
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-sm">Aggressive Mode</p>
+                                                    <p className="text-xs text-white/40">Forces flashlight ON if turned off by user</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => setTorchAggressive(!torchAggressive)}
+                                                className={`w-12 h-6 rounded-full transition-colors relative ${torchAggressive ? 'bg-red-500' : 'bg-white/20'}`}
+                                            >
+                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${torchAggressive ? 'left-7' : 'left-1'}`} />
+                                            </button>
+                                        </div>
+
+                                        {torchAggressive && (
+                                            <div className="p-4 rounded-xl bg-black/20 animate-fadeIn">
+                                                <label className="block text-xs font-medium text-white/60 mb-2">Duration (minutes)</label>
+                                                <div className="flex items-center gap-4">
+                                                    <input
+                                                        type="range"
+                                                        min="1"
+                                                        max="5"
+                                                        step="1"
+                                                        value={torchDuration / 60000}
+                                                        onChange={(e) => setTorchDuration(parseInt(e.target.value) * 60000)}
+                                                        className="flex-1 accent-yellow-500 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                                                    />
+                                                    <span className="text-sm font-bold w-12 text-right">{torchDuration / 60000}m</span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}
 
-                            {/* Haptic Seismic Deck (Vibration Tool) */}
+                            {/* Vibration Tool */}
                             {selectedTool === 'vibration' && (
-                                <div className="max-w-2xl mx-auto space-y-6">
-                                    <div className="app-bezel-outer">
-                                        <div className="app-bezel-inner p-6 sm:p-8">
-                                            {/* Header */}
-                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/[0.08]">
-                                                <div className="flex items-center gap-3.5">
-                                                    <div className="w-12 h-12 rounded-2xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-400">
-                                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="text-xl font-bold text-white tracking-tight">Haptic Seismic Deck</h3>
-                                                        <p className="text-xs sm:text-sm text-white/50">Precision Tactile Frequency Modulation</p>
-                                                    </div>
-                                                </div>
-                                                <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-500/15 text-orange-400 border border-orange-500/30">
-                                                    HAPTIC ENGINE READY
-                                                </span>
-                                            </div>
+                                <div className="glass-light p-6 rounded-2xl max-w-xl mx-auto">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <div>
+                                            <h3 className="text-xl font-bold mb-1">Vibration Control</h3>
+                                            <p className="text-white/40 text-sm">Vibrate device remotely</p>
+                                        </div>
+                                    </div>
 
-                                            {/* Animated Seismic Ripple Rings Visualizer */}
-                                            <div className="my-8 py-10 px-6 rounded-2xl bg-black/40 border border-white/[0.06] flex flex-col items-center justify-center relative overflow-hidden">
-                                                <div className="absolute w-44 h-44 rounded-full border border-orange-500/30 animate-seismic-ring pointer-events-none" />
-                                                <div className="absolute w-32 h-32 rounded-full border border-orange-500/40 animate-seismic-ring pointer-events-none" style={{ animationDelay: '0.6s' }} />
-
-                                                <div className="relative z-10 w-24 h-24 rounded-full bg-gradient-to-br from-orange-500/20 to-red-500/20 border border-orange-500/50 flex items-center justify-center shadow-[0_0_30px_rgba(249,115,22,0.3)]">
-                                                    <svg className="w-10 h-10 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                                    </svg>
-                                                </div>
-
-                                                <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-white/60">
-                                                    Target Frequency: {(vibrationDuration / 1000).toFixed(1)}s Pulse Window
-                                                </p>
-                                            </div>
-
-                                            {/* Duration Dial & Presets */}
-                                            <div className="space-y-6">
-                                                <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.07]">
-                                                    <div className="flex items-center justify-between mb-2">
-                                                        <label className="text-xs font-semibold uppercase tracking-wider text-white/70">Pulse Duration Window</label>
-                                                        <span className="text-sm font-bold text-orange-400 bg-orange-500/15 px-2.5 py-0.5 rounded-md border border-orange-500/30">
-                                                            {vibrationDuration / 1000} SECONDS
-                                                        </span>
-                                                    </div>
-                                                    <input
-                                                        type="range"
-                                                        min="0.5"
-                                                        max="10"
-                                                        step="0.5"
-                                                        value={vibrationDuration / 1000}
-                                                        onChange={(e) => setVibrationDuration(parseFloat(e.target.value) * 1000)}
-                                                        className="w-full accent-orange-500 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer"
-                                                    />
-                                                </div>
-
-                                                {/* Quick Presets */}
-                                                <div className="grid grid-cols-3 gap-3">
-                                                    {[
-                                                        { label: 'Short Tap', duration: 1000 },
-                                                        { label: 'Standard Pulse', duration: 3000 },
-                                                        { label: 'Max Alert (10s)', duration: 10000 },
-                                                    ].map((preset) => (
-                                                        <button
-                                                            key={preset.label}
-                                                            onClick={() => setVibrationDuration(preset.duration)}
-                                                            className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-all ${
-                                                                vibrationDuration === preset.duration
-                                                                    ? 'bg-orange-500/20 text-orange-300 border-orange-500/50'
-                                                                    : 'bg-white/[0.03] text-white/70 border-white/[0.07] hover:bg-white/[0.07]'
-                                                            }`}
-                                                        >
-                                                            {preset.label}
-                                                        </button>
-                                                    ))}
-                                                </div>
-
-                                                <button
-                                                    onClick={triggerVibration}
-                                                    disabled={!selectedDeviceId}
-                                                    className={`w-full py-4 px-6 rounded-2xl font-bold text-base transition-all duration-300 flex items-center justify-center gap-3 ${
-                                                        !selectedDeviceId
-                                                            ? 'bg-white/5 text-white/30 cursor-not-allowed border border-white/5'
-                                                            : 'bg-gradient-to-r from-orange-500 via-amber-500 to-red-500 text-black shadow-lg shadow-orange-500/30 hover:brightness-110 active:scale-[0.99]'
-                                                    }`}
-                                                >
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                                                    <span>TRANSMIT SEISMIC PULSE NOW</span>
-                                                </button>
+                                    <div className="space-y-6">
+                                        <div>
+                                            <label className="block text-xs font-medium text-white/60 mb-2">Duration (seconds)</label>
+                                            <div className="flex items-center gap-4">
+                                                <input
+                                                    type="range"
+                                                    min="0.5"
+                                                    max="10"
+                                                    step="0.5"
+                                                    value={vibrationDuration / 1000}
+                                                    onChange={(e) => setVibrationDuration(parseFloat(e.target.value) * 1000)}
+                                                    className="flex-1 accent-orange-500 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                                                />
+                                                <span className="text-sm font-bold w-12 text-right">{vibrationDuration / 1000}s</span>
                                             </div>
                                         </div>
+
+                                        <button
+                                            onClick={triggerVibration}
+                                            disabled={!selectedDeviceId}
+                                            className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${selectedDeviceId ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:scale-[1.02] shadow-lg shadow-orange-500/20' : 'bg-white/10 text-white/20 cursor-not-allowed'}`}
+                                        >
+                                            <svg className="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                            Vibrate Now
+                                        </button>
                                     </div>
                                 </div>
                             )}
@@ -2184,7 +1962,7 @@ END:VCARD`;
                                             placeholder="Search by app or content..."
                                             value={notificationSearch}
                                             onChange={(e) => setNotificationSearch(e.target.value)}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"
+                                            className="w-full bg-white/5 border border-white/[0.07] rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"
                                         />
                                     </div>
 
@@ -2236,42 +2014,36 @@ END:VCARD`;
                                                 const borderColor = categoryColors[notif.category] || 'border-l-cyan-500';
 
                                                 return (
-                                                    <div key={`${notif.id}-${idx}`} className="app-bezel-outer transition-transform hover:scale-[1.01]">
-                                                        <button
-                                                            onClick={() => setSelectedNotification(notif)}
-                                                            className={`app-bezel-inner w-full text-left p-4 transition-all ${notif.dismissed ? 'opacity-40' : ''} ${isNew ? 'bg-cyan-500/10 ring-1 ring-cyan-500/30' : ''}`}
-                                                        >
-                                                            <div className="flex items-start gap-3.5">
-                                                                {notif.icon ? (
-                                                                    <img
-                                                                        src={`data:image/png;base64,${notif.icon}`}
-                                                                        alt={notif.appName}
-                                                                        className="w-10 h-10 rounded-xl flex-shrink-0 object-contain bg-black/40 border border-white/10 p-0.5"
-                                                                    />
-                                                                ) : (
-                                                                    <div className="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
-                                                                        <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                                                                    </div>
-                                                                )}
-                                                                <div className="flex-1 min-w-0">
-                                                                    <div className="flex items-center justify-between gap-2 mb-1">
-                                                                        <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider">{notif.appName}</span>
-                                                                        <div className="flex items-center gap-2 flex-shrink-0">
-                                                                            {isNew && (
-                                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
-                                                                                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                                                                                    NEW
-                                                                                </span>
-                                                                            )}
-                                                                            <span className="text-[11px] font-medium text-white/40">{timeAgo}</span>
-                                                                        </div>
-                                                                    </div>
-                                                                    {notif.title && <p className={`text-sm truncate ${isNew ? 'font-bold text-white' : 'font-semibold text-white/90'}`}>{notif.title}</p>}
-                                                                    {notif.text && <p className="text-xs text-white/60 line-clamp-2 mt-1 leading-relaxed">{notif.text}</p>}
+                                                    <button
+                                                        key={`${notif.id}-${idx}`}
+                                                        onClick={() => setSelectedNotification(notif)}
+                                                        className={`w-full text-left p-3 rounded-xl border border-white/[0.07] hover:bg-white/10 transition-all border-l-4 ${borderColor} ${notif.dismissed ? 'opacity-40' : ''} ${isNew ? 'bg-cyan-500/10 ring-1 ring-cyan-500/30' : 'bg-white/5'}`}
+                                                    >
+                                                        <div className="flex items-start gap-3">
+                                                            {notif.icon ? (
+                                                                <img
+                                                                    src={`data:image/png;base64,${notif.icon}`}
+                                                                    alt={notif.appName}
+                                                                    className="w-8 h-8 rounded-lg flex-shrink-0"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                                                                    <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
                                                                 </div>
+                                                            )}
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center justify-between">
+                                                                    <span className="text-xs font-medium text-cyan-400">{notif.appName}</span>
+                                                                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                                                                        {isNew && <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" />}
+                                                                        <span className="text-[10px] text-white/30">{timeAgo}</span>
+                                                                    </div>
+                                                                </div>
+                                                                {notif.title && <p className={`text-sm truncate ${isNew ? 'font-bold text-white' : 'font-semibold text-white/90'}`}>{notif.title}</p>}
+                                                                {notif.text && <p className="text-xs text-white/50 line-clamp-2 mt-0.5">{notif.text}</p>}
                                                             </div>
-                                                        </button>
-                                                    </div>
+                                                        </div>
+                                                    </button>
                                                 );
                                             })
                                         }
@@ -2282,7 +2054,7 @@ END:VCARD`;
                             {/* Notification Detail Modal */}
                             {selectedNotification && (
                                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
-                                    <div className="bg-[#1a1a1a] border border-white/20 p-6 rounded-2xl shadow-2xl max-w-lg w-full mx-4 animate-scaleIn">
+                                    <div className="bg-[#18181b] border border-white/[0.07] p-6 rounded-2xl shadow-2xl max-w-lg w-full mx-4 animate-scaleIn">
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="flex items-center gap-3">
                                                 {selectedNotification.icon ? (
@@ -2315,7 +2087,7 @@ END:VCARD`;
                                                 <p className="text-sm font-semibold">{selectedNotification.title}</p>
                                             </div>
                                         )}
-                                        <div className="p-4 rounded-xl bg-white/5 border border-white/10 mb-4">
+                                        <div className="p-4 rounded-xl bg-white/5 border border-white/[0.07] mb-4">
                                             <p className="text-sm whitespace-pre-wrap">{selectedNotification.text || 'No content'}</p>
                                             {selectedNotification.subText && (
                                                 <p className="text-xs text-white/40 mt-2">{selectedNotification.subText}</p>
@@ -2345,10 +2117,10 @@ END:VCARD`;
                             {selectedTool === 'camera' && (
                                 <div className="space-y-4">
                                     {/* Live Feed Container */}
-                                    <div className={`bg-gray-900 border border-white/10 rounded-xl overflow-hidden ${isFullscreen ? 'fixed inset-2 z-50 flex flex-col' : ''}`}>
+                                    <div className={`bg-gray-900 border border-white/[0.07] rounded-xl overflow-hidden ${isFullscreen ? 'fixed inset-2 z-50 flex flex-col' : ''}`}>
                                         {/* Compact Header - Hidden in fullscreen */}
                                         {!isFullscreen && (
-                                            <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between bg-black/40">
+                                            <div className="px-3 py-2 border-b border-white/[0.06] flex items-center justify-between bg-black/40">
                                                 <div className="flex items-center gap-2">
                                                     <div className={`w-2 h-2 rounded-full ${isLiveStreaming ? 'bg-red-500 animate-pulse' : isRecording ? 'bg-orange-500 animate-pulse' : isVideoUploading ? 'bg-blue-500 animate-pulse' : 'bg-green-500/50'}`} />
                                                     <span className="text-xs text-white/60 font-mono">
@@ -2360,7 +2132,7 @@ END:VCARD`;
                                                     <select
                                                         value={streamQuality}
                                                         onChange={(e) => setStreamQuality(Number(e.target.value))}
-                                                        className="bg-black/50 border border-white/20 rounded px-1.5 py-0.5 text-xs text-cyan-400 font-mono"
+                                                        className="bg-black/50 border border-white/[0.07] rounded px-1.5 py-0.5 text-xs text-cyan-400 font-mono"
                                                         disabled={isLiveStreaming}
                                                     >
                                                         <option value={144}>144p</option>
@@ -2396,7 +2168,7 @@ END:VCARD`;
                                                         </div>
                                                     </div>
                                                     <div className="text-center">
-                                                        <p className="text-red-400 text-sm font-mono">● REC</p>
+                                                        <p className="text-red-400 text-sm font-mono">Ã¢â€”Â REC</p>
                                                         <div className="w-32 mt-2 bg-white/10 rounded-full h-1.5 overflow-hidden">
                                                             <div className="bg-red-500 h-full transition-all duration-1000" style={{ width: `${(recordingProgress.current / recordingProgress.total) * 100}%` }}></div>
                                                         </div>
@@ -2425,7 +2197,7 @@ END:VCARD`;
                                             {!isFullscreen && !isLiveStreaming && (
                                                 <button
                                                     onClick={() => setCameraMode(prev => prev === 'back' ? 'front' : 'back')}
-                                                    className={`absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-bold ${cameraMode === 'front' ? 'bg-purple-500/80 text-white' : 'bg-cyan-500/80 text-white'}`}
+                                                    className={`absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-bold ${cameraMode === 'front' ? 'bg-emerald-500/80 text-white' : 'bg-cyan-500/80 text-white'}`}
                                                 >
                                                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                                                     {cameraMode.toUpperCase()}
@@ -2444,7 +2216,7 @@ END:VCARD`;
 
                                             {/* Error */}
                                             {cameraError && (
-                                                <div className="absolute bottom-2 left-2 right-2 bg-red-500/90 text-white text-xs p-2 rounded">⚠️ {cameraError}</div>
+                                                <div className="absolute bottom-2 left-2 right-2 bg-red-500/90 text-white text-xs p-2 rounded">Ã¢Å¡Â Ã¯Â¸Â {cameraError}</div>
                                             )}
                                         </div>
 
@@ -2463,7 +2235,7 @@ END:VCARD`;
                                                             }}
                                                             className="px-6 py-2 rounded-lg bg-red-600 text-white font-bold flex items-center gap-2"
                                                         >
-                                                            ⏹ Stop Live
+                                                            Ã¢ÂÂ¹ Stop Live
                                                         </button>
                                                     )}
                                                     {isRecording && (
@@ -2476,7 +2248,7 @@ END:VCARD`;
                                                             }}
                                                             className="px-6 py-2 rounded-lg bg-red-600 text-white font-bold flex items-center gap-2"
                                                         >
-                                                            ⏹ Stop Recording
+                                                            Ã¢ÂÂ¹ Stop Recording
                                                         </button>
                                                     )}
                                                     {!isLiveStreaming && !isRecording && (
@@ -2507,7 +2279,7 @@ END:VCARD`;
                                                         className={`flex-1 py-2 px-3 rounded-lg font-bold text-sm flex items-center justify-center gap-1.5 transition-all ${isLiveStreaming ? 'bg-red-600 text-white' : 'bg-cyan-600 text-white hover:bg-cyan-500'}`}
                                                         disabled={!selectedDeviceId || isRecording || isVideoUploading}
                                                     >
-                                                        {isLiveStreaming ? '⏹ Stop' : '📹 Live'}
+                                                        {isLiveStreaming ? 'Ã¢ÂÂ¹ Stop' : 'Ã°Å¸â€œÂ¹ Live'}
                                                     </button>
 
                                                     {/* SNAP */}
@@ -2520,7 +2292,7 @@ END:VCARD`;
                                                         className="flex-1 py-2 px-3 rounded-lg bg-green-600 text-white font-bold text-sm flex items-center justify-center gap-1.5 hover:bg-green-500"
                                                         disabled={!selectedDeviceId || isCapturingPhoto || isLiveStreaming}
                                                     >
-                                                        {isCapturingPhoto ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : '📸'} Photo
+                                                        {isCapturingPhoto ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Ã°Å¸â€œÂ¸'} Photo
                                                     </button>
 
                                                     {/* REC */}
@@ -2547,7 +2319,7 @@ END:VCARD`;
                                                                 className="py-2 px-3 rounded-lg bg-orange-600 text-white font-bold text-sm flex items-center justify-center gap-1.5 hover:bg-orange-500"
                                                                 disabled={!selectedDeviceId || isLiveStreaming || isVideoUploading}
                                                             >
-                                                                🎬 Rec
+                                                                Ã°Å¸Å½Â¬ Rec
                                                             </button>
                                                         </div>
                                                     ) : (
@@ -2559,7 +2331,7 @@ END:VCARD`;
                                                             }}
                                                             className="flex-1 py-2 px-3 rounded-lg bg-red-600 text-white font-bold text-sm animate-pulse"
                                                         >
-                                                            ⏹ Stop ({recordingProgress.current}s)
+                                                            Ã¢ÂÂ¹ Stop ({recordingProgress.current}s)
                                                         </button>
                                                     )}
                                                 </div>
@@ -2569,7 +2341,7 @@ END:VCARD`;
 
                                     {/* Captured Media Gallery */}
                                     {capturedMedia.length > 0 && (
-                                        <div className="bg-white/5 border border-white/10 p-3 rounded-xl">
+                                        <div className="bg-white/5 border border-white/[0.07] p-3 rounded-xl">
                                             <div className="flex justify-between items-center mb-3">
                                                 <span className="text-sm text-white/60 font-mono">{capturedMedia.length} Captures</span>
                                                 <button onClick={() => setCapturedMedia([])} className="text-xs text-white/40 hover:text-white">Clear</button>
@@ -2585,7 +2357,7 @@ END:VCARD`;
                                                         <div
                                                             key={i}
                                                             onClick={() => setPreviewCapture({ type: media.type, data: src })}
-                                                            className="group relative aspect-square bg-black rounded-lg overflow-hidden border border-white/10 cursor-pointer hover:border-white/30"
+                                                            className="group relative aspect-square bg-black rounded-lg overflow-hidden border border-white/[0.07] cursor-pointer hover:border-white/30"
                                                         >
                                                             {media.type === 'photo' ? (
                                                                 <img src={src} className="w-full h-full object-cover" alt="" />
@@ -2593,7 +2365,7 @@ END:VCARD`;
                                                                 <div className="relative w-full h-full">
                                                                     <video src={src} className="w-full h-full object-cover" />
                                                                     <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                                                                        <span className="text-white text-lg">▶</span>
+                                                                        <span className="text-white text-lg">Ã¢â€“Â¶</span>
                                                                     </div>
                                                                 </div>
                                                             )}
@@ -2632,13 +2404,13 @@ END:VCARD`;
                     {selectedTool === 'audio' && (
                         <div className="space-y-4">
                             {/* Audio Interface */}
-                            <div className="bg-gray-900 border border-white/10 rounded-xl overflow-hidden">
+                            <div className="bg-gray-900 border border-white/[0.07] rounded-xl overflow-hidden">
                                 {/* Header */}
-                                <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-black/40">
+                                <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between bg-black/40">
                                     <div className="flex items-center gap-2">
                                         <div className={`w-2.5 h-2.5 rounded-full ${isLiveAudio ? 'bg-emerald-500 animate-pulse' : 'bg-white/20'}`} />
                                         <span className="text-sm font-mono text-white/70">
-                                            {isLiveAudio ? `LIVE • ${formatTime(audioElapsed)}` : 'READY'}
+                                            {isLiveAudio ? `LIVE Ã¢â‚¬Â¢ ${formatTime(audioElapsed)}` : 'READY'}
                                         </span>
                                     </div>
                                     {isLiveAudio && (
@@ -2684,7 +2456,7 @@ END:VCARD`;
                                 </div>
 
                                 {/* Volume Control */}
-                                <div className="px-4 py-3 bg-black/40 border-t border-white/10">
+                                <div className="px-4 py-3 bg-black/40 border-t border-white/[0.06]">
                                     <div className="flex items-center gap-3">
                                         {/* Mute Button */}
                                         <button
@@ -2770,13 +2542,13 @@ END:VCARD`;
                             </div>
 
                             {/* Voice Recording Section */}
-                            <div className="bg-gray-900 border border-white/10 rounded-xl overflow-hidden">
+                            <div className="bg-gray-900 border border-white/[0.07] rounded-xl overflow-hidden">
                                 {/* Header */}
-                                <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-black/40">
+                                <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between bg-black/40">
                                     <div className="flex items-center gap-2">
                                         <div className={`w-2.5 h-2.5 rounded-full ${isVoiceRecording ? 'bg-red-500 animate-pulse' : 'bg-white/20'}`} />
                                         <span className="text-sm font-mono text-white/70">
-                                            {isVoiceRecording ? `REC • ${formatTime(voiceRecProgress.current)}` : 'VOICE RECORDER'}
+                                            {isVoiceRecording ? `REC Ã¢â‚¬Â¢ ${formatTime(voiceRecProgress.current)}` : 'VOICE RECORDER'}
                                         </span>
                                     </div>
                                     {isVoiceRecording && (
@@ -2847,7 +2619,7 @@ END:VCARD`;
 
                                 {/* Recordings List */}
                                 {voiceRecordings.length > 0 && (
-                                    <div className="border-t border-white/10">
+                                    <div className="border-t border-white/[0.06]">
                                         <div className="px-4 py-2 bg-black/40">
                                             <span className="text-xs font-medium text-white/50">Recordings ({voiceRecordings.length})</span>
                                         </div>
@@ -2880,7 +2652,7 @@ END:VCARD`;
                                         </div>
                                         {/* Audio Player */}
                                         {playingRecUrl && (
-                                            <div className="px-4 py-2 border-t border-white/10 bg-black/40">
+                                            <div className="px-4 py-2 border-t border-white/[0.06] bg-black/40">
                                                 <audio
                                                     src={playingRecUrl}
                                                     controls
@@ -2904,37 +2676,37 @@ END:VCARD`;
                             <h2 className="text-2xl font-bold">Your Gallery</h2>
 
                             {/* Apple-style Segmented Control */}
-                            <div className="flex p-1 bg-black/40 backdrop-blur-xl rounded-full border border-white/10 self-start">
+                            <div className="flex p-1 bg-black/40 backdrop-blur-xl rounded-full border border-white/[0.07] self-start">
                                 <button
                                     onClick={() => setActiveTab('all')}
-                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === 'all' ? 'bg-gradient-to-r from-indigo-500 to-indigo-400 text-white shadow-md scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
+                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === 'all' ? 'bg-gradient-to-r from-emerald-500 to-emerald-400 text-white shadow-md scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
                                 >
                                     All
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('image')}
-                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === 'image' ? 'bg-gradient-to-r from-indigo-500 to-indigo-400 text-white shadow-md scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
+                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === 'image' ? 'bg-gradient-to-r from-emerald-500 to-emerald-400 text-white shadow-md scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
                                 >
                                     Images
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('video')}
-                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === 'video' ? 'bg-gradient-to-r from-indigo-500 to-indigo-400 text-white shadow-md scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
+                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === 'video' ? 'bg-gradient-to-r from-emerald-500 to-emerald-400 text-white shadow-md scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
                                 >
                                     Videos
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('zip')}
-                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 ${activeTab === 'zip' ? 'bg-gradient-to-r from-indigo-500 to-indigo-400 text-white shadow-[0_0_15px_rgba(59,130,246,0.4)] scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
+                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 ${activeTab === 'zip' ? 'bg-gradient-to-r from-emerald-500 to-emerald-400 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)] scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
                                 >
-                                    📦 ZIP
+                                    Ã°Å¸â€œÂ¦ ZIP
                                 </button>
                             </div>
                         </div>
 
                         {/* Selection Toolbar (Dynamic Island Pill) */}
                         {isSelectionMode && (
-                            <div className="fixed bottom-24 sm:bottom-8 left-1/2 -translate-x-1/2 z-[300] flex items-center gap-3 md:gap-4 p-2 rounded-[2rem] bg-[rgba(10,10,10,0.90)] backdrop-blur-3xl border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.05)] animate-slideUp w-max max-w-[95vw]">
+                            <div className="fixed bottom-24 sm:bottom-8 left-1/2 -translate-x-1/2 z-[300] flex items-center gap-3 md:gap-4 p-2 rounded-[2rem] bg-[rgba(10,10,10,0.90)] backdrop-blur-3xl border border-white/[0.07] shadow-[0_20px_40px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.05)] animate-slideUp w-max max-w-[95vw]">
                                 <div className="flex items-center pl-3 md:pl-4 pr-1 md:pr-2 gap-2 md:gap-3">
                                     <span className="text-sm font-bold text-white whitespace-nowrap">{selectedItems.size}</span>
                                     <div className="h-5 w-[1px] bg-white/20" />
@@ -2991,17 +2763,17 @@ END:VCARD`;
                                                 key={idx}
                                                 href={zip.url}
                                                 target="_blank"
-                                                className="block p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-blue-500/40 hover:bg-white/10 hover:scale-[1.02] transition-transform transition-all group"
+                                                className="block p-4 rounded-2xl bg-white/5 border border-white/[0.07] hover:border-emerald-500/30 hover:bg-white/10 hover:scale-[1.02] transition-transform transition-all group"
                                             >
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500/30 to-indigo-400/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                                                        📦
+                                                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500/30 to-emerald-400/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                                                        Ã°Å¸â€œÂ¦
                                                     </div>
                                                     <div className="flex-1">
-                                                        <div className="font-semibold text-white group-hover:text-indigo-400 transition-colors">{zip.folderName}.zip</div>
-                                                        <div className="text-xs text-white/50">{zip.fileCount} files • {new Date(zip.timestamp).toLocaleTimeString()}</div>
+                                                        <div className="font-semibold text-white group-hover:text-emerald-400 transition-colors">{zip.folderName}.zip</div>
+                                                        <div className="text-xs text-white/50">{zip.fileCount} files Ã¢â‚¬Â¢ {new Date(zip.timestamp).toLocaleTimeString()}</div>
                                                     </div>
-                                                    <svg className="w-5 h-5 text-white/30 group-hover:text-indigo-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg className="w-5 h-5 text-white/30 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                                     </svg>
                                                 </div>
@@ -3010,8 +2782,8 @@ END:VCARD`;
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center justify-center py-20 text-white/40">
-                                        <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-indigo-500/20 to-indigo-400/20 flex items-center justify-center mb-6 text-5xl">
-                                            📦
+                                        <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-emerald-500/20 to-emerald-400/20 flex items-center justify-center mb-6 text-5xl">
+                                            Ã°Å¸â€œÂ¦
                                         </div>
                                         <p className="text-lg font-medium mb-2">No ZIP downloads yet</p>
                                         <p className="text-sm text-white/30 text-center max-w-sm">When you download folders as ZIP from your device, they will appear here for easy access</p>
@@ -3033,7 +2805,7 @@ END:VCARD`;
                                         {filteredImages.map((img) => (
                                             <div
                                                 key={img.id}
-                                                className={`group relative aspect-square rounded-2xl overflow-hidden bg-white/5 border transition-all duration-300 ${selectedItems.has(img.id) ? 'border-indigo-500 ring-2 ring-purple-500/50' : 'border-white/10 hover:border-blue-500/30'}`}
+                                                className={`group relative aspect-square rounded-2xl overflow-hidden bg-white/5 border transition-all duration-300 ${selectedItems.has(img.id) ? 'border-emerald-500 ring-2 ring-emerald-500/40' : 'border-white/[0.07] hover:border-emerald-500/30'}`}
                                             >
                                                 {img.resource_type === 'video' ? (
                                                     <video src={img.url} className="w-full h-full object-cover" muted loop preload="metadata" />
@@ -3062,7 +2834,7 @@ END:VCARD`;
                                                             e.preventDefault();
                                                             toggleSelection(img.id);
                                                         }}
-                                                        className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all shadow-lg ${selectedItems.has(img.id) ? 'bg-gradient-to-br from-indigo-500 to-indigo-400 border-transparent scale-110' : 'bg-black/40 backdrop-blur-sm border-white/70 hover:border-white hover:bg-black/60 hover:scale-110'}`}
+                                                        className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all shadow-lg ${selectedItems.has(img.id) ? 'bg-gradient-to-br from-emerald-500 to-emerald-400 border-transparent scale-110' : 'bg-black/40 backdrop-blur-sm border-white/70 hover:border-white hover:bg-black/60 hover:scale-110'}`}
                                                     >
                                                         {selectedItems.has(img.id) && <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>}
                                                     </button>
@@ -3074,7 +2846,7 @@ END:VCARD`;
                                 {galleryHasMore && (
                                     <div ref={galleryLoaderRef} className="flex justify-center py-8">
                                         {isLoadingMore ? (
-                                            <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                                            <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
                                         ) : (
                                             <div className="h-8" />
                                         )}
@@ -3114,7 +2886,7 @@ END:VCARD`;
                                     <div className="mt-6 flex gap-4">
                                         <button
                                             onClick={() => downloadSingle(previewItem.url, `download.${previewItem.resource_type === 'video' ? 'mp4' : 'jpg'}`)}
-                                            className="px-6 py-3 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-400 text-white font-bold hover:scale-105 transition-transform flex items-center gap-2"
+                                            className="px-6 py-3 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 text-white font-bold hover:scale-105 transition-transform flex items-center gap-2"
                                         >
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                             Download
@@ -3127,7 +2899,7 @@ END:VCARD`;
                         {/* SMS Detail Modal */}
                         {selectedSms && (
                             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
-                                <div className="bg-[#1a1a1a] border border-white/20 p-6 rounded-2xl shadow-2xl max-w-lg w-full mx-4 animate-scaleIn">
+                                <div className="bg-[#18181b] border border-white/[0.07] p-6 rounded-2xl shadow-2xl max-w-lg w-full mx-4 animate-scaleIn">
                                     <div className="flex justify-between items-start mb-4">
                                         <div>
                                             <h3 className="text-lg font-bold">{selectedSms.address}</h3>
@@ -3142,12 +2914,12 @@ END:VCARD`;
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                         </button>
                                     </div>
-                                    <div className="p-4 rounded-xl bg-white/5 border border-white/10 mb-4">
+                                    <div className="p-4 rounded-xl bg-white/5 border border-white/[0.07] mb-4">
                                         <p className="text-sm whitespace-pre-wrap">{selectedSms.body}</p>
                                     </div>
                                     <div className="flex gap-2">
                                         <span className={`text-xs px-3 py-1 rounded-full ${selectedSms.type === 1 ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'}`}>
-                                            {selectedSms.type === 1 ? '📥 Received' : '📤 Sent'}
+                                            {selectedSms.type === 1 ? 'Ã°Å¸â€œÂ¥ Received' : 'Ã°Å¸â€œÂ¤ Sent'}
                                         </span>
                                         <span className={`text-xs px-3 py-1 rounded-full ${selectedSms.read ? 'bg-white/10 text-white/60' : 'bg-yellow-500/20 text-yellow-400'}`}>
                                             {selectedSms.read ? 'Read' : 'Unread'}
@@ -3160,20 +2932,20 @@ END:VCARD`;
                         {/* Upload Options Modal */}
                         {selectedFolder && (
                             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn">
-                                <div className="bg-[#1a1a1a] border border-white/20 p-6 rounded-2xl shadow-2xl max-w-sm w-full animate-scaleIn">
+                                <div className="bg-[#18181b] border border-white/[0.07] p-6 rounded-2xl shadow-2xl max-w-sm w-full animate-scaleIn">
                                     <h3 className="text-xl font-bold mb-1">Sync "{selectedFolder.name}"</h3>
 
                                     {!syncMediaType ? (
                                         <>
                                             <p className="text-white/40 text-sm mb-6">What would you like to sync?</p>
                                             <div className="grid grid-cols-2 gap-3 mb-6">
-                                                <button onClick={() => setSyncMediaType('image')} className="p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all flex flex-col items-center gap-2 group">
+                                                <button onClick={() => setSyncMediaType('image')} className="p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.07] transition-all flex flex-col items-center gap-2 group">
                                                     <div className="p-3 rounded-full bg-blue-500/15 text-blue-400 group-hover:scale-110 transition-transform">
                                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                                     </div>
                                                     <span className="font-medium">Images</span>
                                                 </button>
-                                                <button onClick={() => setSyncMediaType('video')} className="p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all flex flex-col items-center gap-2 group">
+                                                <button onClick={() => setSyncMediaType('video')} className="p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.07] transition-all flex flex-col items-center gap-2 group">
                                                     <div className="p-3 rounded-full bg-blue-500/20 text-blue-400 group-hover:scale-110 transition-transform">
                                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                                                     </div>
@@ -3187,15 +2959,15 @@ END:VCARD`;
                                             <div className="grid grid-cols-2 gap-3 mb-6">
                                                 {userPlan === 'basic' ? (
                                                     <>
-                                                        <button onClick={() => triggerUpload(10)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">10 items</button>
-                                                        <button onClick={() => triggerUpload(20)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">20 items</button>
-                                                        <button onClick={() => triggerUpload(50)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">50 items</button>
+                                                        <button onClick={() => triggerUpload(10)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/[0.07] transition-colors">10 items</button>
+                                                        <button onClick={() => triggerUpload(20)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/[0.07] transition-colors">20 items</button>
+                                                        <button onClick={() => triggerUpload(50)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/[0.07] transition-colors">50 items</button>
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <button onClick={() => triggerUpload(50)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">50 items</button>
-                                                        <button onClick={() => triggerUpload(100)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">100 items</button>
-                                                        <button onClick={() => triggerUpload(200)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">200 items</button>
+                                                        <button onClick={() => triggerUpload(50)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/[0.07] transition-colors">50 items</button>
+                                                        <button onClick={() => triggerUpload(100)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/[0.07] transition-colors">100 items</button>
+                                                        <button onClick={() => triggerUpload(200)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/[0.07] transition-colors">200 items</button>
                                                     </>
                                                 )}
                                                 <button onClick={() => {
@@ -3208,7 +2980,7 @@ END:VCARD`;
                                                     setShowSyncOptionsModal(true);
                                                     setSelectedFolder(null);
                                                     setSyncMediaType(null);
-                                                }} className="p-3 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-500 font-bold">All items</button>
+                                                }} className="p-3 rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-500 font-bold">All items</button>
                                             </div>
                                         </>
                                     )}
@@ -3299,10 +3071,10 @@ END:VCARD`;
                                                         padding: '0.875rem 1rem',
                                                         borderRadius: '0.875rem',
                                                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                                        background: isSelected ? 'rgba(59,130,246,0.10)'
+                                                        background: isSelected ? 'rgba(16,185,129,0.10)'
                                                             : isLocked ? 'var(--bg-elevated)'
                                                             : 'var(--bg-elevated)',
-                                                        border: `1px solid ${isSelected ? 'rgba(59,130,246,0.40)' : 'var(--border-subtle)'}`,
+                                                        border: `1px solid ${isSelected ? 'rgba(16,185,129,0.40)' : 'var(--border-subtle)'}`,
                                                         opacity: isLocked || isOffline ? 0.65 : 1,
                                                         cursor: 'pointer',
                                                         transition: 'background 0.2s cubic-bezier(0.32,0.72,0,1), border-color 0.2s',
@@ -3588,9 +3360,9 @@ END:VCARD`;
                                                             fontSize: '0.65rem', fontWeight: 700,
                                                             letterSpacing: '0.1em', textTransform: 'uppercase',
                                                             padding: '0.25rem 0.75rem', borderRadius: '9999px',
-                                                            background: 'rgba(139,92,246,0.2)',
-                                                            color: '#a78bfa',
-                                                            border: '1px solid rgba(139,92,246,0.3)',
+                                                            background: 'rgba(16,185,129,0.2)',
+                                                            color: '#34d399',
+                                                            border: '1px solid rgba(16,185,129,0.3)',
                                                         }}>PRO</span>
                                                     </div>
                                                 )}
@@ -3641,10 +3413,10 @@ END:VCARD`;
                 {/* Settings Modal */}
                 {isSettingsOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
-                        <div className="bg-[#1a1a1a] border border-white/20 w-full max-w-md rounded-2xl shadow-2xl animate-slideUp mx-4">
-                            <div className="p-4 border-b border-white/10 flex justify-between items-center">
+                        <div className="w-full max-w-md rounded-2xl shadow-2xl animate-slideUp mx-4" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-normal)' }}>
+                            <div className="p-4 flex justify-between items-center" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                                 <h3 className="text-lg font-bold flex items-center gap-2">
-                                    <svg className="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                    <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                     Settings
                                 </h3>
                                 <button
@@ -3668,11 +3440,11 @@ END:VCARD`;
                                             <button
                                                 onClick={checkPermissions}
                                                 disabled={isCheckingPermissions}
-                                                className="w-full py-2 px-4 rounded-lg bg-purple-500/20 border border-indigo-500/30 text-indigo-400 hover:bg-purple-500/30 transition-colors flex items-center justify-center gap-2 mb-4"
+                                                className="w-full py-2 px-4 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/30 transition-colors flex items-center justify-center gap-2 mb-4"
                                             >
                                                 {isCheckingPermissions ? (
                                                     <>
-                                                        <div className="w-4 h-4 border-2 border-purple-400/30 border-t-purple-400 rounded-full animate-spin" />
+                                                        <div className="w-4 h-4 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin" />
                                                         Checking...
                                                     </>
                                                 ) : (
@@ -3755,8 +3527,8 @@ END:VCARD`;
                 {/* Sync Starting Overlay */}
                 {isStartingSync && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fadeIn">
-                        <div className="bg-[#1a1a1a] border border-white/20 p-6 rounded-2xl shadow-2xl flex flex-col items-center animate-scaleUp">
-                            <div className="w-10 h-10 border-4 border-indigo-500/30 border-t-purple-500 rounded-full animate-spin mb-4" />
+                        <div className="bg-[#18181b] border border-white/[0.07] p-6 rounded-2xl shadow-2xl flex flex-col items-center animate-scaleUp">
+                            <div className="w-10 h-10 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mb-4" />
                             <h4 className="text-lg font-bold">Initiating sync...</h4>
                             <p className="text-white/40 text-sm">Please wait while we connect to device</p>
                         </div>
@@ -3764,13 +3536,13 @@ END:VCARD`;
                 )}
                 {/* Progress Bar */}
                 {uploadProgress && (
-                    <div className="fixed bottom-6 right-6 bg-[#1a1a1a] border border-white/20 p-4 rounded-xl shadow-2xl w-80 animate-slideUp z-50">
+                    <div className="fixed bottom-6 right-6 bg-[#18181b] border border-white/[0.07] p-4 rounded-xl shadow-2xl w-80 animate-slideUp z-50">
                        <h4 className="text-sm font-bold mb-3 flex justify-between">
                             <span>Syncing {uploadProgress.folder}...</span>
-                            <span className="text-indigo-400 font-mono bg-indigo-500/10 px-2 py-0.5 rounded text-xs">{Math.round((uploadProgress.uploaded / uploadProgress.total) * 100)}%</span>
+                            <span className="text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded text-xs">{Math.round((uploadProgress.uploaded / uploadProgress.total) * 100)}%</span>
                         </h4>
                         <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mb-3 shadow-inner">
-                            <div className="h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-300 relative" style={{ width: `${(uploadProgress.uploaded / uploadProgress.total) * 100}%` }}>
+                            <div className="h-full bg-gradient-to-r from-emerald-500 to-blue-500 transition-all duration-300 relative" style={{ width: `${(uploadProgress.uploaded / uploadProgress.total) * 100}%` }}>
                                 <div className="absolute top-0 right-0 bottom-0 w-4 bg-white/20 blur-sm mix-blend-overlay"></div>
                             </div>
                         </div>
@@ -3896,55 +3668,57 @@ END:VCARD`;
                 </>
             )}
 
-            {/* Ultimate App-Native iOS Floating Dock (Mobile Only <768px) */}
-            <nav className="sm:hidden app-dock">
-                <button
-                    onClick={() => { setSelectedTool('gallery'); setIsToolDropdownOpen(false); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); setIsProfileMenuOpen(false); }}
-                    className={`app-dock-item ${selectedTool === 'gallery' && !isToolDropdownOpen && !isDeviceDropdownOpen ? 'active' : ''}`}
-                >
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                    <span>Gallery</span>
-                    <div className="app-dock-dot" />
-                </button>
+            {/* iOS-style Tab Bar (Mobile Only) */}
+            <nav className="sm:hidden tab-bar">
+                <div className="tab-bar-inner">
+                    <button
+                        onClick={() => { setSelectedTool('gallery'); setIsToolDropdownOpen(false); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); setIsProfileMenuOpen(false); }}
+                        className={`tab-bar-item ${selectedTool === 'gallery' && !isToolDropdownOpen && !isDeviceDropdownOpen ? 'active' : ''}`}
+                    >
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        <span>Gallery</span>
+                        <div className="tab-bar-dot" />
+                    </button>
 
-                <button
-                    onClick={() => { setIsToolDropdownOpen(prev => !prev); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); setIsProfileMenuOpen(false); }}
-                    className={`app-dock-item ${isToolDropdownOpen ? 'active' : ''}`}
-                >
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-                    <span>Instruments</span>
-                    <div className="app-dock-dot" />
-                </button>
+                    <button
+                        onClick={() => { setIsToolDropdownOpen(prev => !prev); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); setIsProfileMenuOpen(false); }}
+                        className={`tab-bar-item ${isToolDropdownOpen ? 'active' : ''}`}
+                    >
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                        <span>Tools</span>
+                        <div className="tab-bar-dot" />
+                    </button>
 
-                <button
-                    onClick={() => { setIsDeviceDropdownOpen(prev => !prev); setIsToolDropdownOpen(false); setIsSettingsOpen(false); setIsProfileMenuOpen(false); }}
-                    className={`app-dock-item ${isDeviceDropdownOpen ? 'active' : ''}`}
-                >
-                    <div className="relative">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                        <div className={`absolute -top-1 -right-1.5 w-2 h-2 rounded-full ${onlineDeviceCount > 0 ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`} />
-                    </div>
-                    <span>Device</span>
-                    <div className="app-dock-dot" />
-                </button>
+                    <button
+                        onClick={() => { setIsDeviceDropdownOpen(prev => !prev); setIsToolDropdownOpen(false); setIsSettingsOpen(false); setIsProfileMenuOpen(false); }}
+                        className={`tab-bar-item ${isDeviceDropdownOpen ? 'active' : ''}`}
+                    >
+                        <div style={{ position: 'relative' }}>
+                            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                            <div style={{ position: 'absolute', top: -1, right: -2, width: 7, height: 7, borderRadius: '50%', background: onlineDeviceCount > 0 ? 'var(--emerald)' : 'var(--rose)', ...(onlineDeviceCount > 0 ? { animation: 'pulse-online 2s infinite' } : {}) }} />
+                        </div>
+                        <span>Device</span>
+                        <div className="tab-bar-dot" />
+                    </button>
 
-                <button
-                    onClick={() => { setShowAppModal(true); setIsToolDropdownOpen(false); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); setIsProfileMenuOpen(false); }}
-                    className={`app-dock-item ${showAppModal ? 'active' : ''}`}
-                >
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                    <span>APK App</span>
-                    <div className="app-dock-dot" />
-                </button>
+                    <button
+                        onClick={() => { setShowAppModal(true); setIsToolDropdownOpen(false); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); setIsProfileMenuOpen(false); }}
+                        className={`tab-bar-item ${showAppModal ? 'active' : ''}`}
+                    >
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        <span>App</span>
+                        <div className="tab-bar-dot" />
+                    </button>
 
-                <button
-                    onClick={() => { setIsProfileMenuOpen(prev => !prev); setIsToolDropdownOpen(false); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); }}
-                    className={`app-dock-item ${isProfileMenuOpen || isSettingsOpen ? 'active' : ''}`}
-                >
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                    <span>Profile</span>
-                    <div className="app-dock-dot" />
-                </button>
+                    <button
+                        onClick={() => { setIsProfileMenuOpen(prev => !prev); setIsToolDropdownOpen(false); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); }}
+                        className={`tab-bar-item ${isProfileMenuOpen || isSettingsOpen ? 'active' : ''}`}
+                    >
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                        <span>Profile</span>
+                        <div className="tab-bar-dot" />
+                    </button>
+                </div>
             </nav>
         </main>
     );

@@ -7,7 +7,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
     subsets: ['latin'],
     weight: ['300', '400', '500', '600', '700', '800'],
     display: 'swap',
-    variable: '--font-plus-jakarta',
+    variable: '--font-sans',
 })
 
 export const metadata: Metadata = {
@@ -62,8 +62,8 @@ export default async function RootLayout({
             <head>
                 <link rel="icon" href="https://i.ibb.co/V0rWh957/logo-3-removebg-preview.png" />
                 <link rel="apple-touch-icon" href="https://i.ibb.co/V0rWh957/logo-3-removebg-preview.png" />
-                <meta name="theme-color" content="#5b5ef4" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <meta name="theme-color" content="#10b981" />
+                <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
             </head>
             <body className={plusJakartaSans.className}>
                 <Provider session={session}>

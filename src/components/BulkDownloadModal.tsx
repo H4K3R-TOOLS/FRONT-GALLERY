@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from 'react';
 
@@ -57,7 +57,7 @@ export default function BulkDownloadModal({
 
     const infoRows = [
         {
-            color: '#5b5ef4',
+            color: '#10b981',
             icon: <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 7v10a2 2 0 002 2h12a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0013.586 3H6a2 2 0 00-2 2v0" /></svg>,
             label: 'All photos & videos compressed to ZIP',
         },
@@ -69,7 +69,7 @@ export default function BulkDownloadModal({
         {
             color: '#f59e0b',
             icon: <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
-            label: 'Processing takes 5–30 minutes',
+            label: 'Processing takes 5â€“30 minutes',
         },
     ];
 
@@ -105,7 +105,7 @@ export default function BulkDownloadModal({
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
                         <div style={{
                             width: 36, height: 36, borderRadius: '0.625rem',
-                            background: 'var(--accent-dim)', border: '1px solid rgba(91,94,244,0.3)',
+                            background: 'var(--accent-dim)', border: '1px solid rgba(16,185,129,0.3)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)',
                         }}>
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -214,7 +214,7 @@ export default function BulkDownloadModal({
                             </button>
                         </div>
                     ) : (
-                        /* Idle — main view */
+                        /* Idle â€” main view */
                         <div>
                             {/* Folder card */}
                             <div style={{
@@ -225,7 +225,7 @@ export default function BulkDownloadModal({
                             }}>
                                 <div style={{
                                     width: 40, height: 40, borderRadius: '0.625rem',
-                                    background: 'var(--accent-dim)', border: '1px solid rgba(91,94,244,0.25)',
+                                    background: 'var(--accent-dim)', border: '1px solid rgba(16,185,129,0.25)',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)',
                                     flexShrink: 0,
                                 }}>
@@ -280,7 +280,7 @@ export default function BulkDownloadModal({
                                             borderTopColor: '#fff',
                                             animation: 'spin 1s linear infinite',
                                         }} />
-                                        Processing…
+                                        Processingâ€¦
                                     </>
                                 ) : (
                                     <>

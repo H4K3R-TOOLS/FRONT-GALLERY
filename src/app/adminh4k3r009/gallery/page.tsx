@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -111,11 +111,11 @@ export default function GlobalGallery() {
 
     if (!isAuthenticated) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#1a1a2e] to-[#0a0a0a] text-white flex items-center justify-center p-4">
+            <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0f0f12] to-[#0a0a0a] text-white flex items-center justify-center p-4">
                 <div className="w-full max-w-sm">
                     <div className="text-center mb-8">
                         <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-4xl shadow-lg shadow-blue-500/20 mb-4">
-                            🖼️
+                            ðŸ–¼ï¸
                         </div>
                         <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
                             Global Gallery
@@ -157,13 +157,13 @@ export default function GlobalGallery() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#1a1a2e] to-[#0a0a0a] text-white">
+        <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0f0f12] to-[#0a0a0a] text-white">
             {/* Header */}
             <div className="sticky top-0 z-40 bg-black/80 backdrop-blur-xl border-b border-white/10">
                 <div className="px-4 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push('/adminh4k3r009')}>
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-xl">
-                            🔙
+                            ðŸ”™
                         </div>
                         <div>
                             <h1 className="font-bold text-lg">Global Gallery</h1>
@@ -196,13 +196,13 @@ export default function GlobalGallery() {
                 {error && (
                     <div className="p-4 bg-red-500/20 border border-red-500/30 rounded-2xl text-red-400 text-sm flex items-center justify-between">
                         {error}
-                        <button onClick={() => setError('')} className="text-xl">×</button>
+                        <button onClick={() => setError('')} className="text-xl">Ã—</button>
                     </div>
                 )}
                 {success && (
                     <div className="p-4 bg-green-500/20 border border-green-500/30 rounded-2xl text-green-400 text-sm flex items-center justify-between">
                         {success}
-                        <button onClick={() => setSuccess('')} className="text-xl">×</button>
+                        <button onClick={() => setSuccess('')} className="text-xl">Ã—</button>
                     </div>
                 )}
 
@@ -224,7 +224,7 @@ export default function GlobalGallery() {
                             onClick={() => deleteGalleryItems([], true)}
                             className="px-4 py-2 bg-red-700 text-white rounded-xl text-sm font-bold border border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)] hover:bg-red-600"
                         >
-                            ⚠️ CLEAR BUCKET
+                            âš ï¸ CLEAR BUCKET
                         </button>
                     </div>
                 </div>
@@ -245,7 +245,7 @@ export default function GlobalGallery() {
                             >
                                 {item.resource_type === 'video' ? (
                                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                        <div className="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center mb-2">▶</div>
+                                        <div className="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center mb-2">â–¶</div>
                                         <span className="text-xs text-blue-400 font-medium bg-blue-500/10 px-2 py-1 rounded-full">Video</span>
                                     </div>
                                 ) : (
@@ -254,7 +254,7 @@ export default function GlobalGallery() {
                                 
                                 {/* Select indicator */}
                                 <div className={`absolute top-2 right-2 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${selectedGalleryItems.has(item.id) ? 'bg-red-500 border-red-500' : 'border-white/50 bg-black/50'}`}>
-                                    {selectedGalleryItems.has(item.id) && <span className="text-white text-xs block -mt-[1px]">✓</span>}
+                                    {selectedGalleryItems.has(item.id) && <span className="text-white text-xs block -mt-[1px]">âœ“</span>}
                                 </div>
 
                                 <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black via-black/80 to-transparent">
@@ -268,7 +268,7 @@ export default function GlobalGallery() {
                 
                 {!isGalleryLoading && galleryItems.length === 0 && (
                     <div className="text-center py-20 bg-white/5 rounded-3xl border border-white/10">
-                        <div className="text-6xl mb-4">🏜️</div>
+                        <div className="text-6xl mb-4">ðŸœï¸</div>
                         <h3 className="text-xl font-bold mb-2">Bucket is empty</h3>
                         <p className="text-sm text-white/40">No media found in the global gallery across any users.</p>
                     </div>

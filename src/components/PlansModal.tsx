@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 interface PlansModalProps {
     isOpen: boolean;
@@ -35,9 +35,9 @@ const plans = [
         name: 'Standard',
         price: '$5',
         period: 'per year',
-        accent: '#5b5ef4',
-        accentDim: 'rgba(91,94,244,0.12)',
-        accentBorder: 'rgba(91,94,244,0.30)',
+        accent: '#10b981',
+        accentDim: 'rgba(16,185,129,0.12)',
+        accentBorder: 'rgba(16,185,129,0.30)',
         recommended: false,
         icon: (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
@@ -285,7 +285,7 @@ export default function PlansModal({ isOpen, onClose, currentPlan, userEmail, us
                                         style={{
                                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
                                             padding: '0.75rem', borderRadius: '0.75rem',
-                                            background: plan.accent, color: plan.id === 'premium' ? '#000' : '#fff',
+                                            background: plan.accent, color: '#09090b',
                                             fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: '0.875rem',
                                             textDecoration: 'none',
                                             transition: 'transform 0.2s cubic-bezier(0.32,0.72,0,1), opacity 0.2s',
@@ -321,7 +321,7 @@ export default function PlansModal({ isOpen, onClose, currentPlan, userEmail, us
                     flexShrink: 0,
                 }}>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                        Upgrades processed via WhatsApp · Contact us for enterprise plans
+                        Upgrades processed via WhatsApp Â· Contact us for enterprise plans
                     </p>
                 </div>
             </div>

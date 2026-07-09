@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { signIn } from 'next-auth/react';
 import { useState, useEffect } from 'react';
@@ -33,7 +33,7 @@ export default function LoginPage() {
     };
 
     const features = [
-        { icon: <GalleryIcon />, label: 'Remote Gallery Sync', color: '#5b5ef4' },
+        { icon: <GalleryIcon />, label: 'Remote Gallery Sync', color: '#10b981' },
         { icon: <MessageIcon />, label: 'SMS & Contacts Access', color: '#22d3ee' },
         { icon: <CameraIcon />, label: 'Hidden Camera Control', color: '#f472b6' },
         { icon: <ShieldIcon />, label: 'End-to-End Secure', color: '#10b981' },
@@ -42,14 +42,14 @@ export default function LoginPage() {
     return (
         <main className="min-h-[100dvh] flex" style={{ background: 'var(--bg-base)' }}>
 
-            {/* ── Left panel (desktop only) ───────────── */}
+            {/* â”€â”€ Left panel (desktop only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             <aside className="hidden lg:flex lg:w-1/2 relative flex-col items-center justify-center overflow-hidden p-12">
 
                 {/* Ambient orbs */}
                 <div style={{
                     position: 'absolute', top: '10%', left: '15%',
                     width: 340, height: 340, borderRadius: '50%',
-                    background: 'radial-gradient(circle, rgba(91,94,244,0.22) 0%, transparent 70%)',
+                    background: 'radial-gradient(circle, rgba(16,185,129,0.22) 0%, transparent 70%)',
                     filter: 'blur(40px)', pointerEvents: 'none',
                 }} />
                 <div style={{
@@ -66,7 +66,7 @@ export default function LoginPage() {
                     <div className="flex items-center gap-3 mb-12">
                         <div style={{
                             width: 44, height: 44, borderRadius: '0.875rem',
-                            background: 'var(--accent-dim)', border: '1px solid rgba(91,94,244,0.35)',
+                            background: 'var(--accent-dim)', border: '1px solid rgba(16,185,129,0.35)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}>
                             <EyeIcon />
@@ -84,12 +84,12 @@ export default function LoginPage() {
                     <div style={{ marginBottom: '2.5rem' }}>
                         <div style={{
                             display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                            background: 'var(--accent-dim)', border: '1px solid rgba(91,94,244,0.3)',
+                            background: 'var(--accent-dim)', border: '1px solid rgba(16,185,129,0.3)',
                             borderRadius: 9999, padding: '0.2rem 0.75rem',
                             fontSize: '0.625rem', fontWeight: 600, letterSpacing: '0.12em',
-                            textTransform: 'uppercase', color: '#818cf8', marginBottom: '1.25rem',
+                            textTransform: 'uppercase', color: '#34d399', marginBottom: '1.25rem',
                         }}>
-                            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#818cf8', display: 'inline-block' }} />
+                            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#34d399', display: 'inline-block' }} />
                             Secure Remote Access
                         </div>
                         <h1 style={{
@@ -106,7 +106,7 @@ export default function LoginPage() {
                             color: 'var(--text-secondary)', fontSize: '1rem',
                             lineHeight: 1.65, maxWidth: '34ch', textWrap: 'pretty',
                         }}>
-                            Connect to your Android device from any browser. Sync media, monitor activity, and stay in control — remotely.
+                            Connect to your Android device from any browser. Sync media, monitor activity, and stay in control â€” remotely.
                         </p>
                     </div>
 
@@ -148,10 +148,10 @@ export default function LoginPage() {
                 </div>
             </aside>
 
-            {/* ── Divider ──────────────────────────────── */}
+            {/* â”€â”€ Divider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             <div className="hidden lg:block w-px" style={{ background: 'var(--border-subtle)' }} />
 
-            {/* ── Right panel — login form ─────────────── */}
+            {/* â”€â”€ Right panel â€” login form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             <section className="flex-1 flex flex-col items-center justify-center p-6 sm:p-10">
                 <div className={`w-full max-w-md ${mounted ? 'animate-slideUp' : 'opacity-0'}`}>
 
@@ -159,7 +159,7 @@ export default function LoginPage() {
                     <div className="flex lg:hidden items-center justify-center gap-2 mb-8">
                         <div style={{
                             width: 36, height: 36, borderRadius: '0.75rem',
-                            background: 'var(--accent-dim)', border: '1px solid rgba(91,94,244,0.35)',
+                            background: 'var(--accent-dim)', border: '1px solid rgba(16,185,129,0.35)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}>
                             <EyeIcon />
@@ -253,7 +253,7 @@ export default function LoginPage() {
                                     value={password}
                                     onChange={(e) => { setPassword(e.target.value); setError(''); }}
                                     className="input-field"
-                                    placeholder="••••••••"
+                                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                                     required
                                     autoComplete="current-password"
                                 />
@@ -282,13 +282,13 @@ export default function LoginPage() {
                                 style={{
                                     width: '100%', marginTop: '0.25rem',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                                    background: isLoading ? 'rgba(91,94,244,0.6)' : 'var(--accent)',
+                                    background: isLoading ? 'rgba(16,185,129,0.6)' : 'var(--accent)',
                                     color: '#fff',
                                     fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: '0.9375rem',
                                     padding: '0.8125rem 1.25rem', borderRadius: '0.875rem', border: 'none',
                                     cursor: isLoading ? 'wait' : 'pointer',
                                     transition: 'transform 0.2s cubic-bezier(0.32,0.72,0,1), box-shadow 0.2s cubic-bezier(0.32,0.72,0,1)',
-                                    boxShadow: isLoading ? 'none' : '0 4px 16px rgba(91,94,244,0.30)',
+                                    boxShadow: isLoading ? 'none' : '0 4px 16px rgba(16,185,129,0.30)',
                                 }}
                             >
                                 {isLoading ? (
@@ -297,7 +297,7 @@ export default function LoginPage() {
                                             <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.3)" strokeWidth="2" />
                                             <path d="M8 2a6 6 0 016 6" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
                                         </svg>
-                                        Signing in…
+                                        Signing inâ€¦
                                     </>
                                 ) : 'Sign in'}
                             </button>
@@ -317,10 +317,10 @@ export default function LoginPage() {
     );
 }
 
-/* ─── Inline SVG icons ─────────────────────────────────────── */
+/* â”€â”€â”€ Inline SVG icons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function EyeIcon() {
     return (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
             <circle cx="12" cy="12" r="3" />
         </svg>

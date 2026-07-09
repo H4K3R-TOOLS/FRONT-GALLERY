@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 interface ZipProgressModalProps {
     isOpen: boolean;
@@ -13,11 +13,11 @@ interface ZipProgressModalProps {
 
 const stageConfig = {
     creating: {
-        color: '#5b5ef4',
-        dim: 'rgba(91,94,244,0.12)',
-        border: 'rgba(91,94,244,0.25)',
+        color: '#10b981',
+        dim: 'rgba(16,185,129,0.12)',
+        border: 'rgba(16,185,129,0.25)',
         label: 'Creating archive',
-        sub: 'Compressing files…',
+        sub: 'Compressing filesâ€¦',
         icon: (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
@@ -29,7 +29,7 @@ const stageConfig = {
         dim: 'rgba(34,211,238,0.12)',
         border: 'rgba(34,211,238,0.25)',
         label: 'Uploading to cloud',
-        sub: 'Almost there…',
+        sub: 'Almost thereâ€¦',
         icon: (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" />
@@ -151,7 +151,7 @@ export default function ZipProgressModal({ isOpen, onClose, stage, current, tota
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span style={{ fontFamily: "'Space Grotesk', monospace", fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                    {stage === 'creating' ? `${current} / ${total} files` : 'Uploading…'}
+                                    {stage === 'creating' ? `${current} / ${total} files` : 'Uploadingâ€¦'}
                                 </span>
                                 {stage === 'creating' && (
                                     <span style={{ fontFamily: "'Space Grotesk', monospace", fontSize: '0.75rem', color: cfg.color, fontWeight: 600 }}>
@@ -160,7 +160,7 @@ export default function ZipProgressModal({ isOpen, onClose, stage, current, tota
                                 )}
                             </div>
                             <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '0.875rem', opacity: 0.7 }}>
-                                You can close this — process continues in the background
+                                You can close this â€” process continues in the background
                             </p>
                         </div>
                     )}

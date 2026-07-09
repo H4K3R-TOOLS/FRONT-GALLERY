@@ -27,7 +27,7 @@ export default function PlanBadge({ plan, onClick }: PlanBadgeProps) {
             className={className}
             aria-label={`${plan} plan — click to manage`}
             onClick={onClick}
-            style={{ cursor: onClick ? 'pointer' : 'default', background: 'none', border: 'none', padding: 0 }}
+            style={{ cursor: onClick ? 'pointer' : 'default' }}
         >
             {label}
         </button>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSession, signIn, signOut } from "next-auth/react";
@@ -159,7 +159,7 @@ export default function AdminPage() {
         }
     };
 
-    // R2 Media Functions — with localStorage cache
+    // R2 Media Functions â€” with localStorage cache
     const fetchR2Files = useCallback(async (useCache = false) => {
         if (!session?.user?.email) return;
 
@@ -271,7 +271,7 @@ export default function AdminPage() {
     const getPlanBadgeColor = (plan: string) => {
         switch (plan) {
             case 'premium': return 'bg-gradient-to-r from-yellow-500 to-orange-500 text-black';
-            case 'standard': return 'bg-gradient-to-r from-purple-500 to-blue-500 text-white';
+            case 'standard': return 'bg-gradient-to-r from-emerald-500 to-blue-500 text-white';
             default: return 'bg-white/20 text-white/60';
         }
     };
@@ -284,7 +284,7 @@ export default function AdminPage() {
                 Google
             </span>
         ) : (
-            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/10 text-white/50 text-xs">📧 Email</span>
+            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/10 text-white/50 text-xs">ðŸ“§ Email</span>
         );
     };
 
@@ -306,8 +306,8 @@ export default function AdminPage() {
     // Loading state
     if (status === 'loading') {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#1a1a2e] to-[#0a0a0a] text-white flex items-center justify-center">
-                <div className="w-12 h-12 border-3 border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
+            <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0f0f12] to-[#0a0a0a] text-white flex items-center justify-center">
+                <div className="w-12 h-12 border-3 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
             </div>
         );
     }
@@ -315,13 +315,13 @@ export default function AdminPage() {
     // Google Login Screen
     if (!session || !isAuthorized) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#1a1a2e] to-[#0a0a0a] text-white flex items-center justify-center p-4">
+            <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0f0f12] to-[#0a0a0a] text-white flex items-center justify-center p-4">
                 <div className="w-full max-w-sm">
                     <div className="text-center mb-8">
-                        <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-4xl shadow-lg shadow-purple-500/20 mb-4">
-                            🛡️
+                        <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-4xl shadow-lg shadow-emerald-500/20 mb-4">
+                            ðŸ›¡ï¸
                         </div>
-                        <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                        <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent">
                             Admin Panel
                         </h1>
                         <p className="text-white/40 text-sm mt-1">GalleryEye Control Center</p>
@@ -337,7 +337,7 @@ export default function AdminPage() {
                         {session && !isAuthorized ? (
                             <div className="text-center space-y-4">
                                 <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
-                                    <p className="text-red-400 text-sm">⛔ {session.user?.email} is not authorized.</p>
+                                    <p className="text-red-400 text-sm">â›” {session.user?.email} is not authorized.</p>
                                 </div>
                                 <button
                                     onClick={() => signOut()}
@@ -368,12 +368,12 @@ export default function AdminPage() {
 
     // Main Dashboard
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#1a1a2e] to-[#0a0a0a] text-white">
+        <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0f0f12] to-[#0a0a0a] text-white">
             {/* Header */}
             <div className="sticky top-0 z-40 bg-black/80 backdrop-blur-xl border-b border-white/10">
                 <div className="px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-xl">🛡️</div>
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-xl">ðŸ›¡ï¸</div>
                         <div>
                             <h1 className="font-bold text-lg">Admin</h1>
                             <p className="text-[10px] text-white/40 truncate max-w-[120px]">{session.user?.email}</p>
@@ -395,15 +395,15 @@ export default function AdminPage() {
                 <div className="flex border-t border-white/5">
                     <button
                         onClick={() => setActiveTab('users')}
-                        className={`flex-1 py-3 text-sm font-medium transition-all ${activeTab === 'users' ? 'text-purple-400 border-b-2 border-purple-500 bg-purple-500/5' : 'text-white/40 hover:text-white/60'}`}
+                        className={`flex-1 py-3 text-sm font-medium transition-all ${activeTab === 'users' ? 'text-emerald-400 border-b-2 border-emerald-500 bg-emerald-500/5' : 'text-white/40 hover:text-white/60'}`}
                     >
-                        👥 Users ({users.length})
+                        ðŸ‘¥ Users ({users.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('media')}
                         className={`flex-1 py-3 text-sm font-medium transition-all ${activeTab === 'media' ? 'text-cyan-400 border-b-2 border-cyan-500 bg-cyan-500/5' : 'text-white/40 hover:text-white/60'}`}
                     >
-                        🗂️ R2 Media ({r2Files.length})
+                        ðŸ—‚ï¸ R2 Media ({r2Files.length})
                     </button>
                 </div>
             </div>
@@ -413,13 +413,13 @@ export default function AdminPage() {
                 {error && (
                     <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-2xl text-red-400 text-sm flex items-center justify-between">
                         {error}
-                        <button onClick={() => setError('')} className="text-xl ml-2">×</button>
+                        <button onClick={() => setError('')} className="text-xl ml-2">Ã—</button>
                     </div>
                 )}
                 {success && (
                     <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-2xl text-green-400 text-sm flex items-center justify-between">
                         {success}
-                        <button onClick={() => setSuccess('')} className="text-xl ml-2">×</button>
+                        <button onClick={() => setSuccess('')} className="text-xl ml-2">Ã—</button>
                     </div>
                 )}
 
@@ -436,9 +436,9 @@ export default function AdminPage() {
                                 <div className="text-3xl font-bold text-white/50">{users.filter(u => u.plan === 'basic').length}</div>
                                 <div className="text-sm text-white/40">Basic</div>
                             </div>
-                            <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-purple-500/30 rounded-2xl p-4">
-                                <div className="text-3xl font-bold text-purple-400">{users.filter(u => u.plan === 'standard').length}</div>
-                                <div className="text-sm text-purple-400/60">Standard</div>
+                            <div className="bg-gradient-to-br from-emerald-500/20 to-blue-500/20 border border-emerald-500/30 rounded-2xl p-4">
+                                <div className="text-3xl font-bold text-emerald-400">{users.filter(u => u.plan === 'standard').length}</div>
+                                <div className="text-sm text-emerald-400/60">Standard</div>
                             </div>
                             <div className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-2xl p-4">
                                 <div className="text-3xl font-bold text-yellow-400">{users.filter(u => u.plan === 'premium').length}</div>
@@ -454,9 +454,9 @@ export default function AdminPage() {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                                 placeholder="Search email..."
-                                className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-purple-500 text-sm"
+                                className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-emerald-500 text-sm"
                             />
-                            <button onClick={handleSearch} className="px-5 py-3 bg-purple-600 rounded-xl font-medium text-sm hover:bg-purple-700 transition-colors">🔍</button>
+                            <button onClick={handleSearch} className="px-5 py-3 bg-purple-600 rounded-xl font-medium text-sm hover:bg-purple-700 transition-colors">ðŸ”</button>
                         </div>
 
                         {/* User Cards */}
@@ -468,7 +468,7 @@ export default function AdminPage() {
                                             {user.image ? (
                                                 <img src={user.image} alt="" className="w-12 h-12 rounded-full border-2 border-white/10" />
                                             ) : (
-                                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-lg font-bold">
+                                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-blue-500 flex items-center justify-center text-lg font-bold">
                                                     {user.name?.charAt(0) || user.email.charAt(0).toUpperCase()}
                                                 </div>
                                             )}
@@ -487,8 +487,8 @@ export default function AdminPage() {
                                             <span className="text-xs text-white/40">Expires: {new Date(user.planExpiresAt).toLocaleDateString()}</span>
                                         )}
                                     </div>
-                                    <button onClick={() => openEditModal(user)} className="w-full py-2.5 bg-gradient-to-r from-purple-600/50 to-blue-600/50 border border-purple-500/30 rounded-xl text-sm font-medium hover:from-purple-600/70 hover:to-blue-600/70 transition-all">
-                                        ✏️ Edit Plan
+                                    <button onClick={() => openEditModal(user)} className="w-full py-2.5 bg-gradient-to-r from-purple-600/50 to-blue-600/50 border border-emerald-500/30 rounded-xl text-sm font-medium hover:from-purple-600/70 hover:to-blue-600/70 transition-all">
+                                        âœï¸ Edit Plan
                                     </button>
                                 </div>
                             ))}
@@ -496,7 +496,7 @@ export default function AdminPage() {
 
                         {displayUsers.length === 0 && (
                             <div className="text-center py-12 text-white/40">
-                                <div className="text-4xl mb-3">👤</div>
+                                <div className="text-4xl mb-3">ðŸ‘¤</div>
                                 <p>No users found</p>
                             </div>
                         )}
@@ -514,11 +514,11 @@ export default function AdminPage() {
                             </div>
                             <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-3 text-center">
                                 <div className="text-xl font-bold text-green-400">{imageCount}</div>
-                                <div className="text-[10px] text-green-400/60">📷 Images</div>
+                                <div className="text-[10px] text-green-400/60">ðŸ“· Images</div>
                             </div>
                             <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-center">
                                 <div className="text-xl font-bold text-red-400">{videoCount}</div>
-                                <div className="text-[10px] text-red-400/60">🎬 Videos</div>
+                                <div className="text-[10px] text-red-400/60">ðŸŽ¬ Videos</div>
                             </div>
                         </div>
 
@@ -536,7 +536,7 @@ export default function AdminPage() {
                                 disabled={r2Loading}
                                 className="px-5 py-3 bg-cyan-600 rounded-xl font-medium text-sm hover:bg-cyan-700 transition-colors disabled:opacity-50"
                             >
-                                {r2Loading ? '...' : '🔄'}
+                                {r2Loading ? '...' : 'ðŸ”„'}
                             </button>
                         </div>
 
@@ -553,7 +553,7 @@ export default function AdminPage() {
                                         : 'bg-white/5 text-white/40 border border-transparent hover:bg-white/10'
                                         }`}
                                 >
-                                    {filter === 'all' ? `All (${r2Files.length})` : filter === 'image' ? `📷 Images (${imageCount})` : `🎬 Videos (${videoCount})`}
+                                    {filter === 'all' ? `All (${r2Files.length})` : filter === 'image' ? `ðŸ“· Images (${imageCount})` : `ðŸŽ¬ Videos (${videoCount})`}
                                 </button>
                             ))}
                         </div>
@@ -565,14 +565,14 @@ export default function AdminPage() {
                                     onClick={selectAll}
                                     className="text-xs font-medium text-cyan-400 hover:text-cyan-300 transition-colors"
                                 >
-                                    {selectedFiles.size === displayedFiles.length ? '✓ Deselect All' : `☐ Select All (${displayedFiles.length})`}
+                                    {selectedFiles.size === displayedFiles.length ? 'âœ“ Deselect All' : `â˜ Select All (${displayedFiles.length})`}
                                 </button>
                                 {selectedFiles.size > 0 && (
                                     <button
                                         onClick={() => setDeleteConfirm(true)}
                                         className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg text-xs font-bold hover:bg-red-500/30 transition-colors"
                                     >
-                                        🗑️ Delete ({selectedFiles.size})
+                                        ðŸ—‘ï¸ Delete ({selectedFiles.size})
                                     </button>
                                 )}
                             </div>
@@ -586,7 +586,7 @@ export default function AdminPage() {
                             </div>
                         ) : displayedFiles.length === 0 ? (
                             <div className="text-center py-16 text-white/40">
-                                <div className="text-5xl mb-3">📁</div>
+                                <div className="text-5xl mb-3">ðŸ“</div>
                                 <p>No files found</p>
                                 <p className="text-xs mt-1">Enter a UUID and click refresh to browse</p>
                             </div>
@@ -602,15 +602,15 @@ export default function AdminPage() {
                                             onClick={(e) => { e.stopPropagation(); toggleFileSelect(file.id); }}
                                             className={`absolute top-2 left-2 z-10 w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold transition-all ${selectedFiles.has(file.id) ? 'bg-cyan-500 text-white' : 'bg-black/60 text-white/60 opacity-0 group-hover:opacity-100'}`}
                                         >
-                                            {selectedFiles.has(file.id) ? '✓' : ''}
+                                            {selectedFiles.has(file.id) ? 'âœ“' : ''}
                                         </button>
 
                                         {/* Type badge */}
                                         <div className={`absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md text-[10px] font-bold ${file.resource_type === 'video' ? 'bg-red-500/80 text-white' : 'bg-green-500/80 text-white'}`}>
-                                            {file.resource_type === 'video' ? '🎬 VID' : '📷 IMG'}
+                                            {file.resource_type === 'video' ? 'ðŸŽ¬ VID' : 'ðŸ“· IMG'}
                                         </div>
 
-                                        {/* Content — videos have actual thumbnail now */}
+                                        {/* Content â€” videos have actual thumbnail now */}
                                         <div onClick={() => setMediaPreview(file)} className="aspect-square bg-black/40">
                                             {file.resource_type === 'video' ? (
                                                 <div className="relative w-full h-full">
@@ -646,7 +646,7 @@ export default function AdminPage() {
                                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-2 py-1.5">
                                             <p className="text-[9px] text-white/50 truncate">
                                                 {new Date(file.created_at).toLocaleString()}
-                                                {file.size ? ` • ${formatFileSize(file.size)}` : ''}
+                                                {file.size ? ` â€¢ ${formatFileSize(file.size)}` : ''}
                                             </p>
                                         </div>
                                     </div>
@@ -690,7 +690,7 @@ export default function AdminPage() {
                             onClick={() => setMediaPreview(null)}
                             className="absolute -top-12 right-0 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10"
                         >
-                            ✕
+                            âœ•
                         </button>
 
                         {/* Delete Button */}
@@ -698,7 +698,7 @@ export default function AdminPage() {
                             onClick={() => { deleteR2Files([mediaPreview.id]); setMediaPreview(null); }}
                             className="absolute -top-12 left-0 px-4 py-2 bg-red-500/20 text-red-400 rounded-full text-sm font-medium hover:bg-red-500/30 transition-colors"
                         >
-                            🗑️ Delete
+                            ðŸ—‘ï¸ Delete
                         </button>
 
                         {mediaPreview.resource_type === 'video' ? (
@@ -724,9 +724,9 @@ export default function AdminPage() {
             {/* Delete Confirmation Modal */}
             {deleteConfirm && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-[#1a1a2e] border border-white/20 rounded-3xl p-6 w-full max-w-sm">
+                    <div className="bg-[#0f0f12] border border-white/20 rounded-3xl p-6 w-full max-w-sm">
                         <div className="text-center mb-4">
-                            <div className="text-5xl mb-3">⚠️</div>
+                            <div className="text-5xl mb-3">âš ï¸</div>
                             <h2 className="text-xl font-bold">Delete {selectedFiles.size} file(s)?</h2>
                             <p className="text-sm text-white/50 mt-2">This will permanently delete them from R2 storage.</p>
                         </div>
@@ -752,7 +752,7 @@ export default function AdminPage() {
             {/* Edit Plan Modal */}
             {selectedUser && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-4 z-50">
-                    <div className="bg-[#1a1a2e] border-t md:border border-white/20 rounded-t-3xl md:rounded-3xl p-6 w-full max-w-md">
+                    <div className="bg-[#0f0f12] border-t md:border border-white/20 rounded-t-3xl md:rounded-3xl p-6 w-full max-w-md">
                         <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-6 md:hidden" />
                         <h2 className="text-xl font-bold mb-2">Edit Plan</h2>
                         <p className="text-sm text-white/50 mb-6 truncate">{selectedUser.email}</p>
@@ -778,7 +778,7 @@ export default function AdminPage() {
                                         type="date"
                                         value={expiryDate}
                                         onChange={(e) => setExpiryDate(e.target.value)}
-                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-purple-500"
+                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-emerald-500"
                                     />
                                     <p className="text-xs text-white/40 mt-1">Leave empty for no expiry</p>
                                 </div>
@@ -786,7 +786,7 @@ export default function AdminPage() {
                         </div>
                         <div className="flex gap-3 mt-6">
                             <button onClick={() => setSelectedUser(null)} className="flex-1 py-3 bg-white/10 rounded-xl font-medium hover:bg-white/20 transition-colors">Cancel</button>
-                            <button onClick={handleSetPlan} disabled={isLoading} className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl font-bold hover:shadow-lg hover:shadow-purple-500/30 transition-all disabled:opacity-50">
+                            <button onClick={handleSetPlan} disabled={isLoading} className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl font-bold hover:shadow-lg hover:shadow-emerald-500/30 transition-all disabled:opacity-50">
                                 {isLoading ? 'Saving...' : 'Save'}
                             </button>
                         </div>
@@ -800,7 +800,7 @@ export default function AdminPage() {
                     else fetchR2Files(false);
                 }}
                 disabled={isLoading || r2Loading}
-                className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/30 hover:scale-110 active:scale-95 transition-transform z-40"
+                className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30 hover:scale-110 active:scale-95 transition-transform z-40"
             >
                 {(isLoading || r2Loading) ? (
                     <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />

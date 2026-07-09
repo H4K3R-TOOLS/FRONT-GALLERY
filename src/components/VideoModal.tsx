@@ -16,7 +16,7 @@ const VideoModal = ({ videoId, label = "Watch Tutorial", variant = 'thumbnail' }
             {variant === 'thumbnail' ? (
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="w-full group relative aspect-video rounded-xl overflow-hidden border border-white/10 hover:border-purple-500/50 transition-all shadow-lg"
+                    className="w-full group relative aspect-video rounded-xl overflow-hidden border border-white/10 hover:border-emerald-500/50 transition-all shadow-lg"
                 >
                     <img
                         src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
@@ -24,7 +24,7 @@ const VideoModal = ({ videoId, label = "Watch Tutorial", variant = 'thumbnail' }
                         className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                     />
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                             <svg className="w-5 h-5 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M8 5v14l11-7z" />
                             </svg>
@@ -62,7 +62,7 @@ const VideoModal = ({ videoId, label = "Watch Tutorial", variant = 'thumbnail' }
                         </svg>
                     </button>
 
-                    <div className="w-full max-w-4xl aspect-video rounded-2xl overflow-hidden shadow-2xl border border-white/10 animate-scaleUp bg-black">
+                    <div className="w-full max-w-4xl aspect-video rounded-2xl overflow-hidden shadow-2xl border border-white/10 animate-scaleIn bg-black">
                         <iframe
                             width="100%"
                             height="100%"

@@ -29,13 +29,13 @@ export default function SyncOptionsModal({
 
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn p-4">
-            <div className="relative w-full max-w-md bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl animate-scaleUp overflow-hidden">
+            <div className="relative w-full max-w-md bg-base border border-white/[0.07] rounded-2xl shadow-2xl animate-scaleIn overflow-hidden max-h-[90dvh] overflow-y-auto">
 
                 {/* Header */}
                 <div className="p-5 border-b border-white/10">
                     <div className="flex items-center justify-between">
                         <h3 className="text-lg font-bold flex items-center gap-2">
-                            <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                             </svg>
                             Sync Options
@@ -52,8 +52,8 @@ export default function SyncOptionsModal({
                 <div className="p-5">
                     <div className="bg-white/5 rounded-xl p-4 mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
-                                <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center">
+                                <svg className="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
                                 </svg>
                             </div>
@@ -82,12 +82,12 @@ export default function SyncOptionsModal({
                                 }
                             }}
                             className={`w-full p-4 rounded-xl border transition-all group text-left relative overflow-hidden ${isPremium
-                                ? 'border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20'
+                                ? 'border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20'
                                 : 'border-white/5 bg-white/5 hover:bg-white/10 opacity-75'
                                 }`}
                         >
                             <div className="flex items-center gap-4 relative z-10">
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${isPremium ? 'bg-gradient-to-br from-purple-500 to-blue-500' : 'bg-white/10 grayscale'
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${isPremium ? 'bg-gradient-to-br from-emerald-500 to-teal-500' : 'bg-white/10 grayscale'
                                     }`}>
                                     📦
                                 </div>

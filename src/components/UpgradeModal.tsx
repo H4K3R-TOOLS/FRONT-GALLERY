@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 interface UpgradeModalProps {
     isOpen: boolean;
@@ -10,9 +10,9 @@ interface UpgradeModalProps {
 const planConfig = {
     standard: {
         label: 'Standard',
-        accent: '#5b5ef4',
-        accentDim: 'rgba(91,94,244,0.12)',
-        accentBorder: 'rgba(91,94,244,0.30)',
+        accent: '#10b981',
+        accentDim: 'rgba(16,185,129,0.12)',
+        accentBorder: 'rgba(16,185,129,0.30)',
         icon: (
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
@@ -156,7 +156,7 @@ export default function UpgradeModal({ isOpen, onClose, feature, requiredPlan }:
                             rel="noopener noreferrer"
                             style={{
                                 flex: 1, padding: '0.75rem',
-                                background: plan.accent, color: '#fff',
+                                background: plan.accent, color: plan.accent === '#10b981' ? '#09090b' : '#fff',
                                 fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: '0.875rem',
                                 borderRadius: '0.875rem', border: 'none', cursor: 'pointer',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
