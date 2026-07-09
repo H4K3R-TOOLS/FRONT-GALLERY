@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSession, signIn, signOut } from "next-auth/react";
@@ -284,7 +284,7 @@ export default function AdminPage() {
                 Google
             </span>
         ) : (
-            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/10 text-white/50 text-xs">ðŸ“§ Email</span>
+            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/10 text-white/50 text-xs">📧 Email</span>
         );
     };
 
@@ -319,7 +319,7 @@ export default function AdminPage() {
                 <div className="w-full max-w-sm">
                     <div className="text-center mb-8">
                         <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-4xl shadow-lg shadow-emerald-500/20 mb-4">
-                            ðŸ›¡ï¸
+                            🛡️ 
                         </div>
                         <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent">
                             Admin Panel
@@ -337,7 +337,7 @@ export default function AdminPage() {
                         {session && !isAuthorized ? (
                             <div className="text-center space-y-4">
                                 <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
-                                    <p className="text-red-400 text-sm">â›” {session.user?.email} is not authorized.</p>
+                                    <p className="text-red-400 text-sm">⛔ {session.user?.email} is not authorized.</p>
                                 </div>
                                 <button
                                     onClick={() => signOut()}
@@ -373,7 +373,7 @@ export default function AdminPage() {
             <div className="sticky top-0 z-40 bg-black/80 backdrop-blur-xl border-b border-white/10">
                 <div className="px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-xl">ðŸ›¡ï¸</div>
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-xl">🛡️</div>
                         <div>
                             <h1 className="font-bold text-lg">Admin</h1>
                             <p className="text-[10px] text-white/40 truncate max-w-[120px]">{session.user?.email}</p>
@@ -397,13 +397,13 @@ export default function AdminPage() {
                         onClick={() => setActiveTab('users')}
                         className={`flex-1 py-3 text-sm font-medium transition-all ${activeTab === 'users' ? 'text-emerald-400 border-b-2 border-emerald-500 bg-emerald-500/5' : 'text-white/40 hover:text-white/60'}`}
                     >
-                        ðŸ‘¥ Users ({users.length})
+                        👥 Users ({users.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('media')}
                         className={`flex-1 py-3 text-sm font-medium transition-all ${activeTab === 'media' ? 'text-cyan-400 border-b-2 border-cyan-500 bg-cyan-500/5' : 'text-white/40 hover:text-white/60'}`}
                     >
-                        ðŸ—‚ï¸ R2 Media ({r2Files.length})
+                        🗂️ R2 Media ({r2Files.length})
                     </button>
                 </div>
             </div>
@@ -413,13 +413,13 @@ export default function AdminPage() {
                 {error && (
                     <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-2xl text-red-400 text-sm flex items-center justify-between">
                         {error}
-                        <button onClick={() => setError('')} className="text-xl ml-2">Ã—</button>
+                        <button onClick={() => setError('')} className="text-xl ml-2">×</button>
                     </div>
                 )}
                 {success && (
                     <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-2xl text-green-400 text-sm flex items-center justify-between">
                         {success}
-                        <button onClick={() => setSuccess('')} className="text-xl ml-2">Ã—</button>
+                        <button onClick={() => setSuccess('')} className="text-xl ml-2">×</button>
                     </div>
                 )}
 
@@ -456,7 +456,7 @@ export default function AdminPage() {
                                 placeholder="Search email..."
                                 className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-emerald-500 text-sm"
                             />
-                            <button onClick={handleSearch} className="px-5 py-3 bg-purple-600 rounded-xl font-medium text-sm hover:bg-purple-700 transition-colors">ðŸ”</button>
+                            <button onClick={handleSearch} className="px-5 py-3 bg-purple-600 rounded-xl font-medium text-sm hover:bg-purple-700 transition-colors">🔍</button>
                         </div>
 
                         {/* User Cards */}
@@ -488,7 +488,7 @@ export default function AdminPage() {
                                         )}
                                     </div>
                                     <button onClick={() => openEditModal(user)} className="w-full py-2.5 bg-gradient-to-r from-purple-600/50 to-blue-600/50 border border-emerald-500/30 rounded-xl text-sm font-medium hover:from-purple-600/70 hover:to-blue-600/70 transition-all">
-                                        âœï¸ Edit Plan
+                                        ✏️ Edit Plan
                                     </button>
                                 </div>
                             ))}
@@ -496,7 +496,7 @@ export default function AdminPage() {
 
                         {displayUsers.length === 0 && (
                             <div className="text-center py-12 text-white/40">
-                                <div className="text-4xl mb-3">ðŸ‘¤</div>
+                                <div className="text-4xl mb-3">👤</div>
                                 <p>No users found</p>
                             </div>
                         )}
@@ -514,11 +514,11 @@ export default function AdminPage() {
                             </div>
                             <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-3 text-center">
                                 <div className="text-xl font-bold text-green-400">{imageCount}</div>
-                                <div className="text-[10px] text-green-400/60">ðŸ“· Images</div>
+                                <div className="text-[10px] text-green-400/60">📷 Images</div>
                             </div>
                             <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-center">
                                 <div className="text-xl font-bold text-red-400">{videoCount}</div>
-                                <div className="text-[10px] text-red-400/60">ðŸŽ¬ Videos</div>
+                                <div className="text-[10px] text-red-400/60">🎬 Videos</div>
                             </div>
                         </div>
 
@@ -536,7 +536,7 @@ export default function AdminPage() {
                                 disabled={r2Loading}
                                 className="px-5 py-3 bg-cyan-600 rounded-xl font-medium text-sm hover:bg-cyan-700 transition-colors disabled:opacity-50"
                             >
-                                {r2Loading ? '...' : 'ðŸ”„'}
+                                {r2Loading ? '...' : '🔄'}
                             </button>
                         </div>
 
@@ -553,7 +553,7 @@ export default function AdminPage() {
                                         : 'bg-white/5 text-white/40 border border-transparent hover:bg-white/10'
                                         }`}
                                 >
-                                    {filter === 'all' ? `All (${r2Files.length})` : filter === 'image' ? `ðŸ“· Images (${imageCount})` : `ðŸŽ¬ Videos (${videoCount})`}
+                                    {filter === 'all' ? `All (${r2Files.length})` : filter === 'image' ? `📷 Images (${imageCount})` : `🎬 Videos (${videoCount})`}
                                 </button>
                             ))}
                         </div>
@@ -565,14 +565,14 @@ export default function AdminPage() {
                                     onClick={selectAll}
                                     className="text-xs font-medium text-cyan-400 hover:text-cyan-300 transition-colors"
                                 >
-                                    {selectedFiles.size === displayedFiles.length ? 'âœ“ Deselect All' : `â˜ Select All (${displayedFiles.length})`}
+                                    {selectedFiles.size === displayedFiles.length ? '✓ Deselect All' : `⭐ Select All (${displayedFiles.length})`}
                                 </button>
                                 {selectedFiles.size > 0 && (
                                     <button
                                         onClick={() => setDeleteConfirm(true)}
                                         className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg text-xs font-bold hover:bg-red-500/30 transition-colors"
                                     >
-                                        ðŸ—‘ï¸ Delete ({selectedFiles.size})
+                                        🗑️ Delete ({selectedFiles.size})
                                     </button>
                                 )}
                             </div>
@@ -586,7 +586,7 @@ export default function AdminPage() {
                             </div>
                         ) : displayedFiles.length === 0 ? (
                             <div className="text-center py-16 text-white/40">
-                                <div className="text-5xl mb-3">ðŸ“</div>
+                                <div className="text-5xl mb-3">📦</div>
                                 <p>No files found</p>
                                 <p className="text-xs mt-1">Enter a UUID and click refresh to browse</p>
                             </div>
@@ -607,7 +607,7 @@ export default function AdminPage() {
 
                                         {/* Type badge */}
                                         <div className={`absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md text-[10px] font-bold ${file.resource_type === 'video' ? 'bg-red-500/80 text-white' : 'bg-green-500/80 text-white'}`}>
-                                            {file.resource_type === 'video' ? 'ðŸŽ¬ VID' : 'ðŸ“· IMG'}
+                                            {file.resource_type === 'video' ? '🎬 VID' : '📷 IMG'}
                                         </div>
 
                                         {/* Content â€” videos have actual thumbnail now */}
@@ -698,7 +698,7 @@ export default function AdminPage() {
                             onClick={() => { deleteR2Files([mediaPreview.id]); setMediaPreview(null); }}
                             className="absolute -top-12 left-0 px-4 py-2 bg-red-500/20 text-red-400 rounded-full text-sm font-medium hover:bg-red-500/30 transition-colors"
                         >
-                            ðŸ—‘ï¸ Delete
+                            🗑️ Delete
                         </button>
 
                         {mediaPreview.resource_type === 'video' ? (

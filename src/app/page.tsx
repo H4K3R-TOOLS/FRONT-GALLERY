@@ -1763,7 +1763,7 @@ END:VCARD`;
             {/* Main Content Area */}
             <main className="flex-1 h-full w-full relative transition-all duration-300">
                 {(!selectedTool || selectedTool !== 'gallery') && (
-                    <div className="flex flex-col items-center justify-center w-full h-full text-center p-8 mt-16">
+                    <div className="flex flex-col items-center justify-center w-full min-h-[70vh] text-center p-8 pt-32">
                         <div className="w-24 h-24 rounded-full neo-pressed flex items-center justify-center mb-6 shadow-accent-glow animate-pulse-soft">
                             <span className="text-4xl font-bold text-accent">GE</span>
                         </div>
