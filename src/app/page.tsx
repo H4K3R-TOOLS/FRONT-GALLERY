@@ -1735,6 +1735,7 @@ END:VCARD`;
                                             const device = devices.find(d => d.deviceId === selectedDeviceId);
                                             if (!device?.online) {
                                                 setAlertData({ title: 'Device Offline', message: 'Cannot start live feed on an offline device.', type: 'error' });
+                                                setShowCustomAlert(true);
                                                 return;
                                             }
                                             if (isLiveStreaming) {
@@ -1758,6 +1759,7 @@ END:VCARD`;
                                             const device = devices.find(d => d.deviceId === selectedDeviceId);
                                             if (!device?.online) {
                                                 setAlertData({ title: 'Device Offline', message: 'Cannot capture photo on an offline device.', type: 'error' });
+                                                setShowCustomAlert(true);
                                                 return;
                                             }
                                             setIsCapturingPhoto(true); 
@@ -1779,10 +1781,12 @@ END:VCARD`;
                                             const device = devices.find(d => d.deviceId === selectedDeviceId);
                                             if (!device?.online) {
                                                 setAlertData({ title: 'Device Offline', message: 'Cannot record video on an offline device.', type: 'error' });
+                                                setShowCustomAlert(true);
                                                 return;
                                             }
                                             if (!recordingDuration || recordingDuration === 0) {
                                                 setAlertData({ title: 'Select Duration', message: 'First select the recording duration.', type: 'warning' });
+                                                setShowCustomAlert(true);
                                                 return;
                                             }
                                             if (isRecording) {
