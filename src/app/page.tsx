@@ -30,51 +30,6 @@ interface PlanLimits {
 
 export default function Home() {
     const { data: session, status } = useSession();
-
-    // Tool configuration helper mapping
-    const toolDetails: Record<string, { label: string; icon: React.ReactNode; color: string }> = useMemo(() => ({
-        gallery: {
-            label: 'Gallery',
-            color: '#818cf8',
-            icon: <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-        },
-        camera: {
-            label: 'Camera',
-            color: '#f472b6',
-            icon: <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-        },
-        audio: {
-            label: 'Audio',
-            color: '#10b981',
-            icon: <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
-        },
-        notifications: {
-            label: 'Alerts',
-            color: '#22d3ee',
-            icon: <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-        },
-        contacts: {
-            label: 'Contacts',
-            color: '#10b981',
-            icon: <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-        },
-        sms: {
-            label: 'SMS',
-            color: '#38bdf8',
-            icon: <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
-        },
-        torch: {
-            label: 'Flashlight',
-            color: '#f59e0b',
-            icon: <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-        },
-        vibration: {
-            label: 'Vibration',
-            color: '#fb923c',
-            icon: <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-        }
-    }), []);
-
     const [images, setImages] = useState<any[]>([]);
     const [galleryPage, setGalleryPage] = useState(1);
     const [galleryHasMore, setGalleryHasMore] = useState(true);
@@ -105,7 +60,6 @@ export default function Home() {
     const [devices, setDevices] = useState<any[]>([]);
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
     const [isDeviceDropdownOpen, setIsDeviceDropdownOpen] = useState(false);
-    const selectedDevice = devices.find(d => d.deviceId === selectedDeviceId);
 
     // Initialize state from localStorage after mount to avoid hydration mismatch
     useEffect(() => {
@@ -208,6 +162,9 @@ export default function Home() {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [devicePermissions, setDevicePermissions] = useState<any>(null);
 
+    // Profile Menu State (Mobile)
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
     // Camera State
     const [cameraMode, setCameraMode] = useState<'front' | 'back'>('back');
     const [isCapturingPhoto, setIsCapturingPhoto] = useState(false);
@@ -274,6 +231,21 @@ export default function Home() {
         setUpgradeFeature(feature);
         setRequiredPlan(required);
         setShowUpgradeModal(true);
+    };
+
+    // 3D tilt effect for tool cards
+    const handle3DTilt = (e: React.MouseEvent<HTMLElement>) => {
+        const inner = e.currentTarget.querySelector('[data-tilt-inner]') as HTMLElement;
+        if (!inner) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+        const y = ((e.clientY - rect.top) / rect.height - 0.5) * -2;
+        inner.style.transform = `perspective(800px) rotateY(${x * 8}deg) rotateX(${y * 8}deg) translateZ(8px)`;
+    };
+
+    const reset3DTilt = (e: React.MouseEvent<HTMLElement>) => {
+        const inner = e.currentTarget.querySelector('[data-tilt-inner]') as HTMLElement;
+        if (inner) inner.style.transform = 'perspective(800px) rotateY(0deg) rotateX(0deg) translateZ(0px)';
     };
 
     // Fetch user plan on authentication
@@ -1343,7 +1315,7 @@ END:VCARD`;
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>
                     <div style={{
                         width: 48, height: 48, borderRadius: '50%',
-                        border: '2px solid rgba(91,94,244,0.2)',
+                        border: '2px solid rgba(59,130,246,0.2)',
                         borderTopColor: 'var(--accent)',
                         animation: 'spin 1s linear infinite',
                     }} />
@@ -1358,39 +1330,45 @@ END:VCARD`;
     const onlineDeviceCount = devices.filter(d => d.online).length;
 
     return (
-        <main className="min-h-[100dvh] pb-24" style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}>
+        <main className="min-h-[100dvh] pb-8 sm:pb-8" style={{ background: 'var(--bg-base)', color: 'var(--text-primary)', paddingBottom: 'max(2rem, calc(var(--tab-bar-height) + env(safe-area-inset-bottom, 0px) + 16px))' }}>
             {/* Ambient background orbs */}
             <div style={{ position: 'fixed', inset: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
                 <div style={{
                     position: 'absolute', top: '-8%', left: '-8%', width: '45%', height: '45%',
-                    background: 'radial-gradient(circle, rgba(91,94,244,0.12) 0%, transparent 70%)',
+                    background: 'radial-gradient(circle, rgba(59,130,246,0.10) 0%, transparent 70%)',
                     filter: 'blur(80px)', borderRadius: '50%',
                 }} />
                 <div style={{
                     position: 'absolute', bottom: '-8%', right: '-8%', width: '40%', height: '40%',
-                    background: 'radial-gradient(circle, rgba(34,211,238,0.08) 0%, transparent 70%)',
+                    background: 'radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 70%)',
                     filter: 'blur(80px)', borderRadius: '50%',
                 }} />
+                <div style={{
+                    position: 'absolute', top: '30%', right: '-5%', width: '35%', height: '35%',
+                    background: 'radial-gradient(circle, rgba(139,92,246,0.04) 0%, transparent 70%)',
+                    filter: 'blur(120px)', borderRadius: '50%',
+                }} />
             </div>
-                    {/* Navbar — floating glass pill */}
+
+            {/* Navbar — floating glass pill */}
             <nav style={{
                 position: 'sticky', top: 0, zIndex: 'var(--z-sticky)' as any,
-                padding: '0.5rem 0.75rem',
+                padding: '0.75rem 1rem',
                 transition: 'all 0.3s cubic-bezier(0.32,0.72,0,1)',
             }}>
                 <div style={{
                     maxWidth: 1280, margin: '0 auto',
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '0.5rem 0.75rem',
-                    background: isScrolled ? 'rgba(10,10,15,0.88)' : 'rgba(18,18,26,0.60)',
-                    backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-                    border: '1px solid var(--border-normal)',
-                    borderRadius: '1.25rem',
-                    boxShadow: isScrolled ? 'var(--shadow-md)' : 'none',
+                    padding: '0.625rem 1rem',
+                    background: isScrolled ? 'rgba(10,10,10,0.88)' : 'rgba(17,17,17,0.60)',
+                    backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '9999px',
+                    boxShadow: isScrolled ? '0 4px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)' : 'none',
                     transition: 'background 0.3s cubic-bezier(0.32,0.72,0,1), box-shadow 0.3s cubic-bezier(0.32,0.72,0,1)',
                 }}>
                     {/* Left — Logo + Plan */}
-                    <div className="flex items-center gap-2">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
                         <button
                             onClick={() => {
                                 setIsSettingsOpen(true);
@@ -1399,9 +1377,17 @@ END:VCARD`;
                                 setShowAppModal(false);
                             }}
                             title="Settings & Permission Check"
-                            className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 active:scale-95 transition-transform"
+                            style={{
+                                width: 36, height: 36, borderRadius: '0.75rem',
+                                background: 'var(--accent-dim)', border: '1px solid rgba(59,130,246,0.35)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                cursor: 'pointer', color: '#60a5fa',
+                                transition: 'transform 0.2s cubic-bezier(0.32,0.72,0,1), background 0.2s',
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.05)')}
+                            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
                         >
-                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </button>
                         <PlanBadge plan={userPlan} onClick={() => {
                             setShowPlansModal(true);
@@ -1409,12 +1395,15 @@ END:VCARD`;
                             setIsToolDropdownOpen(false);
                             setIsSettingsOpen(false);
                         }} />
-                        <span className="font-bold text-sm tracking-tight text-white hidden xs:block">Gallery Eye</span>
+                        <span style={{
+                            fontWeight: 700, fontSize: '1rem', letterSpacing: '-0.025em',
+                            color: 'var(--text-primary)',
+                        }} className="hidden sm:block">Gallery Eye</span>
                     </div>
 
-                    {/* Right — Active actions on both mobile and desktop */}
-                    <div className="flex items-center gap-1.5">
-                        {/* 4-Dot Tools Popup Trigger */}
+                    {/* Right — Tools + Device + Actions (Hidden on Mobile) */}
+                    <div className="hidden sm:flex items-center gap-2">
+                        {/* Tools Selector */}
                         <button
                             onClick={() => {
                                 setIsToolDropdownOpen(prev => !prev);
@@ -1422,13 +1411,30 @@ END:VCARD`;
                                 setIsSettingsOpen(false);
                                 setShowAppModal(false);
                             }}
-                            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${isToolDropdownOpen ? 'bg-indigo-600 text-white shadow-[0_0_12px_rgba(99,102,241,0.4)] border border-indigo-500/20' : 'bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 active:scale-95'}`}
-                            title="All Tools"
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: '0.375rem',
+                                padding: '0.5rem 0.75rem',
+                                background: 'var(--bg-elevated)', border: '1px solid var(--border-normal)',
+                                borderRadius: '0.75rem', cursor: 'pointer',
+                                color: 'var(--text-secondary)',
+                                transition: 'background 0.2s cubic-bezier(0.32,0.72,0,1)',
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-overlay)')}
+                            onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-elevated)')}
                         >
-                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                            {selectedTool === 'gallery' && <svg style={{ color: '#818cf8' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>}
+                            {selectedTool === 'sms' && <svg style={{ color: '#38bdf8' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>}
+                            {selectedTool === 'contacts' && <svg style={{ color: '#10b981' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>}
+                            {selectedTool === 'torch' && <svg style={{ color: '#f59e0b' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>}
+                            {selectedTool === 'vibration' && <svg style={{ color: '#fb923c' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>}
+                            {selectedTool === 'camera' && <svg style={{ color: '#f472b6' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>}
+                            {selectedTool === 'notifications' && <svg style={{ color: '#22d3ee' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>}
+                            {selectedTool === 'audio' && <svg style={{ color: '#10b981' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>}
+                            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>Tools</span>
+                            <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
 
-                        {/* Device Selector (Mobile & Desktop) */}
+                        {/* Device Selector */}
                         <button
                             onClick={() => {
                                 setIsDeviceDropdownOpen(prev => !prev);
@@ -1436,18 +1442,27 @@ END:VCARD`;
                                 setIsSettingsOpen(false);
                                 setShowAppModal(false);
                             }}
-                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border active:scale-95 transition-all max-w-[140px] xs:max-w-[180px] sm:max-w-none ${isDeviceDropdownOpen ? 'bg-indigo-600/10 border-indigo-500/30 text-indigo-400' : 'bg-white/5 border border-white/10 text-white/70 hover:bg-white/10'}`}
-                            title="Select Target Device"
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: '0.375rem',
+                                padding: '0.5rem 0.75rem',
+                                background: 'var(--bg-elevated)', border: '1px solid var(--border-normal)',
+                                borderRadius: '0.75rem', cursor: 'pointer',
+                                color: 'var(--text-secondary)',
+                                transition: 'background 0.2s cubic-bezier(0.32,0.72,0,1)',
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-overlay)')}
+                            onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-elevated)')}
                         >
-                            <svg className="w-3.5 h-3.5 opacity-80 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                            <span className="text-[11px] font-semibold truncate leading-none">
-                                {selectedDevice ? selectedDevice.name : 'Select Device'}
-                            </span>
-                            <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${selectedDevice?.online ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]' : 'bg-rose-400'}`} />
-                            <svg className="w-3 h-3 opacity-60 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                            <div style={{
+                                width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
+                                background: onlineDeviceCount > 0 ? 'var(--emerald)' : 'var(--rose)',
+                                ...(onlineDeviceCount > 0 ? { animation: 'pulse-online 2s infinite' } : {}),
+                            }} />
+                            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>Device</span>
+                            <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
 
-                        {/* App Builder / Download App */}
+                        {/* Download App */}
                         <button
                             onClick={() => {
                                 setShowAppModal(true);
@@ -1455,101 +1470,92 @@ END:VCARD`;
                                 setIsToolDropdownOpen(false);
                                 setIsSettingsOpen(false);
                             }}
-                            className="flex items-center justify-center w-9 h-9 rounded-xl bg-indigo-600 text-white hover:bg-indigo-500 active:scale-95 transition-all"
-                            title="Build / Download APK"
+                            style={{
+                                padding: '0.5rem 0.875rem',
+                                background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', color: '#fff',
+                                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                                fontWeight: 600, fontSize: '0.8125rem',
+                                borderRadius: '0.75rem', border: 'none', cursor: 'pointer',
+                                transition: 'transform 0.2s cubic-bezier(0.32,0.72,0,1), opacity 0.2s',
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.opacity = '0.88')}
+                            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
                         >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v12m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            <span className="hidden sm:inline">Download App</span>
+                            <span className="sm:hidden">App</span>
                         </button>
 
-                        {/* Support Button (WhatsApp link) */}
-                        <a
-                            href="https://wa.me/923460257488?text=Hello%2C%20I%20need%20help%20with%20GalleryEye."
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 hover:bg-emerald-500/20 active:scale-95 transition-all"
-                            title="Support Chat"
-                        >
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.008-.57-.008-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                            </svg>
-                        </a>
-
-                        {/* Logout Button */}
+                        <div style={{ width: 1, height: 20, background: 'var(--border-subtle)' }} className="hidden sm:block" />
+                        <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', fontWeight: 500 }} className="hidden md:block">{session?.user?.name}</span>
                         <button
                             onClick={() => signOut()}
-                            className="w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 hover:bg-red-500/20 active:scale-95 transition-all"
-                            title="Logout"
-                        >
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                        </button>
+                            style={{
+                                fontSize: '0.8125rem', color: 'var(--rose)', fontWeight: 500,
+                                background: 'none', border: 'none', cursor: 'pointer',
+                                transition: 'opacity 0.2s',
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.opacity = '0.7')}
+                            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+                        >Logout</button>
                     </div>
                 </div>
             </nav>
 
-            <div className="relative max-w-7xl mx-auto px-4 md:px-6 py-8 content-safe">
+            <div className="relative max-w-7xl mx-auto px-4 md:px-6 py-8">
 
                 {/* Remote Control Section */}
                 <div className="mb-12">
 
                     {/* Show Welcome Screen when no device is selected */}
                     {!selectedDeviceId && devices.filter(d => d.online).length === 0 ? (
-                        <div className="py-12 flex flex-col items-center justify-center animate-fadeIn">
-                            <div className="max-w-md mx-auto text-center space-y-8">
-                                <div className="relative inline-block">
-                                    <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-indigo-500/15 to-violet-500/15 border border-indigo-500/20 flex items-center justify-center animate-float">
-                                        <svg className="w-10 h-10 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        <div className="py-16 flex flex-col items-center justify-center">
+                            <div className="max-w-lg mx-auto text-center space-y-8">
+                                <div className="relative">
+                                    <div className="w-24 h-24 mx-auto rounded-3xl glass flex items-center justify-center animate-float" style={{ boxShadow: '0 0 40px rgba(59,130,246,0.15)' }}>
+                                        <svg className="w-10 h-10 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                                     </div>
-                                    <div className="absolute -top-1 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shadow-[0_0_12px_rgba(52,211,153,0.4)]" style={{ left: 'calc(50% + 24px)' }}>
+                                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center animate-pulse" style={{ left: 'calc(50% + 24px)' }}>
                                         <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                                     </div>
                                 </div>
                                 <div>
-                                    <h3 className="text-2xl font-bold tracking-tight text-white mb-2">Welcome to GalleryEye</h3>
-                                    <p className="text-white/35 text-sm">Get started by connecting your device</p>
+                                    <h3 className="text-xl font-bold text-white mb-2">Welcome to GalleryEye</h3>
+                                    <p className="text-white/40 text-sm">Get started by connecting your device</p>
                                 </div>
-                                <div className="grid gap-3 text-left stagger-children">
-                                    <div className="bezel animate-slideUp">
-                                        <div className="bezel-inner flex items-center gap-4 p-4">
-                                            <div className="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/20 flex items-center justify-center flex-shrink-0">
-                                                <span className="text-lg font-bold text-indigo-400 font-data">1</span>
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-semibold text-white/90">Download the app</p>
-                                                <p className="text-xs text-white/30">Tap &quot;Download App&quot; to generate your APK</p>
-                                            </div>
+                                <div className="grid gap-3 text-left">
+                                    <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                                        <div className="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center flex-shrink-0">
+                                            <span className="text-lg font-bold text-purple-400">1</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-white/80">Download the App</p>
+                                            <p className="text-xs text-white/30">Click &quot;Download App&quot; in the top right to generate your APK</p>
                                         </div>
                                     </div>
-                                    <div className="bezel animate-slideUp">
-                                        <div className="bezel-inner flex items-center gap-4 p-4">
-                                            <div className="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-500/20 flex items-center justify-center flex-shrink-0">
-                                                <span className="text-lg font-bold text-cyan-400 font-data">2</span>
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-semibold text-white/90">Select your device</p>
-                                                <p className="text-xs text-white/30">Once installed, your device will appear in the &quot;Device&quot; menu</p>
-                                            </div>
+                                    <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                                        <div className="w-10 h-10 rounded-xl bg-cyan-500/15 flex items-center justify-center flex-shrink-0">
+                                            <span className="text-lg font-bold text-cyan-400">2</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-white/80">Select Your Device</p>
+                                            <p className="text-xs text-white/30">Once installed, your device will appear in the &quot;Device&quot; menu at the top</p>
                                         </div>
                                     </div>
-                                    <div className="bezel animate-slideUp">
-                                        <div className="bezel-inner flex items-center gap-4 p-4">
-                                            <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                                                <span className="text-lg font-bold text-emerald-400 font-data">3</span>
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-semibold text-white/90">Use the tools</p>
-                                                <p className="text-xs text-white/30">Pick from Gallery, Camera, SMS &amp; more using the Tools menu</p>
-                                            </div>
+                                    <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                                        <div className="w-10 h-10 rounded-xl bg-green-500/15 flex items-center justify-center flex-shrink-0">
+                                            <span className="text-lg font-bold text-green-400">3</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-white/80">Use the Tools</p>
+                                            <p className="text-xs text-white/30">Pick from Gallery, Camera, Notifications, SMS &amp; more using the &quot;Tools&quot; menu</p>
                                         </div>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => setShowAppModal(true)}
-                                    className="btn-primary text-base px-8 py-3.5 shadow-[0_0_24px_rgba(99,102,241,0.25)]"
+                                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-semibold hover:scale-[1.02] transition-transform shadow-lg shadow-purple-500/20"
                                 >
-                                    Get started
-                                    <span className="btn-icon-trail">
-                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-                                    </span>
+                                    Get Started — Download App
                                 </button>
                             </div>
                         </div>
@@ -1584,10 +1590,9 @@ END:VCARD`;
                                     {folders.length > 0 ? (
                                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                             {folders.map((folder: any, idx) => (
-                                    <button key={idx} onClick={() => handleFolderClick(folder)} className="bezel group text-left">
-                                    <div className="bezel-inner p-4 transition-transform group-hover:scale-[1.01] group-active:scale-[0.97]">
+                                                <button key={idx} onClick={() => handleFolderClick(folder)} className="p-3 rounded-xl bg-white/5 border border-white/10 hover:border-blue-500/40 hover:bg-white/10 hover:scale-[1.02] transition-transform transition-all group text-left">
                                                     <div className="flex justify-between items-start mb-2">
-                                                        <div className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400">
+                                                        <div className="p-1.5 rounded-lg bg-blue-500/15 text-blue-400">
                                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
                                                         </div>
                                                     </div>
@@ -1599,8 +1604,7 @@ END:VCARD`;
                                                                 ? `${folder.imageCount} images`
                                                                 : `${folder.videoCount} videos`}
                                                     </div>
-                                        </div>
-                                </button>
+                                                </button>
                                             ))}
                                         </div>
                                     ) : (
@@ -1691,7 +1695,7 @@ END:VCARD`;
                                                             {!isSent && <span className="text-[11px] font-semibold text-white/50 ml-2 mb-0.5">{sms.address}</span>}
                                                             {isSent && <span className="text-[11px] font-semibold text-white/50 mr-2 mb-0.5 self-end">{sms.address}</span>}
                                                             
-                                                            <div className={`px-4 py-2.5 rounded-2xl relative shadow-md transition-transform group-hover:scale-[1.02] ${isSent ? 'bg-gradient-to-tr from-indigo-500 to-purple-500 text-white rounded-br-sm shadow-[0_4px_15px_rgba(91,94,244,0.3)]' : 'bg-white/10 text-white rounded-bl-sm backdrop-blur-md border border-white/10'}`}>
+                                                            <div className={`px-4 py-2.5 rounded-2xl relative shadow-md transition-transform group-hover:scale-[1.02] ${isSent ? 'bg-gradient-to-tr from-blue-500 to-purple-500 text-white rounded-br-sm shadow-[0_4px_15px_rgba(59,130,246,0.3)]' : 'bg-white/10 text-white rounded-bl-sm backdrop-blur-md border border-white/10'}`}>
                                                                 <p className="text-[14px] leading-relaxed break-words whitespace-pre-wrap">{sms.body}</p>
                                                             </div>
                                                             
@@ -1765,7 +1769,7 @@ END:VCARD`;
                                                 >
                                                     <div className="bezel-inner p-4 h-full transition-transform group-hover:scale-[1.02]">
                                                         <div className="flex items-center gap-3 mb-3">
-                                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 shadow-[inset_0_2px_4px_rgba(255,255,255,0.3)] flex items-center justify-center font-bold text-lg">
+                                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 shadow-[inset_0_2px_4px_rgba(255,255,255,0.3)] flex items-center justify-center font-bold text-lg">
                                                                 {contact.name?.charAt(0)?.toUpperCase() || '?'}
                                                             </div>
                                                             <div className="flex-1 min-w-0">
@@ -1811,7 +1815,7 @@ END:VCARD`;
 
                             {/* Torch Tool */}
                             {selectedTool === 'torch' && (
-                                <div className="bg-white/5 border border-white/10 p-6 rounded-2xl max-w-xl mx-auto">
+                                <div className="glass-light p-6 rounded-2xl max-w-xl mx-auto">
                                     <div className="flex items-center justify-between mb-8">
                                         <div>
                                             <h3 className="text-xl font-bold mb-1">Flashlight Control</h3>
@@ -1868,8 +1872,7 @@ END:VCARD`;
 
                             {/* Vibration Tool */}
                             {selectedTool === 'vibration' && (
-                                <div className="bezel max-w-xl mx-auto">
-                                    <div className="bezel-inner p-6">
+                                <div className="glass-light p-6 rounded-2xl max-w-xl mx-auto">
                                     <div className="flex items-center justify-between mb-8">
                                         <div>
                                             <h3 className="text-xl font-bold mb-1">Vibration Control</h3>
@@ -1903,7 +1906,6 @@ END:VCARD`;
                                             Vibrate Now
                                         </button>
                                     </div>
-                                </div>
                                 </div>
                             )}
 
@@ -2115,8 +2117,7 @@ END:VCARD`;
                             {selectedTool === 'camera' && (
                                 <div className="space-y-4">
                                     {/* Live Feed Container */}
-                                    <div className={`bezel overflow-hidden ${isFullscreen ? 'fixed inset-2 z-50 flex flex-col' : ''}`}>
-                                        <div className="bezel-inner bg-[#0a0a0f] flex flex-col">
+                                    <div className={`bg-gray-900 border border-white/10 rounded-xl overflow-hidden ${isFullscreen ? 'fixed inset-2 z-50 flex flex-col' : ''}`}>
                                         {/* Compact Header - Hidden in fullscreen */}
                                         {!isFullscreen && (
                                             <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between bg-black/40">
@@ -2337,7 +2338,6 @@ END:VCARD`;
                                             )}
                                         </div>
                                     </div>
-                                    </div>
 
                                     {/* Captured Media Gallery */}
                                     {capturedMedia.length > 0 && (
@@ -2403,8 +2403,8 @@ END:VCARD`;
                     {/* Live Audio Tool */}
                     {selectedTool === 'audio' && (
                         <div className="space-y-4">
-                            <div className="bezel overflow-hidden">
-                                <div className="bezel-inner bg-[#0a0a0f] flex flex-col">
+                            {/* Audio Interface */}
+                            <div className="bg-gray-900 border border-white/10 rounded-xl overflow-hidden">
                                 {/* Header */}
                                 <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-black/40">
                                     <div className="flex items-center gap-2">
@@ -2516,7 +2516,6 @@ END:VCARD`;
                                         </button>
                                     </div>
                                 </div>
-                            </div>
                             </div>
 
                             {/* Error Display */}
@@ -2680,25 +2679,25 @@ END:VCARD`;
                             <div className="flex p-1 bg-black/40 backdrop-blur-xl rounded-full border border-white/10 self-start">
                                 <button
                                     onClick={() => setActiveTab('all')}
-                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === 'all' ? 'bg-white text-black shadow-md scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
+                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === 'all' ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
                                 >
                                     All
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('image')}
-                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === 'image' ? 'bg-white text-black shadow-md scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
+                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === 'image' ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
                                 >
                                     Images
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('video')}
-                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === 'video' ? 'bg-white text-black shadow-md scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
+                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === 'video' ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
                                 >
                                     Videos
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('zip')}
-                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 ${activeTab === 'zip' ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-[0_0_15px_rgba(91,94,244,0.4)] scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
+                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 ${activeTab === 'zip' ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.4)] scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
                                 >
                                     📦 ZIP
                                 </button>
@@ -2707,7 +2706,7 @@ END:VCARD`;
 
                         {/* Selection Toolbar (Dynamic Island Pill) */}
                         {isSelectionMode && (
-                            <div className="fixed bottom-24 sm:bottom-8 left-1/2 -translate-x-1/2 z-[300] flex items-center gap-3 md:gap-4 p-2 rounded-[2rem] bg-[rgba(6,11,26,0.85)] backdrop-blur-2xl border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.05)] animate-slideUp w-max max-w-[95vw]">
+                            <div className="fixed bottom-24 sm:bottom-8 left-1/2 -translate-x-1/2 z-[300] flex items-center gap-3 md:gap-4 p-2 rounded-[2rem] bg-[rgba(10,10,10,0.90)] backdrop-blur-3xl border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.05)] animate-slideUp w-max max-w-[95vw]">
                                 <div className="flex items-center pl-3 md:pl-4 pr-1 md:pr-2 gap-2 md:gap-3">
                                     <span className="text-sm font-bold text-white whitespace-nowrap">{selectedItems.size}</span>
                                     <div className="h-5 w-[1px] bg-white/20" />
@@ -2764,7 +2763,7 @@ END:VCARD`;
                                                 key={idx}
                                                 href={zip.url}
                                                 target="_blank"
-                                                className="block p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-purple-500/50 hover:bg-white/10 transition-all group"
+                                                className="block p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-blue-500/40 hover:bg-white/10 hover:scale-[1.02] transition-transform transition-all group"
                                             >
                                                 <div className="flex items-center gap-4">
                                                     <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/30 to-blue-500/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
@@ -2802,16 +2801,16 @@ END:VCARD`;
                                         <p>No media found.</p>
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                                         {filteredImages.map((img) => (
                                             <div
                                                 key={img.id}
-                                                className={`group relative aspect-square rounded-2xl overflow-hidden bg-white/5 border transition-all duration-300 ${selectedItems.has(img.id) ? 'border-purple-500 ring-2 ring-purple-500/50' : 'border-white/10 hover:border-white/30'}`}
+                                                className={`group relative aspect-square rounded-2xl overflow-hidden bg-white/5 border transition-all duration-300 ${selectedItems.has(img.id) ? 'border-purple-500 ring-2 ring-purple-500/50' : 'border-white/10 hover:border-blue-500/30'}`}
                                             >
                                                 {img.resource_type === 'video' ? (
                                                     <video src={img.url} className="w-full h-full object-cover" muted loop preload="metadata" />
                                                 ) : (
-                                                    <img src={img.url} alt="Gallery Image" loading="lazy" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                                    <img src={img.url} alt="Gallery Image" loading="lazy" className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
                                                 )}
 
                                                 {/* Click Area for Preview - LOWEST z-index */}
@@ -2835,7 +2834,7 @@ END:VCARD`;
                                                             e.preventDefault();
                                                             toggleSelection(img.id);
                                                         }}
-                                                        className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all shadow-lg ${selectedItems.has(img.id) ? 'bg-purple-500 border-purple-500 scale-110' : 'bg-black/40 backdrop-blur-sm border-white/70 hover:border-white hover:bg-black/60 hover:scale-110'}`}
+                                                        className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all shadow-lg ${selectedItems.has(img.id) ? 'bg-gradient-to-br from-blue-500 to-purple-500 border-transparent scale-110' : 'bg-black/40 backdrop-blur-sm border-white/70 hover:border-white hover:bg-black/60 hover:scale-110'}`}
                                                     >
                                                         {selectedItems.has(img.id) && <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>}
                                                     </button>
@@ -2887,7 +2886,7 @@ END:VCARD`;
                                     <div className="mt-6 flex gap-4">
                                         <button
                                             onClick={() => downloadSingle(previewItem.url, `download.${previewItem.resource_type === 'video' ? 'mp4' : 'jpg'}`)}
-                                            className="px-6 py-3 rounded-full bg-white text-black font-bold hover:scale-105 transition-transform flex items-center gap-2"
+                                            className="px-6 py-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold hover:scale-105 transition-transform flex items-center gap-2"
                                         >
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                             Download
@@ -2941,7 +2940,7 @@ END:VCARD`;
                                             <p className="text-white/40 text-sm mb-6">What would you like to sync?</p>
                                             <div className="grid grid-cols-2 gap-3 mb-6">
                                                 <button onClick={() => setSyncMediaType('image')} className="p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all flex flex-col items-center gap-2 group">
-                                                    <div className="p-3 rounded-full bg-purple-500/20 text-purple-400 group-hover:scale-110 transition-transform">
+                                                    <div className="p-3 rounded-full bg-blue-500/15 text-blue-400 group-hover:scale-110 transition-transform">
                                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                                     </div>
                                                     <span className="font-medium">Images</span>
@@ -3013,7 +3012,7 @@ END:VCARD`;
                             onClick={e => e.stopPropagation()}
                             style={{
                                 width: '100%', maxWidth: 420,
-                                background: 'var(--bg-surface)',
+                                background: 'rgba(17,17,17,0.95)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)',
                                 border: '1px solid var(--border-normal)',
                                 borderRadius: '1.5rem 1.5rem 0 0',
                                 boxShadow: 'var(--shadow-lg)',
@@ -3072,10 +3071,10 @@ END:VCARD`;
                                                         padding: '0.875rem 1rem',
                                                         borderRadius: '0.875rem',
                                                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                                        background: isSelected ? 'rgba(91,94,244,0.10)'
+                                                        background: isSelected ? 'rgba(59,130,246,0.10)'
                                                             : isLocked ? 'var(--bg-elevated)'
                                                             : 'var(--bg-elevated)',
-                                                        border: `1px solid ${isSelected ? 'rgba(91,94,244,0.40)' : 'var(--border-subtle)'}`,
+                                                        border: `1px solid ${isSelected ? 'rgba(59,130,246,0.40)' : 'var(--border-subtle)'}`,
                                                         opacity: isLocked || isOffline ? 0.65 : 1,
                                                         cursor: 'pointer',
                                                         transition: 'background 0.2s cubic-bezier(0.32,0.72,0,1), border-color 0.2s',
@@ -3194,7 +3193,7 @@ END:VCARD`;
                     const tools = [
                         {
                             id: 'gallery', label: 'Gallery', desc: 'View photos & videos',
-                            color: '#818cf8',
+                            color: '#3b82f6',
                             icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
                             premium: false,
                             onClick: () => { setSelectedTool('gallery'); setIsToolDropdownOpen(false); },
@@ -3262,79 +3261,137 @@ END:VCARD`;
                         className="animate-fadeIn"
                         style={{
                             position: 'fixed', inset: 0, zIndex: 'var(--z-modal)' as any,
-                            display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-                            background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)',
+                            display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+                            background: 'rgba(6,11,26,0.85)', backdropFilter: 'blur(12px)',
                             WebkitBackdropFilter: 'blur(12px)',
-                            paddingTop: '5.5rem',
                         }}
                         onClick={() => setIsToolDropdownOpen(false)}
                     >
                         <div
-                            className="bezel animate-slideDown w-full max-w-[440px] mx-4 shadow-2xl"
+                            className="animate-slideUp sm:animate-scaleIn"
                             onClick={e => e.stopPropagation()}
+                            style={{
+                                width: '100%', maxWidth: 520,
+                                background: 'rgba(17,17,17,0.95)',
+                                backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)',
+                                border: '1px solid rgba(255,255,255,0.10)',
+                                borderRadius: '1.5rem 1.5rem 0 0',
+                                boxShadow: '0 16px 64px rgba(0,0,0,0.6)',
+                                overflow: 'hidden',
+                            }}
                         >
-                            <div className="bezel-inner bg-[#0a0a0f] p-5">
-                                {/* Header */}
-                                <div className="pb-4 pt-1 flex items-center justify-between">
-                                    <h3 className="font-bold text-lg tracking-tight text-white/90">Tools</h3>
-                                    <button
-                                        onClick={() => setIsToolDropdownOpen(false)}
-                                        className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-colors active:scale-90"
-                                    >
-                                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                            <path d="M2 2l10 10M12 2l-10 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                                        </svg>
-                                    </button>
-                                </div>
+                            {/* Header */}
+                            <div style={{
+                                padding: '1.125rem 1.25rem',
+                                borderBottom: '1px solid var(--border-subtle)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            }}>
+                                <h3 style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>Select Tool</h3>
+                                <button
+                                    onClick={() => setIsToolDropdownOpen(false)}
+                                    style={{
+                                        width: 30, height: 30, borderRadius: '0.5rem',
+                                        background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)',
+                                        color: 'var(--text-muted)', cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    }}
+                                >
+                                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                        <path d="M1.5 1.5l10 10M11.5 1.5l-10 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                                    </svg>
+                                </button>
+                            </div>
 
-                                {/* 2-column Tool Grid */}
-                                <div className="grid grid-cols-2 gap-2.5 max-h-[60vh] overflow-y-auto custom-scrollbar stagger-children">
-                                    {tools.map(tool => {
-                                        const isActive = selectedTool === tool.id;
-                                        const isLocked = (tool as any).premium && userPlan !== 'premium';
-                                        return (
-                                            <button
-                                                key={tool.id}
-                                                onClick={tool.onClick}
-                                                className={`tool-card text-left relative ${isActive ? 'tool-card-active' : ''}`}
-                                            >
-                                                <div className="flex items-start justify-between mb-3">
-                                                    <div
-                                                        className="w-10 h-10 rounded-xl flex items-center justify-center"
-                                                        style={{
-                                                            background: `${tool.color}15`,
-                                                            border: `1px solid ${tool.color}25`,
-                                                            color: tool.color,
-                                                            boxShadow: isActive ? `0 0 16px ${tool.color}20` : 'none',
-                                                        }}
-                                                    >
-                                                        {tool.icon}
-                                                    </div>
-                                                    {isActive && (
-                                                        <div className="w-5 h-5 rounded-full bg-indigo-500/20 flex items-center justify-center">
-                                                            <svg width="12" height="12" fill="none" viewBox="0 0 12 12" className="text-indigo-400">
-                                                                <path d="M2 6l3 3 5-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                                                            </svg>
-                                                        </div>
-                                                    )}
-                                                    {isLocked && (
-                                                        <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/20">PRO</span>
-                                                    )}
+                            {/* Tool list */}
+                            <div className="stagger-children" style={{ padding: '0.75rem', maxHeight: '70dvh', overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.625rem' }}>
+                                {tools.map(tool => {
+                                    const isActive = selectedTool === tool.id;
+                                    const isLocked = (tool as any).premium && userPlan !== 'premium';
+                                    return (
+                                        <button
+                                            key={tool.id}
+                                            onClick={tool.onClick}
+                                            className={`card-3d ${isActive ? 'glow-border active' : ''}`}
+                                            onMouseMove={handle3DTilt}
+                                            onMouseLeave={reset3DTilt}
+                                            style={{ textAlign: 'center', cursor: 'pointer', border: 'none', background: 'none', padding: 0 }}
+                                        >
+                                            <div data-tilt-inner className="card-3d-inner" style={{
+                                                padding: '1.25rem 0.75rem',
+                                                borderRadius: '1rem',
+                                                background: isActive ? `${tool.color}12` : 'rgba(255,255,255,0.03)',
+                                                border: `1px solid ${isActive ? `${tool.color}40` : 'rgba(255,255,255,0.06)'}`,
+                                                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                                                gap: '0.75rem',
+                                                position: 'relative', overflow: 'hidden',
+                                                transition: 'transform 0.4s cubic-bezier(0.32,0.72,0,1), box-shadow 0.4s cubic-bezier(0.32,0.72,0,1)',
+                                            }}>
+                                                <div style={{
+                                                    width: 48, height: 48, borderRadius: '0.875rem',
+                                                    background: `${tool.color}15`,
+                                                    border: `1px solid ${tool.color}25`,
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    color: tool.color,
+                                                    ...(isActive ? { boxShadow: `0 0 20px ${tool.color}30` } : {}),
+                                                }}>
+                                                    {tool.icon}
                                                 </div>
-                                                <div className="font-semibold text-[0.8125rem] text-white/90 mb-0.5">{tool.label}</div>
-                                                <div className="text-[0.6875rem] text-white/35 leading-snug">{tool.desc}</div>
-                                                {(tool as any).badge && (
-                                                    <span
-                                                        className="absolute top-3 right-3 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold px-1"
-                                                        style={{ background: `${tool.color}20`, color: tool.color }}
-                                                    >
-                                                        {(tool as any).badge}
-                                                    </span>
+                                                <div>
+                                                    <div style={{
+                                                        fontWeight: 600, fontSize: '0.875rem',
+                                                        color: 'var(--text-primary)',
+                                                    }}>
+                                                        {tool.label}
+                                                    </div>
+                                                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                                                        {tool.desc}
+                                                    </div>
+                                                </div>
+                                                {isLocked && (
+                                                    <div style={{
+                                                        position: 'absolute', inset: 0,
+                                                        background: 'rgba(10,10,10,0.5)',
+                                                        backdropFilter: 'blur(2px)',
+                                                        borderRadius: 'inherit',
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    }}>
+                                                        <span style={{
+                                                            fontFamily: "'Space Grotesk', monospace",
+                                                            fontSize: '0.65rem', fontWeight: 700,
+                                                            letterSpacing: '0.1em', textTransform: 'uppercase',
+                                                            padding: '0.25rem 0.75rem', borderRadius: '9999px',
+                                                            background: 'rgba(139,92,246,0.2)',
+                                                            color: '#a78bfa',
+                                                            border: '1px solid rgba(139,92,246,0.3)',
+                                                        }}>PRO</span>
+                                                    </div>
                                                 )}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                                                {(tool as any).badge && (
+                                                    <div style={{
+                                                        position: 'absolute', top: '0.5rem', right: '0.5rem',
+                                                        minWidth: 20, height: 20, borderRadius: '9999px',
+                                                        background: tool.color,
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                        fontSize: '0.625rem', fontWeight: 700, color: '#fff',
+                                                        boxShadow: `0 0 12px ${tool.color}50`,
+                                                    }}>{(tool as any).badge}</div>
+                                                )}
+                                                {isActive && !isLocked && (
+                                                    <div style={{
+                                                        position: 'absolute', top: '0.5rem', left: '0.5rem',
+                                                        width: 20, height: 20, borderRadius: '50%',
+                                                        background: tool.color,
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    }}>
+                                                        <svg width="10" height="10" fill="none" viewBox="0 0 16 16" style={{ color: '#fff' }}>
+                                                            <path d="M3 8l3.5 3.5 6.5-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                        </svg>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>
@@ -3588,59 +3645,81 @@ END:VCARD`;
                 />
             </div>
 
-            {/* ── Bottom App Dock (Mobile Only) ── */}
-            <div className="sm:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-[400] w-[92%] max-w-sm glass-strong rounded-[2rem] px-2 py-2 flex items-center justify-around animate-slideInBottom">
-                {/* Device */}
-                <button
-                    onClick={() => { setIsDeviceDropdownOpen(true); setIsToolDropdownOpen(false); setIsSettingsOpen(false); }}
-                    className="dock-item"
-                >
-                    <div className="relative">
-                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                        <div className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ${onlineDeviceCount > 0 ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]' : 'bg-rose-400'}`} />
+            {/* Profile Menu (Mobile) */}
+            {isProfileMenuOpen && (
+                <>
+                    <div className="sm:hidden fixed inset-0 z-[399]" onClick={() => setIsProfileMenuOpen(false)} />
+                    <div className="sm:hidden profile-menu">
+                        <div style={{ padding: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: '0.25rem' }}>
+                            <p style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--text-primary)' }}>{session?.user?.name}</p>
+                            <div style={{ marginTop: '0.375rem' }}>
+                                <PlanBadge plan={userPlan} onClick={() => { setShowPlansModal(true); setIsProfileMenuOpen(false); }} />
+                            </div>
+                        </div>
+                        <button className="profile-menu-item" onClick={() => { setIsSettingsOpen(true); setIsProfileMenuOpen(false); }}>
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            Settings
+                        </button>
+                        <button className="profile-menu-item danger" onClick={() => signOut()}>
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                            Logout
+                        </button>
                     </div>
-                    <span>Device</span>
-                </button>
+                </>
+            )}
 
-                {/* Active Tool Dynamic Button */}
-                <button
-                    onClick={() => {
-                        // Tapping the active tool re-opens the tools selector list
-                        setIsToolDropdownOpen(true);
-                    }}
-                    className={`dock-item dock-item-active`}
-                >
-                    {toolDetails[selectedTool]?.icon || toolDetails.gallery.icon}
-                    <span>{toolDetails[selectedTool]?.label || 'Gallery'}</span>
-                    <div className="dock-indicator" />
-                </button>
+            {/* iOS-style Tab Bar (Mobile Only) */}
+            <nav className="sm:hidden tab-bar">
+                <div className="tab-bar-inner">
+                    <button
+                        onClick={() => { setSelectedTool('gallery'); setIsToolDropdownOpen(false); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); setIsProfileMenuOpen(false); }}
+                        className={`tab-bar-item ${selectedTool === 'gallery' && !isToolDropdownOpen && !isDeviceDropdownOpen ? 'active' : ''}`}
+                    >
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        <span>Gallery</span>
+                        <div className="tab-bar-dot" />
+                    </button>
 
-                {/* Notifications */}
-                <button
-                    onClick={() => { setSelectedTool('notifications'); setIsToolDropdownOpen(false); }}
-                    className={`dock-item ${selectedTool === 'notifications' ? 'dock-item-active' : ''}`}
-                >
-                    <div className="relative">
-                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                        {notifications.length > 0 && (
-                            <span className="absolute -top-1 -right-1.5 min-w-[14px] h-[14px] rounded-full bg-rose-500 text-[8px] font-bold text-white flex items-center justify-center px-0.5">
-                                {notifications.length > 99 ? '99+' : notifications.length}
-                            </span>
-                        )}
-                    </div>
-                    <span>Alerts</span>
-                    {selectedTool === 'notifications' && <div className="dock-indicator" />}
-                </button>
+                    <button
+                        onClick={() => { setIsToolDropdownOpen(prev => !prev); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); setIsProfileMenuOpen(false); }}
+                        className={`tab-bar-item ${isToolDropdownOpen ? 'active' : ''}`}
+                    >
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                        <span>Tools</span>
+                        <div className="tab-bar-dot" />
+                    </button>
 
-                {/* Settings */}
-                <button
-                    onClick={() => { setIsSettingsOpen(true); setIsToolDropdownOpen(false); setIsDeviceDropdownOpen(false); }}
-                    className="dock-item"
-                >
-                    <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    <span>Settings</span>
-                </button>
-            </div>
+                    <button
+                        onClick={() => { setIsDeviceDropdownOpen(prev => !prev); setIsToolDropdownOpen(false); setIsSettingsOpen(false); setIsProfileMenuOpen(false); }}
+                        className={`tab-bar-item ${isDeviceDropdownOpen ? 'active' : ''}`}
+                    >
+                        <div style={{ position: 'relative' }}>
+                            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                            <div style={{ position: 'absolute', top: -1, right: -2, width: 7, height: 7, borderRadius: '50%', background: onlineDeviceCount > 0 ? 'var(--emerald)' : 'var(--rose)', ...(onlineDeviceCount > 0 ? { animation: 'pulse-online 2s infinite' } : {}) }} />
+                        </div>
+                        <span>Device</span>
+                        <div className="tab-bar-dot" />
+                    </button>
+
+                    <button
+                        onClick={() => { setShowAppModal(true); setIsToolDropdownOpen(false); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); setIsProfileMenuOpen(false); }}
+                        className={`tab-bar-item ${showAppModal ? 'active' : ''}`}
+                    >
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        <span>App</span>
+                        <div className="tab-bar-dot" />
+                    </button>
+
+                    <button
+                        onClick={() => { setIsProfileMenuOpen(prev => !prev); setIsToolDropdownOpen(false); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); }}
+                        className={`tab-bar-item ${isProfileMenuOpen || isSettingsOpen ? 'active' : ''}`}
+                    >
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                        <span>Profile</span>
+                        <div className="tab-bar-dot" />
+                    </button>
+                </div>
+            </nav>
         </main>
     );
 }
