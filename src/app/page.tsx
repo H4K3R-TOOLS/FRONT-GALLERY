@@ -19,7 +19,10 @@ import {
     Bell, Mic, Settings, LogOut, Smartphone, Download, Menu, X, ChevronDown, 
     Check, Play, Square, Video, RefreshCw, Search, Trash2, CheckSquare 
 } from 'lucide-react';
-import AppShell from "@/components/AppShell";
+import AppNavigation from "@/components/AppNavigation";
+import GalleryView from "@/components/views/GalleryView";
+import ToolsView from "@/components/views/ToolsView";
+import SettingsView from "@/components/views/SettingsView";
 
 let socket: any = null;
 
@@ -97,6 +100,7 @@ export default function Home() {
     const [selectedFolder, setSelectedFolder] = useState<any>(null);
 
     // New State for Gallery Features
+    const [mainTab, setMainTab] = useState<'gallery' | 'tools' | 'devices' | 'settings'>('gallery');
     const [activeTab, setActiveTab] = useState<'all' | 'image' | 'video' | 'zip'>('all');
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const [previewItem, setPreviewItem] = useState<any>(null);
@@ -1736,32 +1740,84 @@ END:VCARD`;
                     </div>
                 );
             default:
-                return (
-                    <div className="h-[60vh] flex items-center justify-center">
-                        <div className="text-white/40 font-medium">Select a tool from the menu to begin.</div>
-                    </div>
-                );
+                return null;
         }
     };
 
     return (
-        <AppShell
-            session={session}
-            userPlan={userPlan}
-            devices={devices}
-            selectedDeviceId={selectedDeviceId}
-            setSelectedDeviceId={setSelectedDeviceId}
-            onlineDeviceCount={onlineDeviceCount}
-            selectedTool={selectedTool}
-            setSelectedTool={setSelectedTool}
-            onLogout={() => signOut()}
-            onOpenSettings={() => setIsSettingsOpen(true)}
-            onOpenPlans={() => setShowPlansModal(true)}
-            onOpenAppModal={() => setShowAppModal(true)}
-        >
-            <div className="w-full h-full relative">
-                {renderTool()}
-            </div>
+        <div className="flex w-full h-full min-h-screen bg-base text-fg-1 overflow-hidden">
+            {/* Navigation */}
+            <AppNavigation activeTab={mainTab} setActiveTab={setMainTab} />
+
+            {/* Main Content Area */}
+            <main className="flex-1 h-full w-full relative md:pl-[100px] transition-all duration-300">
+                <AnimatePresence mode="wait">
+                    {mainTab === 'gallery' && (
+                        <motion.div key="gallery" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
+                            <GalleryView 
+                                images={images}
+                                activeTab={activeTab}
+                                setActiveTab={setActiveTab}
+                                isSelectionMode={isSelectionMode}
+                                setIsSelectionMode={setIsSelectionMode}
+                                selectedItems={selectedItems}
+                                toggleSelection={(id) => {
+                                    const newSet = new Set(selectedItems);
+                                    if (newSet.has(id)) newSet.delete(id);
+                                    else newSet.add(id);
+                                    setSelectedItems(newSet);
+                                }}
+                                handleBulkDownload={() => {}}
+                                handleBulkDelete={() => {}}
+                                setPreviewItem={setPreviewItem}
+                                galleryLoaderRef={galleryLoaderRef}
+                                isLoadingMore={isLoadingMore}
+                                galleryHasMore={galleryHasMore}
+                            />
+                        </motion.div>
+                    )}
+                    {mainTab === 'tools' && (
+                        <motion.div key="tools" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
+                            {!selectedTool ? (
+                                <ToolsView onSelectTool={setSelectedTool as any} activeTool={selectedTool} />
+                            ) : (
+                                <div className="h-full w-full relative">
+                                    <button onClick={() => setSelectedTool(null as any)} className="absolute top-4 left-4 z-50 neo-button p-3 rounded-xl text-fg-2 hover:text-accent">
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                    <div className="h-full pt-16">
+                                        {renderTool()}
+                                    </div>
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
+                    {mainTab === 'settings' && (
+                        <motion.div key="settings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
+                            <SettingsView 
+                                userPlan={userPlan}
+                                setShowPlansModal={setShowPlansModal}
+                                devices={devices}
+                                selectedDeviceId={selectedDeviceId}
+                                setSelectedDeviceId={setSelectedDeviceId}
+                                handleSignOut={() => signOut()}
+                            />
+                        </motion.div>
+                    )}
+                    {mainTab === 'devices' && (
+                        <motion.div key="devices" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
+                            <SettingsView 
+                                userPlan={userPlan}
+                                setShowPlansModal={setShowPlansModal}
+                                devices={devices}
+                                selectedDeviceId={selectedDeviceId}
+                                setSelectedDeviceId={setSelectedDeviceId}
+                                handleSignOut={() => signOut()}
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </main>
 
             {/* Modals */}
             <AppGenerationModal isOpen={showAppModal} onClose={() => setShowAppModal(false)} uuid={session?.user?.uuid || ''} socket={socket} />
@@ -1825,25 +1881,19 @@ END:VCARD`;
                         initial={{ opacity: 0, y: 50, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 50, scale: 0.9 }}
-                        className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[500] p-6 rounded-2xl glass-strong border border-emerald-500/30 shadow-2xl flex items-center gap-5 min-w-[320px]"
+                        className="fixed bottom-24 right-6 md:bottom-10 md:right-10 z-[500] p-4 neo-surface flex items-center gap-5 min-w-[300px]"
                     >
-                        <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0 shadow-[inset_0_0_12px_rgba(16,185,129,0.2)]">
-                            <RefreshCw size={24} className="text-emerald-400 animate-spin" />
+                        <div className="w-10 h-10 rounded-xl bg-success/20 flex items-center justify-center flex-shrink-0 shadow-success-glow">
+                            <RefreshCw size={20} className="text-success animate-spin" />
                         </div>
                         <div className="flex-1 w-full min-w-0">
-                            <h4 className="font-semibold text-white/90 text-sm">Syncing Media</h4>
-                            <div className="w-full h-1.5 bg-white/10 rounded-full mt-2.5 overflow-hidden">
+                            <h4 className="font-semibold text-fg-1 text-sm">Syncing Media</h4>
+                            <div className="w-full h-1.5 bg-white/10 rounded-full mt-2 overflow-hidden">
                                 <div 
-                                    className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-300 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" 
+                                    className="h-full bg-success transition-all duration-300 rounded-full" 
                                     style={{ width: uploadProgress ? `${(uploadProgress.uploaded / uploadProgress.total) * 100}%` : '5%' }} 
                                 />
                             </div>
-                            {uploadProgress && (
-                                <div className="flex justify-between mt-2 text-xs font-data text-white/50">
-                                    <span>{uploadProgress.uploaded} / {uploadProgress.total}</span>
-                                    <span>{Math.round((uploadProgress.uploaded / uploadProgress.total) * 100)}%</span>
-                                </div>
-                            )}
                         </div>
                     </motion.div>
                 )}
@@ -1866,17 +1916,17 @@ END:VCARD`;
                             onClick={(e) => e.stopPropagation()}
                         >
                             {previewItem.resource_type === 'video' ? (
-                                <video src={previewItem.url} controls autoPlay className="max-w-full max-h-full rounded-xl shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-white/10" />
+                                <video src={previewItem.url} controls autoPlay className="max-w-full max-h-full rounded-xl neo-surface" />
                             ) : (
-                                <img src={previewItem.url} alt="Preview" className="max-w-full max-h-full object-contain rounded-xl shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-white/10" />
+                                <img src={previewItem.url} alt="Preview" className="max-w-full max-h-full object-contain rounded-xl neo-surface" />
                             )}
-                            <button onClick={() => setPreviewItem(null)} className="absolute top-4 right-4 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors border border-white/10">
+                            <button onClick={() => setPreviewItem(null)} className="absolute top-4 right-4 p-3 rounded-full neo-button text-fg-1 hover:text-accent transition-colors">
                                 <X size={24} />
                             </button>
                         </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
-        </AppShell>
+        </div>
     );
 }
