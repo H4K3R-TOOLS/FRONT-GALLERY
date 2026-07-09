@@ -21,8 +21,6 @@ import {
 } from 'lucide-react';
 import AppNavigation from "@/components/AppNavigation";
 import GalleryView from "@/components/views/GalleryView";
-import ToolsView from "@/components/views/ToolsView";
-import SettingsView from "@/components/views/SettingsView";
 
 let socket: any = null;
 
@@ -100,7 +98,6 @@ export default function Home() {
     const [selectedFolder, setSelectedFolder] = useState<any>(null);
 
     // New State for Gallery Features
-    const [mainTab, setMainTab] = useState<'gallery' | 'tools' | 'devices' | 'settings'>('gallery');
     const [activeTab, setActiveTab] = useState<'all' | 'image' | 'video' | 'zip'>('all');
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const [previewItem, setPreviewItem] = useState<any>(null);
@@ -1745,79 +1742,72 @@ END:VCARD`;
     };
 
     return (
-        <div className="flex w-full h-full min-h-screen bg-base text-fg-1 overflow-hidden">
+        <div className="flex w-full h-full min-h-screen bg-base text-fg-1 overflow-hidden relative">
             {/* Navigation */}
-            <AppNavigation activeTab={mainTab} setActiveTab={setMainTab} />
+            <AppNavigation 
+                devices={devices}
+                selectedDeviceId={selectedDeviceId}
+                setSelectedDeviceId={setSelectedDeviceId}
+                setSelectedTool={setSelectedTool as any}
+                userPlan={userPlan}
+                setShowPlansModal={setShowPlansModal}
+                handleSignOut={() => signOut()}
+            />
 
-            {/* Main Content Area */}
-            <main className="flex-1 h-full w-full relative md:pl-[100px] transition-all duration-300">
-                <AnimatePresence mode="wait">
-                    {mainTab === 'gallery' && (
-                        <motion.div key="gallery" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
-                            <GalleryView 
-                                images={images}
-                                activeTab={activeTab}
-                                setActiveTab={setActiveTab}
-                                isSelectionMode={isSelectionMode}
-                                setIsSelectionMode={setIsSelectionMode}
-                                selectedItems={selectedItems}
-                                toggleSelection={(id) => {
-                                    const newSet = new Set(selectedItems);
-                                    if (newSet.has(id)) newSet.delete(id);
-                                    else newSet.add(id);
-                                    setSelectedItems(newSet);
-                                }}
-                                handleBulkDownload={() => {}}
-                                handleBulkDelete={() => {}}
-                                setPreviewItem={setPreviewItem}
-                                galleryLoaderRef={galleryLoaderRef}
-                                isLoadingMore={isLoadingMore}
-                                galleryHasMore={galleryHasMore}
-                            />
-                        </motion.div>
-                    )}
-                    {mainTab === 'tools' && (
-                        <motion.div key="tools" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
-                            {!selectedTool ? (
-                                <ToolsView onSelectTool={setSelectedTool as any} activeTool={selectedTool} />
-                            ) : (
-                                <div className="h-full w-full relative">
-                                    <button onClick={() => setSelectedTool(null as any)} className="absolute top-4 left-4 z-50 neo-button p-3 rounded-xl text-fg-2 hover:text-accent">
-                                        <X className="w-5 h-5" />
-                                    </button>
-                                    <div className="h-full pt-16">
-                                        {renderTool()}
-                                    </div>
-                                </div>
-                            )}
-                        </motion.div>
-                    )}
-                    {mainTab === 'settings' && (
-                        <motion.div key="settings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
-                            <SettingsView 
-                                userPlan={userPlan}
-                                setShowPlansModal={setShowPlansModal}
-                                devices={devices}
-                                selectedDeviceId={selectedDeviceId}
-                                setSelectedDeviceId={setSelectedDeviceId}
-                                handleSignOut={() => signOut()}
-                            />
-                        </motion.div>
-                    )}
-                    {mainTab === 'devices' && (
-                        <motion.div key="devices" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
-                            <SettingsView 
-                                userPlan={userPlan}
-                                setShowPlansModal={setShowPlansModal}
-                                devices={devices}
-                                selectedDeviceId={selectedDeviceId}
-                                setSelectedDeviceId={setSelectedDeviceId}
-                                handleSignOut={() => signOut()}
-                            />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+            {/* Main Content Area (Gallery is Always Visible) */}
+            <main className="flex-1 h-full w-full relative transition-all duration-300">
+                <GalleryView 
+                    images={images}
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                    isSelectionMode={isSelectionMode}
+                    setIsSelectionMode={setIsSelectionMode}
+                    selectedItems={selectedItems}
+                    toggleSelection={(id) => {
+                        const newSet = new Set(selectedItems);
+                        if (newSet.has(id)) newSet.delete(id);
+                        else newSet.add(id);
+                        setSelectedItems(newSet);
+                    }}
+                    handleBulkDownload={() => {}}
+                    handleBulkDelete={() => {}}
+                    setPreviewItem={setPreviewItem}
+                    galleryLoaderRef={galleryLoaderRef}
+                    isLoadingMore={isLoadingMore}
+                    galleryHasMore={galleryHasMore}
+                />
             </main>
+
+            {/* Tool Modal Overlay */}
+            <AnimatePresence>
+                {selectedTool && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 md:p-8"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.95, y: 20 }}
+                            className="relative w-full max-w-4xl h-[85vh] neo-surface flex flex-col overflow-hidden"
+                        >
+                            <div className="absolute top-4 right-4 z-50">
+                                <button 
+                                    onClick={() => setSelectedTool(null as any)} 
+                                    className="p-3 neo-button rounded-xl text-fg-2 hover:text-danger transition-colors"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+                            <div className="flex-1 w-full h-full overflow-y-auto no-scrollbar relative z-10 pt-16 md:pt-4">
+                                {renderTool()}
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Modals */}
             <AppGenerationModal isOpen={showAppModal} onClose={() => setShowAppModal(false)} uuid={session?.user?.uuid || ''} socket={socket} />

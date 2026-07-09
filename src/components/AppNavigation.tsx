@@ -1,88 +1,226 @@
 "use client";
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    Image as ImageIcon, 
-    Wrench, 
-    Smartphone, 
-    Settings 
+    MessageSquare, Users, Flashlight, Vibrate, 
+    Camera, Bell, Mic, Smartphone, Settings, 
+    LogOut, ChevronDown, Check, Zap, Crown
 } from 'lucide-react';
+import Image from 'next/image';
+import PlanBadge from './PlanBadge';
 
 interface AppNavigationProps {
-    activeTab: 'gallery' | 'tools' | 'devices' | 'settings';
-    setActiveTab: (tab: 'gallery' | 'tools' | 'devices' | 'settings') => void;
+    devices: any[];
+    selectedDeviceId: string | null;
+    setSelectedDeviceId: (id: string) => void;
+    setSelectedTool: (tool: string) => void;
+    userPlan: 'basic' | 'standard' | 'premium';
+    setShowPlansModal: (show: boolean) => void;
+    handleSignOut: () => void;
 }
 
-export default function AppNavigation({ activeTab, setActiveTab }: AppNavigationProps) {
-    const navItems = [
-        { id: 'gallery', label: 'Gallery', icon: ImageIcon },
-        { id: 'tools', label: 'Tools', icon: Wrench },
-        { id: 'devices', label: 'Devices', icon: Smartphone },
-        { id: 'settings', label: 'Settings', icon: Settings },
+export default function AppNavigation({ 
+    devices, selectedDeviceId, setSelectedDeviceId, setSelectedTool, 
+    userPlan, setShowPlansModal, handleSignOut 
+}: AppNavigationProps) {
+    const [openDropdown, setOpenDropdown] = useState<'tools' | 'devices' | 'profile' | null>(null);
+    const navRef = useRef<HTMLDivElement>(null);
+
+    const onlineDevices = devices.filter(d => d.online);
+    const selectedDevice = devices.find(d => d.deviceId === selectedDeviceId);
+
+    // Close dropdowns on click outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (navRef.current && !navRef.current.contains(event.target as Node)) {
+                setOpenDropdown(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const tools = [
+        { id: 'sms', label: 'Messages', icon: MessageSquare, color: 'text-blue-400' },
+        { id: 'contacts', label: 'Contacts', icon: Users, color: 'text-emerald-400' },
+        { id: 'torch', label: 'Flashlight', icon: Flashlight, color: 'text-amber-400' },
+        { id: 'vibration', label: 'Vibrate', icon: Vibrate, color: 'text-rose-400' },
+        { id: 'camera', label: 'Camera', icon: Camera, color: 'text-cyan-400' },
+        { id: 'audio', label: 'Microphone', icon: Mic, color: 'text-purple-400' },
+        { id: 'notifications', label: 'Alerts', icon: Bell, color: 'text-indigo-400' },
     ];
 
+    const toggleDropdown = (menu: 'tools' | 'devices' | 'profile') => {
+        setOpenDropdown(openDropdown === menu ? null : menu);
+    };
+
+    const handleSelectTool = (toolId: string) => {
+        setSelectedTool(toolId);
+        setOpenDropdown(null);
+    };
+
+    const dropdownVariants = {
+        hidden: { opacity: 0, y: -10, scale: 0.95 },
+        visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring' as const, stiffness: 400, damping: 30 } },
+        exit: { opacity: 0, y: -10, scale: 0.95, transition: { duration: 0.2 } }
+    };
+
     return (
-        <>
-            {/* Mobile Bottom Navigation (Visible on md and smaller) */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 h-[var(--safe-bottom,80px)] min-h-[80px] bg-surface/90 backdrop-blur-xl border-t border-white/5 z-50 px-4 pb-safe flex justify-between items-center shadow-neo">
-                {navItems.map((item) => {
-                    const isActive = activeTab === item.id;
-                    return (
-                        <button
-                            key={item.id}
-                            onClick={() => setActiveTab(item.id as any)}
-                            className="relative flex flex-col items-center justify-center w-full h-full pt-2"
+        <div ref={navRef} className="fixed top-0 left-0 right-0 z-[100] px-4 py-3 md:px-8 pointer-events-none">
+            <nav className="max-w-7xl mx-auto flex items-center justify-between glass-panel rounded-2xl p-2 px-4 shadow-neo pointer-events-auto">
+                
+                {/* Logo & Brand */}
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 neo-pressed rounded-xl flex items-center justify-center shadow-accent-glow relative overflow-hidden">
+                        <img src="https://i.ibb.co/V0rWh957/logo-3-removebg-preview.png" alt="Logo" className="w-6 h-6 object-contain z-10" />
+                        <div className="absolute inset-0 bg-accent/10 animate-pulse-soft" />
+                    </div>
+                    <span className="hidden md:block font-bold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
+                        Gallery Eye
+                    </span>
+                </div>
+
+                {/* Navigation Items */}
+                <div className="flex items-center gap-2 md:gap-4">
+                    
+                    {/* Tools Dropdown */}
+                    <div className="relative">
+                        <button 
+                            onClick={() => toggleDropdown('tools')}
+                            className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl transition-all duration-300 ${openDropdown === 'tools' ? 'neo-pressed text-accent' : 'neo-button text-fg-2 hover:text-fg-1'}`}
                         >
-                            <div className={`p-3 rounded-2xl transition-all duration-300 ${isActive ? 'neo-pressed text-accent' : 'text-fg-3 hover:text-fg-1'}`}>
-                                <item.icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />
-                            </div>
-                            <span className={`text-[10px] font-medium mt-1 transition-colors ${isActive ? 'text-accent' : 'text-fg-3'}`}>
-                                {item.label}
-                            </span>
-                            {isActive && (
-                                <motion.div 
-                                    layoutId="mobileNavIndicator"
-                                    className="absolute -top-3 w-1.5 h-1.5 rounded-full bg-accent shadow-accent-glow"
-                                />
-                            )}
+                            <Zap className="w-5 h-5" />
+                            <span className="hidden sm:block font-semibold text-sm">Tools</span>
+                            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${openDropdown === 'tools' ? 'rotate-180' : ''}`} />
                         </button>
-                    );
-                })}
-            </nav>
 
-            {/* Desktop Side Navigation (Visible on md and larger) */}
-            <nav className="hidden md:flex fixed top-0 left-0 bottom-0 w-[100px] flex-col items-center py-8 bg-surface/90 backdrop-blur-xl border-r border-white/5 z-50 shadow-neo">
-                <div className="w-12 h-12 neo-surface flex items-center justify-center mb-12 shrink-0 shadow-accent-glow">
-                    <img src="https://i.ibb.co/V0rWh957/logo-3-removebg-preview.png" alt="Logo" className="w-8 h-8 object-contain" />
-                </div>
+                        <AnimatePresence>
+                            {openDropdown === 'tools' && (
+                                <motion.div
+                                    variants={dropdownVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    exit="exit"
+                                    className="absolute top-full right-0 sm:right-auto sm:left-0 mt-3 w-64 md:w-72 p-2 glass-panel rounded-2xl shadow-neo-lg border border-white/10"
+                                >
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {tools.map((tool) => (
+                                            <button
+                                                key={tool.id}
+                                                onClick={() => handleSelectTool(tool.id)}
+                                                className="flex flex-col items-center justify-center gap-2 p-3 rounded-xl neo-surface hover:neo-pressed transition-all group"
+                                            >
+                                                <tool.icon className={`w-6 h-6 ${tool.color} group-hover:scale-110 transition-transform`} />
+                                                <span className="text-[11px] font-semibold text-fg-2 group-hover:text-fg-1">{tool.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
 
-                <div className="flex flex-col gap-8 flex-1 w-full px-4">
-                    {navItems.map((item) => {
-                        const isActive = activeTab === item.id;
-                        return (
-                            <button
-                                key={item.id}
-                                onClick={() => setActiveTab(item.id as any)}
-                                className="relative flex flex-col items-center justify-center gap-2 group w-full"
-                            >
-                                <div className={`p-4 rounded-2xl transition-all duration-300 w-full flex items-center justify-center ${isActive ? 'neo-pressed text-accent' : 'neo-button text-fg-2 hover:text-fg-1'}`}>
-                                    <item.icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />
-                                </div>
-                                <span className={`text-xs font-semibold tracking-wide transition-colors ${isActive ? 'text-accent' : 'text-fg-3 group-hover:text-fg-1'}`}>
-                                    {item.label}
-                                </span>
-                                {isActive && (
-                                    <motion.div 
-                                        layoutId="desktopNavIndicator"
-                                        className="absolute -left-4 w-1 h-8 rounded-r-full bg-accent shadow-accent-glow"
-                                    />
-                                )}
-                            </button>
-                        );
-                    })}
+                    {/* Devices Dropdown */}
+                    <div className="relative">
+                        <button 
+                            onClick={() => toggleDropdown('devices')}
+                            className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl transition-all duration-300 ${openDropdown === 'devices' ? 'neo-pressed text-accent' : 'neo-button text-fg-2 hover:text-fg-1'}`}
+                        >
+                            <Smartphone className="w-5 h-5" />
+                            <span className="hidden sm:block font-semibold text-sm max-w-[100px] truncate">
+                                {selectedDevice?.model || 'Devices'}
+                            </span>
+                            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${openDropdown === 'devices' ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        <AnimatePresence>
+                            {openDropdown === 'devices' && (
+                                <motion.div
+                                    variants={dropdownVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    exit="exit"
+                                    className="absolute top-full right-0 sm:right-auto sm:left-0 mt-3 w-72 p-2 glass-panel rounded-2xl shadow-neo-lg border border-white/10"
+                                >
+                                    <div className="flex flex-col gap-2">
+                                        {onlineDevices.length === 0 ? (
+                                            <div className="p-4 text-center text-fg-3 text-sm">No online devices</div>
+                                        ) : (
+                                            onlineDevices.map(device => (
+                                                <button
+                                                    key={device.deviceId}
+                                                    onClick={() => { setSelectedDeviceId(device.deviceId); setOpenDropdown(null); }}
+                                                    className={`flex items-center justify-between p-3 rounded-xl transition-all ${
+                                                        selectedDeviceId === device.deviceId ? 'neo-pressed border border-accent/20' : 'neo-surface hover:neo-pressed'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center gap-3 overflow-hidden">
+                                                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${device.online ? 'bg-success shadow-[0_0_8px_#10b981]' : 'bg-fg-4'}`} />
+                                                        <span className="text-sm font-semibold text-fg-1 truncate">{device.model || 'Unknown Device'}</span>
+                                                    </div>
+                                                    {selectedDeviceId === device.deviceId && <Check className="w-4 h-4 text-accent" />}
+                                                </button>
+                                            ))
+                                        )}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    <div className="w-px h-8 bg-white/10 mx-1 md:mx-2" />
+
+                    {/* Profile Dropdown */}
+                    <div className="relative">
+                        <button 
+                            onClick={() => toggleDropdown('profile')}
+                            className={`flex items-center justify-center w-10 h-10 md:w-auto md:px-4 py-2 rounded-xl transition-all duration-300 ${openDropdown === 'profile' ? 'neo-pressed text-accent' : 'neo-button text-fg-2 hover:text-fg-1'}`}
+                        >
+                            <Settings className="w-5 h-5 md:mr-2" />
+                            <span className="hidden md:block font-semibold text-sm">Account</span>
+                        </button>
+
+                        <AnimatePresence>
+                            {openDropdown === 'profile' && (
+                                <motion.div
+                                    variants={dropdownVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    exit="exit"
+                                    className="absolute top-full right-0 mt-3 w-64 p-3 glass-panel rounded-2xl shadow-neo-lg border border-white/10"
+                                >
+                                    <div className="p-3 mb-2 rounded-xl neo-surface flex flex-col items-center text-center">
+                                        <div className="w-12 h-12 rounded-full neo-pressed mb-2 flex items-center justify-center shadow-accent-glow">
+                                            <span className="text-xl font-bold text-accent">GE</span>
+                                        </div>
+                                        <PlanBadge plan={userPlan} />
+                                    </div>
+                                    
+                                    <div className="flex flex-col gap-2">
+                                        <button 
+                                            onClick={() => { setShowPlansModal(true); setOpenDropdown(null); }}
+                                            className="flex items-center gap-3 p-3 rounded-xl neo-surface hover:neo-pressed transition-all text-accent group"
+                                        >
+                                            <Crown className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                            <span className="text-sm font-bold">Upgrade Plan</span>
+                                        </button>
+
+                                        <button 
+                                            onClick={() => { handleSignOut(); setOpenDropdown(null); }}
+                                            className="flex items-center gap-3 p-3 rounded-xl neo-surface hover:neo-pressed transition-all text-danger group"
+                                        >
+                                            <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                                            <span className="text-sm font-bold">Sign Out</span>
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
                 </div>
             </nav>
-        </>
+        </div>
     );
 }
