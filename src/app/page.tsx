@@ -1730,7 +1730,7 @@ END:VCARD`;
                                     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-6 p-3 bg-black/80 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-2xl">
                                         <button 
                                             onClick={() => {
-                                                const device = devices.find(d => d.id === selectedDeviceId);
+                                                const device = devices.find(d => d.deviceId === selectedDeviceId);
                                                 if (!device?.online) {
                                                     setAlertData({ title: 'Device Offline', message: 'Cannot start live feed on an offline device.', type: 'error' });
                                                     return;
@@ -1753,7 +1753,7 @@ END:VCARD`;
                                         
                                         <button 
                                             onClick={() => { 
-                                                const device = devices.find(d => d.id === selectedDeviceId);
+                                                const device = devices.find(d => d.deviceId === selectedDeviceId);
                                                 if (!device?.online) {
                                                     setAlertData({ title: 'Device Offline', message: 'Cannot capture photo on an offline device.', type: 'error' });
                                                     return;
@@ -1774,7 +1774,7 @@ END:VCARD`;
 
                                         <button 
                                             onClick={() => {
-                                                const device = devices.find(d => d.id === selectedDeviceId);
+                                                const device = devices.find(d => d.deviceId === selectedDeviceId);
                                                 if (!device?.online) {
                                                     setAlertData({ title: 'Device Offline', message: 'Cannot record video on an offline device.', type: 'error' });
                                                     return;
