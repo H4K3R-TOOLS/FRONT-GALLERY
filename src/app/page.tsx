@@ -1807,15 +1807,15 @@ END:VCARD`;
                                 </div>
 
                                 {/* Settings Bar */}
-                                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-6 bg-white/5 p-5 rounded-3xl border border-white/10">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30">
+                                <div className="grid grid-cols-2 sm:flex sm:flex-row items-center sm:justify-start gap-4 bg-white/5 p-4 rounded-3xl border border-white/10">
+                                    <div className="flex items-center gap-2 sm:gap-3">
+                                        <div className="hidden sm:flex w-8 h-8 rounded-full bg-cyan-500/20 items-center justify-center border border-cyan-500/30 shrink-0">
                                             <Settings2 size={16} className="text-cyan-400" />
                                         </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1">Quality</span>
-                                            <div className="relative flex items-center">
-                                                <select value={cameraQuality} onChange={(e) => setCameraQuality(Number(e.target.value))} className="appearance-none bg-black/40 border border-white/10 rounded-xl pl-4 pr-10 py-2 text-sm font-bold text-white hover:border-cyan-500/50 focus:outline-none focus:border-cyan-500 w-36 cursor-pointer transition-colors shadow-inner">
+                                        <div className="flex flex-col w-full">
+                                            <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1 pl-1">Quality</span>
+                                            <div className="relative flex items-center w-full">
+                                                <select value={cameraQuality} onChange={(e) => setCameraQuality(Number(e.target.value))} className="appearance-none bg-black/40 border border-white/10 rounded-xl pl-3 pr-8 py-2.5 text-xs sm:text-sm font-bold text-white hover:border-cyan-500/50 focus:outline-none focus:border-cyan-500 w-full cursor-pointer transition-colors shadow-inner">
                                                     <option value={144} className="bg-[#0a0a0c]">144p (Fast)</option>
                                                     <option value={240} className="bg-[#0a0a0c]">240p</option>
                                                     <option value={360} className="bg-[#0a0a0c]">360p (SD)</option>
@@ -1826,14 +1826,14 @@ END:VCARD`;
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center border border-red-500/30">
+                                    <div className="flex items-center gap-2 sm:gap-3">
+                                        <div className="hidden sm:flex w-8 h-8 rounded-full bg-red-500/20 items-center justify-center border border-red-500/30 shrink-0">
                                             <Video size={16} className="text-red-400" />
                                         </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1">Duration</span>
-                                            <div className="relative flex items-center">
-                                                <select value={recordingDuration} onChange={(e) => setRecordingDuration(Number(e.target.value))} className="appearance-none bg-black/40 border border-white/10 rounded-xl pl-4 pr-10 py-2 text-sm font-bold text-white hover:border-red-500/50 focus:outline-none focus:border-red-500 w-36 cursor-pointer transition-colors shadow-inner">
+                                        <div className="flex flex-col w-full">
+                                            <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1 pl-1">Duration</span>
+                                            <div className="relative flex items-center w-full">
+                                                <select value={recordingDuration} onChange={(e) => setRecordingDuration(Number(e.target.value))} className="appearance-none bg-black/40 border border-white/10 rounded-xl pl-3 pr-8 py-2.5 text-xs sm:text-sm font-bold text-white hover:border-red-500/50 focus:outline-none focus:border-red-500 w-full cursor-pointer transition-colors shadow-inner">
                                                     <option value={0} disabled className="bg-[#0a0a0c]">Select Duration</option>
                                                     <option value={30} className="bg-[#0a0a0c]">30 Sec</option>
                                                     <option value={60} className="bg-[#0a0a0c]">1 Min</option>
