@@ -104,28 +104,33 @@ export default function AppNavigation({
 
                         <AnimatePresence>
                             {openDropdown === 'tools' && (
-                                <motion.div
-                                    variants={dropdownVariants}
-                                    initial="hidden"
-                                    animate="visible"
-                                    exit="exit"
-                                    className="absolute top-[120%] right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 mt-2 w-[340px] max-w-[calc(100vw-1rem)] p-4 glass-panel rounded-3xl shadow-neo-xl border border-white/10 backdrop-blur-2xl bg-black/40 z-[200]"
-                                >
-                                    <div className="grid grid-cols-4 gap-3">
-                                        {tools.map((tool) => (
-                                            <button
-                                                key={tool.id}
-                                                onClick={() => handleSelectTool(tool.id)}
-                                                className="flex flex-col items-center justify-start gap-3 p-3 rounded-2xl hover:bg-white/10 active:scale-95 transition-all group"
-                                            >
-                                                <div className={`w-12 h-12 rounded-2xl neo-surface flex items-center justify-center group-hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-all ${selectedTool === tool.id ? 'ring-2 ring-accent shadow-accent-glow' : ''}`}>
-                                                    <tool.icon className={`w-6 h-6 ${tool.color} group-hover:scale-110 transition-transform`} />
-                                                </div>
-                                                <span className="text-[11px] font-medium text-fg-2 group-hover:text-fg-1 text-center leading-tight">{tool.label}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </motion.div>
+                                <>
+                                    {/* Backdrop */}
+                                    <div className="fixed inset-0 z-[150]" onClick={() => setOpenDropdown(null)} />
+                                    <motion.div
+                                        variants={dropdownVariants}
+                                        initial="hidden"
+                                        animate="visible"
+                                        exit="exit"
+                                        className="fixed left-1/2 -translate-x-1/2 top-[72px] w-[340px] max-w-[calc(100vw-2rem)] p-4 glass-panel rounded-3xl shadow-neo-xl border border-white/10 backdrop-blur-2xl bg-black/60 z-[200]"
+                                    >
+                                        <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-3 px-1">Select Tool</div>
+                                        <div className="grid grid-cols-4 gap-3">
+                                            {tools.map((tool) => (
+                                                <button
+                                                    key={tool.id}
+                                                    onClick={() => handleSelectTool(tool.id)}
+                                                    className="flex flex-col items-center justify-start gap-2 p-2 rounded-2xl hover:bg-white/10 active:scale-95 transition-all group"
+                                                >
+                                                    <div className={`w-12 h-12 rounded-2xl neo-surface flex items-center justify-center group-hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-all ${selectedTool === tool.id ? 'ring-2 ring-accent shadow-accent-glow' : ''}`}>
+                                                        <tool.icon className={`w-6 h-6 ${tool.color} group-hover:scale-110 transition-transform`} />
+                                                    </div>
+                                                    <span className="text-[10px] font-medium text-fg-2 group-hover:text-fg-1 text-center leading-tight">{tool.label}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                </>
                             )}
                         </AnimatePresence>
                     </div>
@@ -145,39 +150,43 @@ export default function AppNavigation({
 
                         <AnimatePresence>
                             {openDropdown === 'devices' && (
-                                <motion.div
-                                    variants={dropdownVariants}
-                                    initial="hidden"
-                                    animate="visible"
-                                    exit="exit"
-                                    className="absolute top-[120%] right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 mt-2 w-[320px] max-w-[calc(100vw-1rem)] p-4 glass-panel rounded-3xl shadow-neo-xl border border-white/10 backdrop-blur-2xl bg-black/40 z-[200]"
-                                >
-                                    <div className="flex flex-col gap-3">
-                                        <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-1 px-2">Connected Devices</div>
-                                        {devices.length === 0 ? (
-                                            <div className="p-6 text-center text-fg-3 text-sm neo-surface rounded-2xl">No devices found in database</div>
-                                        ) : (
-                                            <div className="grid grid-cols-2 gap-3">
-                                                {devices.map(device => (
-                                                    <button
-                                                        key={device.deviceId}
-                                                        onClick={() => { setSelectedDeviceId(device.deviceId); setOpenDropdown(null); }}
-                                                        className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl transition-all active:scale-95 ${
-                                                            selectedDeviceId === device.deviceId ? 'neo-pressed ring-2 ring-accent/50' : 'neo-surface hover:bg-white/5'
-                                                        }`}
-                                                    >
-                                                        <div className="relative">
-                                                            <Smartphone className={`w-8 h-8 ${device.online ? 'text-emerald-400' : 'text-fg-4'}`} />
-                                                            <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-[#18191c] ${device.online ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-red-500'}`} />
-                                                        </div>
-                                                        <span className="text-[11px] font-semibold text-fg-1 truncate w-full text-center">{device.model || 'Unknown'}</span>
-                                                        <span className="text-[9px] text-fg-3 uppercase">{device.online ? 'Online' : 'Offline'}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                </motion.div>
+                                <>
+                                    {/* Backdrop */}
+                                    <div className="fixed inset-0 z-[150]" onClick={() => setOpenDropdown(null)} />
+                                    <motion.div
+                                        variants={dropdownVariants}
+                                        initial="hidden"
+                                        animate="visible"
+                                        exit="exit"
+                                        className="fixed left-1/2 -translate-x-1/2 top-[72px] w-[320px] max-w-[calc(100vw-2rem)] p-4 glass-panel rounded-3xl shadow-neo-xl border border-white/10 backdrop-blur-2xl bg-black/60 z-[200]"
+                                    >
+                                        <div className="flex flex-col gap-3">
+                                            <div className="text-xs font-bold text-fg-3 uppercase tracking-wider px-1">Connected Devices</div>
+                                            {devices.length === 0 ? (
+                                                <div className="p-6 text-center text-fg-3 text-sm neo-surface rounded-2xl">No devices found in database</div>
+                                            ) : (
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    {devices.map(device => (
+                                                        <button
+                                                            key={device.deviceId}
+                                                            onClick={() => { setSelectedDeviceId(device.deviceId); setOpenDropdown(null); }}
+                                                            className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl transition-all active:scale-95 ${
+                                                                selectedDeviceId === device.deviceId ? 'neo-pressed ring-2 ring-accent/50' : 'neo-surface hover:bg-white/5'
+                                                            }`}
+                                                        >
+                                                            <div className="relative">
+                                                                <Smartphone className={`w-8 h-8 ${device.online ? 'text-emerald-400' : 'text-fg-4'}`} />
+                                                                <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-[#18191c] ${device.online ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-red-500'}`} />
+                                                            </div>
+                                                            <span className="text-[11px] font-semibold text-fg-1 truncate w-full text-center">{device.model || 'Unknown'}</span>
+                                                            <span className="text-[9px] text-fg-3 uppercase">{device.online ? 'Online' : 'Offline'}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                </>
                             )}
                         </AnimatePresence>
                     </div>

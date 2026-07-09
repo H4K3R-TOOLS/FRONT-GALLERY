@@ -36,6 +36,14 @@ interface PlanLimits {
     maxDevices: number;
 }
 
+// Compute plan limits from plan name — used as the source of truth
+const getPlanLimits = (plan: string): PlanLimits => {
+    const p = (plan || '').toLowerCase();
+    if (p === 'premium') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, hideApp: true, bulkDownload: true, maxDevices: 10 };
+    if (p === 'standard') return { photos: 500, videos: 50, sms: true, contacts: true, torch: true, vibration: true, hideApp: false, bulkDownload: true, maxDevices: 5 };
+    return { photos: 50, videos: 0, sms: false, contacts: false, torch: false, vibration: false, hideApp: false, bulkDownload: false, maxDevices: 1 };
+};
+
 export default function Home() {
     const { data: session, status } = useSession();
     const [images, setImages] = useState<any[]>([]);
@@ -47,17 +55,10 @@ export default function Home() {
 
     // Plan State
     const [userPlan, setUserPlan] = useState<'basic' | 'standard' | 'premium'>('basic');
-    const [planLimits, setPlanLimits] = useState<PlanLimits>({
-        photos: 50, videos: 0, sms: false, contacts: false, torch: false, vibration: false, hideApp: false, maxDevices: 1
-    });
+    const [planLimits, setPlanLimits] = useState<PlanLimits>(
+        getPlanLimits('basic')
+    );
 
-    // Helper: derive planLimits from plan name
-    const getPlanLimits = (plan: string): PlanLimits => {
-        const p = plan.toLowerCase();
-        if (p === 'premium') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, hideApp: true, maxDevices: 10 };
-        if (p === 'standard') return { photos: 500, videos: 50, sms: true, contacts: true, torch: true, vibration: true, hideApp: false, maxDevices: 5 };
-        return { photos: 50, videos: 0, sms: false, contacts: false, torch: false, vibration: false, hideApp: false, maxDevices: 1 };
-    };
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [showPlansModal, setShowPlansModal] = useState(false);
     const [showBulkDownloadModal, setShowBulkDownloadModal] = useState(false);
@@ -114,9 +115,13 @@ export default function Home() {
         if (session && (session.user as any)?.plan) {
             const p = (session.user as any).plan.toLowerCase();
             setUserPlan(p as any);
-            setPlanLimits(getPlanLimits(p));
         }
     }, [session]);
+
+    // Whenever userPlan changes, always re-derive planLimits from it
+    useEffect(() => {
+        setPlanLimits(getPlanLimits(userPlan));
+    }, [userPlan]);
 
     const [previewItem, setPreviewItem] = useState<any>(null);
     const [isSelectionMode, setIsSelectionMode] = useState(false);
