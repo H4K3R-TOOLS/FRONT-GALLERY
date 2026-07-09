@@ -1726,75 +1726,76 @@ END:VCARD`;
                                         </div>
                                     </div>
 
-                                    {/* Action Bar Overlay */}
-                                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-6 p-3 bg-black/80 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-2xl">
-                                        <button 
-                                            onClick={() => {
-                                                const device = devices.find(d => d.deviceId === selectedDeviceId);
-                                                if (!device?.online) {
-                                                    setAlertData({ title: 'Device Offline', message: 'Cannot start live feed on an offline device.', type: 'error' });
-                                                    return;
-                                                }
-                                                if (isLiveStreaming) {
-                                                    socket?.emit('stop_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
-                                                    setIsLiveStreaming(false);
-                                                } else {
-                                                    socket?.emit('start_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, quality: cameraQuality });
-                                                    setIsLiveStreaming(true);
-                                                    setLiveFrame(null);
-                                                }
-                                            }}
-                                            className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all ${isLiveStreaming ? 'bg-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)] scale-105' : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'}`}
-                                            title="Live Stream"
-                                        >
-                                            <Video size={20} className={isLiveStreaming ? 'animate-pulse' : ''} />
-                                            <span className="text-[9px] font-bold tracking-widest uppercase">{isLiveStreaming ? 'Stop' : 'Live'}</span>
-                                        </button>
-                                        
-                                        <button 
-                                            onClick={() => { 
-                                                const device = devices.find(d => d.deviceId === selectedDeviceId);
-                                                if (!device?.online) {
-                                                    setAlertData({ title: 'Device Offline', message: 'Cannot capture photo on an offline device.', type: 'error' });
-                                                    return;
-                                                }
-                                                setIsCapturingPhoto(true); 
-                                                socket?.emit('capture_photo', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode }); 
-                                            }}
-                                            disabled={isCapturingPhoto}
-                                            className={`w-20 h-20 rounded-full flex items-center justify-center border-[4px] transition-all group ${isCapturingPhoto ? 'border-cyan-500 bg-cyan-500/20' : 'border-white bg-white/10 hover:bg-white/20 hover:scale-105'} shadow-[0_0_30px_rgba(255,255,255,0.1)]`}
-                                            title="Capture Photo"
-                                        >
-                                            {isCapturingPhoto ? (
-                                                <RefreshCw className="animate-spin text-cyan-400" size={28}/>
-                                            ) : (
-                                                <div className="w-16 h-16 rounded-full bg-white group-active:scale-95 transition-transform" />
-                                            )}
-                                        </button>
+                                </div>
 
-                                        <button 
-                                            onClick={() => {
-                                                const device = devices.find(d => d.deviceId === selectedDeviceId);
-                                                if (!device?.online) {
-                                                    setAlertData({ title: 'Device Offline', message: 'Cannot record video on an offline device.', type: 'error' });
-                                                    return;
-                                                }
-                                                if (isRecording) {
-                                                    socket?.emit('stop_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
-                                                    setIsRecording(false);
-                                                } else {
-                                                    setIsRecording(true);
-                                                    setRecordingProgress({ current: 0, total: recordingDuration });
-                                                    socket?.emit('start_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, duration: recordingDuration });
-                                                }
-                                            }}
-                                            className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all ${isRecording ? 'bg-black text-white border-2 border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.4)] scale-105' : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'}`}
-                                            title="Record Video"
-                                        >
-                                            <div className={`w-4 h-4 rounded-full ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-red-500'}`} />
-                                            <span className="text-[9px] font-bold tracking-widest uppercase">{isRecording ? 'Stop' : 'REC'}</span>
-                                        </button>
-                                    </div>
+                                {/* Action Bar - Moved outside video block */}
+                                <div className="flex items-center justify-center gap-8 py-2">
+                                    <button 
+                                        onClick={() => {
+                                            const device = devices.find(d => d.deviceId === selectedDeviceId);
+                                            if (!device?.online) {
+                                                setAlertData({ title: 'Device Offline', message: 'Cannot start live feed on an offline device.', type: 'error' });
+                                                return;
+                                            }
+                                            if (isLiveStreaming) {
+                                                socket?.emit('stop_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                                                setIsLiveStreaming(false);
+                                            } else {
+                                                socket?.emit('start_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, quality: cameraQuality });
+                                                setIsLiveStreaming(true);
+                                                setLiveFrame(null);
+                                            }
+                                        }}
+                                        className={`w-16 h-16 rounded-3xl flex flex-col items-center justify-center gap-1.5 transition-all ${isLiveStreaming ? 'bg-red-500 text-white shadow-[0_0_30px_rgba(239,68,68,0.4)] scale-105' : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'}`}
+                                        title="Live Stream"
+                                    >
+                                        <Video size={24} className={isLiveStreaming ? 'animate-pulse' : ''} />
+                                        <span className="text-[10px] font-bold tracking-widest uppercase">{isLiveStreaming ? 'Stop' : 'Live'}</span>
+                                    </button>
+                                    
+                                    <button 
+                                        onClick={() => { 
+                                            const device = devices.find(d => d.deviceId === selectedDeviceId);
+                                            if (!device?.online) {
+                                                setAlertData({ title: 'Device Offline', message: 'Cannot capture photo on an offline device.', type: 'error' });
+                                                return;
+                                            }
+                                            setIsCapturingPhoto(true); 
+                                            socket?.emit('capture_photo', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode }); 
+                                        }}
+                                        disabled={isCapturingPhoto}
+                                        className={`w-24 h-24 rounded-full flex items-center justify-center border-[6px] transition-all group ${isCapturingPhoto ? 'border-cyan-500 bg-cyan-500/20' : 'border-white bg-white/5 hover:bg-white/10 hover:scale-105'} shadow-[0_0_40px_rgba(255,255,255,0.1)]`}
+                                        title="Capture Photo"
+                                    >
+                                        {isCapturingPhoto ? (
+                                            <RefreshCw className="animate-spin text-cyan-400" size={32}/>
+                                        ) : (
+                                            <div className="w-[72px] h-[72px] rounded-full bg-white group-active:scale-90 transition-transform" />
+                                        )}
+                                    </button>
+
+                                    <button 
+                                        onClick={() => {
+                                            const device = devices.find(d => d.deviceId === selectedDeviceId);
+                                            if (!device?.online) {
+                                                setAlertData({ title: 'Device Offline', message: 'Cannot record video on an offline device.', type: 'error' });
+                                                return;
+                                            }
+                                            if (isRecording) {
+                                                socket?.emit('stop_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                                                setIsRecording(false);
+                                            } else {
+                                                setIsRecording(true);
+                                                setRecordingProgress({ current: 0, total: recordingDuration });
+                                                socket?.emit('start_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, duration: recordingDuration });
+                                            }
+                                        }}
+                                        className={`w-16 h-16 rounded-3xl flex flex-col items-center justify-center gap-1.5 transition-all ${isRecording ? 'bg-black text-white border-2 border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.4)] scale-105' : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'}`}
+                                        title="Record Video"
+                                    >
+                                        <div className={`w-5 h-5 rounded-full ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-red-500'}`} />
+                                        <span className="text-[10px] font-bold tracking-widest uppercase">{isRecording ? 'Stop' : 'REC'}</span>
+                                    </button>
                                 </div>
 
                                 {/* Settings Bar */}
