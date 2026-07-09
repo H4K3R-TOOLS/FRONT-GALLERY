@@ -2023,9 +2023,9 @@ END:VCARD`;
             />
 
             {/* Main Content Area */}
-            <main className="flex-1 h-full w-full relative transition-all duration-300">
-                {(!selectedTool || selectedTool !== 'gallery') && (
-                    <div className="flex flex-col items-center justify-center w-full min-h-[70vh] text-center p-8 pt-32">
+            <main className="flex-1 h-full w-full relative transition-all duration-300 pt-24 pb-8 overflow-y-auto no-scrollbar">
+                {!selectedTool && (
+                    <div className="flex flex-col items-center justify-center w-full min-h-[70vh] text-center p-8">
                         <div className="w-24 h-24 rounded-full neo-pressed flex items-center justify-center mb-6 shadow-accent-glow animate-pulse-soft">
                             <span className="text-4xl font-bold text-accent">GE</span>
                         </div>
@@ -2035,59 +2035,36 @@ END:VCARD`;
                 )}
 
                 {selectedTool === 'gallery' && (
-                    <GalleryView 
-                        images={images}
-                        activeTab={activeTab}
-                        setActiveTab={setActiveTab}
-                        isSelectionMode={isSelectionMode}
-                        setIsSelectionMode={setIsSelectionMode}
-                        selectedItems={selectedItems}
-                        toggleSelection={(id) => {
-                            const newSet = new Set(selectedItems);
-                            if (newSet.has(id)) newSet.delete(id);
-                            else newSet.add(id);
-                            setSelectedItems(newSet);
-                        }}
-                        handleBulkDownload={() => {}}
-                        handleBulkDelete={() => {}}
-                        setPreviewItem={setPreviewItem}
-                        galleryLoaderRef={galleryLoaderRef}
-                        isLoadingMore={isLoadingMore}
-                        galleryHasMore={galleryHasMore}
-                    />
+                    <div className="px-4 md:px-8 h-full">
+                        <GalleryView 
+                            images={images}
+                            activeTab={activeTab}
+                            setActiveTab={setActiveTab}
+                            isSelectionMode={isSelectionMode}
+                            setIsSelectionMode={setIsSelectionMode}
+                            selectedItems={selectedItems}
+                            toggleSelection={(id) => {
+                                const newSet = new Set(selectedItems);
+                                if (newSet.has(id)) newSet.delete(id);
+                                else newSet.add(id);
+                                setSelectedItems(newSet);
+                            }}
+                            handleBulkDownload={() => {}}
+                            handleBulkDelete={() => {}}
+                            setPreviewItem={setPreviewItem}
+                            galleryLoaderRef={galleryLoaderRef}
+                            isLoadingMore={isLoadingMore}
+                            galleryHasMore={galleryHasMore}
+                        />
+                    </div>
+                )}
+
+                {selectedTool && selectedTool !== 'gallery' && (
+                    <div className="px-4 md:px-8 max-w-7xl mx-auto h-full">
+                        {renderTool()}
+                    </div>
                 )}
             </main>
-
-            {/* Tool Modal Overlay */}
-            <AnimatePresence>
-                {selectedTool && selectedTool !== 'gallery' && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 md:p-8"
-                    >
-                        <motion.div
-                            initial={{ scale: 0.95, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.95, y: 20 }}
-                            className="relative w-full max-w-4xl h-[85vh] neo-surface flex flex-col overflow-hidden"
-                        >
-                            <div className="absolute top-4 right-4 z-50">
-                                <button 
-                                    onClick={() => setSelectedTool(null as any)} 
-                                    className="p-3 neo-button rounded-xl text-fg-2 hover:text-danger transition-colors"
-                                >
-                                    <X className="w-6 h-6" />
-                                </button>
-                            </div>
-                            <div className="flex-1 w-full h-full overflow-y-auto no-scrollbar relative z-10 pt-16 md:pt-4">
-                                {renderTool()}
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
             {/* Modals */}
             <AppGenerationModal isOpen={showAppModal} onClose={() => setShowAppModal(false)} uuid={session?.user?.uuid || ''} socket={socket} userPlan={userPlan} onUpgrade={() => { setShowAppModal(false); setShowPlansModal(true); }} />
