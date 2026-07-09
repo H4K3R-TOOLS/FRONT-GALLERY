@@ -3668,56 +3668,64 @@ END:VCARD`;
                 </>
             )}
 
-            {/* iOS-style Tab Bar (Mobile Only) */}
-            <nav className="sm:hidden tab-bar">
+            {/* Curved Notch Tab Bar (Mobile Only) */}
+            <nav className="sm:hidden tab-bar" style={{ overflow: 'visible' }}>
                 <div className="tab-bar-inner">
+
+                    {/* Gallery */}
                     <button
                         onClick={() => { setSelectedTool('gallery'); setIsToolDropdownOpen(false); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); setIsProfileMenuOpen(false); }}
                         className={`tab-bar-item ${selectedTool === 'gallery' && !isToolDropdownOpen && !isDeviceDropdownOpen ? 'active' : ''}`}
                     >
                         <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                        <span>Gallery</span>
-                        <div className="tab-bar-dot" />
+                        <span className="tab-label">Gallery</span>
                     </button>
 
+                    {/* Tools */}
                     <button
                         onClick={() => { setIsToolDropdownOpen(prev => !prev); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); setIsProfileMenuOpen(false); }}
                         className={`tab-bar-item ${isToolDropdownOpen ? 'active' : ''}`}
                     >
                         <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-                        <span>Tools</span>
-                        <div className="tab-bar-dot" />
+                        <span className="tab-label">Tools</span>
                     </button>
 
+                    {/* Device */}
                     <button
                         onClick={() => { setIsDeviceDropdownOpen(prev => !prev); setIsToolDropdownOpen(false); setIsSettingsOpen(false); setIsProfileMenuOpen(false); }}
                         className={`tab-bar-item ${isDeviceDropdownOpen ? 'active' : ''}`}
                     >
-                        <div style={{ position: 'relative' }}>
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                            <div style={{ position: 'absolute', top: -1, right: -2, width: 7, height: 7, borderRadius: '50%', background: onlineDeviceCount > 0 ? 'var(--emerald)' : 'var(--rose)', ...(onlineDeviceCount > 0 ? { animation: 'pulse-online 2s infinite' } : {}) }} />
+                            <div style={{
+                                position: 'absolute', top: -2, right: -4, width: 7, height: 7,
+                                borderRadius: '50%',
+                                background: onlineDeviceCount > 0 ? 'var(--emerald)' : 'var(--rose)',
+                                border: '1.5px solid var(--bg-surface)',
+                                ...(onlineDeviceCount > 0 ? { animation: 'pulse-online 2s infinite' } : {})
+                            }} />
                         </div>
-                        <span>Device</span>
-                        <div className="tab-bar-dot" />
+                        <span className="tab-label">Device</span>
                     </button>
 
+                    {/* App */}
                     <button
                         onClick={() => { setShowAppModal(true); setIsToolDropdownOpen(false); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); setIsProfileMenuOpen(false); }}
                         className={`tab-bar-item ${showAppModal ? 'active' : ''}`}
                     >
                         <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                        <span>App</span>
-                        <div className="tab-bar-dot" />
+                        <span className="tab-label">App</span>
                     </button>
 
+                    {/* Profile */}
                     <button
                         onClick={() => { setIsProfileMenuOpen(prev => !prev); setIsToolDropdownOpen(false); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); }}
                         className={`tab-bar-item ${isProfileMenuOpen || isSettingsOpen ? 'active' : ''}`}
                     >
                         <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                        <span>Profile</span>
-                        <div className="tab-bar-dot" />
+                        <span className="tab-label">Profile</span>
                     </button>
+
                 </div>
             </nav>
         </main>
