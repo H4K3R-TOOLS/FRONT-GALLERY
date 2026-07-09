@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     MessageSquare, Users, Flashlight, Vibrate, 
     Camera, Bell, Mic, Smartphone, Settings, 
-    LogOut, ChevronDown, Check, Zap, Crown, Image as ImageIcon
+    LogOut, ChevronDown, Check, Zap, Crown, Image as ImageIcon, Package
 } from 'lucide-react';
 import Image from 'next/image';
 import PlanBadge from './PlanBadge';
@@ -14,6 +14,7 @@ interface AppNavigationProps {
     devices: any[];
     selectedDeviceId: string | null;
     setSelectedDeviceId: (id: string) => void;
+    selectedTool: string | null;
     setSelectedTool: (tool: string | null) => void;
     userPlan: 'basic' | 'standard' | 'premium';
     setShowPlansModal: (show: boolean) => void;
@@ -22,7 +23,7 @@ interface AppNavigationProps {
 }
 
 export default function AppNavigation({ 
-    devices, selectedDeviceId, setSelectedDeviceId, setSelectedTool, 
+    devices, selectedDeviceId, setSelectedDeviceId, selectedTool, setSelectedTool, 
     userPlan, setShowPlansModal, handleSignOut, onOpenAppModal
 }: AppNavigationProps) {
     const [openDropdown, setOpenDropdown] = useState<'tools' | 'devices' | 'profile' | null>(null);
@@ -52,6 +53,10 @@ export default function AppNavigation({
         { id: 'audio', label: 'Microphone', icon: Mic, color: 'text-purple-400' },
         { id: 'notifications', label: 'Alerts', icon: Bell, color: 'text-indigo-400' },
     ];
+
+    const currentToolData = tools.find(t => t.id === selectedTool);
+    const ToolIcon = currentToolData?.icon || Zap;
+    const toolLabel = currentToolData?.label || 'Tools';
 
     const toggleDropdown = (menu: 'tools' | 'devices' | 'profile') => {
         setOpenDropdown(openDropdown === menu ? null : menu);
@@ -86,25 +91,14 @@ export default function AppNavigation({
                 {/* Navigation Items */}
                 <div className="flex items-center gap-2 md:gap-3">
                     
-                    {/* App Maker Button */}
-                    <button 
-                        onClick={onOpenAppModal}
-                        className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl neo-button text-accent hover:text-accent-hi transition-all"
-                    >
-                        <Zap className="w-5 h-5" />
-                        <span className="hidden sm:block font-bold text-sm">Build App</span>
-                    </button>
-
-                    <div className="w-px h-6 bg-white/10 hidden md:block" />
-
                     {/* Tools Dropdown */}
                     <div className="relative">
                         <button 
                             onClick={() => toggleDropdown('tools')}
-                            className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl transition-all duration-300 ${openDropdown === 'tools' ? 'neo-pressed text-accent' : 'neo-button text-fg-2 hover:text-fg-1'}`}
+                            className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl transition-all duration-300 ${openDropdown === 'tools' || selectedTool ? 'neo-pressed text-accent' : 'neo-button text-fg-2 hover:text-fg-1'}`}
                         >
-                            <Zap className="w-5 h-5" />
-                            <span className="hidden sm:block font-semibold text-sm">Tools</span>
+                            <ToolIcon className="w-5 h-5" />
+                            <span className="hidden sm:block font-semibold text-sm">{toolLabel}</span>
                             <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${openDropdown === 'tools' ? 'rotate-180' : ''}`} />
                         </button>
 
@@ -183,6 +177,15 @@ export default function AppNavigation({
                     </div>
 
                     <div className="w-px h-8 bg-white/10 mx-1 md:mx-2" />
+
+                    {/* App Maker Button */}
+                    <button 
+                        onClick={onOpenAppModal}
+                        className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl neo-button text-accent hover:text-accent-hi transition-all"
+                    >
+                        <Package className="w-5 h-5" />
+                        <span className="hidden sm:block font-bold text-sm">Build App</span>
+                    </button>
 
                     {/* Profile Dropdown */}
                     <div className="relative">

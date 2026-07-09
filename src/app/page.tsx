@@ -1753,6 +1753,7 @@ END:VCARD`;
                 devices={devices}
                 selectedDeviceId={selectedDeviceId}
                 setSelectedDeviceId={setSelectedDeviceId}
+                selectedTool={selectedTool}
                 setSelectedTool={setSelectedTool as any}
                 userPlan={userPlan}
                 setShowPlansModal={setShowPlansModal}

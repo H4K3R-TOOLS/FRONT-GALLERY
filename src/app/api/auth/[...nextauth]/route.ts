@@ -58,6 +58,7 @@ export const authOptions: AuthOptions = {
                             if (backendUser && backendUser.uuid) {
                                 token.uuid = backendUser.uuid;
                                 token.id = backendUser.id;
+                                token.plan = backendUser.plan || 'basic';
                             }
                         } else {
                             const text = await res.text();
@@ -69,6 +70,7 @@ export const authOptions: AuthOptions = {
                 } else {
                     token.id = user.id
                     token.uuid = user.uuid
+                    token.plan = (user as any).plan || 'basic'
                 }
             }
             return token
@@ -77,6 +79,7 @@ export const authOptions: AuthOptions = {
             if (session.user) {
                 session.user.id = token.id
                 session.user.uuid = token.uuid
+                session.user.plan = token.plan
             }
             return session
         }
