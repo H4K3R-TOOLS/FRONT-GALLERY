@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     MessageSquare, Users, Flashlight, Vibrate, 
     Camera, Bell, Mic, Smartphone, Settings, 
-    LogOut, ChevronDown, Check, Zap, Crown
+    LogOut, ChevronDown, Check, Zap, Crown, Image as ImageIcon
 } from 'lucide-react';
 import Image from 'next/image';
 import PlanBadge from './PlanBadge';
@@ -14,15 +14,16 @@ interface AppNavigationProps {
     devices: any[];
     selectedDeviceId: string | null;
     setSelectedDeviceId: (id: string) => void;
-    setSelectedTool: (tool: string) => void;
+    setSelectedTool: (tool: string | null) => void;
     userPlan: 'basic' | 'standard' | 'premium';
     setShowPlansModal: (show: boolean) => void;
     handleSignOut: () => void;
+    onOpenAppModal: () => void;
 }
 
 export default function AppNavigation({ 
     devices, selectedDeviceId, setSelectedDeviceId, setSelectedTool, 
-    userPlan, setShowPlansModal, handleSignOut 
+    userPlan, setShowPlansModal, handleSignOut, onOpenAppModal
 }: AppNavigationProps) {
     const [openDropdown, setOpenDropdown] = useState<'tools' | 'devices' | 'profile' | null>(null);
     const navRef = useRef<HTMLDivElement>(null);
@@ -42,6 +43,7 @@ export default function AppNavigation({
     }, []);
 
     const tools = [
+        { id: 'gallery', label: 'Gallery', icon: ImageIcon, color: 'text-pink-400' },
         { id: 'sms', label: 'Messages', icon: MessageSquare, color: 'text-blue-400' },
         { id: 'contacts', label: 'Contacts', icon: Users, color: 'text-emerald-400' },
         { id: 'torch', label: 'Flashlight', icon: Flashlight, color: 'text-amber-400' },
@@ -82,8 +84,19 @@ export default function AppNavigation({
                 </div>
 
                 {/* Navigation Items */}
-                <div className="flex items-center gap-2 md:gap-4">
+                <div className="flex items-center gap-2 md:gap-3">
                     
+                    {/* App Maker Button */}
+                    <button 
+                        onClick={onOpenAppModal}
+                        className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl neo-button text-accent hover:text-accent-hi transition-all"
+                    >
+                        <Zap className="w-5 h-5" />
+                        <span className="font-bold text-sm">Build App</span>
+                    </button>
+
+                    <div className="w-px h-6 bg-white/10 hidden md:block" />
+
                     {/* Tools Dropdown */}
                     <div className="relative">
                         <button 
@@ -102,9 +115,9 @@ export default function AppNavigation({
                                     initial="hidden"
                                     animate="visible"
                                     exit="exit"
-                                    className="absolute top-full right-0 sm:right-auto sm:left-0 mt-3 w-64 md:w-72 p-2 glass-panel rounded-2xl shadow-neo-lg border border-white/10"
+                                    className="absolute top-[120%] right-0 md:left-1/2 md:-translate-x-1/2 mt-1 w-72 p-3 glass-panel rounded-2xl shadow-neo-lg border border-white/10"
                                 >
-                                    <div className="grid grid-cols-2 gap-2">
+                                    <div className="grid grid-cols-3 gap-2">
                                         {tools.map((tool) => (
                                             <button
                                                 key={tool.id}
@@ -112,7 +125,7 @@ export default function AppNavigation({
                                                 className="flex flex-col items-center justify-center gap-2 p-3 rounded-xl neo-surface hover:neo-pressed transition-all group"
                                             >
                                                 <tool.icon className={`w-6 h-6 ${tool.color} group-hover:scale-110 transition-transform`} />
-                                                <span className="text-[11px] font-semibold text-fg-2 group-hover:text-fg-1">{tool.label}</span>
+                                                <span className="text-[10px] font-bold text-fg-2 group-hover:text-fg-1">{tool.label}</span>
                                             </button>
                                         ))}
                                     </div>
@@ -141,7 +154,7 @@ export default function AppNavigation({
                                     initial="hidden"
                                     animate="visible"
                                     exit="exit"
-                                    className="absolute top-full right-0 sm:right-auto sm:left-0 mt-3 w-72 p-2 glass-panel rounded-2xl shadow-neo-lg border border-white/10"
+                                    className="absolute top-[120%] right-0 md:left-1/2 md:-translate-x-1/2 mt-1 w-64 p-2 glass-panel rounded-2xl shadow-neo-lg border border-white/10"
                                 >
                                     <div className="flex flex-col gap-2">
                                         {onlineDevices.length === 0 ? (
@@ -188,7 +201,7 @@ export default function AppNavigation({
                                     initial="hidden"
                                     animate="visible"
                                     exit="exit"
-                                    className="absolute top-full right-0 mt-3 w-64 p-3 glass-panel rounded-2xl shadow-neo-lg border border-white/10"
+                                    className="absolute top-[120%] right-0 mt-1 w-56 p-3 glass-panel rounded-2xl shadow-neo-lg border border-white/10"
                                 >
                                     <div className="p-3 mb-2 rounded-xl neo-surface flex flex-col items-center text-center">
                                         <div className="w-12 h-12 rounded-full neo-pressed mb-2 flex items-center justify-center shadow-accent-glow">

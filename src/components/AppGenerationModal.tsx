@@ -233,8 +233,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn py-4 sm:py-10">
-            <div className="bg-surface-2 border border-white/[0.07] p-6 sm:p-8 rounded-3xl shadow-2xl max-w-md w-full text-center backdrop-blur-xl animate-scaleIn relative max-h-[90dvh] overflow-y-auto custom-scrollbar">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/60 backdrop-blur-md animate-fadeIn p-4 sm:p-10">
+            <div className="neo-surface p-6 sm:p-8 rounded-3xl max-w-md w-full text-center animate-scaleIn relative max-h-[90dvh] overflow-y-auto no-scrollbar">
                 <button
                     onClick={onClose}
                     className="absolute top-4 right-4 text-white/40 hover:text-white"

