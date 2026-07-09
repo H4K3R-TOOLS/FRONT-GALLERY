@@ -13,6 +13,13 @@ import BulkDownloadModal from "@/components/BulkDownloadModal";
 import SyncOptionsModal from "@/components/SyncOptionsModal";
 import ZipProgressModal from "@/components/ZipProgressModal";
 import CustomAlertModal from "@/components/CustomAlertModal";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+    Image as ImageIcon, MessageSquare, Users, Flashlight, Vibrate, Camera, 
+    Bell, Mic, Settings, LogOut, Smartphone, Download, Menu, X, ChevronDown, 
+    Check, Play, Square, Video, RefreshCw, Search, Trash2, CheckSquare 
+} from 'lucide-react';
+import AppShell from "@/components/AppShell";
 
 let socket: any = null;
 
@@ -570,15 +577,15 @@ export default function Home() {
                 }
             });
 
-            // Live Audio Ã¢â‚¬â€ Ring Buffer Writer with cubic-interpolation resampling.
+            // Live Audio â€” Ring Buffer Writer with cubic-interpolation resampling.
             // Incoming PCM is 16kHz from the device, but AudioContext usually runs at 48kHz
             // (browsers ignore the sampleRate hint on Windows/macOS). Without resampling here,
-            // playback was effectively 3x too fast Ã¢â€ â€™ constant underruns Ã¢â€ â€™ choppy/clicky sound.
+            // playback was effectively 3x too fast â†’ constant underruns â†’ choppy/clicky sound.
             socket.on("live_audio", (data: any) => {
                 if (!data.chunk) return;
                 if (!isLiveAudioRef.current) return;
 
-                // Auto-create AudioContext on first chunk Ã¢â‚¬â€ playback starts as soon as device sends audio
+                // Auto-create AudioContext on first chunk â€” playback starts as soon as device sends audio
                 if (!audioContextRef.current) {
                     try {
                         const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -732,7 +739,7 @@ export default function Home() {
                 setTimeout(() => setAudioError(null), 5000);
             });
 
-            // Voice Recording Ready Ã¢â‚¬â€ device finished recording, server uploaded to R2
+            // Voice Recording Ready â€” device finished recording, server uploaded to R2
             socket.on("voice_recording_ready", (data: any) => {
                 if (data.url) {
                     setVoiceRecordings(prev => [{ url: data.url, duration: data.duration || 0, timestamp: data.timestamp || Date.now() }, ...prev]);
@@ -1319,7 +1326,7 @@ END:VCARD`;
                         borderTopColor: 'var(--accent)',
                         animation: 'spin 1s linear infinite',
                     }} />
-                    <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>LoadingÃ¢â‚¬Â¦</span>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Loadingâ€¦</span>
                 </div>
             </div>
         );
@@ -1329,2405 +1336,547 @@ END:VCARD`;
 
     const onlineDeviceCount = devices.filter(d => d.online).length;
 
-    return (
-        <main className="min-h-[100dvh] pb-8 sm:pb-8" style={{ background: 'var(--bg-base)', color: 'var(--text-primary)', paddingBottom: 'max(2rem, calc(var(--tab-bar-height) + env(safe-area-inset-bottom, 0px) + 16px))' }}>
-            {/* Ambient background mesh */}
-            <div style={{ position: 'fixed', inset: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-                <div style={{
-                    position: 'absolute', top: '-8%', left: '-8%', width: '45%', height: '45%',
-                    background: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)',
-                    filter: 'blur(80px)', borderRadius: '50%',
-                }} />
-                <div style={{
-                    position: 'absolute', bottom: '-8%', right: '-8%', width: '40%', height: '40%',
-                    background: 'radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 70%)',
-                    filter: 'blur(80px)', borderRadius: '50%',
-                }} />
-                <div style={{
-                    position: 'absolute', top: '30%', right: '-5%', width: '35%', height: '35%',
-                    background: 'radial-gradient(circle, rgba(52,211,153,0.04) 0%, transparent 70%)',
-                    filter: 'blur(120px)', borderRadius: '50%',
-                }} />
-            </div>
-
-            {/* Navbar Ã¢â‚¬â€ floating glass pill */}
-            <nav style={{
-                position: 'sticky', top: 0, zIndex: 'var(--z-sticky)' as any,
-                padding: '0.75rem 1rem',
-                transition: 'all 0.3s cubic-bezier(0.32,0.72,0,1)',
-            }}>
-                <div style={{
-                    maxWidth: 1280, margin: '0 auto',
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '0.625rem 1rem',
-                    background: isScrolled ? 'rgba(8,9,11,0.92)' : 'rgba(13,15,19,0.60)',
-                    backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    borderRadius: '9999px',
-                    boxShadow: isScrolled ? '0 4px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)' : 'none',
-                    transition: 'background 0.3s cubic-bezier(0.32,0.72,0,1), box-shadow 0.3s cubic-bezier(0.32,0.72,0,1)',
-                }}>
-                    {/* Left Ã¢â‚¬â€ Logo + Plan */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-                        <button
-                            onClick={() => {
-                                setIsSettingsOpen(true);
-                                setIsDeviceDropdownOpen(false);
-                                setIsToolDropdownOpen(false);
-                                setShowAppModal(false);
-                            }}
-                            title="Settings & Permission Check"
-                            style={{
-                                width: 36, height: 36, borderRadius: '0.75rem',
-                                background: 'var(--accent-dim)', border: '1px solid rgba(16,185,129,0.35)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                cursor: 'pointer', color: '#34d399',
-                                transition: 'transform 0.2s cubic-bezier(0.32,0.72,0,1), background 0.2s',
-                            }}
-                            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.05)')}
-                            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-                        >
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+    // Helper to render tools
+    const renderTool = () => {
+        if (!selectedDeviceId && devices.filter(d => d.online).length === 0) {
+            return (
+                <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="max-w-md space-y-6">
+                        <div className="w-24 h-24 mx-auto rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center shadow-2xl">
+                            <Smartphone size={48} className="text-emerald-400" />
+                        </div>
+                        <div>
+                            <h2 className="text-3xl font-bold tracking-tight mb-2">Welcome to Gallery Eye</h2>
+                            <p className="text-white/40">Download the app on your device and select it from the menu to begin remote management.</p>
+                        </div>
+                        <button onClick={() => setShowAppModal(true)} className="btn-primary w-full shadow-emerald-500/20 flex items-center justify-center">
+                            <Download size={18} /> Download APK
                         </button>
-                        <PlanBadge plan={userPlan} onClick={() => {
-                            setShowPlansModal(true);
-                            setIsDeviceDropdownOpen(false);
-                            setIsToolDropdownOpen(false);
-                            setIsSettingsOpen(false);
-                        }} />
-                        <span style={{
-                            fontWeight: 700, fontSize: '1rem', letterSpacing: '-0.025em',
-                            color: 'var(--text-primary)',
-                        }} className="hidden sm:block">Gallery Eye</span>
-                    </div>
-
-                    {/* Right Ã¢â‚¬â€ Tools + Device + Actions (Hidden on Mobile) */}
-                    <div className="hidden sm:flex items-center gap-2">
-                        {/* Tools Selector */}
-                        <button
-                            onClick={() => {
-                                setIsToolDropdownOpen(prev => !prev);
-                                setIsDeviceDropdownOpen(false);
-                                setIsSettingsOpen(false);
-                                setShowAppModal(false);
-                            }}
-                            style={{
-                                display: 'flex', alignItems: 'center', gap: '0.375rem',
-                                padding: '0.5rem 0.75rem',
-                                background: 'var(--bg-elevated)', border: '1px solid var(--border-normal)',
-                                borderRadius: '0.75rem', cursor: 'pointer',
-                                color: 'var(--text-secondary)',
-                                transition: 'background 0.2s cubic-bezier(0.32,0.72,0,1)',
-                            }}
-                            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-overlay)')}
-                            onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-elevated)')}
-                        >
-                            {selectedTool === 'gallery' && <svg style={{ color: '#34d399' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>}
-                            {selectedTool === 'sms' && <svg style={{ color: '#38bdf8' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>}
-                            {selectedTool === 'contacts' && <svg style={{ color: '#10b981' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>}
-                            {selectedTool === 'torch' && <svg style={{ color: '#f59e0b' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>}
-                            {selectedTool === 'vibration' && <svg style={{ color: '#fb923c' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>}
-                            {selectedTool === 'camera' && <svg style={{ color: '#f472b6' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>}
-                            {selectedTool === 'notifications' && <svg style={{ color: '#22d3ee' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>}
-                            {selectedTool === 'audio' && <svg style={{ color: '#10b981' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>}
-                            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>Tools</span>
-                            <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-
-                        {/* Device Selector */}
-                        <button
-                            onClick={() => {
-                                setIsDeviceDropdownOpen(prev => !prev);
-                                setIsToolDropdownOpen(false);
-                                setIsSettingsOpen(false);
-                                setShowAppModal(false);
-                            }}
-                            style={{
-                                display: 'flex', alignItems: 'center', gap: '0.375rem',
-                                padding: '0.5rem 0.75rem',
-                                background: 'var(--bg-elevated)', border: '1px solid var(--border-normal)',
-                                borderRadius: '0.75rem', cursor: 'pointer',
-                                color: 'var(--text-secondary)',
-                                transition: 'background 0.2s cubic-bezier(0.32,0.72,0,1)',
-                            }}
-                            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-overlay)')}
-                            onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-elevated)')}
-                        >
-                            <div style={{
-                                width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
-                                background: onlineDeviceCount > 0 ? 'var(--emerald)' : 'var(--rose)',
-                                ...(onlineDeviceCount > 0 ? { animation: 'pulse-online 2s infinite' } : {}),
-                            }} />
-                            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>Device</span>
-                            <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-
-                        {/* Download App */}
-                        <button
-                            onClick={() => {
-                                setShowAppModal(true);
-                                setIsDeviceDropdownOpen(false);
-                                setIsToolDropdownOpen(false);
-                                setIsSettingsOpen(false);
-                            }}
-                            style={{
-                                padding: '0.5rem 0.875rem',
-                                background: 'linear-gradient(135deg, #10b981, #34d399)', color: '#09090b',
-                                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                                fontWeight: 600, fontSize: '0.8125rem',
-                                borderRadius: '0.75rem', border: 'none', cursor: 'pointer',
-                                transition: 'transform 0.2s cubic-bezier(0.32,0.72,0,1), opacity 0.2s',
-                            }}
-                            onMouseEnter={e => (e.currentTarget.style.opacity = '0.88')}
-                            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-                        >
-                            <span className="hidden sm:inline">Download App</span>
-                            <span className="sm:hidden">App</span>
-                        </button>
-
-                        <div style={{ width: 1, height: 20, background: 'var(--border-subtle)' }} className="hidden sm:block" />
-                        <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', fontWeight: 500 }} className="hidden md:block">{session?.user?.name}</span>
-                        <button
-                            onClick={() => signOut()}
-                            style={{
-                                fontSize: '0.8125rem', color: 'var(--rose)', fontWeight: 500,
-                                background: 'none', border: 'none', cursor: 'pointer',
-                                transition: 'opacity 0.2s',
-                            }}
-                            onMouseEnter={e => (e.currentTarget.style.opacity = '0.7')}
-                            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-                        >Logout</button>
-                    </div>
+                    </motion.div>
                 </div>
-            </nav>
+            );
+        }
 
-            <div className="relative max-w-7xl mx-auto px-4 md:px-6 py-8">
-
-                {/* Remote Control Section */}
-                <div className="mb-12">
-
-                    {/* Show Welcome Screen when no device is selected */}
-                    {!selectedDeviceId && devices.filter(d => d.online).length === 0 ? (
-                        <div className="py-16 flex flex-col items-center justify-center">
-                            <div className="max-w-lg mx-auto text-center space-y-8">
-                                <div className="relative">
-                                    <div className="w-24 h-24 mx-auto rounded-3xl glass flex items-center justify-center animate-float" style={{ boxShadow: '0 0 40px rgba(16,185,129,0.15)' }}>
-                                        <svg className="w-10 h-10 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                                    </div>
-                                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center animate-pulse" style={{ left: 'calc(50% + 24px)' }}>
-                                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-bold text-white mb-2">Welcome to GalleryEye</h3>
-                                    <p className="text-white/40 text-sm">Get started by connecting your device</p>
-                                </div>
-                                <div className="grid gap-3 text-left">
-                                    <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                                        <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
-                                            <span className="text-lg font-bold text-emerald-400">1</span>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-white/80">Download the App</p>
-                                            <p className="text-xs text-white/30">Click &quot;Download App&quot; in the top right to generate your APK</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                                        <div className="w-10 h-10 rounded-xl bg-cyan-500/15 flex items-center justify-center flex-shrink-0">
-                                            <span className="text-lg font-bold text-cyan-400">2</span>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-white/80">Select Your Device</p>
-                                            <p className="text-xs text-white/30">Once installed, your device will appear in the &quot;Device&quot; menu at the top</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                                        <div className="w-10 h-10 rounded-xl bg-green-500/15 flex items-center justify-center flex-shrink-0">
-                                            <span className="text-lg font-bold text-green-400">3</span>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-white/80">Use the Tools</p>
-                                            <p className="text-xs text-white/30">Pick from Gallery, Camera, Notifications, SMS &amp; more using the &quot;Tools&quot; menu</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => setShowAppModal(true)}
-                                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-400 text-white font-semibold hover:scale-[1.02] transition-transform shadow-lg shadow-emerald-500/20"
-                                >
-                                    Get Started Ã¢â‚¬â€ Download App
-                                </button>
-                            </div>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="flex flex-col gap-1">
-                                    <h2 className="text-2xl font-bold">Remote Control</h2>
-                                    {selectedDeviceId ? (
-                                        <span className={`text-sm font-medium flex items-center gap-2 ${devices.find(d => d.deviceId === selectedDeviceId)?.online ? 'text-green-400' : 'text-gray-400'}`}>
-                                            {devices.find(d => d.deviceId === selectedDeviceId)?.online ? 'Connected to:' : 'Viewing offline device:'} {devices.find(d => d.deviceId === selectedDeviceId)?.name}
-                                        </span>
-                                    ) : (
-                                        <span className="text-sm text-white/40">Select a device from the top right to enable controls</span>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Gallery Tool - Folder View */}
-                            {selectedTool === 'gallery' && (
-                                <>
-                                    <div className="flex justify-end mb-4">
-                                        <button
-                                            onClick={fetchFolders}
-                                            disabled={!selectedDeviceId}
-                                            className={`px-4 py-2 rounded-lg border transition-colors text-sm font-medium ${selectedDeviceId ? 'bg-white text-black hover:bg-gray-200' : 'bg-white/5 border-white/5 text-white/20 cursor-not-allowed'}`}
-                                        >
-                                            Refresh Folders
-                                        </button>
-                                    </div>
-
-                                    {folders.length > 0 ? (
-                                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                                            {folders.map((folder: any, idx) => (
-                                                <button key={idx} onClick={() => handleFolderClick(folder)} className="p-3 rounded-xl bg-white/5 border border-white/[0.07] hover:border-emerald-500/30 hover:bg-white/10 hover:scale-[1.02] transition-transform transition-all group text-left">
-                                                    <div className="flex justify-between items-start mb-2">
-                                                        <div className="p-1.5 rounded-lg bg-blue-500/15 text-blue-400">
-                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
-                                                        </div>
-                                                    </div>
-                                                    <div className="truncate font-medium text-sm">{folder.name}</div>
-                                                    <div className="text-xs text-white/40">
-                                                        {folder.imageCount > 0 && folder.videoCount > 0
-                                                            ? `${folder.imageCount} Ã°Å¸â€œÂ· Ã¢â‚¬Â¢ ${folder.videoCount} Ã°Å¸Å½Â¥`
-                                                            : folder.imageCount > 0
-                                                                ? `${folder.imageCount} images`
-                                                                : `${folder.videoCount} videos`}
-                                                    </div>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="py-12 flex flex-col items-center justify-center">
-                                            <div className="max-w-sm mx-auto text-center space-y-4">
-                                                <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                                                    <svg className="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                                </div>
-                                                <div>
-                                                    <p className="text-white/60 font-medium">No albums loaded yet</p>
-                                                    <p className="text-white/30 text-sm">Click the button below to load albums from your device</p>
-                                                </div>
-                                                <button
-                                                    onClick={fetchFolders}
-                                                    className="px-5 py-2.5 rounded-xl bg-white/10 border border-white/[0.07] text-white/70 text-sm font-medium hover:bg-white/15 transition-colors"
-                                                >
-                                                    Load Albums
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
-                                </>
-                            )}
-
-                            {/* SMS Tool */}
-                            {selectedTool === 'sms' && (
-                                <div className="space-y-4">
-                                    <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={fetchSms}
-                                                disabled={!selectedDeviceId || isFetchingSms}
-                                                className={`px-4 py-2 rounded-lg border transition-colors text-sm font-medium flex items-center gap-2 ${selectedDeviceId ? 'bg-white text-black hover:bg-gray-200' : 'bg-white/5 border-white/5 text-white/20 cursor-not-allowed'}`}
-                                            >
-                                                {isFetchingSms ? (
-                                                    <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                                                ) : (
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                                )}
-                                                {smsList.length > 0 ? 'Fetch New SMS' : 'Fetch All SMS'}
-                                            </button>
-                                            {smsList.length > 0 && (
-                                                <>
-                                                    <button
-                                                        onClick={resetSmsSync}
-                                                        className="px-3 py-2 rounded-lg border border-white/[0.07] bg-white/5 text-white/70 text-sm hover:bg-white/10 transition-colors"
-                                                    >
-                                                        Reset
-                                                    </button>
-                                                    <button
-                                                        onClick={downloadSmsAsCsv}
-                                                        className="px-3 py-2 rounded-lg border border-green-500/30 bg-green-500/10 text-green-400 text-sm hover:bg-green-500/20 transition-colors flex items-center gap-1"
-                                                    >
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                                        CSV
-                                                    </button>
-                                                </>
-                                            )}
-                                        </div>
-                                        <div className="relative w-full sm:w-64">
-                                            <input
-                                                type="text"
-                                                placeholder="Search SMS..."
-                                                value={smsSearchQuery}
-                                                onChange={(e) => setSmsSearchQuery(e.target.value)}
-                                                className="w-full px-4 py-2 pl-10 rounded-lg bg-white/5 border border-white/[0.07] text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50"
-                                            />
-                                            <svg className="w-4 h-4 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                        </div>
-                                    </div>
-
-                                    {smsList.length > 0 ? (
-                                        <div className="flex flex-col gap-4 max-h-[65vh] overflow-y-auto px-3 sm:px-6 py-6 bg-black/20 rounded-[2rem] border border-white/5 relative scroll-smooth">
-                                            <div className="sticky top-0 z-10 flex justify-center pb-4 pointer-events-none">
-                                                <span className="px-3 py-1 rounded-full bg-white/5 backdrop-blur-xl border border-white/[0.07] text-[10px] font-semibold text-white/40 uppercase tracking-widest">
-                                                    {filteredSms.length} Messages
-                                                </span>
-                                            </div>
-                                            {filteredSms.map((sms: any) => {
-                                                const isSent = sms.type === 2;
-                                                return (
-                                                    <div
-                                                        key={sms.id}
-                                                        onClick={() => setSelectedSms(sms)}
-                                                        className={`flex flex-col w-full ${isSent ? 'items-end' : 'items-start'} cursor-pointer group animate-slideUp`}
-                                                    >
-                                                        <div className="flex flex-col gap-1 max-w-[85%] sm:max-w-[70%]">
-                                                            {!isSent && <span className="text-[11px] font-semibold text-white/50 ml-2 mb-0.5">{sms.address}</span>}
-                                                            {isSent && <span className="text-[11px] font-semibold text-white/50 mr-2 mb-0.5 self-end">{sms.address}</span>}
-                                                            
-                                                            <div className={`px-4 py-2.5 rounded-2xl relative shadow-md transition-transform group-hover:scale-[1.02] ${isSent ? 'bg-gradient-to-tr from-emerald-500 to-emerald-400 text-white rounded-br-sm shadow-[0_4px_15px_rgba(16,185,129,0.3)]' : 'bg-white/10 text-white rounded-bl-sm backdrop-blur-md border border-white/10'}`}>
-                                                                <p className="text-[14px] leading-relaxed break-words whitespace-pre-wrap">{sms.body}</p>
-                                                            </div>
-                                                            
-                                                            <span className={`text-[10px] font-medium text-white/30 ${isSent ? 'mr-1 self-end' : 'ml-1'} transition-opacity`}>
-                                                                {new Date(sms.date).toLocaleDateString([], { month: 'short', day: 'numeric' })} Ã¢â‚¬Â¢ {new Date(sms.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    ) : (
-                                        <div className="p-8 rounded-2xl bg-white/5 border border-white/[0.07] text-center text-white/40">
-                                            <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
-                                            {!selectedDeviceId
-                                                ? "Select a device to view SMS"
-                                                : isFetchingSms
-                                                    ? "Fetching SMS..."
-                                                    : "Click \"Fetch All SMS\" to load messages"}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Contacts Tool */}
-                            {selectedTool === 'contacts' && (
-                                <div className="space-y-4">
-                                    <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={fetchContacts}
-                                                disabled={!selectedDeviceId || isFetchingContacts}
-                                                className={`px-4 py-2 rounded-lg border transition-colors text-sm font-medium flex items-center gap-2 ${selectedDeviceId ? 'bg-white text-black hover:bg-gray-200' : 'bg-white/5 border-white/5 text-white/20 cursor-not-allowed'}`}
-                                            >
-                                                {isFetchingContacts ? (
-                                                    <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                                                ) : (
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                                )}
-                                                Fetch Contacts
-                                            </button>
-                                            {contactsList.length > 0 && (
-                                                <button
-                                                    onClick={downloadContactsAsVcf}
-                                                    className="px-3 py-2 rounded-lg border border-green-500/30 bg-green-500/10 text-green-400 text-sm hover:bg-green-500/20 transition-colors flex items-center gap-1"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                                    vCard
-                                                </button>
-                                            )}
-                                        </div>
-                                        <div className="relative w-full sm:w-64">
-                                            <input
-                                                type="text"
-                                                placeholder="Search contacts..."
-                                                value={contactsSearchQuery}
-                                                onChange={(e) => setContactsSearchQuery(e.target.value)}
-                                                className="w-full px-4 py-2 pl-10 rounded-lg bg-white/5 border border-white/[0.07] text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50"
-                                            />
-                                            <svg className="w-4 h-4 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                        </div>
-                                    </div>
-
-                                    {contactsList.length > 0 ? (
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto">
-                                            <p className="text-xs text-white/40 col-span-full">{filteredContacts.length} contacts</p>
-                                            {filteredContacts.map((contact: any) => (
-                                                <div
-                                                    key={contact.id}
-                                                    className="bezel group"
-                                                >
-                                                    <div className="bezel-inner p-4 h-full transition-transform group-hover:scale-[1.02]">
-                                                        <div className="flex items-center gap-3 mb-3">
-                                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-400 shadow-[inset_0_2px_4px_rgba(255,255,255,0.3)] flex items-center justify-center font-bold text-lg">
-                                                                {contact.name?.charAt(0)?.toUpperCase() || '?'}
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <p className="font-semibold text-white truncate">{contact.name}</p>
-                                                            </div>
-                                                        </div>
-                                                    {contact.phones?.length > 0 && (
-                                                        <div className="space-y-1">
-                                                            {contact.phones.slice(0, 2).map((phone: any, idx: number) => (
-                                                                <p key={idx} className="text-xs text-white/60 flex items-center gap-1">
-                                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
-                                                                    {typeof phone === 'string' ? phone : phone?.number || 'Unknown'}
-                                                                </p>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                    {contact.emails?.length > 0 && (
-                                                        <div className="mt-1">
-                                                            {contact.emails.slice(0, 1).map((email: any, idx: number) => (
-                                                                <p key={idx} className="text-xs text-white/60 flex items-center gap-1 truncate">
-                                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                                                                    {typeof email === 'string' ? email : email?.address || 'Unknown'}
-                                                                </p>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="p-8 rounded-2xl bg-white/5 border border-white/[0.07] text-center text-white/40">
-                                            <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                                            {!selectedDeviceId
-                                                ? "Select a device to view contacts"
-                                                : isFetchingContacts
-                                                    ? "Fetching contacts..."
-                                                    : "Click \"Fetch Contacts\" to load contacts"}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Torch Tool */}
-                            {selectedTool === 'torch' && (
-                                <div className="glass-light p-6 rounded-2xl max-w-xl mx-auto">
-                                    <div className="flex items-center justify-between mb-8">
-                                        <div>
-                                            <h3 className="text-xl font-bold mb-1">Flashlight Control</h3>
-                                            <p className="text-white/40 text-sm">Control device flashlight remotely</p>
-                                        </div>
-                                        <button
-                                            onClick={toggleTorch}
-                                            disabled={!selectedDeviceId}
-                                            className={`w-16 h-8 rounded-full transition-colors relative ${isTorchOn ? 'bg-yellow-500' : 'bg-white/20'}`}
-                                        >
-                                            <div className={`w-6 h-6 bg-white rounded-full absolute top-1 transition-transform shadow-lg ${isTorchOn ? 'left-9' : 'left-1'}`} />
-                                        </button>
-                                    </div>
-
-                                    <div className="space-y-4 pt-4 border-t border-white/[0.06]">
-                                        <div className="flex items-center justify-between p-4 rounded-xl bg-black/20">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 rounded-lg bg-red-500/20 text-red-400">
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                                                </div>
-                                                <div>
-                                                    <p className="font-medium text-sm">Aggressive Mode</p>
-                                                    <p className="text-xs text-white/40">Forces flashlight ON if turned off by user</p>
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={() => setTorchAggressive(!torchAggressive)}
-                                                className={`w-12 h-6 rounded-full transition-colors relative ${torchAggressive ? 'bg-red-500' : 'bg-white/20'}`}
-                                            >
-                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${torchAggressive ? 'left-7' : 'left-1'}`} />
-                                            </button>
-                                        </div>
-
-                                        {torchAggressive && (
-                                            <div className="p-4 rounded-xl bg-black/20 animate-fadeIn">
-                                                <label className="block text-xs font-medium text-white/60 mb-2">Duration (minutes)</label>
-                                                <div className="flex items-center gap-4">
-                                                    <input
-                                                        type="range"
-                                                        min="1"
-                                                        max="5"
-                                                        step="1"
-                                                        value={torchDuration / 60000}
-                                                        onChange={(e) => setTorchDuration(parseInt(e.target.value) * 60000)}
-                                                        className="flex-1 accent-yellow-500 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer"
-                                                    />
-                                                    <span className="text-sm font-bold w-12 text-right">{torchDuration / 60000}m</span>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Vibration Tool */}
-                            {selectedTool === 'vibration' && (
-                                <div className="glass-light p-6 rounded-2xl max-w-xl mx-auto">
-                                    <div className="flex items-center justify-between mb-8">
-                                        <div>
-                                            <h3 className="text-xl font-bold mb-1">Vibration Control</h3>
-                                            <p className="text-white/40 text-sm">Vibrate device remotely</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-6">
-                                        <div>
-                                            <label className="block text-xs font-medium text-white/60 mb-2">Duration (seconds)</label>
-                                            <div className="flex items-center gap-4">
-                                                <input
-                                                    type="range"
-                                                    min="0.5"
-                                                    max="10"
-                                                    step="0.5"
-                                                    value={vibrationDuration / 1000}
-                                                    onChange={(e) => setVibrationDuration(parseFloat(e.target.value) * 1000)}
-                                                    className="flex-1 accent-orange-500 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer"
-                                                />
-                                                <span className="text-sm font-bold w-12 text-right">{vibrationDuration / 1000}s</span>
-                                            </div>
-                                        </div>
-
-                                        <button
-                                            onClick={triggerVibration}
-                                            disabled={!selectedDeviceId}
-                                            className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${selectedDeviceId ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:scale-[1.02] shadow-lg shadow-orange-500/20' : 'bg-white/10 text-white/20 cursor-not-allowed'}`}
-                                        >
-                                            <svg className="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                                            Vibrate Now
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Notification Monitoring Tool */}
-                            {selectedTool === 'notifications' && (
-                                <div className="space-y-4">
-                                    {/* App Filter Bar */}
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs font-semibold uppercase tracking-wider text-white/30">Filter by App</span>
-                                            {notifications.filter(n => !selectedDeviceId || n.deviceId === selectedDeviceId).length > 0 && (
-                                                <span className="px-2 py-0.5 bg-cyan-500/15 text-cyan-400 text-[10px] font-bold rounded-full">
-                                                    {notifications.filter(n => {
-                                                        if (selectedDeviceId && n.deviceId !== selectedDeviceId) return false;
-                                                        if (selectedNotifApp === 'all') return true;
-                                                        const filter = notifAppFilters.find(f => f.key === selectedNotifApp);
-                                                        return filter?.packages.some(p => n.packageName?.includes(p));
-                                                    }).length} results
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-                                            {notifAppFilters.map(app => (
-                                                <button
-                                                    key={app.key}
-                                                    onClick={() => setSelectedNotifApp(app.key)}
-                                                    className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all flex-shrink-0 ${selectedNotifApp === app.key
-                                                        ? 'shadow-lg scale-[1.03]'
-                                                        : 'bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06]'
-                                                        }`}
-                                                    style={selectedNotifApp === app.key ? {
-                                                        background: `linear-gradient(135deg, ${app.color}25, ${app.color}10)`,
-                                                        border: `1px solid ${app.color}50`,
-                                                        boxShadow: `0 0 20px ${app.color}15`
-                                                    } : {}}
-                                                >
-                                                    {app.key === 'all' ? (
-                                                        <svg className="w-4 h-4" style={{ color: selectedNotifApp === app.key ? app.color : 'rgba(255,255,255,0.4)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                                    ) : (
-                                                        <img src={app.img} alt={app.label} className="w-4 h-4 rounded-[4px] object-contain" />
-                                                    )}
-                                                    <span className={`text-xs font-medium whitespace-nowrap ${selectedNotifApp === app.key ? 'text-white' : 'text-white/40'
-                                                        }`}>{app.label}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Search */}
-                                    <div className="relative">
-                                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                        <input
-                                            type="text"
-                                            placeholder="Search by app or content..."
-                                            value={notificationSearch}
-                                            onChange={(e) => setNotificationSearch(e.target.value)}
-                                            className="w-full bg-white/5 border border-white/[0.07] rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"
-                                        />
-                                    </div>
-
-                                    {/* Empty State */}
-                                    {notifications.length === 0 && (
-                                        <div className="text-center py-12">
-                                            <svg className="w-16 h-16 mx-auto mb-4 text-white/10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                            <p className="text-white/40 font-medium">No notifications yet</p>
-                                            <p className="text-white/20 text-xs mt-1">Notifications will appear here automatically</p>
-                                        </div>
-                                    )}
-
-                                    {/* Notification Cards */}
-                                    <div className="space-y-2 max-h-[65vh] overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
-                                        {notifications
-                                            .filter(n => {
-                                                // Per-device filter
-                                                if (selectedDeviceId && n.deviceId && n.deviceId !== selectedDeviceId) return false;
-                                                // App filter
-                                                if (selectedNotifApp !== 'all') {
-                                                    const filter = notifAppFilters.find(f => f.key === selectedNotifApp);
-                                                    if (filter && !filter.packages.some(p => n.packageName?.includes(p))) return false;
-                                                }
-                                                // Search filter
-                                                if (!notificationSearch) return true;
-                                                const q = notificationSearch.toLowerCase();
-                                                return (n.appName?.toLowerCase().includes(q) || n.title?.toLowerCase().includes(q) || n.text?.toLowerCase().includes(q));
-                                            })
-                                            .map((notif, idx) => {
-                                                const timeAgo = (() => {
-                                                    const diff = Date.now() - (notif.receivedAt || notif.timestamp);
-                                                    if (diff < 60000) return `${Math.floor(diff / 1000)}s ago`;
-                                                    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-                                                    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-                                                    return new Date(notif.timestamp).toLocaleDateString();
-                                                })();
-
-                                                // Determine if this is a new notification (less than 30s old)
-                                                const isNew = (Date.now() - (notif.receivedAt || notif.timestamp)) < 30000;
-
-                                                // Map category to color
-                                                const categoryColors: Record<string, string> = {
-                                                    msg: 'border-l-green-500',
-                                                    email: 'border-l-blue-500',
-                                                    call: 'border-l-yellow-500',
-                                                    social: 'border-l-pink-500',
-                                                    promo: 'border-l-orange-500',
-                                                };
-                                                const borderColor = categoryColors[notif.category] || 'border-l-cyan-500';
-
-                                                return (
-                                                    <button
-                                                        key={`${notif.id}-${idx}`}
-                                                        onClick={() => setSelectedNotification(notif)}
-                                                        className={`w-full text-left p-3 rounded-xl border border-white/[0.07] hover:bg-white/10 transition-all border-l-4 ${borderColor} ${notif.dismissed ? 'opacity-40' : ''} ${isNew ? 'bg-cyan-500/10 ring-1 ring-cyan-500/30' : 'bg-white/5'}`}
-                                                    >
-                                                        <div className="flex items-start gap-3">
-                                                            {notif.icon ? (
-                                                                <img
-                                                                    src={`data:image/png;base64,${notif.icon}`}
-                                                                    alt={notif.appName}
-                                                                    className="w-8 h-8 rounded-lg flex-shrink-0"
-                                                                />
-                                                            ) : (
-                                                                <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
-                                                                    <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                                                </div>
-                                                            )}
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="flex items-center justify-between">
-                                                                    <span className="text-xs font-medium text-cyan-400">{notif.appName}</span>
-                                                                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                                                                        {isNew && <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" />}
-                                                                        <span className="text-[10px] text-white/30">{timeAgo}</span>
-                                                                    </div>
-                                                                </div>
-                                                                {notif.title && <p className={`text-sm truncate ${isNew ? 'font-bold text-white' : 'font-semibold text-white/90'}`}>{notif.title}</p>}
-                                                                {notif.text && <p className="text-xs text-white/50 line-clamp-2 mt-0.5">{notif.text}</p>}
-                                                            </div>
-                                                        </div>
-                                                    </button>
-                                                );
-                                            })
-                                        }
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Notification Detail Modal */}
-                            {selectedNotification && (
-                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
-                                    <div className="bg-[#18181b] border border-white/[0.07] p-6 rounded-2xl shadow-2xl max-w-lg w-full mx-4 animate-scaleIn">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div className="flex items-center gap-3">
-                                                {selectedNotification.icon ? (
-                                                    <img
-                                                        src={`data:image/png;base64,${selectedNotification.icon}`}
-                                                        alt={selectedNotification.appName}
-                                                        className="w-10 h-10 rounded-xl"
-                                                    />
-                                                ) : (
-                                                    <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
-                                                        <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                                    </div>
-                                                )}
-                                                <div>
-                                                    <h3 className="text-lg font-bold">{selectedNotification.appName}</h3>
-                                                    <p className="text-xs text-white/40">
-                                                        {new Date(selectedNotification.timestamp).toLocaleString()}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={() => setSelectedNotification(null)}
-                                                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                                            >
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                            </button>
-                                        </div>
-                                        {selectedNotification.title && (
-                                            <div className="mb-3">
-                                                <p className="text-sm font-semibold">{selectedNotification.title}</p>
-                                            </div>
-                                        )}
-                                        <div className="p-4 rounded-xl bg-white/5 border border-white/[0.07] mb-4">
-                                            <p className="text-sm whitespace-pre-wrap">{selectedNotification.text || 'No content'}</p>
-                                            {selectedNotification.subText && (
-                                                <p className="text-xs text-white/40 mt-2">{selectedNotification.subText}</p>
-                                            )}
-                                        </div>
-                                        <div className="flex gap-2 flex-wrap">
-                                            <span className="text-xs px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400">
-                                                {selectedNotification.packageName}
-                                            </span>
-                                            {selectedNotification.category && selectedNotification.category !== 'unknown' && (
-                                                <span className="text-xs px-3 py-1 rounded-full bg-white/10 text-white/60">
-                                                    {selectedNotification.category}
-                                                </span>
-                                            )}
-                                            {selectedNotification.isOngoing && (
-                                                <span className="text-xs px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-400">Ongoing</span>
-                                            )}
-                                            {selectedNotification.dismissed && (
-                                                <span className="text-xs px-3 py-1 rounded-full bg-red-500/20 text-red-400">Dismissed</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Camera Tool - Compact UI */}
-                            {selectedTool === 'camera' && (
-                                <div className="space-y-4">
-                                    {/* Live Feed Container */}
-                                    <div className={`bg-gray-900 border border-white/[0.07] rounded-xl overflow-hidden ${isFullscreen ? 'fixed inset-2 z-50 flex flex-col' : ''}`}>
-                                        {/* Compact Header - Hidden in fullscreen */}
-                                        {!isFullscreen && (
-                                            <div className="px-3 py-2 border-b border-white/[0.06] flex items-center justify-between bg-black/40">
-                                                <div className="flex items-center gap-2">
-                                                    <div className={`w-2 h-2 rounded-full ${isLiveStreaming ? 'bg-red-500 animate-pulse' : isRecording ? 'bg-orange-500 animate-pulse' : isVideoUploading ? 'bg-blue-500 animate-pulse' : 'bg-green-500/50'}`} />
-                                                    <span className="text-xs text-white/60 font-mono">
-                                                        {isLiveStreaming ? 'LIVE' : isRecording ? `REC ${recordingProgress.current}s` : isVideoUploading ? 'UPLOADING...' : selectedDeviceId ? selectedDeviceId.substring(0, 8) : 'NO DEVICE'}
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    {/* Quality Selector */}
-                                                    <select
-                                                        value={streamQuality}
-                                                        onChange={(e) => setStreamQuality(Number(e.target.value))}
-                                                        className="bg-black/50 border border-white/[0.07] rounded px-1.5 py-0.5 text-xs text-cyan-400 font-mono"
-                                                        disabled={isLiveStreaming}
-                                                    >
-                                                        <option value={144}>144p</option>
-                                                        <option value={240}>240p</option>
-                                                        <option value={360}>360p</option>
-                                                        <option value={480}>480p</option>
-                                                        <option value={720}>720p</option>
-                                                    </select>
-                                                    {/* Fullscreen */}
-                                                    <button
-                                                        onClick={() => setIsFullscreen(true)}
-                                                        className="p-1.5 rounded bg-white/10 text-white/60 hover:bg-white/20"
-                                                    >
-                                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Main Viewport */}
-                                        <div className={`relative bg-black flex items-center justify-center overflow-hidden ${isFullscreen ? 'flex-1' : 'aspect-video'}`}>
-                                            {/* Live Stream View */}
-                                            {isLiveStreaming && liveFrame ? (
-                                                <img src={`data:image/jpeg;base64,${liveFrame}`} className="w-full h-full object-contain" alt="Live" />
-                                            ) : isRecording ? (
-                                                /* Compact Recording Animation */
-                                                <div className="flex flex-col items-center gap-3">
-                                                    <div className="relative w-16 h-16">
-                                                        <div className="absolute inset-0 border-2 border-red-500/30 rounded-full"></div>
-                                                        <div className="absolute inset-0 border-2 border-red-500 rounded-full border-t-transparent animate-spin"></div>
-                                                        <div className="absolute inset-2 bg-red-500/20 rounded-full flex items-center justify-center">
-                                                            <span className="text-xl font-bold text-red-500">{recordingProgress.current}</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-center">
-                                                        <p className="text-red-400 text-sm font-mono">Ã¢â€”Â REC</p>
-                                                        <div className="w-32 mt-2 bg-white/10 rounded-full h-1.5 overflow-hidden">
-                                                            <div className="bg-red-500 h-full transition-all duration-1000" style={{ width: `${(recordingProgress.current / recordingProgress.total) * 100}%` }}></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ) : isVideoUploading ? (
-                                                /* Upload Status */
-                                                <div className="flex flex-col items-center gap-3">
-                                                    <div className="w-12 h-12 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                                                    <p className="text-blue-400 text-sm font-mono">Uploading video...</p>
-                                                </div>
-                                            ) : (
-                                                /* Idle State with Animation */
-                                                <div className="text-center">
-                                                    <div className="relative w-16 h-16 mx-auto mb-2">
-                                                        <div className="absolute inset-0 border-2 border-cyan-500/30 rounded-full animate-ping"></div>
-                                                        <div className="absolute inset-0 border-2 border-cyan-500/20 rounded-full flex items-center justify-center">
-                                                            <svg className="w-8 h-8 text-cyan-500/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                                                        </div>
-                                                    </div>
-                                                    <p className="text-white/30 text-xs">Ready</p>
-                                                </div>
-                                            )}
-
-                                            {/* Camera Switch - Only show when NOT live streaming and not in fullscreen */}
-                                            {!isFullscreen && !isLiveStreaming && (
-                                                <button
-                                                    onClick={() => setCameraMode(prev => prev === 'back' ? 'front' : 'back')}
-                                                    className={`absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-bold ${cameraMode === 'front' ? 'bg-emerald-500/80 text-white' : 'bg-cyan-500/80 text-white'}`}
-                                                >
-                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                                    {cameraMode.toUpperCase()}
-                                                </button>
-                                            )}
-
-                                            {/* Fullscreen Close Button */}
-                                            {isFullscreen && (
-                                                <button
-                                                    onClick={() => setIsFullscreen(false)}
-                                                    className="absolute top-3 right-3 p-2 rounded-full bg-black/50 text-white hover:bg-black/70"
-                                                >
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                                </button>
-                                            )}
-
-                                            {/* Error */}
-                                            {cameraError && (
-                                                <div className="absolute bottom-2 left-2 right-2 bg-red-500/90 text-white text-xs p-2 rounded">Ã¢Å¡Â Ã¯Â¸Â {cameraError}</div>
-                                            )}
-                                        </div>
-
-                                        {/* Control Panel - Fullscreen shows only stop buttons */}
-                                        <div className={`p-3 bg-black/60 ${isFullscreen ? 'flex justify-center' : ''}`}>
-                                            {isFullscreen ? (
-                                                /* Fullscreen: Only show stop button for active operation */
-                                                <div className="flex gap-3">
-                                                    {isLiveStreaming && (
-                                                        <button
-                                                            onClick={() => {
-                                                                socket?.emit('stop_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
-                                                                setIsLiveStreaming(false);
-                                                                setLiveFrame(null);
-                                                                setIsFullscreen(false);
-                                                            }}
-                                                            className="px-6 py-2 rounded-lg bg-red-600 text-white font-bold flex items-center gap-2"
-                                                        >
-                                                            Ã¢ÂÂ¹ Stop Live
-                                                        </button>
-                                                    )}
-                                                    {isRecording && (
-                                                        <button
-                                                            onClick={() => {
-                                                                socket?.emit('stop_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
-                                                                setIsRecording(false);
-                                                                setIsVideoUploading(true);
-                                                                setIsFullscreen(false);
-                                                            }}
-                                                            className="px-6 py-2 rounded-lg bg-red-600 text-white font-bold flex items-center gap-2"
-                                                        >
-                                                            Ã¢ÂÂ¹ Stop Recording
-                                                        </button>
-                                                    )}
-                                                    {!isLiveStreaming && !isRecording && (
-                                                        <button
-                                                            onClick={() => setIsFullscreen(false)}
-                                                            className="px-6 py-2 rounded-lg bg-white/20 text-white font-bold"
-                                                        >
-                                                            Exit Fullscreen
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            ) : (
-                                                /* Normal Mode: All controls */
-                                                <div className="flex gap-2">
-                                                    {/* GO LIVE */}
-                                                    <button
-                                                        onClick={() => {
-                                                            if (!selectedDeviceId) return;
-                                                            if (isLiveStreaming) {
-                                                                socket?.emit('stop_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
-                                                                setIsLiveStreaming(false);
-                                                                setLiveFrame(null);
-                                                            } else {
-                                                                socket?.emit('start_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, quality: streamQuality });
-                                                                setIsLiveStreaming(true);
-                                                            }
-                                                        }}
-                                                        className={`flex-1 py-2 px-3 rounded-lg font-bold text-sm flex items-center justify-center gap-1.5 transition-all ${isLiveStreaming ? 'bg-red-600 text-white' : 'bg-cyan-600 text-white hover:bg-cyan-500'}`}
-                                                        disabled={!selectedDeviceId || isRecording || isVideoUploading}
-                                                    >
-                                                        {isLiveStreaming ? 'Ã¢ÂÂ¹ Stop' : 'Ã°Å¸â€œÂ¹ Live'}
-                                                    </button>
-
-                                                    {/* SNAP */}
-                                                    <button
-                                                        onClick={() => {
-                                                            if (!selectedDeviceId) return;
-                                                            setIsCapturingPhoto(true);
-                                                            socket?.emit('capture_photo', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode });
-                                                        }}
-                                                        className="flex-1 py-2 px-3 rounded-lg bg-green-600 text-white font-bold text-sm flex items-center justify-center gap-1.5 hover:bg-green-500"
-                                                        disabled={!selectedDeviceId || isCapturingPhoto || isLiveStreaming}
-                                                    >
-                                                        {isCapturingPhoto ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Ã°Å¸â€œÂ¸'} Photo
-                                                    </button>
-
-                                                    {/* REC */}
-                                                    {!isRecording ? (
-                                                        <div className="flex-1 flex flex-col gap-1">
-                                                            <div className="flex gap-0.5 justify-center">
-                                                                {[{ label: '1m', value: 60 }, { label: '2m', value: 120 }, { label: '5m', value: 300 }].map((opt) => (
-                                                                    <button
-                                                                        key={opt.value}
-                                                                        onClick={() => setRecordingDuration(opt.value)}
-                                                                        className={`px-1.5 py-0.5 rounded text-xs font-bold ${recordingDuration === opt.value ? 'bg-orange-500 text-white' : 'bg-white/10 text-white/50'}`}
-                                                                    >
-                                                                        {opt.label}
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-                                                            <button
-                                                                onClick={() => {
-                                                                    if (!selectedDeviceId) return;
-                                                                    socket?.emit('start_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, duration: recordingDuration });
-                                                                    setIsRecording(true);
-                                                                    setRecordingProgress({ current: 0, total: recordingDuration });
-                                                                }}
-                                                                className="py-2 px-3 rounded-lg bg-orange-600 text-white font-bold text-sm flex items-center justify-center gap-1.5 hover:bg-orange-500"
-                                                                disabled={!selectedDeviceId || isLiveStreaming || isVideoUploading}
-                                                            >
-                                                                Ã°Å¸Å½Â¬ Rec
-                                                            </button>
-                                                        </div>
-                                                    ) : (
-                                                        <button
-                                                            onClick={() => {
-                                                                socket?.emit('stop_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
-                                                                setIsRecording(false);
-                                                                setIsVideoUploading(true);
-                                                            }}
-                                                            className="flex-1 py-2 px-3 rounded-lg bg-red-600 text-white font-bold text-sm animate-pulse"
-                                                        >
-                                                            Ã¢ÂÂ¹ Stop ({recordingProgress.current}s)
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Captured Media Gallery */}
-                                    {capturedMedia.length > 0 && (
-                                        <div className="bg-white/5 border border-white/[0.07] p-3 rounded-xl">
-                                            <div className="flex justify-between items-center mb-3">
-                                                <span className="text-sm text-white/60 font-mono">{capturedMedia.length} Captures</span>
-                                                <button onClick={() => setCapturedMedia([])} className="text-xs text-white/40 hover:text-white">Clear</button>
-                                            </div>
-                                            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2">
-                                                {capturedMedia.map((media, i) => {
-                                                    const isUrl = media.data.startsWith('/') || media.data.startsWith('http');
-                                                    const src = isUrl
-                                                        ? (media.data.startsWith('http') ? media.data : `https://p01--gallery-eye--9zr85m7yb6s4.code.run${media.data}`)
-                                                        : media.type === 'video' ? `data:video/mp4;base64,${media.data}` : `data:image/jpeg;base64,${media.data}`;
-
-                                                    return (
-                                                        <div
-                                                            key={i}
-                                                            onClick={() => setPreviewCapture({ type: media.type, data: src })}
-                                                            className="group relative aspect-square bg-black rounded-lg overflow-hidden border border-white/[0.07] cursor-pointer hover:border-white/30"
-                                                        >
-                                                            {media.type === 'photo' ? (
-                                                                <img src={src} className="w-full h-full object-cover" alt="" />
-                                                            ) : (
-                                                                <div className="relative w-full h-full">
-                                                                    <video src={src} className="w-full h-full object-cover" />
-                                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                                                                        <span className="text-white text-lg">Ã¢â€“Â¶</span>
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                            <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1 py-0.5 text-[10px] text-white/60 text-center">
-                                                                {new Date(media.timestamp).toLocaleTimeString()}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Preview Modal */}
-                                    {previewCapture && (
-                                        <div
-                                            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-                                            onClick={() => setPreviewCapture(null)}
-                                        >
-                                            <button className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full">
-                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                            </button>
-                                            {previewCapture.type === 'photo' ? (
-                                                <img src={previewCapture.data} className="max-w-full max-h-[90vh] object-contain rounded-lg" alt="Preview" />
-                                            ) : (
-                                                <video src={previewCapture.data} controls autoPlay className="max-w-full max-h-[90vh] rounded-lg" />
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </>
-                    )}
-
-                    {/* Live Audio Tool */}
-                    {selectedTool === 'audio' && (
-                        <div className="space-y-4">
-                            {/* Audio Interface */}
-                            <div className="bg-gray-900 border border-white/[0.07] rounded-xl overflow-hidden">
-                                {/* Header */}
-                                <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between bg-black/40">
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-2.5 h-2.5 rounded-full ${isLiveAudio ? 'bg-emerald-500 animate-pulse' : 'bg-white/20'}`} />
-                                        <span className="text-sm font-mono text-white/70">
-                                            {isLiveAudio ? `LIVE Ã¢â‚¬Â¢ ${formatTime(audioElapsed)}` : 'READY'}
-                                        </span>
-                                    </div>
-                                    {isLiveAudio && (
-                                        <span className="text-xs text-emerald-400/70 font-mono">PCM 16kHz</span>
-                                    )}
-                                </div>
-
-                                {/* Visualizer Area */}
-                                <div className="relative bg-black aspect-[2.5/1] flex items-center justify-center overflow-hidden">
-                                    {isLiveAudio ? (
-                                        <>
-                                            <canvas
-                                                ref={audioCanvasRef}
-                                                width={512}
-                                                height={200}
-                                                className="w-full h-full"
-                                            />
-                                            {/* VU Meter Overlay */}
-                                            <div className="absolute bottom-2 left-2 right-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full rounded-full transition-all duration-100"
-                                                    style={{
-                                                        width: `${audioLevel * 100}%`,
-                                                        background: audioLevel > 0.8 ? '#ef4444' : audioLevel > 0.5 ? '#f59e0b' : '#10b981'
-                                                    }}
-                                                />
-                                            </div>
-                                        </>
-                                    ) : (
-                                        /* Idle State */
-                                        <div className="text-center">
-                                            <div className="relative w-20 h-20 mx-auto mb-3">
-                                                <div className="absolute inset-0 border-2 border-emerald-500/20 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
-                                                <div className="absolute inset-0 border-2 border-emerald-500/10 rounded-full flex items-center justify-center">
-                                                    <svg className="w-10 h-10 text-emerald-500/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                                                    </svg>
-                                                </div>
-                                            </div>
-                                            <p className="text-white/30 text-xs">Tap Start to begin listening</p>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Volume Control */}
-                                <div className="px-4 py-3 bg-black/40 border-t border-white/[0.06]">
-                                    <div className="flex items-center gap-3">
-                                        {/* Mute Button */}
-                                        <button
-                                            onClick={() => setIsMuted(!isMuted)}
-                                            className={`p-1.5 rounded-lg transition-colors ${isMuted ? 'bg-red-500/20 text-red-400' : 'bg-white/10 text-white/60 hover:text-white'}`}
-                                        >
-                                            {isMuted ? (
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" /></svg>
-                                            ) : (
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
-                                            )}
-                                        </button>
-
-                                        {/* Volume Slider */}
-                                        <input
-                                            type="range"
-                                            min="0"
-                                            max="100"
-                                            value={isMuted ? 0 : audioVolume}
-                                            onChange={(e) => {
-                                                setAudioVolume(Number(e.target.value));
-                                                if (Number(e.target.value) > 0) setIsMuted(false);
-                                            }}
-                                            className="flex-1 h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-emerald-500"
-                                        />
-
-                                        {/* Volume % */}
-                                        <span className="text-xs text-white/40 font-mono w-8 text-right">
-                                            {isMuted ? '0' : audioVolume}%
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Control Panel */}
-                                <div className="p-3 bg-black/60">
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => isLiveAudio ? stopLiveAudio() : startLiveAudio()}
-                                            className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
-                                                isLiveAudio
-                                                    ? 'bg-red-600 text-white hover:bg-red-500'
-                                                    : 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-500 hover:to-teal-500'
-                                            }`}
-                                            disabled={!selectedDeviceId}
-                                        >
-                                            {isLiveAudio ? (
-                                                <>
-                                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
-                                                    Stop Listening
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
-                                                    Start Listening
-                                                </>
-                                            )}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Error Display */}
-                            {audioError && (
-                                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 flex items-center gap-2">
-                                    <svg className="w-4 h-4 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                                    <span className="text-sm text-red-300">{audioError}</span>
-                                </div>
-                            )}
-
-                            {/* Info Card */}
-                            <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4">
-                                <div className="flex items-start gap-3">
-                                    <div className="p-2 rounded-lg bg-emerald-500/10 flex-shrink-0">
-                                        <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                    </div>
-                                    <div>
-                                        <h4 className="text-sm font-medium text-emerald-300 mb-1">Live Audio</h4>
-                                        <p className="text-xs text-white/40 leading-relaxed">
-                                            Captures device microphone audio in real-time. Audio is streamed via encrypted WebSocket with noise suppression and auto gain control enabled for crystal clear listening.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Voice Recording Section */}
-                            <div className="bg-gray-900 border border-white/[0.07] rounded-xl overflow-hidden">
-                                {/* Header */}
-                                <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between bg-black/40">
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-2.5 h-2.5 rounded-full ${isVoiceRecording ? 'bg-red-500 animate-pulse' : 'bg-white/20'}`} />
-                                        <span className="text-sm font-mono text-white/70">
-                                            {isVoiceRecording ? `REC Ã¢â‚¬Â¢ ${formatTime(voiceRecProgress.current)}` : 'VOICE RECORDER'}
-                                        </span>
-                                    </div>
-                                    {isVoiceRecording && (
-                                        <span className="text-xs text-red-400/70 font-mono">{formatTime(voiceRecProgress.total - voiceRecProgress.current)} left</span>
-                                    )}
-                                </div>
-
-                                {/* Duration Selector + Controls */}
-                                <div className="p-4 space-y-3">
-                                    {/* Duration Options */}
-                                    {!isVoiceRecording && (
-                                        <div className="flex gap-2">
-                                            {[{ label: '1 Min', value: 60 }, { label: '5 Min', value: 300 }, { label: '10 Min', value: 600 }].map(opt => (
-                                                <button
-                                                    key={opt.value}
-                                                    onClick={() => setVoiceRecDuration(opt.value)}
-                                                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
-                                                        voiceRecDuration === opt.value
-                                                            ? 'bg-red-500 text-white shadow-lg shadow-red-500/20'
-                                                            : 'bg-white/10 text-white/50 hover:bg-white/15 hover:text-white/70'
-                                                    }`}
-                                                >
-                                                    {opt.label}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Progress Bar */}
-                                    {isVoiceRecording && (
-                                        <div className="space-y-2">
-                                            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-red-500 rounded-full transition-all duration-1000"
-                                                    style={{ width: `${(voiceRecProgress.current / voiceRecProgress.total) * 100}%` }}
-                                                />
-                                            </div>
-                                            <div className="flex justify-between text-xs text-white/40 font-mono">
-                                                <span>{formatTime(voiceRecProgress.current)}</span>
-                                                <span>{formatTime(voiceRecProgress.total)}</span>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Start/Stop Button */}
-                                    <button
-                                        onClick={() => isVoiceRecording ? stopVoiceRecording() : startVoiceRecording()}
-                                        className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
-                                            isVoiceRecording
-                                                ? 'bg-red-600 text-white hover:bg-red-500'
-                                                : 'bg-gradient-to-r from-red-600 to-orange-600 text-white hover:from-red-500 hover:to-orange-500'
-                                        }`}
-                                        disabled={!selectedDeviceId}
-                                    >
-                                        {isVoiceRecording ? (
-                                            <>
-                                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
-                                                Stop Recording
-                                            </>
-                                        ) : (
-                                            <>
-                                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" /></svg>
-                                                Record Voice
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-
-                                {/* Recordings List */}
-                                {voiceRecordings.length > 0 && (
-                                    <div className="border-t border-white/[0.06]">
-                                        <div className="px-4 py-2 bg-black/40">
-                                            <span className="text-xs font-medium text-white/50">Recordings ({voiceRecordings.length})</span>
-                                        </div>
-                                        <div className="max-h-48 overflow-y-auto divide-y divide-white/5">
-                                            {voiceRecordings.map((rec, idx) => (
-                                                <div key={idx} className="px-4 py-2.5 flex items-center justify-between hover:bg-white/5">
-                                                    <div className="flex items-center gap-3">
-                                                        <button
-                                                            onClick={() => setPlayingRecUrl(playingRecUrl === rec.url ? null : rec.url)}
-                                                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                                                                playingRecUrl === rec.url ? 'bg-red-500 text-white' : 'bg-white/10 text-white/60 hover:bg-white/20'
-                                                            }`}
-                                                        >
-                                                            {playingRecUrl === rec.url ? (
-                                                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1" /></svg>
-                                                            ) : (
-                                                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                                                            )}
-                                                        </button>
-                                                        <div>
-                                                            <p className="text-sm text-white/80 font-medium">{formatTime(rec.duration)}</p>
-                                                            <p className="text-xs text-white/30">{new Date(rec.timestamp).toLocaleTimeString()}</p>
-                                                        </div>
-                                                    </div>
-                                                    <a href={rec.url} download className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/70 transition-colors">
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                                    </a>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        {/* Audio Player */}
-                                        {playingRecUrl && (
-                                            <div className="px-4 py-2 border-t border-white/[0.06] bg-black/40">
-                                                <audio
-                                                    src={playingRecUrl}
-                                                    controls
-                                                    autoPlay
-                                                    onEnded={() => setPlayingRecUrl(null)}
-                                                    className="w-full h-8"
-                                                    style={{ filter: 'invert(1) hue-rotate(180deg)', opacity: 0.8 }}
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {selectedTool === 'gallery' && selectedDeviceId && (
-                    <>
-                        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-                            <h2 className="text-2xl font-bold">Your Gallery</h2>
-
-                            {/* Apple-style Segmented Control */}
-                            <div className="flex p-1 bg-black/40 backdrop-blur-xl rounded-full border border-white/[0.07] self-start">
-                                <button
-                                    onClick={() => setActiveTab('all')}
-                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === 'all' ? 'bg-gradient-to-r from-emerald-500 to-emerald-400 text-white shadow-md scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
-                                >
-                                    All
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('image')}
-                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === 'image' ? 'bg-gradient-to-r from-emerald-500 to-emerald-400 text-white shadow-md scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
-                                >
-                                    Images
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('video')}
-                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === 'video' ? 'bg-gradient-to-r from-emerald-500 to-emerald-400 text-white shadow-md scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
-                                >
-                                    Videos
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('zip')}
-                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 ${activeTab === 'zip' ? 'bg-gradient-to-r from-emerald-500 to-emerald-400 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)] scale-100' : 'text-white/60 hover:text-white hover:bg-white/5 scale-95'}`}
-                                >
-                                    Ã°Å¸â€œÂ¦ ZIP
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Selection Toolbar (Dynamic Island Pill) */}
-                        {isSelectionMode && (
-                            <div className="fixed bottom-24 sm:bottom-8 left-1/2 -translate-x-1/2 z-[300] flex items-center gap-3 md:gap-4 p-2 rounded-[2rem] bg-[rgba(10,10,10,0.90)] backdrop-blur-3xl border border-white/[0.07] shadow-[0_20px_40px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.05)] animate-slideUp w-max max-w-[95vw]">
-                                <div className="flex items-center pl-3 md:pl-4 pr-1 md:pr-2 gap-2 md:gap-3">
-                                    <span className="text-sm font-bold text-white whitespace-nowrap">{selectedItems.size}</span>
-                                    <div className="h-5 w-[1px] bg-white/20" />
-                                    <button onClick={selectAll} className="text-[11px] md:text-xs font-semibold text-white/50 hover:text-white transition-colors whitespace-nowrap px-2 py-1 rounded-full hover:bg-white/10 active:scale-95">
-                                        {selectedItems.size === filteredImages.length ? 'Deselect All' : 'Select All'}
-                                    </button>
-                                </div>
-                                
-                                <div className="flex gap-2 pr-1">
-                                    {/* Download Button */}
-                                    <button
-                                        onClick={downloadSelected}
-                                        disabled={isDownloading}
-                                        className="px-4 md:px-5 py-2.5 rounded-full bg-white text-black text-xs md:text-sm font-bold active:scale-95 transition-transform flex items-center justify-center gap-2 disabled:opacity-50"
-                                    >
-                                        {isDownloading ? (
-                                            <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                                        ) : (
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                        )}
-                                        <span className="hidden sm:inline">Download</span>
-                                    </button>
-
-                                    {/* Delete Button */}
-                                    <button
-                                        onClick={deleteSelected}
-                                        disabled={isDeleting}
-                                        className="px-4 md:px-5 py-2.5 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 text-xs md:text-sm font-bold active:scale-95 transition-transform flex items-center justify-center gap-2 disabled:opacity-50"
-                                    >
-                                        {isDeleting ? (
-                                            <div className="w-4 h-4 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin" />
-                                        ) : (
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                        )}
-                                        <span className="hidden sm:inline">Delete</span>
-                                    </button>
-
-                                    {/* Cancel Button */}
-                                    <button onClick={() => { setSelectedItems(new Set()); setIsSelectionMode(false); }} className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors flex items-center justify-center active:scale-95">
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Content based on active tab */}
-                        {activeTab === 'zip' ? (
-                            /* ZIP Tab Content */
+        switch (selectedTool) {
+            case 'gallery':
+                return (
+                    <div className="space-y-6">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div>
-                                {zipFiles.length > 0 ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                                        {zipFiles.map((zip, idx) => (
-                                            <a
-                                                key={idx}
-                                                href={zip.url}
-                                                target="_blank"
-                                                className="block p-4 rounded-2xl bg-white/5 border border-white/[0.07] hover:border-emerald-500/30 hover:bg-white/10 hover:scale-[1.02] transition-transform transition-all group"
-                                            >
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500/30 to-emerald-400/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                                                        Ã°Å¸â€œÂ¦
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <div className="font-semibold text-white group-hover:text-emerald-400 transition-colors">{zip.folderName}.zip</div>
-                                                        <div className="text-xs text-white/50">{zip.fileCount} files Ã¢â‚¬Â¢ {new Date(zip.timestamp).toLocaleTimeString()}</div>
-                                                    </div>
-                                                    <svg className="w-5 h-5 text-white/30 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                                    </svg>
-                                                </div>
-                                            </a>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center py-20 text-white/40">
-                                        <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-emerald-500/20 to-emerald-400/20 flex items-center justify-center mb-6 text-5xl">
-                                            Ã°Å¸â€œÂ¦
-                                        </div>
-                                        <p className="text-lg font-medium mb-2">No ZIP downloads yet</p>
-                                        <p className="text-sm text-white/30 text-center max-w-sm">When you download folders as ZIP from your device, they will appear here for easy access</p>
-                                    </div>
-                                )}
+                                <h2 className="text-2xl font-bold tracking-tight">Gallery Sync</h2>
+                                <p className="text-sm text-white/40">Browse and manage media files remotely.</p>
                             </div>
-                        ) : (
-                            /* Images/Videos Grid */
-                            <>
-                                {filteredImages.length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center py-20 text-white/40">
-                                        <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
-                                            <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                        </div>
-                                        <p>No media found.</p>
-                                    </div>
-                                ) : (
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-                                        {filteredImages.map((img) => (
-                                            <div
-                                                key={img.id}
-                                                className={`group relative aspect-square rounded-2xl overflow-hidden bg-white/5 border transition-all duration-300 ${selectedItems.has(img.id) ? 'border-emerald-500 ring-2 ring-emerald-500/40' : 'border-white/[0.07] hover:border-emerald-500/30'}`}
-                                            >
-                                                {img.resource_type === 'video' ? (
-                                                    <video src={img.url} className="w-full h-full object-cover" muted loop preload="metadata" />
-                                                ) : (
-                                                    <img src={img.url} alt="Gallery Image" loading="lazy" className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
-                                                )}
-
-                                                {/* Click Area for Preview - LOWEST z-index */}
-                                                <div
-                                                    className="absolute inset-0 cursor-pointer z-0"
-                                                    onClick={() => setPreviewItem(img)}
-                                                />
-
-                                                {/* Video Play Icon - MIDDLE z-index */}
-                                                {img.resource_type === 'video' && (
-                                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center pointer-events-none border-2 border-white/30 z-5">
-                                                        <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                                                    </div>
-                                                )}
-
-                                                {/* Selection Checkbox - HIGHEST z-index */}
-                                                <div className="absolute top-3 right-3 z-20">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            e.preventDefault();
-                                                            toggleSelection(img.id);
-                                                        }}
-                                                        className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all shadow-lg ${selectedItems.has(img.id) ? 'bg-gradient-to-br from-emerald-500 to-emerald-400 border-transparent scale-110' : 'bg-black/40 backdrop-blur-sm border-white/70 hover:border-white hover:bg-black/60 hover:scale-110'}`}
-                                                    >
-                                                        {selectedItems.has(img.id) && <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                                {galleryHasMore && (
-                                    <div ref={galleryLoaderRef} className="flex justify-center py-8">
-                                        {isLoadingMore ? (
-                                            <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-                                        ) : (
-                                            <div className="h-8" />
-                                        )}
-                                    </div>
-                                )}
-                            </>
-                        )}
-
-                        {/* Preview Modal */}
-                        {previewItem && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xl animate-fadeIn">
-                                <button
-                                    onClick={() => setPreviewItem(null)}
-                                    className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-50"
-                                >
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <button onClick={fetchFolders} disabled={!selectedDeviceId} className="btn-secondary">
+                                    <RefreshCw size={16} /> Refresh
                                 </button>
-
-                                <div className="relative w-full h-full max-w-6xl max-h-[90vh] p-4 flex flex-col items-center justify-center">
-                                    {previewItem.resource_type === 'video' ? (
-                                        <video
-                                            src={previewItem.url}
-                                            controls
-                                            autoPlay
-                                            className="max-w-full max-h-[80vh] rounded-lg shadow-2xl"
-                                        />
-                                    ) : (
-                                        <div className="relative w-full h-[80vh] flex items-center justify-center">
-                                            <img
-                                                src={previewItem.url}
-                                                alt="Preview"
-                                                className="max-w-full max-h-full object-contain shadow-2xl rounded-lg"
-                                            />
-                                        </div>
-                                    )}
-
-                                    <div className="mt-6 flex gap-4">
-                                        <button
-                                            onClick={() => downloadSingle(previewItem.url, `download.${previewItem.resource_type === 'video' ? 'mp4' : 'jpg'}`)}
-                                            className="px-6 py-3 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 text-white font-bold hover:scale-105 transition-transform flex items-center gap-2"
-                                        >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                            Download
+                                {isSelectionMode && (
+                                    <>
+                                        <button onClick={downloadSelected} disabled={isDownloading} className="btn-primary">
+                                            <Download size={16} /> {isDownloading ? 'Downloading...' : 'Download'}
                                         </button>
-                                    </div>
-                                </div>
+                                        <button onClick={deleteSelected} disabled={isDeleting} className="btn-secondary text-red-400 hover:text-red-300 border-red-400/20 hover:bg-red-400/10">
+                                            <Trash2 size={16} /> {isDeleting ? 'Deleting...' : 'Delete'}
+                                        </button>
+                                    </>
+                                )}
                             </div>
-                        )}
+                        </div>
 
-                        {/* SMS Detail Modal */}
-                        {selectedSms && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
-                                <div className="bg-[#18181b] border border-white/[0.07] p-6 rounded-2xl shadow-2xl max-w-lg w-full mx-4 animate-scaleIn">
-                                    <div className="flex justify-between items-start mb-4">
+                        {!selectedFolder && folders.length > 0 && (
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {folders.map((folder: any, i: number) => (
+                                    <motion.button 
+                                        key={i}
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={() => handleFolderClick(folder)}
+                                        className="p-5 rounded-2xl bezel bezel-inner flex flex-col gap-4 text-left transition-colors hover:border-emerald-500/50 group"
+                                    >
+                                        <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
+                                            <ImageIcon size={24} className="text-emerald-400" />
+                                        </div>
                                         <div>
-                                            <h3 className="text-lg font-bold">{selectedSms.address}</h3>
-                                            <p className="text-xs text-white/40">
-                                                {new Date(selectedSms.date).toLocaleDateString()} at {new Date(selectedSms.date).toLocaleTimeString()}
-                                            </p>
+                                            <h3 className="font-semibold truncate text-white">{folder.name}</h3>
+                                            <p className="text-xs text-white/40 mt-1 font-data">{folder.count || 0} items</p>
                                         </div>
-                                        <button
-                                            onClick={() => setSelectedSms(null)}
-                                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                                        >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </motion.button>
+                                ))}
+                            </div>
+                        )}
+
+                        {selectedFolder && (
+                            <div className="p-6 rounded-2xl bezel bezel-inner mb-6 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 blur-[80px] pointer-events-none rounded-full" />
+                                <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <button onClick={() => setSelectedFolder(null)} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                                            <ChevronDown size={20} className="rotate-90" />
+                                        </button>
+                                        <h3 className="text-xl font-bold tracking-tight">{selectedFolder.name}</h3>
+                                    </div>
+                                    {syncMediaType && (
+                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-wrap gap-2 w-full md:w-auto">
+                                            <button onClick={() => triggerUpload(5)} className="btn-secondary text-xs py-1.5 px-3">Sync 5</button>
+                                            <button onClick={() => triggerUpload(20)} className="btn-secondary text-xs py-1.5 px-3">Sync 20</button>
+                                            <button onClick={() => triggerUpload(50)} className="btn-secondary text-xs py-1.5 px-3">Sync 50</button>
+                                            <button onClick={() => {
+                                                setSyncOptionsFolder({ name: selectedFolder.name, count: selectedFolder.count, type: syncMediaType });
+                                                setShowSyncOptionsModal(true);
+                                            }} className="btn-primary text-xs py-1.5 px-3 ml-auto md:ml-0">Sync All</button>
+                                        </motion.div>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-4 relative z-10">
+                                    <button onClick={() => setSyncMediaType('image')} className={`flex-1 p-4 rounded-xl border ${syncMediaType === 'image' ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.15)]' : 'bg-white/5 border-white/10 hover:bg-white/10'} transition-all`}>
+                                        <ImageIcon size={24} className="mx-auto mb-2" />
+                                        <div className="text-center font-medium">Photos</div>
+                                    </button>
+                                    <button onClick={() => setSyncMediaType('video')} className={`flex-1 p-4 rounded-xl border ${syncMediaType === 'video' ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.15)]' : 'bg-white/5 border-white/10 hover:bg-white/10'} transition-all`}>
+                                        <Video size={24} className="mx-auto mb-2" />
+                                        <div className="text-center font-medium">Videos</div>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex flex-wrap items-center gap-2 mb-4">
+                            {(['all', 'image', 'video'] as const).map(tab => (
+                                <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeTab === tab ? 'bg-white text-black' : 'bg-white/10 text-white/60 hover:text-white'}`}>
+                                    {tab.charAt(0).toUpperCase() + tab.slice(1)}s
+                                </button>
+                            ))}
+                            <button onClick={selectAll} className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm bg-white/5 hover:bg-white/10 transition-colors font-medium">
+                                <CheckSquare size={16} /> Select All
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                            {filteredImages.map((img: any) => (
+                                <div key={img.id} onClick={() => toggleSelection(img.id)} className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer group border-2 transition-all ${selectedItems.has(img.id) ? 'border-emerald-400 scale-[0.97]' : 'border-transparent hover:border-white/20'}`}>
+                                    {img.resource_type === 'video' ? (
+                                        <video src={img.url} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <img src={img.url} alt="Gallery" className="w-full h-full object-cover" loading="lazy" />
+                                    )}
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <button onClick={(e) => { e.stopPropagation(); setPreviewItem(img); }} className="p-3 rounded-full bg-white/20 backdrop-blur-md hover:bg-white/30 transition-colors">
+                                            <Search size={20} className="text-white" />
                                         </button>
                                     </div>
-                                    <div className="p-4 rounded-xl bg-white/5 border border-white/[0.07] mb-4">
-                                        <p className="text-sm whitespace-pre-wrap">{selectedSms.body}</p>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <span className={`text-xs px-3 py-1 rounded-full ${selectedSms.type === 1 ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'}`}>
-                                            {selectedSms.type === 1 ? 'Ã°Å¸â€œÂ¥ Received' : 'Ã°Å¸â€œÂ¤ Sent'}
-                                        </span>
-                                        <span className={`text-xs px-3 py-1 rounded-full ${selectedSms.read ? 'bg-white/10 text-white/60' : 'bg-yellow-500/20 text-yellow-400'}`}>
-                                            {selectedSms.read ? 'Read' : 'Unread'}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Upload Options Modal */}
-                        {selectedFolder && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn">
-                                <div className="bg-[#18181b] border border-white/[0.07] p-6 rounded-2xl shadow-2xl max-w-sm w-full animate-scaleIn">
-                                    <h3 className="text-xl font-bold mb-1">Sync "{selectedFolder.name}"</h3>
-
-                                    {!syncMediaType ? (
-                                        <>
-                                            <p className="text-white/40 text-sm mb-6">What would you like to sync?</p>
-                                            <div className="grid grid-cols-2 gap-3 mb-6">
-                                                <button onClick={() => setSyncMediaType('image')} className="p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.07] transition-all flex flex-col items-center gap-2 group">
-                                                    <div className="p-3 rounded-full bg-blue-500/15 text-blue-400 group-hover:scale-110 transition-transform">
-                                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                                    </div>
-                                                    <span className="font-medium">Images</span>
-                                                </button>
-                                                <button onClick={() => setSyncMediaType('video')} className="p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.07] transition-all flex flex-col items-center gap-2 group">
-                                                    <div className="p-3 rounded-full bg-blue-500/20 text-blue-400 group-hover:scale-110 transition-transform">
-                                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                                                    </div>
-                                                    <span className="font-medium">Videos</span>
-                                                </button>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <p className="text-white/40 text-sm mb-6">How many {syncMediaType}s?</p>
-                                            <div className="grid grid-cols-2 gap-3 mb-6">
-                                                {userPlan === 'basic' ? (
-                                                    <>
-                                                        <button onClick={() => triggerUpload(10)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/[0.07] transition-colors">10 items</button>
-                                                        <button onClick={() => triggerUpload(20)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/[0.07] transition-colors">20 items</button>
-                                                        <button onClick={() => triggerUpload(50)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/[0.07] transition-colors">50 items</button>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <button onClick={() => triggerUpload(50)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/[0.07] transition-colors">50 items</button>
-                                                        <button onClick={() => triggerUpload(100)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/[0.07] transition-colors">100 items</button>
-                                                        <button onClick={() => triggerUpload(200)} className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/[0.07] transition-colors">200 items</button>
-                                                    </>
-                                                )}
-                                                <button onClick={() => {
-                                                    // Show ZIP vs One-by-One options
-                                                    setSyncOptionsFolder({
-                                                        name: selectedFolder?.name || '',
-                                                        count: selectedFolder?.count || 0,
-                                                        type: syncMediaType === 'video' ? 'video' : 'image'
-                                                    });
-                                                    setShowSyncOptionsModal(true);
-                                                    setSelectedFolder(null);
-                                                    setSyncMediaType(null);
-                                                }} className="p-3 rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-500 font-bold">All items</button>
-                                            </div>
-                                        </>
+                                    {selectedItems.has(img.id) && (
+                                        <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-emerald-500 shadow-lg flex items-center justify-center animate-scaleIn">
+                                            <Check size={14} className="text-black" />
+                                        </div>
                                     )}
-
-                                    <button onClick={() => { setSelectedFolder(null); setSyncMediaType(null); }} className="w-full py-2 text-sm text-white/40 hover:text-white transition-colors">Cancel</button>
                                 </div>
+                            ))}
+                        </div>
+                        {galleryHasMore && <div ref={galleryLoaderRef} className="h-20 flex items-center justify-center"><div className="w-6 h-6 rounded-full border-2 border-emerald-500/30 border-t-emerald-500 animate-spin" /></div>}
+                    </div>
+                );
+            case 'sms':
+            case 'contacts':
+                const isSms = selectedTool === 'sms';
+                const items = isSms ? filteredSms : filteredContacts;
+                const search = isSms ? smsSearchQuery : contactsSearchQuery;
+                const setSearch = isSms ? setSmsSearchQuery : setContactsSearchQuery;
+                const fetchFn = isSms ? fetchSms : fetchContacts;
+                const isFetching = isSms ? isFetchingSms : isFetchingContacts;
+
+                return (
+                    <div className="space-y-6 h-full flex flex-col">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between flex-shrink-0 gap-4">
+                            <div>
+                                <h2 className="text-2xl font-bold tracking-tight">{isSms ? 'Messages' : 'Contacts'}</h2>
+                                <p className="text-sm text-white/40">View and backup device {isSms ? 'SMS' : 'contacts'}.</p>
                             </div>
-                        )}
-                    </>
-                )}
-
-                {/* WhatsApp Button - Only show when no items are selected */}
-                {selectedItems.size === 0 && <WhatsAppButton />}
-
-                {/* Device Selection Modal */}
-                {isDeviceDropdownOpen && (
-                    <div
-                        className="animate-fadeIn"
-                        style={{
-                            position: 'fixed', inset: 0, zIndex: 'var(--z-modal)' as any,
-                            display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-                            background: 'rgba(6,11,26,0.85)', backdropFilter: 'blur(12px)',
-                            WebkitBackdropFilter: 'blur(12px)',
-                        }}
-                        onClick={() => setIsDeviceDropdownOpen(false)}
-                    >
-                        <div
-                            className="animate-slideUp"
-                            onClick={e => e.stopPropagation()}
-                            style={{
-                                width: '100%', maxWidth: 420,
-                                background: 'rgba(17,17,17,0.95)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)',
-                                border: '1px solid var(--border-normal)',
-                                borderRadius: '1.5rem 1.5rem 0 0',
-                                boxShadow: 'var(--shadow-lg)',
-                                overflow: 'hidden',
-                            }}
-                        >
-                            {/* Header */}
-                            <div style={{
-                                padding: '1.125rem 1.25rem',
-                                borderBottom: '1px solid var(--border-subtle)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                            }}>
-                                <div>
-                                    <h3 style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>Select Device</h3>
-                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.125rem' }}>
-                                        Plan limit: {planLimits.maxDevices} device{planLimits.maxDevices > 1 ? 's' : ''}
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={() => setIsDeviceDropdownOpen(false)}
-                                    style={{
-                                        width: 30, height: 30, borderRadius: '0.5rem',
-                                        background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)',
-                                        color: 'var(--text-muted)', cursor: 'pointer',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    }}
-                                >
-                                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                                        <path d="M1.5 1.5l10 10M11.5 1.5l-10 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                                    </svg>
+                            <div className="flex items-center gap-2">
+                                <button onClick={fetchFn} disabled={!selectedDeviceId || isFetching} className="btn-primary">
+                                    <RefreshCw size={16} className={isFetching ? "animate-spin" : ""} /> Sync {isSms ? 'SMS' : 'Contacts'}
                                 </button>
-                            </div>
-
-                            {/* Device list */}
-                            <div style={{ maxHeight: '55dvh', overflowY: 'auto', padding: '0.625rem' }}>
-                                {devices.length > 0 ? (
-                                    devices.map((device, idx) => {
-                                        const isLocked = idx >= planLimits.maxDevices;
-                                        const isOffline = !device.online;
-                                        const isSelected = selectedDeviceId === device.deviceId;
-
-                                        return (
-                                            <div key={device.deviceId} style={{ position: 'relative', marginBottom: '0.375rem' }} className="group">
-                                                <button
-                                                    onClick={() => {
-                                                        if (isLocked) {
-                                                            setShowPlansModal(true);
-                                                            setIsDeviceDropdownOpen(false);
-                                                        } else {
-                                                            setSelectedDeviceId(device.deviceId);
-                                                            setIsDeviceDropdownOpen(false);
-                                                        }
-                                                    }}
-                                                    style={{
-                                                        width: '100%', textAlign: 'left',
-                                                        padding: '0.875rem 1rem',
-                                                        borderRadius: '0.875rem',
-                                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                                        background: isSelected ? 'rgba(16,185,129,0.10)'
-                                                            : isLocked ? 'var(--bg-elevated)'
-                                                            : 'var(--bg-elevated)',
-                                                        border: `1px solid ${isSelected ? 'rgba(16,185,129,0.40)' : 'var(--border-subtle)'}`,
-                                                        opacity: isLocked || isOffline ? 0.65 : 1,
-                                                        cursor: 'pointer',
-                                                        transition: 'background 0.2s cubic-bezier(0.32,0.72,0,1), border-color 0.2s',
-                                                    }}
-                                                >
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', paddingRight: '2rem', overflow: 'hidden' }}>
-                                                        {/* Status dot */}
-                                                        <div style={{
-                                                            width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-                                                            background: isLocked ? 'var(--rose)' : isOffline ? 'var(--text-muted)' : 'var(--emerald)',
-                                                            ...((!isLocked && !isOffline) ? { animation: 'pulse-online 2s infinite' } : {}),
-                                                        }} />
-                                                        <div style={{ overflow: 'hidden' }}>
-                                                            <div style={{
-                                                                fontWeight: 600, fontSize: '0.9375rem',
-                                                                color: 'var(--text-primary)',
-                                                                display: 'flex', alignItems: 'center', gap: '0.5rem',
-                                                                overflow: 'hidden',
-                                                            }}>
-                                                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                                    {device.name || 'Unknown Device'}
-                                                                </span>
-                                                                {isLocked && (
-                                                                    <span style={{
-                                                                        flexShrink: 0,
-                                                                        fontFamily: "'Space Grotesk', monospace",
-                                                                        fontSize: '0.6rem', fontWeight: 700,
-                                                                        letterSpacing: '0.08em', textTransform: 'uppercase',
-                                                                        padding: '0.15rem 0.4rem', borderRadius: '0.25rem',
-                                                                        background: 'rgba(244,63,94,0.15)',
-                                                                        color: 'var(--rose)',
-                                                                        border: '1px solid rgba(244,63,94,0.25)',
-                                                                    }}>LOCKED</span>
-                                                                )}
-                                                            </div>
-                                                            <div style={{
-                                                                fontSize: '0.75rem', marginTop: '0.125rem',
-                                                                color: isLocked ? 'var(--rose)' : isOffline ? 'var(--text-muted)' : 'var(--emerald)',
-                                                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                                                            }}>
-                                                                {isLocked ? 'Upgrade to unlock'
-                                                                    : isOffline ? `Last seen ${new Date(device.lastSeen).toLocaleDateString()}`
-                                                                    : 'Online'}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {!isLocked && isSelected && (
-                                                        <svg width="16" height="16" fill="none" viewBox="0 0 16 16" style={{ color: 'var(--accent)', flexShrink: 0 }}>
-                                                            <path d="M3 8l3.5 3.5 6.5-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                                                        </svg>
-                                                    )}
-                                                    {isLocked && (
-                                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--amber)', flexShrink: 0 }}>
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                        </svg>
-                                                    )}
-                                                </button>
-
-                                                {/* Delete offline device */}
-                                                {isOffline && (
-                                                    <button
-                                                        onClick={async (e) => {
-                                                            e.stopPropagation();
-                                                            if (!confirm(`Delete ${device.name}?`)) return;
-                                                            try {
-                                                                const res = await fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/devices/delete', {
-                                                                    method: 'POST',
-                                                                    headers: { 'Content-Type': 'application/json' },
-                                                                    body: JSON.stringify({ uuid: session?.user?.uuid, deviceId: device.deviceId })
-                                                                });
-                                                                if (!res.ok) {
-                                                                    const data = await res.json();
-                                                                    alert(data.error || 'Failed to delete device');
-                                                                }
-                                                            } catch {
-                                                                alert('Network error deleting device');
-                                                            }
-                                                        }}
-                                                        title="Delete offline device"
-                                                        style={{
-                                                            position: 'absolute', right: '0.625rem', top: '50%', transform: 'translateY(-50%)',
-                                                            width: 30, height: 30, borderRadius: '0.5rem',
-                                                            background: 'rgba(244,63,94,0.10)', border: '1px solid rgba(244,63,94,0.2)',
-                                                            color: 'var(--rose)', cursor: 'pointer',
-                                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                            opacity: 0, transition: 'opacity 0.2s',
-                                                            zIndex: 10,
-                                                        }}
-                                                        className="group-hover:!opacity-100"
-                                                    >
-                                                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                        </svg>
-                                                    </button>
-                                                )}
-                                            </div>
-                                        );
-                                    })
+                                {isSms ? (
+                                    <button onClick={downloadSmsAsCsv} className="btn-secondary"><Download size={16}/> CSV</button>
                                 ) : (
-                                    <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--text-muted)' }}>
-                                        <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ margin: '0 auto 0.75rem', opacity: 0.4 }}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                        </svg>
-                                        <p style={{ fontWeight: 500, marginBottom: '0.25rem' }}>No devices found</p>
-                                        <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>Open the app on your phone to connect</p>
-                                    </div>
+                                    <button onClick={downloadContactsAsVcf} className="btn-secondary"><Download size={16}/> vCard</button>
+                                )}
+                            </div>
+                        </div>
+                        <div className="relative flex-shrink-0">
+                            <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
+                            <input 
+                                type="text" 
+                                placeholder="Search..." 
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="input-field pl-11 bg-white/5 border-white/10"
+                            />
+                        </div>
+                        <div className="flex-1 overflow-y-auto bezel bezel-inner rounded-2xl p-2 scrollbar-hide">
+                            <div className="flex flex-col gap-1">
+                                {items.length === 0 ? (
+                                    <div className="py-20 flex items-center justify-center text-white/40 font-medium">No items found. Click sync to fetch.</div>
+                                ) : (
+                                    items.map((item: any, i: number) => (
+                                        <div key={i} className="p-4 rounded-xl bg-transparent hover:bg-white/5 transition-colors flex gap-4 border-b border-white/5 last:border-0">
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${isSms ? 'bg-sky-500/10 text-sky-400' : 'bg-indigo-500/10 text-indigo-400'}`}>
+                                                {isSms ? <MessageSquare size={18} /> : <Users size={18} />}
+                                            </div>
+                                            <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                                <div className="flex items-center justify-between mb-0.5">
+                                                    <h4 className="font-semibold truncate text-white/90 text-sm">{isSms ? item.address : item.name}</h4>
+                                                    {isSms && <span className="text-xs text-white/40 font-data flex-shrink-0 ml-2">{new Date(item.date).toLocaleDateString()}</span>}
+                                                </div>
+                                                <p className="text-sm text-white/50 truncate">{isSms ? item.body : (item.phones?.[0]?.number || item.phones?.[0] || 'No number')}</p>
+                                            </div>
+                                        </div>
+                                    ))
                                 )}
                             </div>
                         </div>
                     </div>
-                )}
-
-                {/* Tools Selection Modal */}
-                {isToolDropdownOpen && (() => {
-                    const tools = [
-                        {
-                            id: 'gallery', label: 'Gallery', desc: 'View photos & videos',
-                            color: '#3b82f6',
-                            icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
-                            premium: false,
-                            onClick: () => { setSelectedTool('gallery'); setIsToolDropdownOpen(false); },
-                        },
-                        {
-                            id: 'camera', label: 'Hidden Camera', desc: 'Capture photos & videos',
-                            color: '#f472b6',
-                            icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
-                            premium: true,
-                            onClick: () => {
-                                if (userPlan !== 'premium') { showUpgradePrompt('Hidden Camera Tool', 'premium'); setIsToolDropdownOpen(false); return; }
-                                setSelectedTool('camera'); setIsToolDropdownOpen(false);
-                            },
-                        },
-                        {
-                            id: 'audio', label: 'Live Audio', desc: 'Real-time mic listening',
-                            color: '#10b981',
-                            icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>,
-                            premium: true,
-                            onClick: () => {
-                                if (userPlan !== 'premium') { showUpgradePrompt('Live Audio Listening', 'premium'); setIsToolDropdownOpen(false); return; }
-                                setSelectedTool('audio'); setIsToolDropdownOpen(false);
-                            },
-                        },
-                        {
-                            id: 'notifications', label: 'Notifications', desc: 'Live notification feed',
-                            color: '#22d3ee',
-                            badge: notifications.length > 0 ? String(notifications.length) : undefined,
-                            icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>,
-                            premium: false,
-                            onClick: () => { setSelectedTool('notifications'); setIsToolDropdownOpen(false); },
-                        },
-                        {
-                            id: 'contacts', label: 'Contacts', desc: 'View contact list',
-                            color: '#10b981',
-                            icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
-                            premium: false,
-                            onClick: () => { setSelectedTool('contacts'); setIsToolDropdownOpen(false); },
-                        },
-                        {
-                            id: 'sms', label: 'SMS', desc: 'View text messages',
-                            color: '#38bdf8',
-                            icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>,
-                            premium: false,
-                            onClick: () => { setSelectedTool('sms'); setIsToolDropdownOpen(false); },
-                        },
-                        {
-                            id: 'torch', label: 'Flashlight', desc: 'Toggle flashlight',
-                            color: '#f59e0b',
-                            icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
-                            premium: false,
-                            onClick: () => { setSelectedTool('torch'); setIsToolDropdownOpen(false); },
-                        },
-                        {
-                            id: 'vibration', label: 'Vibration', desc: 'Vibrate device',
-                            color: '#fb923c',
-                            icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>,
-                            premium: false,
-                            onClick: () => { setSelectedTool('vibration'); setIsToolDropdownOpen(false); },
-                        },
-                    ] as const;
-
-                    return (
-                    <div
-                        className="animate-fadeIn"
-                        style={{
-                            position: 'fixed', inset: 0, zIndex: 'var(--z-modal)' as any,
-                            display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-                            background: 'rgba(6,11,26,0.85)', backdropFilter: 'blur(12px)',
-                            WebkitBackdropFilter: 'blur(12px)',
-                        }}
-                        onClick={() => setIsToolDropdownOpen(false)}
-                    >
-                        <div
-                            className="animate-slideUp sm:animate-scaleIn"
-                            onClick={e => e.stopPropagation()}
-                            style={{
-                                width: '100%', maxWidth: 520,
-                                background: 'rgba(17,17,17,0.95)',
-                                backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)',
-                                border: '1px solid rgba(255,255,255,0.10)',
-                                borderRadius: '1.5rem 1.5rem 0 0',
-                                boxShadow: '0 16px 64px rgba(0,0,0,0.6)',
-                                overflow: 'hidden',
-                            }}
-                        >
-                            {/* Header */}
-                            <div style={{
-                                padding: '1.125rem 1.25rem',
-                                borderBottom: '1px solid var(--border-subtle)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                            }}>
-                                <h3 style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>Select Tool</h3>
-                                <button
-                                    onClick={() => setIsToolDropdownOpen(false)}
-                                    style={{
-                                        width: 30, height: 30, borderRadius: '0.5rem',
-                                        background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)',
-                                        color: 'var(--text-muted)', cursor: 'pointer',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    }}
-                                >
-                                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                                        <path d="M1.5 1.5l10 10M11.5 1.5l-10 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                                    </svg>
-                                </button>
+                );
+            case 'camera':
+            case 'audio':
+                const isCam = selectedTool === 'camera';
+                return (
+                    <div className="flex flex-col items-center justify-center min-h-[60vh] py-8">
+                        <div className="w-full max-w-xl bezel bezel-inner rounded-[2.5rem] p-8 sm:p-12 text-center space-y-8 relative overflow-hidden">
+                            <div className={`absolute top-[-20%] right-[-20%] w-[60%] h-[60%] blur-[100px] rounded-full pointer-events-none ${isCam ? 'bg-pink-500/20' : 'bg-amber-500/20'}`} />
+                            <div className={`w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center shadow-2xl relative z-10 ${isCam ? 'bg-pink-500/10 text-pink-400 border border-pink-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
+                                {isCam ? <Camera size={40} /> : <Mic size={40} />}
                             </div>
-
-                            {/* Tool list */}
-                            <div className="stagger-children" style={{ padding: '0.75rem', maxHeight: '70dvh', overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.625rem' }}>
-                                {tools.map(tool => {
-                                    const isActive = selectedTool === tool.id;
-                                    const isLocked = (tool as any).premium && userPlan !== 'premium';
-                                    return (
-                                        <button
-                                            key={tool.id}
-                                            onClick={tool.onClick}
-                                            className={`card-3d ${isActive ? 'glow-border active' : ''}`}
-                                            onMouseMove={handle3DTilt}
-                                            onMouseLeave={reset3DTilt}
-                                            style={{ textAlign: 'center', cursor: 'pointer', border: 'none', background: 'none', padding: 0 }}
+                            <div className="relative z-10">
+                                <h2 className="text-3xl font-bold tracking-tight mb-3">Live {isCam ? 'Camera' : 'Audio'} Feed</h2>
+                                <p className="text-white/40 max-w-sm mx-auto text-sm leading-relaxed">Remotely trigger the device's {isCam ? 'camera to capture high-res photos or stream video' : 'microphone for live listening or background recording'}.</p>
+                            </div>
+                            <div className="flex flex-wrap items-center justify-center gap-3 relative z-10">
+                                {isCam ? (
+                                    <>
+                                        <button 
+                                            onClick={() => { setIsCapturingPhoto(true); socket?.emit('capture_photo', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode }); }}
+                                            disabled={isCapturingPhoto}
+                                            className="btn-primary py-3 px-6 rounded-xl bg-white/10 hover:bg-white/20 text-white shadow-none"
                                         >
-                                            <div data-tilt-inner className="card-3d-inner" style={{
-                                                padding: '1.25rem 0.75rem',
-                                                borderRadius: '1rem',
-                                                background: isActive ? `${tool.color}12` : 'rgba(255,255,255,0.03)',
-                                                border: `1px solid ${isActive ? `${tool.color}40` : 'rgba(255,255,255,0.06)'}`,
-                                                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                                                gap: '0.75rem',
-                                                position: 'relative', overflow: 'hidden',
-                                                transition: 'transform 0.4s cubic-bezier(0.32,0.72,0,1), box-shadow 0.4s cubic-bezier(0.32,0.72,0,1)',
-                                            }}>
-                                                <div style={{
-                                                    width: 48, height: 48, borderRadius: '0.875rem',
-                                                    background: `${tool.color}15`,
-                                                    border: `1px solid ${tool.color}25`,
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    color: tool.color,
-                                                    ...(isActive ? { boxShadow: `0 0 20px ${tool.color}30` } : {}),
-                                                }}>
-                                                    {tool.icon}
-                                                </div>
-                                                <div>
-                                                    <div style={{
-                                                        fontWeight: 600, fontSize: '0.875rem',
-                                                        color: 'var(--text-primary)',
-                                                    }}>
-                                                        {tool.label}
-                                                    </div>
-                                                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                                                        {tool.desc}
-                                                    </div>
-                                                </div>
-                                                {isLocked && (
-                                                    <div style={{
-                                                        position: 'absolute', inset: 0,
-                                                        background: 'rgba(10,10,10,0.5)',
-                                                        backdropFilter: 'blur(2px)',
-                                                        borderRadius: 'inherit',
-                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    }}>
-                                                        <span style={{
-                                                            fontFamily: "'Space Grotesk', monospace",
-                                                            fontSize: '0.65rem', fontWeight: 700,
-                                                            letterSpacing: '0.1em', textTransform: 'uppercase',
-                                                            padding: '0.25rem 0.75rem', borderRadius: '9999px',
-                                                            background: 'rgba(16,185,129,0.2)',
-                                                            color: '#34d399',
-                                                            border: '1px solid rgba(16,185,129,0.3)',
-                                                        }}>PRO</span>
-                                                    </div>
-                                                )}
-                                                {(tool as any).badge && (
-                                                    <div style={{
-                                                        position: 'absolute', top: '0.5rem', right: '0.5rem',
-                                                        minWidth: 20, height: 20, borderRadius: '9999px',
-                                                        background: tool.color,
-                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                        fontSize: '0.625rem', fontWeight: 700, color: '#fff',
-                                                        boxShadow: `0 0 12px ${tool.color}50`,
-                                                    }}>{(tool as any).badge}</div>
-                                                )}
-                                                {isActive && !isLocked && (
-                                                    <div style={{
-                                                        position: 'absolute', top: '0.5rem', left: '0.5rem',
-                                                        width: 20, height: 20, borderRadius: '50%',
-                                                        background: tool.color,
-                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    }}>
-                                                        <svg width="10" height="10" fill="none" viewBox="0 0 16 16" style={{ color: '#fff' }}>
-                                                            <path d="M3 8l3.5 3.5 6.5-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                        </svg>
-                                                    </div>
-                                                )}
-                                            </div>
+                                            {isCapturingPhoto ? <RefreshCw className="animate-spin" size={18}/> : <Camera size={18} />}
+                                            Capture Photo
                                         </button>
-                                    );
-                                })}
+                                        <button 
+                                            onClick={() => {
+                                                if (isLiveStreaming) {
+                                                    socket?.emit('stop_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                                                    setIsLiveStreaming(false);
+                                                } else {
+                                                    socket?.emit('start_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode });
+                                                    setIsLiveStreaming(true);
+                                                }
+                                            }}
+                                            className={`btn-primary py-3 px-6 rounded-xl ${isLiveStreaming ? 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/30' : 'bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20'}`}
+                                        >
+                                            {isLiveStreaming ? <Square size={18} /> : <Video size={18} />}
+                                            {isLiveStreaming ? 'Stop Stream' : 'Live Stream'}
+                                        </button>
+                                        <button 
+                                            onClick={() => {
+                                                if (isRecording) {
+                                                    socket?.emit('stop_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                                                    setIsRecording(false);
+                                                } else {
+                                                    setIsRecording(true);
+                                                    setRecordingProgress({ current: 0, total: recordingDuration });
+                                                    socket?.emit('start_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, duration: recordingDuration });
+                                                }
+                                            }}
+                                            className={`btn-primary py-3 px-6 rounded-xl ${isRecording ? 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/30' : 'bg-pink-500 hover:bg-pink-600 shadow-lg shadow-pink-500/20'}`}
+                                        >
+                                            {isRecording ? <Square size={18} /> : <Video size={18} />}
+                                            {isRecording ? 'Stop Recording' : 'Record Video'}
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <button 
+                                            onClick={isLiveAudio ? stopLiveAudio : startLiveAudio}
+                                            className={`btn-primary py-3 px-6 rounded-xl ${isLiveAudio ? 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/30' : 'bg-amber-500 hover:bg-amber-600 shadow-lg shadow-amber-500/20'}`}
+                                        >
+                                            {isLiveAudio ? <Square size={18} /> : <Play size={18} />}
+                                            {isLiveAudio ? 'Stop Live Listening' : 'Live Listen'}
+                                        </button>
+                                        <button 
+                                            onClick={isVoiceRecording ? stopVoiceRecording : startVoiceRecording}
+                                            className={`btn-secondary py-3 px-6 rounded-xl ${isVoiceRecording ? 'text-red-400 border-red-400/50 hover:bg-red-500/10' : ''}`}
+                                        >
+                                            {isVoiceRecording ? <Square size={18} /> : <Mic size={18} />}
+                                            {isVoiceRecording ? 'Stop Recording' : 'Record Voice'}
+                                        </button>
+                                    </>
+                                )}
                             </div>
+                            
+                            {isLiveAudio && (
+                                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mt-8 p-6 rounded-2xl bg-black/40 border border-white/5 flex flex-col items-center gap-4 relative z-10 w-full">
+                                    <div className="flex items-center gap-2 bg-red-500/10 px-3 py-1 rounded-full border border-red-500/20">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.8)]" />
+                                        <span className="text-xs font-bold text-red-400 font-data tracking-wider uppercase">Live • {formatTime(audioElapsed)}</span>
+                                    </div>
+                                    <div className="flex items-center justify-center gap-1.5 h-16 w-full px-4">
+                                        {Array.from({length: 24}).map((_, i) => (
+                                            <div 
+                                                key={i} 
+                                                className="w-1.5 bg-amber-400 rounded-full transition-all duration-75"
+                                                style={{ height: `${Math.max(15, audioLevel * 100 * Math.random())}%`, opacity: Math.max(0.3, audioLevel * Math.random() * 2) }}
+                                            />
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {isCam && isLiveStreaming && liveFrame && (
+                                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mt-8 rounded-2xl overflow-hidden border border-white/10 aspect-[3/4] sm:aspect-video relative bg-black shadow-2xl relative z-10 w-full">
+                                    <img src={`data:image/jpeg;base64,${liveFrame}`} className="w-full h-full object-contain" alt="Live Feed" />
+                                    <div className="absolute top-4 right-4 flex items-center gap-2 bg-black/60 backdrop-blur-xl px-3 py-1.5 rounded-full border border-white/10 shadow-lg">
+                                        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                                        <span className="text-xs font-bold text-white tracking-widest font-data">LIVE</span>
+                                    </div>
+                                </motion.div>
+                            )}
                         </div>
                     </div>
-                    );
-                })()}
-
-
-                {showAppModal && (
-                    <AppGenerationModal
-                        isOpen={showAppModal}
-                        onClose={() => setShowAppModal(false)}
-                        uuid={session?.user?.uuid || ''}
-                        socket={socket}
-                        userPlan={userPlan}
-                        onUpgrade={() => setShowPlansModal(true)}
-                    />
-                )}
-
-                {/* Settings Modal */}
-                {isSettingsOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
-                        <div className="w-full max-w-md rounded-2xl shadow-2xl animate-slideUp mx-4" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-normal)' }}>
-                            <div className="p-4 flex justify-between items-center" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                                <h3 className="text-lg font-bold flex items-center gap-2">
-                                    <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                    Settings
-                                </h3>
-                                <button
-                                    onClick={() => setIsSettingsOpen(false)}
-                                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                );
+            case 'torch':
+            case 'vibration':
+                const isTorch = selectedTool === 'torch';
+                return (
+                    <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                        <div className="max-w-md w-full bezel bezel-inner rounded-[2.5rem] p-12 text-center space-y-12 relative overflow-hidden">
+                            <div className={`absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/5 to-transparent pointer-events-none transition-opacity duration-500 ${isTorch && isTorchOn ? 'opacity-0' : 'opacity-100'}`} />
+                            {isTorch && isTorchOn && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-yellow-400/20 blur-[100px] pointer-events-none" />}
+                            
+                            <div className="space-y-3 relative z-10">
+                                <h2 className="text-3xl font-bold tracking-tight">{isTorch ? 'Flashlight' : 'Vibration'}</h2>
+                                <p className="text-white/40 text-sm">Toggle the device's {isTorch ? 'flash LED' : 'haptic motor'} remotely.</p>
+                            </div>
+                            
+                            <button 
+                                onClick={isTorch ? toggleTorch : triggerVibration}
+                                className={`relative w-48 h-48 mx-auto rounded-full flex items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group z-10 ${
+                                    isTorch && isTorchOn 
+                                        ? 'bg-yellow-400 shadow-[0_0_80px_rgba(250,204,21,0.6),inset_0_-8px_20px_rgba(0,0,0,0.2)] scale-105' 
+                                        : 'bg-gradient-to-b from-white/10 to-white/5 border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:scale-105'
+                                }`}
+                            >
+                                <div className={`absolute inset-2 rounded-full border transition-colors duration-500 ${isTorch && isTorchOn ? 'border-yellow-300/50' : 'border-white/5 group-hover:border-white/10'}`} />
+                                {isTorch ? (
+                                    <Flashlight size={64} className={`transition-colors duration-500 ${isTorchOn ? 'text-yellow-900 drop-shadow-md' : 'text-yellow-400/80 group-hover:text-yellow-400'}`} />
+                                ) : (
+                                    <Vibrate size={64} className="text-orange-400/80 group-hover:text-orange-400 transition-colors" />
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                );
+            case 'notifications':
+                return (
+                    <div className="space-y-6 h-full flex flex-col">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between flex-shrink-0 gap-4">
+                            <div>
+                                <h2 className="text-2xl font-bold tracking-tight">Alerts & Notifications</h2>
+                                <p className="text-sm text-white/40">Monitor device push notifications.</p>
+                            </div>
+                            <div className="flex items-center gap-3 bg-white/5 px-4 py-2.5 rounded-xl border border-white/10">
+                                <span className="text-sm font-medium text-white/80">Monitoring</span>
+                                <button 
+                                    onClick={() => socket?.emit('toggle_notification_monitor', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, enable: !isMonitoringNotifications })}
+                                    className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${isMonitoringNotifications ? 'bg-cyan-500' : 'bg-white/20'}`}
                                 >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-300 shadow-sm ${isMonitoringNotifications ? 'translate-x-6' : 'translate-x-0'}`} />
                                 </button>
                             </div>
-
-                            <div className="p-4 space-y-4">
-                                {/* Permission Check Section */}
-                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                    <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                                        <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                                        Permission Status
-                                    </h4>
-
-                                    {selectedDeviceId ? (
-                                        <>
-                                            <button
-                                                onClick={checkPermissions}
-                                                disabled={isCheckingPermissions}
-                                                className="w-full py-2 px-4 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/30 transition-colors flex items-center justify-center gap-2 mb-4"
-                                            >
-                                                {isCheckingPermissions ? (
-                                                    <>
-                                                        <div className="w-4 h-4 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin" />
-                                                        Checking...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                                        Check Permissions
-                                                    </>
-                                                )}
-                                            </button>
-
-                                            {devicePermissions && (
-                                                <div className="space-y-2">
-                                                    {Object.entries(devicePermissions).map(([permission, status]: [string, any]) => (
-                                                        <div key={permission} className="flex items-center justify-between py-2 px-3 rounded-lg bg-black/20">
-                                                            <span className="text-sm text-white/70">{permission}</span>
-                                                            {status === "Granted" || status === true || status === "Yes (Good)" ? (
-                                                                <span className="flex items-center gap-1 text-green-400 text-xs font-medium">
-                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                                                                    {typeof status === 'string' ? status : 'Granted'}
-                                                                </span>
-                                                            ) : status === "Not Requested" ? (
-                                                                <span className="flex items-center gap-1 text-white/40 text-xs font-medium">
-                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
-                                                                    Not Requested
-                                                                </span>
-                                                            ) : (
-                                                                <span className="flex items-center gap-1 text-red-400 text-xs font-medium">
-                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                                                    {typeof status === 'string' ? status : 'Denied'}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-
-                                            {!devicePermissions && !isCheckingPermissions && (
-                                                <p className="text-xs text-white/40 text-center">Click "Check Permissions" to see device permission status</p>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <p className="text-sm text-white/40 text-center py-4">
-                                            Select a device first to check permissions
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* Connected Device Info */}
-                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                    <h4 className="text-sm font-semibold mb-2">Connected Device</h4>
-                                    {selectedDeviceId ? (
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-green-500" />
-                                            <span className="text-sm text-white/70">{devices.find(d => d.deviceId === selectedDeviceId)?.name || 'Unknown'}</span>
-                                        </div>
-                                    ) : (
-                                        <p className="text-sm text-white/40">No device connected</p>
-                                    )}
-                                </div>
-
-                                {/* Security Info */}
-                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                    <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                                        <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                                        Security Status
-                                    </h4>
-                                    <p className="text-xs text-white/60 mb-2">
-                                        Device linking is secured via a unique UUID burned into the APK. Only this account can control the device.
-                                    </p>
-                                    <div className="flex items-center justify-between text-xs bg-black/20 p-2 rounded">
-                                        <span className="text-white/40">Encryption</span>
-                                        <span className="text-green-400">AES-256 / SSL</span>
+                        </div>
+                        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 flex-shrink-0">
+                            {notifAppFilters.map(filter => (
+                                <button
+                                    key={filter.key}
+                                    onClick={() => setSelectedNotifApp(filter.key)}
+                                    className={`px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all border ${
+                                        selectedNotifApp === filter.key 
+                                            ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400 shadow-sm' 
+                                            : 'bg-white/5 border-white/5 text-white/50 hover:bg-white/10 hover:text-white'
+                                    }`}
+                                >
+                                    {filter.label}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="flex-1 overflow-y-auto space-y-3 scrollbar-hide">
+                            {notifications.filter(n => selectedNotifApp === 'all' || notifAppFilters.find(f => f.key === selectedNotifApp)?.packages.includes(n.packageName)).length === 0 ? (
+                                <div className="h-[40vh] flex flex-col items-center justify-center text-center space-y-4">
+                                    <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center border border-white/5">
+                                        <Bell size={24} className="text-white/20" />
                                     </div>
+                                    <div className="text-white/40 font-medium text-sm">No notifications recorded yet.<br/>Ensure monitoring is active and the device is online.</div>
                                 </div>
-                            </div>
+                            ) : (
+                                notifications.filter(n => selectedNotifApp === 'all' || notifAppFilters.find(f => f.key === selectedNotifApp)?.packages.includes(n.packageName)).map((notif: any, i: number) => (
+                                    <div key={i} className="p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 hover:bg-white/[0.07] transition-colors flex flex-col sm:flex-row gap-4 sm:items-start">
+                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/10 flex items-center justify-center flex-shrink-0">
+                                            <Bell size={18} className="text-cyan-400" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-1 gap-1">
+                                                <span className="font-semibold text-sm text-cyan-400">{notif.appName || notif.packageName}</span>
+                                                <span className="text-xs text-white/40 font-data">{new Date(notif.receivedAt || notif.timestamp).toLocaleString()}</span>
+                                            </div>
+                                            <h4 className="font-medium text-white/90 mb-1 text-base">{notif.title}</h4>
+                                            <p className="text-sm text-white/60 leading-relaxed">{notif.text}</p>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
-                )}
-
-                {/* Sync Starting Overlay */}
-                {isStartingSync && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fadeIn">
-                        <div className="bg-[#18181b] border border-white/[0.07] p-6 rounded-2xl shadow-2xl flex flex-col items-center animate-scaleUp">
-                            <div className="w-10 h-10 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mb-4" />
-                            <h4 className="text-lg font-bold">Initiating sync...</h4>
-                            <p className="text-white/40 text-sm">Please wait while we connect to device</p>
-                        </div>
+                );
+            default:
+                return (
+                    <div className="h-[60vh] flex items-center justify-center">
+                        <div className="text-white/40 font-medium">Select a tool from the menu to begin.</div>
                     </div>
-                )}
-                {/* Progress Bar */}
-                {uploadProgress && (
-                    <div className="fixed bottom-6 right-6 bg-[#18181b] border border-white/[0.07] p-4 rounded-xl shadow-2xl w-80 animate-slideUp z-50">
-                       <h4 className="text-sm font-bold mb-3 flex justify-between">
-                            <span>Syncing {uploadProgress.folder}...</span>
-                            <span className="text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded text-xs">{Math.round((uploadProgress.uploaded / uploadProgress.total) * 100)}%</span>
-                        </h4>
-                        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mb-3 shadow-inner">
-                            <div className="h-full bg-gradient-to-r from-emerald-500 to-blue-500 transition-all duration-300 relative" style={{ width: `${(uploadProgress.uploaded / uploadProgress.total) * 100}%` }}>
-                                <div className="absolute top-0 right-0 bottom-0 w-4 bg-white/20 blur-sm mix-blend-overlay"></div>
-                            </div>
-                        </div>
-                        <div className="flex justify-between items-center mt-1">
-                            <button
-                                onClick={() => {
-                                    if (socket) socket.emit('stop_sync');
-                                    setUploadProgress(null);
-                                }}
-                                className="text-[11px] font-bold tracking-wider text-red-500 bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-lg border border-red-500/20 transition-all flex items-center gap-1.5 hover:scale-[1.02]"
-                            >
-                                <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
-                                STOP SYNC
-                            </button>
-                            <p className="text-[11px] font-mono text-white/40 bg-white/5 py-1 px-2 rounded-lg border border-white/5">
-                                {uploadProgress.uploaded} <span className="text-white/20">/</span> {uploadProgress.total} items
-                            </p>
-                        </div>
-                    </div>
-                )}
+                );
+        }
+    };
 
-                {/* Upgrade Modal */}
-                <UpgradeModal
-                    isOpen={showUpgradeModal}
-                    onClose={() => setShowUpgradeModal(false)}
-                    feature={upgradeFeature}
-                    requiredPlan={requiredPlan}
-                />
-
-                {/* Plans Modal */}
-                <PlansModal
-                    isOpen={showPlansModal}
-                    onClose={() => setShowPlansModal(false)}
-                    currentPlan={userPlan}
-                    userEmail={session?.user?.email || ''}
-                    userUuid={session?.user?.uuid || ''}
-                />
-
-                {/* Bulk Download Modal (Premium) */}
-                <BulkDownloadModal
-                    isOpen={showBulkDownloadModal}
-                    onClose={() => setShowBulkDownloadModal(false)}
-                    folderName={bulkDownloadFolder}
-                    userPlan={userPlan}
-                    userUuid={session?.user?.uuid || ''}
-                    onSuccess={(msg) => console.log('Bulk download:', msg)}
-                />
-
-                {/* Sync Options Modal (ZIP vs One-by-One) */}
-                <SyncOptionsModal
-                    isOpen={showSyncOptionsModal}
-                    onClose={() => setShowSyncOptionsModal(false)}
-                    folderName={syncOptionsFolder.name}
-                    mediaType={syncOptionsFolder.type}
-                    itemCount={syncOptionsFolder.count}
-                    onSelectOneByOne={(count) => {
-                        // Trigger normal sync
-                        socket?.emit('trigger_sync', {
-                            uuid: session?.user?.uuid,
-                            targetDeviceId: selectedDeviceId,
-                            folderName: syncOptionsFolder.name,
-                            count,
-                            mediaType: syncOptionsFolder.type
-                        });
-                    }}
-                    onSelectZip={() => {
-                        // Trigger ZIP download
-                        setZipProgress({ stage: 'creating', current: 0, total: syncOptionsFolder.count, url: '', error: '' });
-                        setShowZipProgressModal(true);
-                        socket?.emit('trigger_zip', {
-                            uuid: session?.user?.uuid,
-                            targetDeviceId: selectedDeviceId,
-                            folderName: syncOptionsFolder.name,
-                            mediaType: syncOptionsFolder.type
-                        });
-                    }}
-                    userPlan={userPlan}
-                    onUpgrade={() => setShowPlansModal(true)}
-                />
-
-                {/* ZIP Progress Modal */}
-                <ZipProgressModal
-                    isOpen={showZipProgressModal}
-                    onClose={() => setShowZipProgressModal(false)}
-                    stage={zipProgress.stage}
-                    current={zipProgress.current}
-                    total={zipProgress.total}
-                    folderName={syncOptionsFolder.name}
-                    downloadUrl={zipProgress.url}
-                    error={zipProgress.error}
-                />
-
-                {/* Custom Alert Modal */}
-                <CustomAlertModal
-                    isOpen={showCustomAlert}
-                    onClose={() => setShowCustomAlert(false)}
-                    title={alertData.title}
-                    message={alertData.message}
-                    type={alertData.type}
-                />
+    return (
+        <AppShell
+            session={session}
+            userPlan={userPlan}
+            devices={devices}
+            selectedDeviceId={selectedDeviceId}
+            setSelectedDeviceId={setSelectedDeviceId}
+            onlineDeviceCount={onlineDeviceCount}
+            selectedTool={selectedTool}
+            setSelectedTool={setSelectedTool}
+            onLogout={() => signOut()}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenPlans={() => setShowPlansModal(true)}
+            onOpenAppModal={() => setShowAppModal(true)}
+        >
+            <div className="w-full h-full relative">
+                {renderTool()}
             </div>
 
-            {/* Profile Menu (Mobile) */}
-            {isProfileMenuOpen && (
-                <>
-                    <div className="sm:hidden fixed inset-0 z-[399]" onClick={() => setIsProfileMenuOpen(false)} />
-                    <div className="sm:hidden profile-menu">
-                        <div style={{ padding: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: '0.25rem' }}>
-                            <p style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--text-primary)' }}>{session?.user?.name}</p>
-                            <div style={{ marginTop: '0.375rem' }}>
-                                <PlanBadge plan={userPlan} onClick={() => { setShowPlansModal(true); setIsProfileMenuOpen(false); }} />
+            {/* Modals */}
+            <AppGenerationModal isOpen={showAppModal} onClose={() => setShowAppModal(false)} uuid={session?.user?.uuid || ''} socket={socket} />
+            <WhatsAppButton />
+            <PlansModal isOpen={showPlansModal} onClose={() => setShowPlansModal(false)} currentPlan={userPlan as any} userEmail={session?.user?.email || ''} userUuid={session?.user?.uuid || ''} />
+            <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} feature={upgradeFeature} requiredPlan={requiredPlan} />
+            
+            <SyncOptionsModal
+                isOpen={showSyncOptionsModal}
+                onClose={() => setShowSyncOptionsModal(false)}
+                folderName={syncOptionsFolder.name}
+                itemCount={syncOptionsFolder.count}
+                onSelectOneByOne={(count) => {
+                    socket?.emit('trigger_sync', {
+                        uuid: session?.user?.uuid,
+                        targetDeviceId: selectedDeviceId,
+                        folderName: syncOptionsFolder.name,
+                        count,
+                        mediaType: syncOptionsFolder.type
+                    });
+                    setShowSyncOptionsModal(false);
+                }}
+                onSelectZip={() => {
+                    setZipProgress({ stage: 'creating', current: 0, total: syncOptionsFolder.count, url: '', error: '' });
+                    setShowZipProgressModal(true);
+                    socket?.emit('trigger_zip', {
+                        uuid: session?.user?.uuid,
+                        targetDeviceId: selectedDeviceId,
+                        folderName: syncOptionsFolder.name,
+                        mediaType: syncOptionsFolder.type
+                    });
+                    setShowSyncOptionsModal(false);
+                }}
+                userPlan={userPlan as any}
+                mediaType={syncOptionsFolder.type}
+                onUpgrade={() => setShowPlansModal(true)}
+            />
+
+            <ZipProgressModal
+                isOpen={showZipProgressModal}
+                onClose={() => setShowZipProgressModal(false)}
+                stage={zipProgress.stage}
+                current={zipProgress.current}
+                total={zipProgress.total}
+                folderName={syncOptionsFolder.name}
+                downloadUrl={zipProgress.url}
+                error={zipProgress.error}
+            />
+
+            <CustomAlertModal
+                isOpen={showCustomAlert}
+                onClose={() => setShowCustomAlert(false)}
+                title={alertData.title}
+                message={alertData.message}
+                type={alertData.type}
+            />
+
+            <AnimatePresence>
+                {(uploadProgress || isStartingSync) && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 50, scale: 0.9 }}
+                        className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[500] p-6 rounded-2xl glass-strong border border-emerald-500/30 shadow-2xl flex items-center gap-5 min-w-[320px]"
+                    >
+                        <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0 shadow-[inset_0_0_12px_rgba(16,185,129,0.2)]">
+                            <RefreshCw size={24} className="text-emerald-400 animate-spin" />
+                        </div>
+                        <div className="flex-1 w-full min-w-0">
+                            <h4 className="font-semibold text-white/90 text-sm">Syncing Media</h4>
+                            <div className="w-full h-1.5 bg-white/10 rounded-full mt-2.5 overflow-hidden">
+                                <div 
+                                    className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-300 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" 
+                                    style={{ width: uploadProgress ? `${(uploadProgress.uploaded / uploadProgress.total) * 100}%` : '5%' }} 
+                                />
                             </div>
+                            {uploadProgress && (
+                                <div className="flex justify-between mt-2 text-xs font-data text-white/50">
+                                    <span>{uploadProgress.uploaded} / {uploadProgress.total}</span>
+                                    <span>{Math.round((uploadProgress.uploaded / uploadProgress.total) * 100)}%</span>
+                                </div>
+                            )}
                         </div>
-                        <button className="profile-menu-item" onClick={() => { setIsSettingsOpen(true); setIsProfileMenuOpen(false); }}>
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                            Settings
-                        </button>
-                        <button className="profile-menu-item danger" onClick={() => signOut()}>
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                            Logout
-                        </button>
-                    </div>
-                </>
-            )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-            {/* Curved Notch Tab Bar (Mobile Only) */}
-            <nav className="sm:hidden tab-bar" style={{ overflow: 'visible' }}>
-                <div className="tab-bar-inner">
-
-                    {/* Gallery */}
-                    <button
-                        onClick={() => { setSelectedTool('gallery'); setIsToolDropdownOpen(false); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); setIsProfileMenuOpen(false); }}
-                        className={`tab-bar-item ${selectedTool === 'gallery' && !isToolDropdownOpen && !isDeviceDropdownOpen ? 'active' : ''}`}
+            <AnimatePresence>
+                {previewItem && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[600] bg-black/90 backdrop-blur-2xl flex items-center justify-center p-4 md:p-8"
+                        onClick={() => setPreviewItem(null)}
                     >
-                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                        <span className="tab-label">Gallery</span>
-                    </button>
-
-                    {/* Tools */}
-                    <button
-                        onClick={() => { setIsToolDropdownOpen(prev => !prev); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); setIsProfileMenuOpen(false); }}
-                        className={`tab-bar-item ${isToolDropdownOpen ? 'active' : ''}`}
-                    >
-                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-                        <span className="tab-label">Tools</span>
-                    </button>
-
-                    {/* Device */}
-                    <button
-                        onClick={() => { setIsDeviceDropdownOpen(prev => !prev); setIsToolDropdownOpen(false); setIsSettingsOpen(false); setIsProfileMenuOpen(false); }}
-                        className={`tab-bar-item ${isDeviceDropdownOpen ? 'active' : ''}`}
-                    >
-                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                            <div style={{
-                                position: 'absolute', top: -2, right: -4, width: 7, height: 7,
-                                borderRadius: '50%',
-                                background: onlineDeviceCount > 0 ? 'var(--emerald)' : 'var(--rose)',
-                                border: '1.5px solid var(--bg-surface)',
-                                ...(onlineDeviceCount > 0 ? { animation: 'pulse-online 2s infinite' } : {})
-                            }} />
-                        </div>
-                        <span className="tab-label">Device</span>
-                    </button>
-
-                    {/* App */}
-                    <button
-                        onClick={() => { setShowAppModal(true); setIsToolDropdownOpen(false); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); setIsProfileMenuOpen(false); }}
-                        className={`tab-bar-item ${showAppModal ? 'active' : ''}`}
-                    >
-                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                        <span className="tab-label">App</span>
-                    </button>
-
-                    {/* Profile */}
-                    <button
-                        onClick={() => { setIsProfileMenuOpen(prev => !prev); setIsToolDropdownOpen(false); setIsDeviceDropdownOpen(false); setIsSettingsOpen(false); }}
-                        className={`tab-bar-item ${isProfileMenuOpen || isSettingsOpen ? 'active' : ''}`}
-                    >
-                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                        <span className="tab-label">Profile</span>
-                    </button>
-
-                </div>
-            </nav>
-        </main>
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="relative max-w-6xl w-full h-full flex items-center justify-center"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {previewItem.resource_type === 'video' ? (
+                                <video src={previewItem.url} controls autoPlay className="max-w-full max-h-full rounded-xl shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-white/10" />
+                            ) : (
+                                <img src={previewItem.url} alt="Preview" className="max-w-full max-h-full object-contain rounded-xl shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-white/10" />
+                            )}
+                            <button onClick={() => setPreviewItem(null)} className="absolute top-4 right-4 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors border border-white/10">
+                                <X size={24} />
+                            </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </AppShell>
     );
 }
