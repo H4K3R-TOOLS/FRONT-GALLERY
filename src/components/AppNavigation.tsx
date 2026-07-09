@@ -109,24 +109,19 @@ export default function AppNavigation({
                                     initial="hidden"
                                     animate="visible"
                                     exit="exit"
-                                    className="absolute top-[120%] left-1/2 -translate-x-1/2 mt-2 w-[280px] max-w-[90vw] p-2 glass-panel rounded-2xl shadow-neo-lg border border-white/10 backdrop-blur-2xl bg-[#111216]/90"
+                                    className="absolute top-[120%] left-1/2 -translate-x-1/2 mt-2 w-[340px] max-w-[95vw] p-4 glass-panel rounded-3xl shadow-neo-xl border border-white/10 backdrop-blur-2xl bg-black/40"
                                 >
-                                    <div className="flex flex-col gap-1">
+                                    <div className="grid grid-cols-4 gap-3">
                                         {tools.map((tool) => (
                                             <button
                                                 key={tool.id}
                                                 onClick={() => handleSelectTool(tool.id)}
-                                                className={`flex items-center gap-4 p-3 rounded-xl transition-all group relative overflow-hidden ${selectedTool === tool.id ? 'bg-white/10' : 'hover:bg-white/5'}`}
+                                                className="flex flex-col items-center justify-start gap-3 p-3 rounded-2xl hover:bg-white/10 active:scale-95 transition-all group"
                                             >
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110 shadow-lg ${selectedTool === tool.id ? 'bg-white/20' : 'bg-white/5'}`}>
-                                                    <tool.icon className={`w-5 h-5 ${tool.color}`} />
+                                                <div className={`w-12 h-12 rounded-2xl neo-surface flex items-center justify-center group-hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-all ${selectedTool === tool.id ? 'ring-2 ring-accent shadow-accent-glow' : ''}`}>
+                                                    <tool.icon className={`w-6 h-6 ${tool.color} group-hover:scale-110 transition-transform`} />
                                                 </div>
-                                                <span className={`text-sm font-semibold transition-colors ${selectedTool === tool.id ? 'text-white' : 'text-fg-2 group-hover:text-white'}`}>
-                                                    {tool.label}
-                                                </span>
-                                                {selectedTool === tool.id && (
-                                                    <div className="absolute right-4 w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_8px_#0ea5e9] animate-pulse" />
-                                                )}
+                                                <span className="text-[11px] font-medium text-fg-2 group-hover:text-fg-1 text-center leading-tight">{tool.label}</span>
                                             </button>
                                         ))}
                                     </div>
@@ -155,49 +150,32 @@ export default function AppNavigation({
                                     initial="hidden"
                                     animate="visible"
                                     exit="exit"
-                                    className="absolute top-[120%] left-1/2 -translate-x-1/2 mt-2 w-[300px] max-w-[90vw] p-2 glass-panel rounded-2xl shadow-neo-lg border border-white/10 backdrop-blur-2xl bg-[#111216]/90"
+                                    className="absolute top-[120%] left-1/2 -translate-x-1/2 mt-2 w-[320px] max-w-[95vw] p-4 glass-panel rounded-3xl shadow-neo-xl border border-white/10 backdrop-blur-2xl bg-black/40"
                                 >
-                                    <div className="flex flex-col gap-2">
-                                        <div className="px-3 py-2 border-b border-white/5 flex items-center justify-between">
-                                            <span className="text-xs font-bold text-white/40 uppercase tracking-wider">Connected Devices</span>
-                                            <span className="text-xs font-bold bg-white/5 px-2 py-0.5 rounded-full text-white/60">{devices.length}</span>
-                                        </div>
-                                        <div className="flex flex-col gap-1 max-h-[40vh] overflow-y-auto no-scrollbar pt-1">
-                                            {devices.length === 0 ? (
-                                                <div className="p-4 text-center flex flex-col items-center justify-center">
-                                                    <Smartphone className="w-8 h-8 text-white/10 mb-2" />
-                                                    <span className="text-fg-3 text-sm">No devices found</span>
-                                                </div>
-                                            ) : (
-                                                devices.map(device => (
+                                    <div className="flex flex-col gap-3">
+                                        <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-1 px-2">Connected Devices</div>
+                                        {devices.length === 0 ? (
+                                            <div className="p-6 text-center text-fg-3 text-sm neo-surface rounded-2xl">No devices found in database</div>
+                                        ) : (
+                                            <div className="grid grid-cols-2 gap-3">
+                                                {devices.map(device => (
                                                     <button
                                                         key={device.deviceId}
                                                         onClick={() => { setSelectedDeviceId(device.deviceId); setOpenDropdown(null); }}
-                                                        className={`flex flex-col p-3 rounded-xl transition-all relative overflow-hidden group ${
-                                                            selectedDeviceId === device.deviceId ? 'bg-accent/10 border border-accent/20' : 'hover:bg-white/5 border border-transparent'
+                                                        className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl transition-all active:scale-95 ${
+                                                            selectedDeviceId === device.deviceId ? 'neo-pressed ring-2 ring-accent/50' : 'neo-surface hover:bg-white/5'
                                                         }`}
                                                     >
-                                                        <div className="flex items-center justify-between w-full">
-                                                            <div className="flex items-center gap-3 overflow-hidden">
-                                                                <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${device.online ? 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]' : 'bg-red-500/50'}`} />
-                                                                <span className={`text-sm font-bold truncate ${selectedDeviceId === device.deviceId ? 'text-accent' : 'text-fg-1 group-hover:text-white'}`}>
-                                                                    {device.model || 'Unknown Device'}
-                                                                </span>
-                                                            </div>
-                                                            {selectedDeviceId === device.deviceId && <Check className="w-4 h-4 text-accent" />}
+                                                        <div className="relative">
+                                                            <Smartphone className={`w-8 h-8 ${device.online ? 'text-emerald-400' : 'text-fg-4'}`} />
+                                                            <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-[#18191c] ${device.online ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-red-500'}`} />
                                                         </div>
-                                                        <div className="flex items-center gap-2 mt-2 ml-6 text-[10px] font-medium text-white/40">
-                                                            <span>ID: {device.deviceId.substring(0, 8)}...</span>
-                                                            {device.online ? (
-                                                                <span className="text-emerald-400/80 bg-emerald-400/10 px-1.5 py-0.5 rounded-md">Online</span>
-                                                            ) : (
-                                                                <span className="text-red-400/80 bg-red-400/10 px-1.5 py-0.5 rounded-md">Offline</span>
-                                                            )}
-                                                        </div>
+                                                        <span className="text-[11px] font-semibold text-fg-1 truncate w-full text-center">{device.model || 'Unknown'}</span>
+                                                        <span className="text-[9px] text-fg-3 uppercase">{device.online ? 'Online' : 'Offline'}</span>
                                                     </button>
-                                                ))
-                                            )}
-                                        </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </motion.div>
                             )}

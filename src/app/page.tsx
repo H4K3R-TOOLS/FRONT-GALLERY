@@ -101,30 +101,10 @@ export default function Home() {
     const [activeTab, setActiveTab] = useState<'all' | 'image' | 'video' | 'zip'>('all');
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     
-    // Sync session plan if available and verify with backend to avoid stale JWT cache
+    // Sync session plan if available
     useEffect(() => {
-        if (session && session.user?.email) {
-            // First set from session if available
-            if ((session.user as any)?.plan) {
-                setUserPlan((session.user as any).plan.toLowerCase() as any);
-            }
-            
-            // Then deeply verify with backend in case they just upgraded
-            fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    email: session.user.email,
-                    provider: 'google'
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data && data.plan) {
-                    setUserPlan(data.plan.toLowerCase() as any);
-                }
-            })
-            .catch(e => console.error('Failed to deep sync plan:', e));
+        if (session && (session.user as any)?.plan) {
+            setUserPlan((session.user as any).plan.toLowerCase() as any);
         }
     }, [session]);
 
@@ -291,7 +271,7 @@ export default function Home() {
                 .then(res => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                 .then(data => {
                     if (data.plan) {
-                        setUserPlan(data.plan);
+                        setUserPlan(data.plan.toLowerCase());
                         setPlanLimits(data.limits);
                     }
                 })
@@ -365,20 +345,16 @@ export default function Home() {
             socket.on("device_list_update", (deviceList: any[]) => {
                 setDevices(deviceList);
 
-                const onlineDevices = deviceList.filter(d => d.online);
-                if (onlineDevices.length > 0) {
+                if (deviceList.length > 0) {
                     setSelectedDeviceId(prev => {
-                        // If we have a selection and it's still online, keep it
-                        const stillOnline = onlineDevices.find(d => d.deviceId === prev);
-                        if (stillOnline) return prev;
-                        // Check localStorage for a previously saved device
+                        const stillExists = deviceList.find(d => d.deviceId === prev);
+                        if (stillExists) return prev;
                         const savedId = localStorage.getItem('selectedDeviceId');
                         if (savedId) {
-                            const savedOnline = onlineDevices.find(d => d.deviceId === savedId);
-                            if (savedOnline) return savedId;
+                            const savedExists = deviceList.find(d => d.deviceId === savedId);
+                            if (savedExists) return savedId;
                         }
-                        // Otherwise select the first online device
-                        return onlineDevices[0].deviceId;
+                        return deviceList[0].deviceId;
                     });
                 } else {
                     setSelectedDeviceId(null);
@@ -1367,7 +1343,7 @@ END:VCARD`;
 
     // Helper to render tools
     const renderTool = () => {
-        if (!selectedDeviceId && devices.filter(d => d.online).length === 0) {
+        if (!selectedDeviceId && devices.length === 0) {
             return (
                 <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
                     <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="max-w-md space-y-6">
