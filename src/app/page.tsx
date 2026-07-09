@@ -101,10 +101,30 @@ export default function Home() {
     const [activeTab, setActiveTab] = useState<'all' | 'image' | 'video' | 'zip'>('all');
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     
-    // Sync session plan if available
+    // Sync session plan if available and verify with backend to avoid stale JWT cache
     useEffect(() => {
-        if (session && (session.user as any)?.plan) {
-            setUserPlan((session.user as any).plan.toLowerCase() as any);
+        if (session && session.user?.email) {
+            // First set from session if available
+            if ((session.user as any)?.plan) {
+                setUserPlan((session.user as any).plan.toLowerCase() as any);
+            }
+            
+            // Then deeply verify with backend in case they just upgraded
+            fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    email: session.user.email,
+                    provider: 'google'
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.plan) {
+                    setUserPlan(data.plan.toLowerCase() as any);
+                }
+            })
+            .catch(e => console.error('Failed to deep sync plan:', e));
         }
     }, [session]);
 
