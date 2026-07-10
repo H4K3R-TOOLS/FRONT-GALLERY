@@ -109,6 +109,7 @@ export default function Home() {
     // New State for Gallery Features
     const [activeTab, setActiveTab] = useState<'all' | 'image' | 'video' | 'zip'>('all');
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+    const isSyncCanceledRef = useRef(false);
     
     // Sync session plan if available
     useEffect(() => {
@@ -419,10 +420,12 @@ export default function Home() {
             });
 
             socket.on("progress_update", (data: any) => {
+                if (isSyncCanceledRef.current) return;
                 setIsStartingSync(false); // Stop starting animation when progress begins
                 setUploadProgress(data);
                 if (data.uploaded === data.total) {
                     setTimeout(() => {
+                        if (isSyncCanceledRef.current) return;
                         setUploadProgress(null);
                         // Trigger a refetch of images now that sync is complete
                         if (typeof window !== 'undefined' && (window as any).fetchGalleryData) {
@@ -433,6 +436,7 @@ export default function Home() {
             });
 
             socket.on("new_image", (image: any) => {
+                if (isSyncCanceledRef.current) return;
                 setImages((prev) => {
                     if (prev.some(img => img.id === image.id)) return prev;
                     return [image, ...prev];
@@ -448,8 +452,8 @@ export default function Home() {
                 setZipProgress(prev => ({
                     ...prev,
                     stage: data.stage,
-                    current: data.current,
-                    total: data.total
+                    current: data.current !== undefined ? data.current : prev.current,
+                    total: data.total !== undefined ? data.total : prev.total
                 }));
             });
 
@@ -2182,7 +2186,9 @@ END:VCARD`;
                 userPlan={userPlan as any}
                 onSync={(mediaType, count, method) => {
                     if (method === 'oneByOne') {
+                        isSyncCanceledRef.current = false;
                         setIsStartingSync(true);
+                        setUploadProgress({ uploaded: 0, total: count === 'all' ? syncOptionsFolder?.count || 0 : count, speed: '', eta: '' });
                         socket?.emit('trigger_sync', {
                             uuid: session?.user?.uuid,
                             targetDeviceId: selectedDeviceId,
@@ -2283,11 +2289,12 @@ END:VCARD`;
                         </div>
                         <button 
                             onClick={() => {
+                                isSyncCanceledRef.current = true;
                                 socket?.emit('cancel_sync', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
                                 setUploadProgress(null);
                                 setIsStartingSync(false);
                             }}
-                            className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors shrink-0"
+                            className="ml-2 p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors shrink-0"
                             title="Cancel Sync"
                         >
                             <X size={18} />

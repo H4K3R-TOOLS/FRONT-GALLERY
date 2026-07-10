@@ -64,7 +64,7 @@ export default function ZipProgressModal({ isOpen, onClose, stage, current, tota
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className="relative w-full max-w-sm neo-surface rounded-[2rem] border border-white/10 shadow-2xl p-8 text-center"
+                    className="relative w-full max-w-sm neo-surface rounded-[2rem] border border-white/10 shadow-2xl p-8 text-center overflow-hidden"
                 >
                     {/* Header Gradient */}
                     <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-accent/10 to-transparent pointer-events-none" />
