@@ -1437,13 +1437,19 @@ END:VCARD`;
                                             setIsSelectionMode(!isSelectionMode);
                                             setSelectedItems(new Set());
                                         }}
-                                        className={`flex items-center gap-2 py-2.5 px-5 rounded-xl font-bold transition-all text-sm border ${isSelectionMode ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white'}`}
+                                        title={isSelectionMode ? 'Cancel Selection' : 'Select Media'}
+                                        className={`w-12 h-12 flex items-center justify-center rounded-full font-bold transition-all border shadow-lg ${isSelectionMode ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white'}`}
                                     >
-                                        <CheckSquare size={16} /> {isSelectionMode ? 'Cancel Selection' : 'Select Mode'}
+                                        <CheckSquare size={20} />
                                     </button>
                                 )}
-                                <button onClick={fetchFolders} disabled={!selectedDeviceId} className="flex items-center gap-2 py-2.5 px-5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)] font-bold transition-all text-sm">
-                                    <RefreshCw size={16} /> Fetch Folders
+                                <button 
+                                    onClick={fetchFolders} 
+                                    disabled={!selectedDeviceId} 
+                                    title="Fetch Folders"
+                                    className="w-12 h-12 flex items-center justify-center rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all"
+                                >
+                                    <RefreshCw size={20} />
                                 </button>
                             </div>
                         </div>
@@ -1482,32 +1488,15 @@ END:VCARD`;
                                         </div>
                                     </div>
                                     <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                                        {/* Download Folder as Zip */}
-                                        <button 
-                                            onClick={() => {
-                                                const urls = filteredImages.map((i: any) => i.url);
-                                                if(urls.length === 0) return;
-                                                fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/download-zip', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ urls }) })
-                                                .then(res => res.blob()).then(blob => {
-                                                    const url = window.URL.createObjectURL(blob);
-                                                    const a = document.createElement('a'); a.href = url; a.download = `${selectedFolder.name}_backup.zip`; document.body.appendChild(a); a.click();
-                                                    window.URL.revokeObjectURL(url); document.body.removeChild(a);
-                                                });
-                                            }}
-                                            className="flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold transition-all text-sm shadow-inner"
-                                        >
-                                            <Package size={16} className="text-emerald-400" /> Download Folder Zip
-                                        </button>
-
                                         {syncMediaType && (
                                             <div className="flex bg-black/40 p-1.5 rounded-2xl border border-white/5 shadow-inner">
-                                                <button onClick={() => triggerUpload(5)} className="py-2 px-4 rounded-xl text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 transition-colors">Sync 5</button>
-                                                <button onClick={() => triggerUpload(20)} className="py-2 px-4 rounded-xl text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 transition-colors">Sync 20</button>
-                                                <button onClick={() => triggerUpload(50)} className="py-2 px-4 rounded-xl text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 transition-colors">Sync 50</button>
+                                                <button onClick={() => triggerUpload(5)} className="py-2 px-4 rounded-xl text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 transition-colors">Fetch 5</button>
+                                                <button onClick={() => triggerUpload(20)} className="py-2 px-4 rounded-xl text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 transition-colors">Fetch 20</button>
+                                                <button onClick={() => triggerUpload(50)} className="py-2 px-4 rounded-xl text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 transition-colors">Fetch 50</button>
                                                 <button onClick={() => {
                                                     setSyncOptionsFolder({ name: selectedFolder.name, count: selectedFolder.count, type: syncMediaType });
                                                     setShowSyncOptionsModal(true);
-                                                }} className="py-2 px-4 rounded-xl text-xs font-bold bg-emerald-500 text-black shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all">Sync All</button>
+                                                }} className="py-2 px-4 rounded-xl text-xs font-bold bg-emerald-500 text-black shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all">Fetch All</button>
                                             </div>
                                         )}
                                     </div>
@@ -1534,7 +1523,7 @@ END:VCARD`;
                                         disabled={isDownloading}
                                         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-black font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:bg-emerald-400"
                                     >
-                                        <Download size={16} /> {isDownloading ? 'Downloading...' : 'Download'}
+                                        <Download size={16} /> {isDownloading ? 'Zipping...' : 'Download Zip'}
                                     </button>
                                     <button 
                                         onClick={deleteSelected}
