@@ -1666,11 +1666,6 @@ END:VCARD`;
                                     <button onClick={() => setCameraMode('back')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold ${cameraMode === 'back' ? 'bg-cyan-500 text-black' : 'text-white/50'}`}>Rear Camera</button>
                                     <button onClick={() => setCameraMode('front')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold ${cameraMode === 'front' ? 'bg-cyan-500 text-black' : 'text-white/50'}`}>Front Camera</button>
                                 </div>
-                                {isCameraFullscreen && (
-                                    <button onClick={() => setIsCameraFullscreen(false)} className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/10 text-white border border-white/10">
-                                        <Minimize size={20} />
-                                    </button>
-                                )}
                             </div>
                         </div>
 
@@ -1721,9 +1716,13 @@ END:VCARD`;
                                             )}
                                         </div>
                                         <div className="flex items-center gap-3 pointer-events-auto">
-                                            {!isCameraFullscreen && (
-                                                <button onClick={() => setIsCameraFullscreen(true)} className="w-10 h-10 rounded-full bg-black/60 flex items-center justify-center border border-white/10 text-white/70">
+                                            {!isCameraFullscreen ? (
+                                                <button onClick={() => setIsCameraFullscreen(true)} className="w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 transition-colors flex items-center justify-center border border-white/10 text-white/70 hover:text-white shadow-lg backdrop-blur-md">
                                                     <Maximize size={18} />
+                                                </button>
+                                            ) : (
+                                                <button onClick={() => setIsCameraFullscreen(false)} className="w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 transition-colors flex items-center justify-center border border-white/10 text-white shadow-lg backdrop-blur-md">
+                                                    <Minimize size={18} />
                                                 </button>
                                             )}
                                         </div>
