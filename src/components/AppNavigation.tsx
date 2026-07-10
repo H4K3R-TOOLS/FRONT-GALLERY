@@ -205,7 +205,7 @@ export default function AppNavigation({
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[380px] p-6 rounded-[2rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,1)] border border-white/10 bg-[#06080d]/90 backdrop-blur-[64px] z-[200]"
+                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[380px] p-6 glass-panel rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] border border-white/10 bg-black/50 backdrop-blur-[48px] z-[200]"
                                     >
                                         <div className="text-xs font-bold text-fg-3 uppercase tracking-widest mb-6 px-2">Select Tool</div>
                                         <div className="grid grid-cols-4 gap-4">
@@ -253,7 +253,7 @@ export default function AppNavigation({
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[360px] p-6 rounded-[2rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,1)] border border-white/10 bg-[#06080d]/90 backdrop-blur-[64px] z-[200]"
+                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[360px] p-6 glass-panel rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] border border-white/10 bg-black/50 backdrop-blur-[48px] z-[200]"
                                     >
                                         <DeviceList devices={devices} selectedDeviceId={selectedDeviceId} setSelectedDeviceId={setSelectedDeviceId} setOpenDropdown={setOpenDropdown} onDeleteDevice={onDeleteDevice} />
                                     </motion.div>
@@ -292,7 +292,7 @@ export default function AppNavigation({
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[280px] p-5 rounded-[2rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,1)] border border-white/10 bg-[#06080d]/90 backdrop-blur-[64px] z-[200]"
+                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[280px] p-5 glass-panel rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] border border-white/10 bg-black/50 backdrop-blur-[48px] z-[200]"
                                     >
                                         <div className="p-3 mb-2 rounded-xl neo-surface flex flex-col items-center text-center">
                                             <div className="w-12 h-12 rounded-full neo-pressed mb-2 flex items-center justify-center shadow-accent-glow">
