@@ -2308,32 +2308,7 @@ END:VCARD`;
                     </div>
                 )}
 
-                {selectedTool === 'gallery' && (
-                    <div className="px-4 md:px-8 h-full">
-                        <GalleryView 
-                            images={images}
-                            activeTab={activeTab}
-                            setActiveTab={setActiveTab}
-                            isSelectionMode={isSelectionMode}
-                            setIsSelectionMode={setIsSelectionMode}
-                            selectedItems={selectedItems}
-                            toggleSelection={(id) => {
-                                const newSet = new Set(selectedItems);
-                                if (newSet.has(id)) newSet.delete(id);
-                                else newSet.add(id);
-                                setSelectedItems(newSet);
-                            }}
-                            handleBulkDownload={() => {}}
-                            handleBulkDelete={() => {}}
-                            setPreviewItem={setPreviewItem}
-                            galleryLoaderRef={galleryLoaderRef}
-                            isLoadingMore={isLoadingMore}
-                            galleryHasMore={galleryHasMore}
-                        />
-                    </div>
-                )}
-
-                {selectedTool && selectedTool !== 'gallery' && (
+                {selectedTool && (
                     <div className="px-4 md:px-8 max-w-7xl mx-auto h-full">
                         {renderTool()}
                     </div>
