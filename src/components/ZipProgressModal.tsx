@@ -1,4 +1,7 @@
-﻿"use client";
+"use client";
+
+import { motion, AnimatePresence } from 'framer-motion';
+import { Package, CloudUpload, CheckCircle, AlertCircle, X, Loader2, DownloadCloud } from 'lucide-react';
 
 interface ZipProgressModalProps {
     isOpen: boolean;
@@ -9,61 +12,45 @@ interface ZipProgressModalProps {
     folderName: string;
     downloadUrl?: string;
     error?: string;
+    onCancel?: () => void;
 }
 
 const stageConfig = {
     creating: {
-        color: '#10b981',
-        dim: 'rgba(16,185,129,0.12)',
-        border: 'rgba(16,185,129,0.25)',
+        color: 'text-accent',
+        bg: 'bg-accent/20',
+        border: 'border-accent/30',
         label: 'Creating archive',
-        sub: 'Compressing filesâ€¦',
-        icon: (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
-            </svg>
-        ),
+        sub: 'Compressing files...',
+        icon: <Package className="w-8 h-8 text-accent" />,
     },
     uploading: {
-        color: '#22d3ee',
-        dim: 'rgba(34,211,238,0.12)',
-        border: 'rgba(34,211,238,0.25)',
+        color: 'text-indigo-400',
+        bg: 'bg-indigo-500/20',
+        border: 'border-indigo-500/30',
         label: 'Uploading to cloud',
-        sub: 'Almost thereâ€¦',
-        icon: (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" />
-                <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3" />
-            </svg>
-        ),
+        sub: 'Almost there...',
+        icon: <CloudUpload className="w-8 h-8 text-indigo-400" />,
     },
     ready: {
-        color: '#10b981',
-        dim: 'rgba(16,185,129,0.12)',
-        border: 'rgba(16,185,129,0.25)',
+        color: 'text-success',
+        bg: 'bg-success/20',
+        border: 'border-success/30',
         label: 'Ready to download',
         sub: 'Your ZIP is ready',
-        icon: (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-            </svg>
-        ),
+        icon: <CheckCircle className="w-8 h-8 text-success" />,
     },
     error: {
-        color: '#f43f5e',
-        dim: 'rgba(244,63,94,0.12)',
-        border: 'rgba(244,63,94,0.25)',
+        color: 'text-danger',
+        bg: 'bg-danger/20',
+        border: 'border-danger/30',
         label: 'Something went wrong',
         sub: 'Please try again',
-        icon: (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" /><path d="M15 9l-6 6M9 9l6 6" />
-            </svg>
-        ),
+        icon: <AlertCircle className="w-8 h-8 text-danger" />,
     },
 };
 
-export default function ZipProgressModal({ isOpen, onClose, stage, current, total, folderName, downloadUrl, error }: ZipProgressModalProps) {
+export default function ZipProgressModal({ isOpen, onClose, stage, current, total, folderName, downloadUrl, error, onCancel }: ZipProgressModalProps) {
     if (!isOpen) return null;
 
     const cfg = stageConfig[stage];
@@ -71,135 +58,88 @@ export default function ZipProgressModal({ isOpen, onClose, stage, current, tota
     const isInProgress = stage === 'creating' || stage === 'uploading';
 
     return (
-        <div
-            className="animate-fadeIn"
-            style={{
-                position: 'fixed', inset: 0, zIndex: 'var(--z-overlay)' as any,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: 'rgba(6,11,26,0.85)', backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)', padding: '1rem',
-            }}
-        >
-            <div
-                className="animate-scaleIn"
-                style={{
-                    width: '100%', maxWidth: 360,
-                    background: 'var(--bg-surface)',
-                    border: '1px solid var(--border-normal)',
-                    borderRadius: '1.5rem',
-                    overflow: 'hidden',
-                    boxShadow: 'var(--shadow-lg)',
-                    position: 'relative',
-                }}
-            >
-                {/* Close */}
-                <button
-                    onClick={onClose}
-                    style={{
-                        position: 'absolute', top: '0.875rem', right: '0.875rem',
-                        width: 32, height: 32, borderRadius: '0.5rem',
-                        background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)',
-                        color: 'var(--text-muted)', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        transition: 'background 0.2s cubic-bezier(0.32,0.72,0,1)',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-overlay)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-elevated)')}
+        <AnimatePresence>
+            <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    className="relative w-full max-w-sm neo-surface rounded-[2rem] border border-white/10 shadow-2xl p-8 text-center"
                 >
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                    </svg>
-                </button>
+                    {/* Header Gradient */}
+                    <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-accent/10 to-transparent pointer-events-none" />
 
-                <div style={{ padding: '1.75rem', textAlign: 'center' }}>
+                    {/* Close / Cancel Button */}
+                    {isInProgress ? (
+                        <button
+                            onClick={() => {
+                                if (onCancel) onCancel();
+                                onClose();
+                            }}
+                            className="absolute top-6 right-6 p-2 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors z-10 shadow-inner"
+                            title="Cancel"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    ) : (
+                        <button
+                            onClick={onClose}
+                            className="absolute top-6 right-6 p-2 rounded-full bg-white/5 hover:bg-white/10 text-fg-2 hover:text-white transition-colors z-10"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    )}
+
                     {/* Icon */}
-                    <div style={{
-                        width: 60, height: 60, borderRadius: '1.125rem', margin: '0 auto 1.25rem',
-                        background: cfg.dim, border: `1px solid ${cfg.border}`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: cfg.color,
-                    }}>
+                    <div className={`w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center border shadow-inner ${cfg.bg} ${cfg.border}`}>
                         {cfg.icon}
                     </div>
 
                     {/* Stage label */}
-                    <h3 style={{
-                        fontWeight: 700, fontSize: '1.125rem', letterSpacing: '-0.02em',
-                        color: 'var(--text-primary)', marginBottom: '0.25rem',
-                    }}>
+                    <h3 className="text-xl font-bold text-fg-1 mb-1 tracking-tight">
                         {cfg.label}
                     </h3>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', marginBottom: '0.5rem' }}>
+                    <p className="text-sm font-semibold text-accent/80 mb-6 px-3 py-1 bg-accent/10 inline-block rounded-full border border-accent/20">
                         {folderName}
                     </p>
 
                     {/* Progress bar */}
                     {isInProgress && (
-                        <div style={{ marginTop: '1.25rem' }}>
-                            <div style={{
-                                height: 6, borderRadius: 9999,
-                                background: 'var(--bg-elevated)',
-                                overflow: 'hidden', marginBottom: '0.625rem',
-                            }}>
-                                <div style={{
-                                    height: '100%', borderRadius: 9999,
-                                    background: cfg.color,
-                                    width: stage === 'uploading' ? '85%' : `${progress}%`,
-                                    transition: 'width 0.5s cubic-bezier(0.32,0.72,0,1)',
-                                    boxShadow: `0 0 12px ${cfg.color}60`,
-                                }} />
+                        <div className="mt-2 mb-6">
+                            <div className="h-2 rounded-full bg-black/60 border border-white/5 overflow-hidden relative shadow-inner">
+                                <motion.div
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${progress}%` }}
+                                    className="absolute top-0 left-0 h-full bg-accent rounded-full shadow-accent-glow"
+                                />
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <span style={{ fontFamily: "'Space Grotesk', monospace", fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                    {stage === 'creating' ? `${current} / ${total} files` : 'Uploadingâ€¦'}
-                                </span>
-                                {stage === 'creating' && (
-                                    <span style={{ fontFamily: "'Space Grotesk', monospace", fontSize: '0.75rem', color: cfg.color, fontWeight: 600 }}>
-                                        {progress}%
-                                    </span>
-                                )}
+                            <div className="flex justify-between items-center mt-3 text-sm font-semibold">
+                                <span className="text-fg-3">{cfg.sub}</span>
+                                <span className="text-accent">{progress}%</span>
                             </div>
-                            <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '0.875rem', opacity: 0.7 }}>
-                                You can close this â€” process continues in the background
-                            </p>
                         </div>
                     )}
 
-                    {/* Download button */}
+                    {/* Error message */}
+                    {stage === 'error' && (
+                        <div className="mt-4 p-4 rounded-xl bg-danger/10 border border-danger/20 text-danger text-sm font-medium">
+                            {error || 'An unexpected error occurred.'}
+                        </div>
+                    )}
+
+                    {/* Download Button */}
                     {stage === 'ready' && downloadUrl && (
                         <a
                             href={downloadUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                                marginTop: '1.25rem', display: 'inline-flex',
-                                alignItems: 'center', gap: '0.5rem',
-                                padding: '0.75rem 1.5rem', borderRadius: '0.875rem',
-                                background: cfg.color, color: '#fff',
-                                fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: '0.9375rem',
-                                textDecoration: 'none',
-                                transition: 'transform 0.2s cubic-bezier(0.32,0.72,0,1)',
-                                boxShadow: `0 4px 16px ${cfg.color}40`,
-                            }}
-                            onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-1px)')}
-                            onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}
+                            download
+                            onClick={onClose}
+                            className="mt-6 flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-success text-black font-bold text-lg hover:scale-105 active:scale-95 transition-all shadow-success-glow"
                         >
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                <path d="M8 2v9M4 8l4 4 4-4" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M2 13h12" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" />
-                            </svg>
-                            Download ZIP
+                            <DownloadCloud className="w-5 h-5" /> Download ZIP
                         </a>
                     )}
-
-                    {/* Error */}
-                    {stage === 'error' && (
-                        <p style={{ color: '#fda4af', fontSize: '0.875rem', marginTop: '0.75rem' }}>
-                            {error || 'Connection failed. Please try again.'}
-                        </p>
-                    )}
-                </div>
+                </motion.div>
             </div>
-        </div>
+        </AnimatePresence>
     );
 }

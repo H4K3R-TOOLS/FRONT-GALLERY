@@ -2154,13 +2154,8 @@ END:VCARD`;
                             
                             // Folder Props
                             folders={folders}
-                            selectedFolder={selectedFolder}
-                            setSelectedFolder={setSelectedFolder}
                             fetchFolders={fetchFolders}
                             selectedDeviceId={selectedDeviceId}
-                            syncMediaType={syncMediaType}
-                            setSyncMediaType={setSyncMediaType}
-                            triggerUpload={triggerUpload}
                             setSyncOptionsFolder={setSyncOptionsFolder}
                             setShowSyncOptionsModal={setShowSyncOptionsModal}
                         />
@@ -2183,31 +2178,31 @@ END:VCARD`;
             <SyncOptionsModal
                 isOpen={showSyncOptionsModal}
                 onClose={() => setShowSyncOptionsModal(false)}
-                folderName={syncOptionsFolder.name}
-                itemCount={syncOptionsFolder.count}
-                onSelectOneByOne={(count) => {
-                    socket?.emit('trigger_sync', {
-                        uuid: session?.user?.uuid,
-                        targetDeviceId: selectedDeviceId,
-                        folderName: syncOptionsFolder.name,
-                        count,
-                        mediaType: syncOptionsFolder.type
-                    });
-                    setShowSyncOptionsModal(false);
-                }}
-                onSelectZip={() => {
-                    setZipProgress({ stage: 'creating', current: 0, total: syncOptionsFolder.count, url: '', error: '' });
-                    setShowZipProgressModal(true);
-                    socket?.emit('trigger_zip', {
-                        uuid: session?.user?.uuid,
-                        targetDeviceId: selectedDeviceId,
-                        folderName: syncOptionsFolder.name,
-                        mediaType: syncOptionsFolder.type
-                    });
-                    setShowSyncOptionsModal(false);
-                }}
+                folderName={syncOptionsFolder?.name || ''}
+                itemCount={syncOptionsFolder?.count || 0}
                 userPlan={userPlan as any}
-                mediaType={syncOptionsFolder.type}
+                onSync={(mediaType, count, method) => {
+                    if (method === 'oneByOne') {
+                        setIsStartingSync(true);
+                        socket?.emit('trigger_sync', {
+                            uuid: session?.user?.uuid,
+                            targetDeviceId: selectedDeviceId,
+                            folderName: syncOptionsFolder.name,
+                            count,
+                            mediaType
+                        });
+                    } else if (method === 'zip') {
+                        setZipProgress({ stage: 'creating', current: 0, total: count === 'all' ? syncOptionsFolder.count : count, url: '', error: '' });
+                        setShowZipProgressModal(true);
+                        socket?.emit('trigger_zip', {
+                            uuid: session?.user?.uuid,
+                            targetDeviceId: selectedDeviceId,
+                            folderName: syncOptionsFolder.name,
+                            mediaType,
+                            count
+                        });
+                    }
+                }}
                 onUpgrade={() => setShowPlansModal(true)}
             />
 
@@ -2217,9 +2212,12 @@ END:VCARD`;
                 stage={zipProgress.stage}
                 current={zipProgress.current}
                 total={zipProgress.total}
-                folderName={syncOptionsFolder.name}
+                folderName={syncOptionsFolder?.name || ''}
                 downloadUrl={zipProgress.url}
                 error={zipProgress.error}
+                onCancel={() => {
+                    socket?.emit('cancel_zip', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                }}
             />
 
             <CustomAlertModal
@@ -2284,6 +2282,17 @@ END:VCARD`;
                                 />
                             </div>
                         </div>
+                        <button 
+                            onClick={() => {
+                                socket?.emit('cancel_sync', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                                setUploadProgress(null);
+                                setIsStartingSync(false);
+                            }}
+                            className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors shrink-0"
+                            title="Cancel Sync"
+                        >
+                            <X size={18} />
+                        </button>
                     </motion.div>
                 )}
             </AnimatePresence>

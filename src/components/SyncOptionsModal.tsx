@@ -1,168 +1,152 @@
 "use client";
 
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Image as ImageIcon, Video, Package, DownloadCloud, X, LayoutGrid } from 'lucide-react';
+
 interface SyncOptionsModalProps {
     isOpen: boolean;
     onClose: () => void;
     folderName: string;
-    mediaType: 'image' | 'video';
     itemCount: number;
-    userPlan: 'free' | 'basic' | 'standard' | 'premium'; // Added userPlan
-    onSelectOneByOne: (count: number | 'all') => void;
-    onSelectZip: () => void;
-    onUpgrade: () => void; // Trigger upgrade modal
+    userPlan: 'free' | 'basic' | 'standard' | 'premium';
+    onSync: (mediaType: 'image' | 'video', count: number | 'all', method: 'oneByOne' | 'zip') => void;
+    onUpgrade: () => void;
 }
 
 export default function SyncOptionsModal({
     isOpen,
     onClose,
     folderName,
-    mediaType,
     itemCount,
     userPlan,
-    onSelectOneByOne,
-    onSelectZip,
+    onSync,
     onUpgrade
 }: SyncOptionsModalProps) {
+    const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
+    const [fetchCount, setFetchCount] = useState<number | 'all'>(20);
+
     if (!isOpen) return null;
 
     const isPremium = userPlan === 'premium';
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn p-4">
-            <div className="relative w-full max-w-md bg-base border border-white/[0.07] rounded-2xl shadow-2xl animate-scaleIn overflow-hidden max-h-[90dvh] overflow-y-auto">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="relative w-full max-w-lg neo-surface rounded-[2rem] border border-white/10 shadow-2xl overflow-hidden"
+            >
+                {/* Header Gradient */}
+                <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-accent/20 to-transparent opacity-50 pointer-events-none" />
 
-                {/* Header */}
-                <div className="p-5 border-b border-white/10">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-bold flex items-center gap-2">
-                            <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                            </svg>
-                            Sync Options
-                        </h3>
-                        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
+                {/* Close Button */}
+                <button onClick={onClose} className="absolute top-6 right-6 p-2 rounded-full bg-white/5 hover:bg-white/10 text-fg-2 hover:text-white transition-colors z-10">
+                    <X className="w-5 h-5" />
+                </button>
 
-                {/* Folder Info */}
-                <div className="p-5">
-                    <div className="bg-white/5 rounded-xl p-4 mb-6">
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center">
-                                <svg className="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <div className="font-semibold">{folderName}</div>
-                                <div className="text-xs text-white/40">{itemCount > 0 ? itemCount : 'Unknown'} {mediaType === 'video' ? 'videos' : 'photos'}</div>
-                            </div>
+                <div className="p-8 pt-10">
+                    {/* Title */}
+                    <div className="text-center mb-8">
+                        <h2 className="text-2xl font-bold text-fg-1 tracking-tight mb-2">Sync Settings</h2>
+                        <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full bg-black/40 border border-white/5 shadow-inner">
+                            <span className="text-accent font-semibold">{folderName}</span>
+                            <span className="text-fg-3 text-sm">({itemCount} items)</span>
                         </div>
                     </div>
 
-                    <p className="text-sm text-white/60 mb-6 text-center">
-                        Choose how you want to download:
-                    </p>
-
-                    {/* Options */}
-                    <div className="space-y-3">
-
-                        {/* ZIP Download Option (PREMIUM LOCKED) */}
-                        <button
-                            onClick={() => {
-                                if (isPremium) {
-                                    onSelectZip();
-                                    onClose();
-                                } else {
-                                    onUpgrade();
-                                }
-                            }}
-                            className={`w-full p-4 rounded-xl border transition-all group text-left relative overflow-hidden ${isPremium
-                                ? 'border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20'
-                                : 'border-white/5 bg-white/5 hover:bg-white/10 opacity-75'
-                                }`}
-                        >
-                            <div className="flex items-center gap-4 relative z-10">
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${isPremium ? 'bg-gradient-to-br from-emerald-500 to-teal-500' : 'bg-white/10 grayscale'
-                                    }`}>
-                                    📦
-                                </div>
-                                <div className="flex-1">
-                                    <div className="font-semibold flex items-center gap-2">
-                                        ZIP Download
-                                        {isPremium ? (
-                                            <span className="text-[10px] px-2 py-0.5 bg-green-500/20 text-green-400 rounded-full">RECOMMENDED</span>
-                                        ) : (
-                                            <span className="text-[10px] px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center gap-1">
-                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                                                PREMIUM
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="text-xs text-white/50">All items in one file, faster download</div>
-                                </div>
-                                {isPremium ? (
-                                    <svg className="w-5 h-5 text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                                    </svg>
-                                ) : (
-                                    <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                                    </svg>
-                                )}
+                    <div className="space-y-8">
+                        {/* 1. Media Type */}
+                        <div>
+                            <h3 className="text-sm font-bold text-fg-2 uppercase tracking-widest mb-3 px-1">1. Media Type</h3>
+                            <div className="flex gap-3">
+                                <button 
+                                    onClick={() => setMediaType('image')}
+                                    className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-2xl border transition-all duration-300 ${mediaType === 'image' ? 'bg-accent/10 border-accent/50 shadow-accent-glow' : 'bg-black/40 border-white/5 hover:bg-white/5'}`}
+                                >
+                                    <ImageIcon className={`w-8 h-8 ${mediaType === 'image' ? 'text-accent' : 'text-fg-3'}`} />
+                                    <span className={`font-bold ${mediaType === 'image' ? 'text-accent' : 'text-fg-2'}`}>Photos</span>
+                                </button>
+                                <button 
+                                    onClick={() => setMediaType('video')}
+                                    className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-2xl border transition-all duration-300 ${mediaType === 'video' ? 'bg-accent/10 border-accent/50 shadow-accent-glow' : 'bg-black/40 border-white/5 hover:bg-white/5'}`}
+                                >
+                                    <Video className={`w-8 h-8 ${mediaType === 'video' ? 'text-accent' : 'text-fg-3'}`} />
+                                    <span className={`font-bold ${mediaType === 'video' ? 'text-accent' : 'text-fg-2'}`}>Videos</span>
+                                </button>
                             </div>
-                        </button>
+                        </div>
 
-                        {/* One by One Option (LOCKED for Basic/Standard) */}
-                        <button
-                            onClick={() => {
-                                if (isPremium) {
-                                    onSelectOneByOne('all');
-                                    onClose();
-                                } else {
-                                    onUpgrade();
-                                }
-                            }}
-                            className={`w-full p-4 rounded-xl border transition-all group text-left relative overflow-hidden ${isPremium
-                                ? 'border-white/10 bg-white/5 hover:bg-white/10'
-                                : 'border-white/5 bg-white/5 hover:bg-white/10 opacity-75'
-                                }`}
-                        >
-                            <div className="flex items-center gap-4 relative z-10">
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${isPremium ? 'bg-white/10' : 'bg-white/10 grayscale'
-                                    }`}>
-                                    📷
-                                </div>
-                                <div className="flex-1">
-                                    <div className="font-semibold flex items-center gap-2">
-                                        One by One
-                                        {!isPremium && (
-                                            <span className="text-[10px] px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center gap-1">
-                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                                                PREMIUM
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="text-xs text-white/50">Sync items individually to gallery</div>
-                                </div>
-                                {isPremium ? (
-                                    <svg className="w-5 h-5 text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                                    </svg>
-                                ) : (
-                                    <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                                    </svg>
-                                )}
+                        {/* 2. Amount to Fetch */}
+                        <div>
+                            <h3 className="text-sm font-bold text-fg-2 uppercase tracking-widest mb-3 px-1">2. Quantity to Fetch</h3>
+                            <div className="grid grid-cols-4 gap-2 bg-black/40 p-2 rounded-2xl border border-white/5 shadow-inner">
+                                {[5, 20, 50, 'all'].map((val) => (
+                                    <button 
+                                        key={val}
+                                        onClick={() => setFetchCount(val as any)}
+                                        className={`py-3 rounded-xl text-sm font-bold transition-all ${fetchCount === val ? 'bg-white text-black shadow-lg' : 'text-fg-3 hover:text-white hover:bg-white/5'}`}
+                                    >
+                                        {val === 'all' ? 'All' : val}
+                                    </button>
+                                ))}
                             </div>
-                        </button>
+                        </div>
+
+                        {/* 3. Actions */}
+                        <div className="pt-4 border-t border-white/5">
+                            <h3 className="text-sm font-bold text-fg-2 uppercase tracking-widest mb-3 px-1">3. Start Sync</h3>
+                            <div className="flex flex-col gap-3">
+                                <button 
+                                    onClick={() => {
+                                        onSync(mediaType, fetchCount, 'oneByOne');
+                                        onClose();
+                                    }}
+                                    className="w-full flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                            <LayoutGrid className="w-5 h-5 text-accent" />
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="font-bold text-fg-1">Fetch to Gallery</div>
+                                            <div className="text-xs text-fg-3">View images directly in the app</div>
+                                        </div>
+                                    </div>
+                                    <DownloadCloud className="w-5 h-5 text-fg-3 group-hover:text-accent transition-colors" />
+                                </button>
+
+                                <button 
+                                    onClick={() => {
+                                        if (isPremium) {
+                                            onSync(mediaType, fetchCount, 'zip');
+                                            onClose();
+                                        } else {
+                                            onUpgrade();
+                                        }
+                                    }}
+                                    className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all group ${isPremium ? 'bg-accent text-black border-accent/50 shadow-accent-glow hover:scale-[1.02]' : 'bg-black/60 border-white/5 opacity-70 hover:opacity-100'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform ${isPremium ? 'bg-black/20 group-hover:scale-110' : 'bg-white/10'}`}>
+                                            <Package className={`w-5 h-5 ${isPremium ? 'text-black' : 'text-fg-3'}`} />
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="font-bold flex items-center gap-2">
+                                                Download as ZIP
+                                                {!isPremium && <span className="text-[9px] px-2 py-0.5 bg-accent/20 text-accent rounded-full border border-accent/30">PREMIUM</span>}
+                                            </div>
+                                            <div className={`text-xs ${isPremium ? 'text-black/70' : 'text-fg-3'}`}>Download compressed archive directly</div>
+                                        </div>
+                                    </div>
+                                    {isPremium && <DownloadCloud className="w-5 h-5 text-black/70 group-hover:text-black transition-colors" />}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 }
