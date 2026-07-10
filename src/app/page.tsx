@@ -244,6 +244,9 @@ export default function Home() {
     const [previewCapture, setPreviewCapture] = useState<{ type: string; data: string } | null>(null);
     const [isCameraSelectMode, setIsCameraSelectMode] = useState(false);
     const [cameraSelectedItems, setCameraSelectedItems] = useState<Set<string>>(new Set());
+    const [isQualityOpen, setIsQualityOpen] = useState(false);
+    const [isDurationOpen, setIsDurationOpen] = useState(false);
+    const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; ids: string[] }>({ isOpen: false, ids: [] });
 
     // Live Audio State
     const [isLiveAudio, setIsLiveAudio] = useState(false);
@@ -1812,36 +1815,56 @@ END:VCARD`;
                                         <div className="hidden sm:flex w-8 h-8 rounded-full bg-cyan-500/20 items-center justify-center border border-cyan-500/30 shrink-0">
                                             <Settings2 size={16} className="text-cyan-400" />
                                         </div>
-                                        <div className="flex flex-col w-full">
+                                        <div className="flex flex-col w-full relative">
                                             <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1 pl-1">Quality</span>
-                                            <div className="relative flex items-center w-full">
-                                                <select value={cameraQuality} onChange={(e) => setCameraQuality(Number(e.target.value))} className="appearance-none bg-black/40 border border-white/10 rounded-xl pl-3 pr-8 py-2.5 text-xs sm:text-sm font-bold text-white hover:border-cyan-500/50 focus:outline-none focus:border-cyan-500 w-full cursor-pointer transition-colors shadow-inner">
-                                                    <option value={144} className="bg-[#0a0a0c]">144p (Fast)</option>
-                                                    <option value={240} className="bg-[#0a0a0c]">240p</option>
-                                                    <option value={360} className="bg-[#0a0a0c]">360p (SD)</option>
-                                                    <option value={480} className="bg-[#0a0a0c]">480p</option>
-                                                    <option value={720} className="bg-[#0a0a0c]">720p (HD)</option>
-                                                </select>
+                                            <div 
+                                                onClick={() => { setIsQualityOpen(!isQualityOpen); setIsDurationOpen(false); }}
+                                                className="bg-black/40 border border-white/10 rounded-xl pl-3 pr-8 py-2.5 text-xs sm:text-sm font-bold text-white hover:border-cyan-500/50 w-full cursor-pointer transition-colors shadow-inner flex items-center justify-between"
+                                            >
+                                                {cameraQuality === 144 ? '144p (Fast)' : cameraQuality === 240 ? '240p' : cameraQuality === 360 ? '360p (SD)' : cameraQuality === 480 ? '480p' : '720p (HD)'}
                                                 <ChevronDown size={14} className="absolute right-3 text-white/40 pointer-events-none" />
                                             </div>
+                                            {isQualityOpen && (
+                                                <div className="absolute top-full left-0 w-full mt-2 bg-[#1a1a24] border border-white/10 rounded-xl overflow-hidden z-[400] shadow-2xl flex flex-col animate-in fade-in slide-in-from-top-2">
+                                                    {[144, 240, 360, 480, 720].map(val => (
+                                                        <button 
+                                                            key={val}
+                                                            onClick={() => { setCameraQuality(val); setIsQualityOpen(false); }}
+                                                            className={`px-3 py-2.5 text-xs sm:text-sm font-bold text-left hover:bg-cyan-500/20 transition-colors ${cameraQuality === val ? 'text-cyan-400 bg-cyan-500/10' : 'text-white'}`}
+                                                        >
+                                                            {val === 144 ? '144p (Fast)' : val === 240 ? '240p' : val === 360 ? '360p (SD)' : val === 480 ? '480p' : '720p (HD)'}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2 sm:gap-3">
                                         <div className="hidden sm:flex w-8 h-8 rounded-full bg-red-500/20 items-center justify-center border border-red-500/30 shrink-0">
                                             <Video size={16} className="text-red-400" />
                                         </div>
-                                        <div className="flex flex-col w-full">
+                                        <div className="flex flex-col w-full relative">
                                             <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1 pl-1">Duration</span>
-                                            <div className="relative flex items-center w-full">
-                                                <select value={recordingDuration} onChange={(e) => setRecordingDuration(Number(e.target.value))} className="appearance-none bg-black/40 border border-white/10 rounded-xl pl-3 pr-8 py-2.5 text-xs sm:text-sm font-bold text-white hover:border-red-500/50 focus:outline-none focus:border-red-500 w-full cursor-pointer transition-colors shadow-inner">
-                                                    <option value={0} disabled className="bg-[#0a0a0c]">Select Duration</option>
-                                                    <option value={30} className="bg-[#0a0a0c]">30 Sec</option>
-                                                    <option value={60} className="bg-[#0a0a0c]">1 Min</option>
-                                                    <option value={120} className="bg-[#0a0a0c]">2 Mins</option>
-                                                    <option value={300} className="bg-[#0a0a0c]">5 Mins</option>
-                                                </select>
+                                            <div 
+                                                onClick={() => { setIsDurationOpen(!isDurationOpen); setIsQualityOpen(false); }}
+                                                className="bg-black/40 border border-white/10 rounded-xl pl-3 pr-8 py-2.5 text-xs sm:text-sm font-bold text-white hover:border-red-500/50 w-full cursor-pointer transition-colors shadow-inner flex items-center justify-between"
+                                            >
+                                                {recordingDuration === 0 ? <span className="text-white/50">Select Duration</span> : recordingDuration === 30 ? '30 Sec' : recordingDuration === 60 ? '1 Min' : recordingDuration === 120 ? '2 Mins' : '5 Mins'}
                                                 <ChevronDown size={14} className="absolute right-3 text-white/40 pointer-events-none" />
                                             </div>
+                                            {isDurationOpen && (
+                                                <div className="absolute top-full left-0 w-full mt-2 bg-[#1a1a24] border border-white/10 rounded-xl overflow-hidden z-[400] shadow-2xl flex flex-col animate-in fade-in slide-in-from-top-2">
+                                                    {[30, 60, 120, 300].map(val => (
+                                                        <button 
+                                                            key={val}
+                                                            onClick={() => { setRecordingDuration(val); setIsDurationOpen(false); }}
+                                                            className={`px-3 py-2.5 text-xs sm:text-sm font-bold text-left hover:bg-red-500/20 transition-colors ${recordingDuration === val ? 'text-red-400 bg-red-500/10' : 'text-white'}`}
+                                                        >
+                                                            {val === 30 ? '30 Sec' : val === 60 ? '1 Min' : val === 120 ? '2 Mins' : '5 Mins'}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -1893,13 +1916,7 @@ END:VCARD`;
                                                 </button>
                                                 <button 
                                                     onClick={() => {
-                                                        if(confirm(`Delete ${cameraSelectedItems.size} items?`)) {
-                                                            const ids = Array.from(cameraSelectedItems);
-                                                            setImages(prev => prev.filter((i: any) => !ids.includes(i.id)));
-                                                            fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids }) }).catch(()=>null);
-                                                            setIsCameraSelectMode(false);
-                                                            setCameraSelectedItems(new Set());
-                                                        }
+                                                        setDeleteConfirmation({ isOpen: true, ids: Array.from(cameraSelectedItems) });
                                                     }}
                                                     className="w-8 h-8 rounded-lg bg-red-500/20 hover:bg-red-500/40 border border-red-500/30 flex items-center justify-center text-red-400 transition-colors"
                                                     title="Delete Selected"
@@ -1915,61 +1932,59 @@ END:VCARD`;
                                             {filteredImages.slice(0, 10).map((img: any) => (
                                                 <div 
                                                     key={img.id} 
-                                                    onClick={() => {
-                                                        if (isCameraSelectMode) {
-                                                            const newSet = new Set(cameraSelectedItems);
-                                                            if (newSet.has(img.id)) newSet.delete(img.id);
-                                                            else newSet.add(img.id);
-                                                            setCameraSelectedItems(newSet);
-                                                        } else {
-                                                            setPreviewItem(img);
-                                                        }
-                                                    }}
-                                                    className={`relative rounded-xl overflow-hidden group border transition-all cursor-pointer bg-black/50 aspect-square ${isCameraSelectMode && cameraSelectedItems.has(img.id) ? 'border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.3)] scale-95' : 'border-white/5 hover:border-pink-500/50 hover:shadow-[0_0_15px_rgba(236,72,153,0.15)]'}`}
+                                                    className={`flex flex-col bg-black/40 border transition-all rounded-xl overflow-hidden ${isCameraSelectMode && cameraSelectedItems.has(img.id) ? 'border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.3)] scale-95' : 'border-white/5 hover:border-pink-500/50 hover:shadow-[0_0_15px_rgba(236,72,153,0.15)]'}`}
                                                 >
-                                                    {img.resource_type === 'video' ? (
-                                                        <video src={img.url} className="w-full h-full object-cover pointer-events-none" />
-                                                    ) : (
-                                                        <img src={img.url} alt="Recent" className="w-full h-full object-cover pointer-events-none" />
-                                                    )}
-                                                    
-                                                    {/* Selection Indicator */}
-                                                    {isCameraSelectMode && (
-                                                        <div className="absolute top-2 right-2">
-                                                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${cameraSelectedItems.has(img.id) ? 'bg-cyan-500 border-cyan-500' : 'bg-black/40 border-white/40'}`}>
-                                                                {cameraSelectedItems.has(img.id) && <CheckSquare size={12} className="text-black" />}
+                                                    <div 
+                                                        onClick={() => {
+                                                            if (isCameraSelectMode) {
+                                                                const newSet = new Set(cameraSelectedItems);
+                                                                if (newSet.has(img.id)) newSet.delete(img.id);
+                                                                else newSet.add(img.id);
+                                                                setCameraSelectedItems(newSet);
+                                                            } else {
+                                                                setPreviewItem(img);
+                                                            }
+                                                        }}
+                                                        className="relative aspect-square cursor-pointer group"
+                                                    >
+                                                        {img.resource_type === 'video' ? (
+                                                            <video src={img.url} className="w-full h-full object-cover pointer-events-none" />
+                                                        ) : (
+                                                            <img src={img.url} alt="Recent" className="w-full h-full object-cover pointer-events-none" />
+                                                        )}
+                                                        
+                                                        {/* Selection Indicator */}
+                                                        {isCameraSelectMode && (
+                                                            <div className="absolute top-2 right-2">
+                                                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${cameraSelectedItems.has(img.id) ? 'bg-cyan-500 border-cyan-500' : 'bg-black/40 border-white/40'}`}>
+                                                                    {cameraSelectedItems.has(img.id) && <CheckSquare size={12} className="text-black" />}
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    )}
+                                                        )}
 
-                                                    {/* Hover Overlay Controls (Only active when NOT in select mode) */}
-                                                    {!isCameraSelectMode && (
-                                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 backdrop-blur-sm p-2">
-                                                            <span className="text-[10px] font-bold text-white bg-pink-500/50 px-3 py-1.5 rounded-lg mb-1">Click to View</span>
-                                                            <div className="flex w-full gap-2 mt-auto">
-                                                                <a href={img.url} download target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="flex-1 py-1.5 flex justify-center items-center bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors">
-                                                                    <Download size={12} />
-                                                                </a>
-                                                                <button 
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        if(confirm('Delete this media?')) {
-                                                                            setImages(prev => prev.filter((i: any) => i.id !== img.id));
-                                                                            fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: [img.id] }) }).catch(()=>null);
-                                                                        }
-                                                                    }} 
-                                                                    className="flex-1 py-1.5 flex justify-center items-center bg-red-500/20 hover:bg-red-500/40 text-red-100 rounded-lg transition-colors"
-                                                                >
-                                                                    <Trash2 size={12} />
-                                                                </button>
+                                                        {/* Video Indicator */}
+                                                        {img.resource_type === 'video' && (
+                                                            <div className="absolute top-1 left-1 bg-black/60 rounded px-1 py-0.5 pointer-events-none">
+                                                                <Video size={10} className="text-white" />
                                                             </div>
-                                                        </div>
-                                                    )}
-                                                    
-                                                    {/* Video Indicator */}
-                                                    {img.resource_type === 'video' && (
-                                                        <div className="absolute top-1 left-1 bg-black/60 rounded px-1 py-0.5 pointer-events-none">
-                                                            <Video size={10} className="text-white" />
+                                                        )}
+                                                    </div>
+
+                                                    {/* Footer Controls (Always visible below image when NOT in select mode) */}
+                                                    {!isCameraSelectMode && (
+                                                        <div className="flex w-full p-1.5 gap-1.5 bg-black/60 border-t border-white/5 mt-auto">
+                                                            <a href={img.url} download target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="flex-1 py-2 flex justify-center items-center bg-white/5 hover:bg-white/20 text-white/70 hover:text-white rounded-lg transition-colors">
+                                                                <Download size={14} />
+                                                            </a>
+                                                            <button 
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setDeleteConfirmation({ isOpen: true, ids: [img.id] });
+                                                                }} 
+                                                                className="flex-1 py-2 flex justify-center items-center bg-red-500/10 hover:bg-red-500/30 text-red-400 hover:text-red-300 rounded-lg transition-colors"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
                                                         </div>
                                                     )}
                                                 </div>
@@ -2325,6 +2340,40 @@ END:VCARD`;
                 message={alertData.message}
                 type={alertData.type}
             />
+
+            {deleteConfirmation.isOpen && (
+                <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-[#0a0a0c] border border-white/10 rounded-3xl p-6 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
+                        <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center border border-red-500/30 mb-4 mx-auto">
+                            <Trash2 size={24} className="text-red-500" />
+                        </div>
+                        <h3 className="text-xl font-bold text-white text-center mb-2">Delete Media?</h3>
+                        <p className="text-sm text-white/60 text-center mb-6">
+                            Are you sure you want to delete {deleteConfirmation.ids.length === 1 ? 'this item' : `these ${deleteConfirmation.ids.length} items`}? This action cannot be undone.
+                        </p>
+                        <div className="flex items-center gap-3">
+                            <button 
+                                onClick={() => setDeleteConfirmation({ isOpen: false, ids: [] })}
+                                className="flex-1 py-3 px-4 rounded-xl font-bold text-sm text-white/70 bg-white/5 hover:bg-white/10 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={() => {
+                                    setImages(prev => prev.filter((i: any) => !deleteConfirmation.ids.includes(i.id)));
+                                    fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: deleteConfirmation.ids }) }).catch(()=>null);
+                                    setDeleteConfirmation({ isOpen: false, ids: [] });
+                                    setIsCameraSelectMode(false);
+                                    setCameraSelectedItems(new Set());
+                                }}
+                                className="flex-1 py-3 px-4 rounded-xl font-bold text-sm text-white bg-red-500 hover:bg-red-600 transition-colors shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <AnimatePresence>
                 {(uploadProgress || isStartingSync) && (
