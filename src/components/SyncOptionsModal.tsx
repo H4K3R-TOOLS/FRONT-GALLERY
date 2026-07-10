@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Image as ImageIcon, Video, Package, DownloadCloud, X, LayoutGrid } from 'lucide-react';
 
 interface SyncOptionsModalProps {
-interface SyncOptionsModalProps {
     isOpen: boolean;
     onClose: () => void;
     folder: any;
