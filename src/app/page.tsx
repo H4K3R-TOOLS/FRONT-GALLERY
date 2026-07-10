@@ -2178,8 +2178,7 @@ END:VCARD`;
             <SyncOptionsModal
                 isOpen={showSyncOptionsModal}
                 onClose={() => setShowSyncOptionsModal(false)}
-                folderName={syncOptionsFolder?.name || ''}
-                itemCount={syncOptionsFolder?.count || 0}
+                folder={syncOptionsFolder}
                 userPlan={userPlan as any}
                 onSync={(mediaType, count, method) => {
                     if (method === 'oneByOne') {
