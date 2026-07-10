@@ -161,9 +161,9 @@ export default function AppNavigation({
     };
 
     const dropdownVariants = {
-        hidden: { opacity: 0, y: -15, scale: 0.95 },
+        hidden: { opacity: 0, y: -10, scale: 0.98 },
         visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.2, ease: "easeOut" } },
-        exit: { opacity: 0, y: -10, scale: 0.95, transition: { duration: 0.15, ease: "easeIn" } }
+        exit: { opacity: 0, y: -10, scale: 0.98, transition: { duration: 0.15, ease: "easeIn" } }
     };
 
     return (
@@ -205,7 +205,7 @@ export default function AppNavigation({
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[380px] p-6 glass-panel rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] border border-white/10 bg-[#0a0a0c]/85 backdrop-blur-xl z-[200] transform-gpu origin-top"
+                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[380px] p-6 glass-panel rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)] border border-white/10 bg-[#0a0a0c]/80 backdrop-blur-[32px] z-[200] transform-gpu origin-top"
                                     >
                                         <div className="text-xs font-bold text-fg-3 uppercase tracking-widest mb-6 px-2">Select Tool</div>
                                         <div className="grid grid-cols-4 gap-4">
@@ -253,7 +253,7 @@ export default function AppNavigation({
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:right-0 sm:left-auto sm:mt-2 sm:w-[320px] p-0 glass-panel rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] border border-white/10 bg-[#0a0a0c] z-[200] transform-gpu origin-top overflow-hidden flex flex-col"                                  
+                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[360px] p-6 glass-panel rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)] border border-white/10 bg-[#0a0a0c]/80 backdrop-blur-[32px] z-[200] transform-gpu origin-top"
                                     >
                                         <DeviceList devices={devices} selectedDeviceId={selectedDeviceId} setSelectedDeviceId={setSelectedDeviceId} setOpenDropdown={setOpenDropdown} onDeleteDevice={onDeleteDevice} />
                                     </motion.div>
@@ -292,7 +292,7 @@ export default function AppNavigation({
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:right-0 sm:left-auto sm:mt-2 sm:w-[280px] p-5 glass-panel rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] border border-white/5 bg-[#0a0a0c]/85 backdrop-blur-xl z-[200] transform-gpu origin-top"
+                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[280px] p-5 glass-panel rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)] border border-white/10 bg-[#0a0a0c]/80 backdrop-blur-[32px] z-[200] transform-gpu origin-top"
                                     >
                                         <div className="p-3 mb-2 rounded-xl neo-surface flex flex-col items-center text-center">
                                             <div className="w-12 h-12 rounded-full neo-pressed mb-2 flex items-center justify-center shadow-accent-glow">

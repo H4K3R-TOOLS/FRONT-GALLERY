@@ -67,7 +67,7 @@ export default function CustomAlertModal({ isOpen, onClose, title, message, type
         <div
             className="animate-fadeIn"
             style={{
-                position: 'fixed', inset: 0, zIndex: 5000,
+                position: 'fixed', inset: 0, zIndex: 9999,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: 'rgba(6,11,26,0.80)', backdropFilter: 'blur(8px)',
                 WebkitBackdropFilter: 'blur(8px)', padding: '1rem',
