@@ -167,7 +167,9 @@ export default function GalleryView({
                                         {folder.name}
                                     </h3>
                                     <p className="text-xs sm:text-sm text-fg-3 font-semibold tracking-wide mt-0.5">
-                                        {folder.count} items
+                                        {folder.imageCount !== undefined && folder.videoCount !== undefined 
+                                            ? `${folder.imageCount} pics • ${folder.videoCount} videos`
+                                            : `${folder.count} items`}
                                     </p>
                                 </div>
                             </motion.button>

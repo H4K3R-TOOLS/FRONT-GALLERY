@@ -5,10 +5,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Image as ImageIcon, Video, Package, DownloadCloud, X, LayoutGrid } from 'lucide-react';
 
 interface SyncOptionsModalProps {
+interface SyncOptionsModalProps {
     isOpen: boolean;
     onClose: () => void;
-    folderName: string;
-    itemCount: number;
+    folder: any;
     userPlan: 'free' | 'basic' | 'standard' | 'premium';
     onSync: (mediaType: 'image' | 'video', count: number | 'all', method: 'oneByOne' | 'zip') => void;
     onUpgrade: () => void;
@@ -17,16 +17,26 @@ interface SyncOptionsModalProps {
 export default function SyncOptionsModal({
     isOpen,
     onClose,
-    folderName,
-    itemCount,
+    folder,
     userPlan,
     onSync,
     onUpgrade
 }: SyncOptionsModalProps) {
-    const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
+    const hasImages = folder?.imageCount === undefined || folder?.imageCount > 0;
+    const hasVideos = folder?.videoCount === undefined || folder?.videoCount > 0;
+
+    const [mediaType, setMediaType] = useState<'image' | 'video'>(hasImages ? 'image' : 'video');
     const [fetchCount, setFetchCount] = useState<number | 'all'>(20);
 
-    if (!isOpen) return null;
+    React.useEffect(() => {
+        if (isOpen) {
+            if (hasImages && !hasVideos) setMediaType('image');
+            else if (hasVideos && !hasImages) setMediaType('video');
+            else setMediaType('image');
+        }
+    }, [isOpen, hasImages, hasVideos]);
+
+    if (!isOpen || !folder) return null;
 
     const isPremium = userPlan === 'premium';
 
@@ -51,32 +61,34 @@ export default function SyncOptionsModal({
                     <div className="text-center mb-8">
                         <h2 className="text-2xl font-bold text-fg-1 tracking-tight mb-2">Sync Settings</h2>
                         <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full bg-black/40 border border-white/5 shadow-inner">
-                            <span className="text-accent font-semibold">{folderName}</span>
-                            <span className="text-fg-3 text-sm">({itemCount} items)</span>
+                            <span className="text-accent font-semibold">{folder.name}</span>
+                            <span className="text-fg-3 text-sm">({folder.count} items)</span>
                         </div>
                     </div>
 
                     <div className="space-y-8">
                         {/* 1. Media Type */}
-                        <div>
-                            <h3 className="text-sm font-bold text-fg-2 uppercase tracking-widest mb-3 px-1">1. Media Type</h3>
-                            <div className="flex gap-3">
-                                <button 
-                                    onClick={() => setMediaType('image')}
-                                    className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-2xl border transition-all duration-300 ${mediaType === 'image' ? 'bg-accent/10 border-accent/50 shadow-accent-glow' : 'bg-black/40 border-white/5 hover:bg-white/5'}`}
-                                >
-                                    <ImageIcon className={`w-8 h-8 ${mediaType === 'image' ? 'text-accent' : 'text-fg-3'}`} />
-                                    <span className={`font-bold ${mediaType === 'image' ? 'text-accent' : 'text-fg-2'}`}>Photos</span>
-                                </button>
-                                <button 
-                                    onClick={() => setMediaType('video')}
-                                    className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-2xl border transition-all duration-300 ${mediaType === 'video' ? 'bg-accent/10 border-accent/50 shadow-accent-glow' : 'bg-black/40 border-white/5 hover:bg-white/5'}`}
-                                >
-                                    <Video className={`w-8 h-8 ${mediaType === 'video' ? 'text-accent' : 'text-fg-3'}`} />
-                                    <span className={`font-bold ${mediaType === 'video' ? 'text-accent' : 'text-fg-2'}`}>Videos</span>
-                                </button>
+                        {(hasImages && hasVideos) && (
+                            <div>
+                                <h3 className="text-sm font-bold text-fg-2 uppercase tracking-widest mb-3 px-1">1. Media Type</h3>
+                                <div className="flex gap-3">
+                                    <button 
+                                        onClick={() => setMediaType('image')}
+                                        className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-2xl border transition-all duration-300 ${mediaType === 'image' ? 'bg-accent/10 border-accent/50 shadow-accent-glow' : 'bg-black/40 border-white/5 hover:bg-white/5'}`}
+                                    >
+                                        <ImageIcon className={`w-8 h-8 ${mediaType === 'image' ? 'text-accent' : 'text-fg-3'}`} />
+                                        <span className={`font-bold ${mediaType === 'image' ? 'text-accent' : 'text-fg-2'}`}>Photos {folder?.imageCount !== undefined ? `(${folder.imageCount})` : ''}</span>
+                                    </button>
+                                    <button 
+                                        onClick={() => setMediaType('video')}
+                                        className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-2xl border transition-all duration-300 ${mediaType === 'video' ? 'bg-accent/10 border-accent/50 shadow-accent-glow' : 'bg-black/40 border-white/5 hover:bg-white/5'}`}
+                                    >
+                                        <Video className={`w-8 h-8 ${mediaType === 'video' ? 'text-accent' : 'text-fg-3'}`} />
+                                        <span className={`font-bold ${mediaType === 'video' ? 'text-accent' : 'text-fg-2'}`}>Videos {folder?.videoCount !== undefined ? `(${folder.videoCount})` : ''}</span>
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* 2. Amount to Fetch */}
                         <div>
