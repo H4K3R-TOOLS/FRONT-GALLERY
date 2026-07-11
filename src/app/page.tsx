@@ -13,6 +13,7 @@ import BulkDownloadModal from "@/components/BulkDownloadModal";
 import SyncOptionsModal from "@/components/SyncOptionsModal";
 import ZipProgressModal from "@/components/ZipProgressModal";
 import CustomAlertModal from "@/components/CustomAlertModal";
+import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
     Image as ImageIcon, MessageSquare, Users, Flashlight, Vibrate, Camera, 
@@ -129,6 +130,7 @@ export default function Home() {
     const [isDownloading, setIsDownloading] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const handleDeleteDevice = async (deviceId: string) => {
         if (!session?.user?.uuid) return;
@@ -1242,7 +1244,10 @@ export default function Home() {
     };
 
     const deleteSelected = async () => {
-        if (!confirm("Are you sure you want to delete these items?")) return;
+        setShowDeleteConfirm(true);
+    };
+
+    const confirmDelete = async () => {
         setIsDeleting(true);
         const idsToDelete = Array.from(selectedItems);
 
@@ -1262,6 +1267,7 @@ export default function Home() {
             console.error("Delete failed", error);
         } finally {
             setIsDeleting(false);
+            setShowDeleteConfirm(false);
         }
     };
 
@@ -2211,6 +2217,13 @@ END:VCARD`;
                 onUpgrade={() => setShowPlansModal(true)}
             />
 
+            <ConfirmDeleteModal
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={confirmDelete}
+                itemCount={selectedItems.size}
+            />
+
             <ZipProgressModal
                 isOpen={showZipProgressModal}
                 onClose={() => setShowZipProgressModal(false)}
@@ -2324,9 +2337,31 @@ END:VCARD`;
                             ) : (
                                 <img src={previewItem.url} alt="Preview" className="max-w-full max-h-full object-contain rounded-xl neo-surface" />
                             )}
-                            <button onClick={() => setPreviewItem(null)} className="absolute top-4 right-4 p-3 rounded-full neo-button text-fg-1 hover:text-accent transition-colors">
-                                <X size={24} />
-                            </button>
+                            
+                            <div className="absolute top-4 right-4 flex items-center gap-3">
+                                <button 
+                                    onClick={() => {
+                                        const link = document.createElement('a');
+                                        link.href = previewItem.url;
+                                        link.download = previewItem.name || 'download';
+                                        link.target = '_blank';
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                    }}
+                                    className="p-3 rounded-full neo-button text-fg-1 hover:text-accent transition-colors shadow-lg bg-black/40 backdrop-blur-md border border-white/10"
+                                    title="Download Media"
+                                >
+                                    <Download size={24} />
+                                </button>
+                                <button 
+                                    onClick={() => setPreviewItem(null)} 
+                                    className="p-3 rounded-full neo-button text-fg-1 hover:text-accent transition-colors shadow-lg bg-black/40 backdrop-blur-md border border-white/10"
+                                    title="Close Preview"
+                                >
+                                    <X size={24} />
+                                </button>
+                            </div>
                         </motion.div>
                     </motion.div>
                 )}

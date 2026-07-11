@@ -54,7 +54,7 @@ export default function GalleryView({
                 </div>
 
                 {/* Selection & Action Bar */}
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap items-center gap-6">
                     <button 
                         onClick={fetchFolders}
                         disabled={!selectedDeviceId}
@@ -69,28 +69,6 @@ export default function GalleryView({
                     >
                         <ImageIcon className="w-5 h-5" /> Media
                     </button>
-
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center neo-surface p-1 rounded-2xl">
-                            {['all', 'image', 'video'].map(tab => (
-                                <button
-                                    key={tab}
-                                    onClick={() => setActiveTab(tab as any)}
-                                    className={`px-4 py-2 rounded-xl text-sm font-semibold capitalize transition-all duration-300 ${
-                                        activeTab === tab ? 'neo-pressed text-accent' : 'text-fg-3 hover:text-fg-1'
-                                    }`}
-                                >
-                                    {tab}
-                                </button>
-                            ))}
-                            <button 
-                                onClick={() => setActiveTab('zip')}
-                                className={`ml-2 px-4 py-2 text-sm font-semibold transition-all duration-300 ${activeTab === 'zip' ? 'neo-pressed text-accent' : 'text-fg-2 hover:text-accent'}`}
-                            >
-                                View ZIPs
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -163,7 +141,27 @@ export default function GalleryView({
                         </div>
                         
                         {/* New Relocated Action Bar */}
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center flex-wrap gap-3">
+                            <div className="flex items-center neo-surface p-1 rounded-2xl">
+                                {['all', 'image', 'video'].map(tab => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setActiveTab(tab as any)}
+                                        className={`px-4 py-2 rounded-xl text-sm font-semibold capitalize transition-all duration-300 ${
+                                            activeTab === tab ? 'neo-pressed text-accent' : 'text-fg-3 hover:text-fg-1'
+                                        }`}
+                                    >
+                                        {tab}
+                                    </button>
+                                ))}
+                                <button 
+                                    onClick={() => setActiveTab('zip')}
+                                    className={`ml-2 px-4 py-2 text-sm font-semibold transition-all duration-300 ${activeTab === 'zip' ? 'neo-pressed text-accent' : 'text-fg-2 hover:text-accent'}`}
+                                >
+                                    View ZIPs
+                                </button>
+                            </div>
+
                             <button 
                                 onClick={() => {
                                     if (isSelectionMode) {
