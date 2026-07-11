@@ -141,7 +141,7 @@ export default function GalleryView({
                         </div>
                         
                         {/* New Relocated Action Bar */}
-                        <div className="flex items-center flex-wrap gap-3">
+                        <div className="flex items-center flex-wrap gap-3 w-full md:w-auto justify-end">
                             <div className="flex items-center neo-surface p-1 rounded-2xl">
                                 {['all', 'image', 'video'].map(tab => (
                                     <button
@@ -162,43 +162,45 @@ export default function GalleryView({
                                 </button>
                             </div>
 
-                            <AnimatePresence>
-                                {isSelectionMode && (
-                                    <motion.div 
-                                        initial={{ opacity: 0, x: 20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: 20 }}
-                                        className="flex items-center gap-2 neo-surface px-3 py-1.5 rounded-full shadow-accent-glow"
-                                    >
-                                        <span className="text-sm font-bold text-accent px-2">{selectedItems.size}</span>
-                                        <div className="w-px h-5 bg-white/10 mx-1" />
-                                        <button onClick={selectAll} className="p-2 text-fg-3 hover:text-white text-xs font-semibold transition-colors uppercase tracking-wider">
-                                            All
-                                        </button>
-                                        <button onClick={handleBulkDownload} disabled={isDownloading || selectedItems.size === 0} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent/10 text-accent hover:bg-accent/20 transition-colors disabled:opacity-50" title="Download Zip">
-                                            <Download className="w-4 h-4" /> <span className="text-xs font-bold hidden sm:inline">ZIP</span>
-                                        </button>
-                                        <button onClick={handleBulkDelete} disabled={isDeleting || selectedItems.size === 0} className="p-2 rounded-xl text-fg-3 hover:bg-red-500/10 hover:text-red-400 transition-colors disabled:opacity-50" title="Delete">
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+                            <div className="flex items-center gap-3 ml-auto">
+                                <AnimatePresence>
+                                    {isSelectionMode && (
+                                        <motion.div 
+                                            initial={{ opacity: 0, width: 0, x: 20 }}
+                                            animate={{ opacity: 1, width: 'auto', x: 0 }}
+                                            exit={{ opacity: 0, width: 0, x: 20 }}
+                                            className="flex items-center gap-2 neo-surface px-3 py-1.5 rounded-full shadow-accent-glow"
+                                        >
+                                            <span className="text-sm font-bold text-accent px-2">{selectedItems.size}</span>
+                                            <div className="w-px h-5 bg-white/10 mx-1" />
+                                            <button onClick={selectAll} className="p-2 text-fg-3 hover:text-white text-xs font-semibold transition-colors uppercase tracking-wider">
+                                                All
+                                            </button>
+                                            <button onClick={handleBulkDownload} disabled={isDownloading || selectedItems.size === 0} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent/10 text-accent hover:bg-accent/20 transition-colors disabled:opacity-50" title="Download Zip">
+                                                <Download className="w-4 h-4" /> <span className="text-xs font-bold hidden sm:inline">ZIP</span>
+                                            </button>
+                                            <button onClick={handleBulkDelete} disabled={isDeleting || selectedItems.size === 0} className="p-2 rounded-xl text-fg-3 hover:bg-red-500/10 hover:text-red-400 transition-colors disabled:opacity-50" title="Delete">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
 
-                            <button 
-                                onClick={() => {
-                                    if (isSelectionMode) {
-                                        setIsSelectionMode(false);
-                                        selectedItems.clear();
-                                    } else {
-                                        setIsSelectionMode(true);
-                                    }
-                                }}
-                                className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 shadow-lg ${isSelectionMode ? 'bg-accent text-black shadow-accent-glow scale-105' : 'bg-white/5 border border-white/10 text-fg-3 hover:text-white hover:bg-white/10'}`}
-                                title={isSelectionMode ? 'Cancel Selection' : 'Multi-Select'}
-                            >
-                                {isSelectionMode ? <X className="w-5 h-5" /> : <CheckSquare className="w-5 h-5" />}
-                            </button>
+                                <button 
+                                    onClick={() => {
+                                        if (isSelectionMode) {
+                                            setIsSelectionMode(false);
+                                            selectedItems.clear();
+                                        } else {
+                                            setIsSelectionMode(true);
+                                        }
+                                    }}
+                                    className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 shadow-lg ${isSelectionMode ? 'bg-accent text-black shadow-[0_0_20px_rgba(var(--accent-rgb),0.6)] scale-105' : 'bg-accent/20 border border-accent/30 text-accent hover:bg-accent/30 shadow-[0_0_15px_rgba(var(--accent-rgb),0.3)]'}`}
+                                    title={isSelectionMode ? 'Cancel Selection' : 'Multi-Select'}
+                                >
+                                    {isSelectionMode ? <X className="w-5 h-5" /> : <CheckSquare className="w-5 h-5" />}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
