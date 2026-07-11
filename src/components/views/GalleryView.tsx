@@ -282,7 +282,7 @@ export default function GalleryView({
                     )}
 
                     {/* Load More Button */}
-                    {!isSelectionMode && galleryHasMore && filteredImages.length > 0 && (
+                    {galleryHasMore && filteredImages.length > 0 && (
                         <div className="w-full flex items-center justify-center mt-12 mb-8">
                             <button
                                 onClick={handleLoadMore}
