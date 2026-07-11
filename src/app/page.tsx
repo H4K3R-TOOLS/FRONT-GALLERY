@@ -843,7 +843,7 @@ export default function Home() {
                 if (isFetchingGallery) return;
                 isFetchingGallery = true;
                 if (append) setIsLoadingMore(true);
-                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${uuid}&page=${loadPage}&limit=50`)
+                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${uuid}&page=${loadPage}&limit=30`)
                     .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then((data) => {
                         const items = data.items || (Array.isArray(data) ? data : []);

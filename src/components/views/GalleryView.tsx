@@ -215,8 +215,7 @@ export default function GalleryView({
                             <p className="text-sm text-fg-3">Fetch media from your device folders to see them here.</p>
                         </div>
                     ) : (
-                        <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-                        <AnimatePresence mode="popLayout">
+                        <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6 min-h-[50vh] content-start">
                         {filteredImages.map((item, index) => {
                             const isSelected = selectedItems.has(item.id);
                             const resourceType = item.type || item.resource_type;
@@ -224,10 +223,9 @@ export default function GalleryView({
                                 <motion.div
                                     layout
                                     key={item.id}
-                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.8 }}
-                                    transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+                                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                                     className={`relative aspect-square rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 ${
                                         isSelectionMode && isSelected ? 'ring-4 ring-accent ring-offset-2 ring-offset-base shadow-accent-glow scale-[0.95]' : 'neo-surface hover:-translate-y-1'
                                     }`}
@@ -280,7 +278,6 @@ export default function GalleryView({
                                 </motion.div>
                             );
                         })}
-                        </AnimatePresence>
                         </motion.div>
                     )}
 
