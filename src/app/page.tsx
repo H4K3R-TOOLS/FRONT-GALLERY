@@ -902,7 +902,7 @@ export default function Home() {
     }, [status, session?.user?.uuid]);
     // Auto-fetch ALL remaining media when selection mode is activated
     const fetchAllRemainingGallery = async () => {
-        if (!galleryHasMore || isFetchingGallery) return;
+        if (!galleryHasMore || isLoadingMore) return;
         setIsLoadingMore(true);
         try {
             const res = await fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${session?.user?.uuid}&page=1&limit=10000`);
