@@ -121,7 +121,7 @@ export default function SyncOptionsModal({
                                             <LayoutGrid className="w-5 h-5 text-accent" />
                                         </div>
                                         <div className="text-left">
-                                            <div className="font-bold text-fg-1">Fetch to Gallery</div>
+                                            <div className="font-bold text-fg-1">One by One</div>
                                             <div className="text-xs text-fg-3">View images directly in the app</div>
                                         </div>
                                     </div>
@@ -137,21 +137,26 @@ export default function SyncOptionsModal({
                                             onUpgrade();
                                         }
                                     }}
-                                    className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all group ${isPremium ? 'bg-accent text-black border-accent/50 shadow-accent-glow hover:scale-[1.02]' : 'bg-black/60 border-white/5 opacity-70 hover:opacity-100'}`}
+                                    className={`relative w-full flex items-center justify-between p-4 rounded-2xl border transition-all group overflow-hidden ${isPremium ? 'bg-accent text-black border-accent/50 shadow-accent-glow hover:scale-[1.02]' : 'bg-black/60 border-white/5 opacity-70 hover:opacity-100'}`}
                                 >
+                                    {isPremium && (
+                                        <div className="absolute top-0 right-0 px-3 py-1 bg-black/20 text-black text-[10px] font-extrabold rounded-bl-xl tracking-wider">
+                                            RECOMMENDED
+                                        </div>
+                                    )}
                                     <div className="flex items-center gap-3">
                                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform ${isPremium ? 'bg-black/20 group-hover:scale-110' : 'bg-white/10'}`}>
                                             <Package className={`w-5 h-5 ${isPremium ? 'text-black' : 'text-fg-3'}`} />
                                         </div>
-                                        <div className="text-left">
+                                        <div className="text-left mt-1">
                                             <div className="font-bold flex items-center gap-2">
                                                 Download as ZIP
                                                 {!isPremium && <span className="text-[9px] px-2 py-0.5 bg-accent/20 text-accent rounded-full border border-accent/30">PREMIUM</span>}
                                             </div>
-                                            <div className={`text-xs ${isPremium ? 'text-black/70' : 'text-fg-3'}`}>Download compressed archive directly</div>
+                                            <div className={`text-xs ${isPremium ? 'text-black/70' : 'text-fg-4'}`}>Fastest bulk download</div>
                                         </div>
                                     </div>
-                                    {isPremium && <DownloadCloud className="w-5 h-5 text-black/70 group-hover:text-black transition-colors" />}
+                                    <DownloadCloud className={`w-5 h-5 transition-colors ${isPremium ? 'text-black' : 'text-fg-3'}`} />
                                 </button>
                             </div>
                         </div>

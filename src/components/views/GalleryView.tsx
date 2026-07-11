@@ -63,59 +63,34 @@ export default function GalleryView({
                         <RefreshCw className="w-5 h-5" /> Fetch Folders
                     </button>
 
-                    <AnimatePresence mode="wait">
-                        {isSelectionMode ? (
-                            <motion.div 
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                className="flex items-center gap-3 neo-surface p-2 px-4 shadow-accent-glow"
+                    <button 
+                        onClick={() => document.getElementById('media-grid-section')?.scrollIntoView({ behavior: 'smooth' })}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-2xl neo-button text-sm font-bold text-indigo-400 border border-indigo-500/20 bg-indigo-500/5 transition-all hover:scale-105 active:scale-95"
+                    >
+                        <ImageIcon className="w-5 h-5" /> Media
+                    </button>
+
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center neo-surface p-1 rounded-2xl">
+                            {['all', 'image', 'video'].map(tab => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setActiveTab(tab as any)}
+                                    className={`px-4 py-2 rounded-xl text-sm font-semibold capitalize transition-all duration-300 ${
+                                        activeTab === tab ? 'neo-pressed text-accent' : 'text-fg-3 hover:text-fg-1'
+                                    }`}
+                                >
+                                    {tab}
+                                </button>
+                            ))}
+                            <button 
+                                onClick={() => setActiveTab('zip')}
+                                className={`ml-2 px-4 py-2 text-sm font-semibold transition-all duration-300 ${activeTab === 'zip' ? 'neo-pressed text-accent' : 'text-fg-2 hover:text-accent'}`}
                             >
-                                <span className="text-sm font-bold text-accent mr-2">{selectedItems.size} selected</span>
-                                <button onClick={selectAll} className="p-2 text-fg-3 hover:text-accent text-sm font-semibold transition-colors">
-                                    Select All
-                                </button>
-                                <div className="w-px h-6 bg-white/10 mx-1" />
-                                <button onClick={handleBulkDownload} disabled={isDownloading || selectedItems.size === 0} className="p-2 neo-button rounded-xl text-fg-1 hover:text-accent transition-colors disabled:opacity-50" title="Download Zip">
-                                    <Download className="w-5 h-5" />
-                                </button>
-                                <button onClick={handleBulkDelete} disabled={isDeleting || selectedItems.size === 0} className="p-2 neo-button rounded-xl text-fg-1 hover:text-danger transition-colors disabled:opacity-50" title="Delete">
-                                    <Trash2 className="w-5 h-5" />
-                                </button>
-                                <div className="w-px h-6 bg-white/10 mx-1" />
-                                <button onClick={() => { setIsSelectionMode(false); selectedItems.clear(); }} className="p-2 text-fg-3 hover:text-fg-1 text-sm font-semibold">
-                                    Cancel
-                                </button>
-                            </motion.div>
-                        ) : (
-                            <motion.div 
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="flex items-center gap-3"
-                            >
-                                <div className="flex items-center neo-surface p-1 rounded-2xl">
-                                    {['all', 'image', 'video'].map(tab => (
-                                        <button
-                                            key={tab}
-                                            onClick={() => setActiveTab(tab as any)}
-                                            className={`px-4 py-2 rounded-xl text-sm font-semibold capitalize transition-all duration-300 ${
-                                                activeTab === tab ? 'neo-pressed text-accent' : 'text-fg-3 hover:text-fg-1'
-                                            }`}
-                                        >
-                                            {tab}
-                                        </button>
-                                    ))}
-                                    <button 
-                                        onClick={() => setIsSelectionMode(true)}
-                                        className="ml-2 px-4 py-2 text-sm font-semibold text-fg-2 hover:text-accent transition-colors"
-                                    >
-                                        Select
-                                    </button>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                                View ZIPs
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -180,11 +155,53 @@ export default function GalleryView({
 
             {/* Gallery Grid (Always visible below folders) */}
             {filteredImages.length > 0 ? (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="h-px bg-white/10 flex-1" />
-                        <span className="text-xs font-bold text-fg-3 uppercase tracking-widest">Synced Media</span>
-                        <div className="h-px bg-white/10 flex-1" />
+                <div id="media-grid-section" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 mt-8">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                        <div className="flex items-center gap-4 flex-1">
+                            <span className="text-xs font-bold text-fg-3 uppercase tracking-widest whitespace-nowrap">Synced Media</span>
+                            <div className="h-px bg-white/10 flex-1" />
+                        </div>
+                        
+                        {/* New Relocated Action Bar */}
+                        <div className="flex items-center gap-3">
+                            <button 
+                                onClick={() => {
+                                    if (isSelectionMode) {
+                                        setIsSelectionMode(false);
+                                        selectedItems.clear();
+                                    } else {
+                                        setIsSelectionMode(true);
+                                    }
+                                }}
+                                className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 shadow-lg ${isSelectionMode ? 'bg-accent text-black shadow-accent-glow scale-105' : 'bg-white/5 border border-white/10 text-fg-3 hover:text-white hover:bg-white/10'}`}
+                                title={isSelectionMode ? 'Cancel Selection' : 'Multi-Select'}
+                            >
+                                {isSelectionMode ? <X className="w-5 h-5" /> : <CheckSquare className="w-5 h-5" />}
+                            </button>
+
+                            <AnimatePresence>
+                                {isSelectionMode && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: 20 }}
+                                        className="flex items-center gap-2 neo-surface px-3 py-1.5 rounded-full shadow-accent-glow"
+                                    >
+                                        <span className="text-sm font-bold text-accent px-2">{selectedItems.size}</span>
+                                        <div className="w-px h-5 bg-white/10 mx-1" />
+                                        <button onClick={selectAll} className="p-2 text-fg-3 hover:text-white text-xs font-semibold transition-colors uppercase tracking-wider">
+                                            All
+                                        </button>
+                                        <button onClick={handleBulkDownload} disabled={isDownloading || selectedItems.size === 0} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent/10 text-accent hover:bg-accent/20 transition-colors disabled:opacity-50" title="Download Zip">
+                                            <Download className="w-4 h-4" /> <span className="text-xs font-bold hidden sm:inline">ZIP</span>
+                                        </button>
+                                        <button onClick={handleBulkDelete} disabled={isDeleting || selectedItems.size === 0} className="p-2 rounded-xl text-fg-3 hover:bg-red-500/10 hover:text-red-400 transition-colors disabled:opacity-50" title="Delete">
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
