@@ -2177,6 +2177,8 @@ END:VCARD`;
                             selectedDeviceId={selectedDeviceId}
                             setSyncOptionsFolder={setSyncOptionsFolder}
                             setShowSyncOptionsModal={setShowSyncOptionsModal}
+                            userPlan={userPlan as any}
+                            onUpgrade={() => showUpgradePrompt('Bulk ZIP Download', 'premium')}
                         />
                     </div>
                 )}

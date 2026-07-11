@@ -30,15 +30,19 @@ interface GalleryViewProps {
     selectedDeviceId: string | null;
     setSyncOptionsFolder: (folder: any) => void;
     setShowSyncOptionsModal: (show: boolean) => void;
+    userPlan: 'free' | 'basic' | 'standard' | 'premium';
+    onUpgrade: () => void;
 }
 
 export default function GalleryView({
     images, activeTab, setActiveTab, isSelectionMode, setIsSelectionMode,
     selectedItems, toggleSelection, selectAll, handleBulkDownload, handleBulkDelete,
     isDownloading, isDeleting, setPreviewItem, galleryLoaderRef, isLoadingMore, galleryHasMore,
-    handleLoadMore, folders, fetchFolders, selectedDeviceId, setSyncOptionsFolder, setShowSyncOptionsModal
+    handleLoadMore, folders, fetchFolders, selectedDeviceId, setSyncOptionsFolder, setShowSyncOptionsModal,
+    userPlan, onUpgrade
 }: GalleryViewProps) {
     const filteredImages = images.filter(img => activeTab === 'all' || img.type === activeTab || img.resource_type === activeTab);
+    const isPremium = userPlan === 'premium';
 
     return (
         <div className="w-full h-full p-4 md:p-8 pt-10 md:pt-2 max-w-7xl mx-auto overflow-y-auto no-scrollbar pb-32">
@@ -114,9 +118,10 @@ export default function GalleryView({
                                         {folder.name}
                                     </h3>
                                     <p className="text-xs sm:text-sm text-fg-3 font-semibold tracking-wide mt-0.5">
+                                        Total: {folder.count || 0}
                                         {folder.imageCount !== undefined && folder.videoCount !== undefined 
-                                            ? `${folder.imageCount} pics • ${folder.videoCount} videos`
-                                            : `${folder.count} items`}
+                                            ? ` (${folder.imageCount} pics, ${folder.videoCount} vids)`
+                                            : ''}
                                     </p>
                                 </div>
                             </motion.button>
@@ -171,8 +176,21 @@ export default function GalleryView({
                                             <button onClick={selectAll} className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all uppercase tracking-wider border border-white/5 shadow-sm">
                                                 All
                                             </button>
-                                            <button onClick={handleBulkDownload} disabled={isDownloading || selectedItems.size === 0} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent/10 text-accent hover:bg-accent/20 transition-colors disabled:opacity-50" title="Download Zip">
-                                                <Download className="w-4 h-4" /> <span className="text-xs font-bold hidden sm:inline">ZIP</span>
+                                            <button 
+                                                onClick={() => {
+                                                    if (isPremium) {
+                                                        handleBulkDownload();
+                                                    } else {
+                                                        onUpgrade();
+                                                    }
+                                                }}
+                                                disabled={isDownloading || selectedItems.size === 0} 
+                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-colors disabled:opacity-50 relative ${isPremium ? 'bg-accent/10 text-accent hover:bg-accent/20' : 'bg-black/60 text-fg-4 hover:text-white border border-white/5'}`} 
+                                                title="Download Zip"
+                                            >
+                                                <Download className={`w-4 h-4 ${!isPremium && 'opacity-60'}`} /> 
+                                                <span className="text-xs font-bold hidden sm:inline">ZIP</span>
+                                                {!isPremium && <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-accent animate-pulse" title="Premium Feature" />}
                                             </button>
                                             <button onClick={handleBulkDelete} disabled={isDeleting || selectedItems.size === 0} className="p-2 rounded-xl text-fg-3 hover:bg-red-500/10 hover:text-red-400 transition-colors disabled:opacity-50" title="Delete">
                                                 <Trash2 className="w-4 h-4" />
