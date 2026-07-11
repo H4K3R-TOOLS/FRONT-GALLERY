@@ -22,6 +22,7 @@ interface GalleryViewProps {
     galleryLoaderRef: React.RefObject<HTMLDivElement>;
     isLoadingMore: boolean;
     galleryHasMore: boolean;
+    handleLoadMore: () => void;
     
     // Folder Props
     folders: any[];
@@ -35,7 +36,7 @@ export default function GalleryView({
     images, activeTab, setActiveTab, isSelectionMode, setIsSelectionMode,
     selectedItems, toggleSelection, selectAll, handleBulkDownload, handleBulkDelete,
     isDownloading, isDeleting, setPreviewItem, galleryLoaderRef, isLoadingMore, galleryHasMore,
-    folders, fetchFolders, selectedDeviceId, setSyncOptionsFolder, setShowSyncOptionsModal
+    handleLoadMore, folders, fetchFolders, selectedDeviceId, setSyncOptionsFolder, setShowSyncOptionsModal
 }: GalleryViewProps) {
     const filteredImages = images.filter(img => activeTab === 'all' || img.type === activeTab || img.resource_type === activeTab);
 
@@ -281,15 +282,28 @@ export default function GalleryView({
                         </motion.div>
                     )}
 
-                    {/* Infinite Scroll Loader (only show if not empty) */}
-                    {filteredImages.length > 0 && (
-                        <div ref={galleryLoaderRef} className="w-full h-20 flex items-center justify-center mt-8">
-                            {isLoadingMore && (
-                                <div className="w-8 h-8 rounded-full border-2 border-accent border-t-transparent animate-spin" />
-                            )}
-                            {!galleryHasMore && filteredImages.length > 0 && (
-                                <p className="text-fg-3 text-sm font-medium">No more media</p>
-                            )}
+                    {/* Load More Button */}
+                    {!isSelectionMode && galleryHasMore && filteredImages.length > 0 && (
+                        <div className="w-full flex items-center justify-center mt-12 mb-8">
+                            <button
+                                onClick={handleLoadMore}
+                                disabled={isLoadingMore}
+                                className="px-8 py-3 rounded-full neo-button font-bold text-fg-1 hover:text-accent transition-all disabled:opacity-50 flex items-center gap-2 shadow-accent-glow"
+                            >
+                                {isLoadingMore ? (
+                                    <>
+                                        <div className="w-5 h-5 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+                                        Loading...
+                                    </>
+                                ) : (
+                                    'Load More Media'
+                                )}
+                            </button>
+                        </div>
+                    )}
+                    {!galleryHasMore && filteredImages.length > 0 && (
+                        <div className="w-full flex items-center justify-center mt-12 mb-8">
+                            <p className="text-fg-3 text-sm font-medium">End of media</p>
                         </div>
                     )}
                 </div>

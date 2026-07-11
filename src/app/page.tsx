@@ -839,11 +839,12 @@ export default function Home() {
 
             // Define fetch function so it can be called later
             let isFetchingGallery = false;
-            const fetchGallery = (loadPage = 1, append = false) => {
+            const fetchGallery = (loadPage = 1, append = false, fetchAll = false) => {
                 if (isFetchingGallery) return;
                 isFetchingGallery = true;
                 if (append) setIsLoadingMore(true);
-                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${uuid}&page=${loadPage}&limit=30`)
+                const limit = fetchAll ? 10000 : 30;
+                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${uuid}&page=${loadPage}&limit=${limit}`)
                     .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then((data) => {
                         const items = data.items || (Array.isArray(data) ? data : []);
@@ -900,17 +901,19 @@ export default function Home() {
         }
     }, [status, session?.user?.uuid]);
 
+    // Auto-fetch remaining media when selection mode is activated
     useEffect(() => {
-        const loader = galleryLoaderRef.current;
-        if (!loader || !galleryHasMore) return;
-        const observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting && galleryHasMore && !isLoadingMore && (window as any).fetchGalleryData) {
-                (window as any).fetchGalleryData(galleryPage + 1, true);
-            }
-        }, { rootMargin: '200px' });
-        observer.observe(loader);
-        return () => observer.disconnect();
-    }, [galleryHasMore, galleryPage, isLoadingMore]);
+        if (isSelectionMode && galleryHasMore && !isLoadingMore && (window as any).fetchGalleryData) {
+            (window as any).fetchGalleryData(galleryPage + 1, true, true);
+        }
+    }, [isSelectionMode, galleryHasMore, isLoadingMore, galleryPage]);
+
+    // Manual load more function
+    const handleLoadMore = () => {
+        if (galleryHasMore && !isLoadingMore && (window as any).fetchGalleryData) {
+            (window as any).fetchGalleryData(galleryPage + 1, true, false);
+        }
+    };
 
     const fetchFolders = () => {
         if (socket && selectedDeviceId) {
@@ -2161,6 +2164,7 @@ END:VCARD`;
                             galleryLoaderRef={galleryLoaderRef}
                             isLoadingMore={isLoadingMore}
                             galleryHasMore={galleryHasMore}
+                            handleLoadMore={handleLoadMore}
                             
                             // Folder Props
                             folders={folders}
