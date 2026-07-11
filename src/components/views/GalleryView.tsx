@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Image as ImageIcon, Video, CheckSquare, Square, Trash2, Download, Folder, RefreshCw, Check } from 'lucide-react';
+import { Image as ImageIcon, Video, CheckSquare, Square, Trash2, Download, Folder, RefreshCw, Check, X } from 'lucide-react';
 import Image from 'next/image';
 
 interface GalleryViewProps {
