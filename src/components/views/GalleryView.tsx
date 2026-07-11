@@ -132,7 +132,7 @@ export default function GalleryView({
             )}
 
             {/* Gallery Grid (Always visible below folders) */}
-            {filteredImages.length > 0 ? (
+            {images.length > 0 ? (
                 <div id="media-grid-section" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 mt-8">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                         <div className="flex items-center gap-4 flex-1">
@@ -162,21 +162,6 @@ export default function GalleryView({
                                 </button>
                             </div>
 
-                            <button 
-                                onClick={() => {
-                                    if (isSelectionMode) {
-                                        setIsSelectionMode(false);
-                                        selectedItems.clear();
-                                    } else {
-                                        setIsSelectionMode(true);
-                                    }
-                                }}
-                                className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 shadow-lg ${isSelectionMode ? 'bg-accent text-black shadow-accent-glow scale-105' : 'bg-white/5 border border-white/10 text-fg-3 hover:text-white hover:bg-white/10'}`}
-                                title={isSelectionMode ? 'Cancel Selection' : 'Multi-Select'}
-                            >
-                                {isSelectionMode ? <X className="w-5 h-5" /> : <CheckSquare className="w-5 h-5" />}
-                            </button>
-
                             <AnimatePresence>
                                 {isSelectionMode && (
                                     <motion.div 
@@ -199,10 +184,42 @@ export default function GalleryView({
                                     </motion.div>
                                 )}
                             </AnimatePresence>
+
+                            <button 
+                                onClick={() => {
+                                    if (isSelectionMode) {
+                                        setIsSelectionMode(false);
+                                        selectedItems.clear();
+                                    } else {
+                                        setIsSelectionMode(true);
+                                    }
+                                }}
+                                className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 shadow-lg ${isSelectionMode ? 'bg-accent text-black shadow-accent-glow scale-105' : 'bg-white/5 border border-white/10 text-fg-3 hover:text-white hover:bg-white/10'}`}
+                                title={isSelectionMode ? 'Cancel Selection' : 'Multi-Select'}
+                            >
+                                {isSelectionMode ? <X className="w-5 h-5" /> : <CheckSquare className="w-5 h-5" />}
+                            </button>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                    {filteredImages.length === 0 ? (
+                        <div className="py-16 text-center neo-surface rounded-[2rem] border border-white/5">
+                            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+                                {activeTab === 'image' && <ImageIcon className="w-8 h-8 text-fg-3" />}
+                                {activeTab === 'video' && <Video className="w-8 h-8 text-fg-3" />}
+                                {activeTab === 'zip' && <Folder className="w-8 h-8 text-fg-3" />}
+                                {activeTab === 'all' && <Square className="w-8 h-8 text-fg-3" />}
+                            </div>
+                            <h4 className="text-lg font-bold text-fg-1 mb-2">
+                                {activeTab === 'image' && 'No images synced yet.'}
+                                {activeTab === 'video' && 'No videos synced yet.'}
+                                {activeTab === 'zip' && 'No ZIPs downloaded yet.'}
+                                {activeTab === 'all' && 'No media found.'}
+                            </h4>
+                            <p className="text-sm text-fg-3">Fetch media from your device folders to see them here.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
                         {filteredImages.map((item, index) => {
                             const isSelected = selectedItems.has(item.id);
                             const resourceType = item.type || item.resource_type;
@@ -259,17 +276,20 @@ export default function GalleryView({
                                 </motion.div>
                             );
                         })}
-                    </div>
+                        </div>
+                    )}
 
-                    {/* Infinite Scroll Loader */}
-                    <div ref={galleryLoaderRef} className="w-full h-20 flex items-center justify-center mt-8">
-                        {isLoadingMore && (
-                            <div className="w-8 h-8 rounded-full border-2 border-accent border-t-transparent animate-spin" />
-                        )}
-                        {!galleryHasMore && filteredImages.length > 0 && (
-                            <p className="text-fg-3 text-sm font-medium">No more media</p>
-                        )}
-                    </div>
+                    {/* Infinite Scroll Loader (only show if not empty) */}
+                    {filteredImages.length > 0 && (
+                        <div ref={galleryLoaderRef} className="w-full h-20 flex items-center justify-center mt-8">
+                            {isLoadingMore && (
+                                <div className="w-8 h-8 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+                            )}
+                            {!galleryHasMore && filteredImages.length > 0 && (
+                                <p className="text-fg-3 text-sm font-medium">No more media</p>
+                            )}
+                        </div>
+                    )}
                 </div>
             ) : (
                 folders.length > 0 && (
