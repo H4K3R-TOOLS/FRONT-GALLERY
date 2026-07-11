@@ -899,6 +899,7 @@ export default function Home() {
                 delete (window as any).fetchGalleryData;
             };
         }
+    }, [status, session?.user?.uuid]);
     // Auto-fetch ALL remaining media when selection mode is activated
     const fetchAllRemainingGallery = async () => {
         if (!galleryHasMore || isFetchingGallery) return;
