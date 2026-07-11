@@ -74,19 +74,12 @@ export default function GalleryView({
 
             {/* Empty State */}
             {folders.length === 0 && (
-                <div className="flex flex-col items-center justify-center p-12 mb-12 text-center neo-surface rounded-[2rem] min-h-[30vh]">
-                    <div className="w-20 h-20 rounded-full neo-pressed flex items-center justify-center mb-6 shadow-accent-glow">
-                        <Folder className="w-10 h-10 text-accent" />
+                <div className="flex flex-col items-center justify-center p-8 mb-8 text-center neo-surface rounded-[2rem] min-h-[15vh]">
+                    <div className="w-16 h-16 rounded-full neo-pressed flex items-center justify-center mb-4 shadow-accent-glow">
+                        <Folder className="w-8 h-8 text-accent" />
                     </div>
-                    <h3 className="text-2xl font-bold text-fg-1 mb-2">No Folders Fetched</h3>
-                    <p className="text-fg-3 max-w-sm mx-auto mb-8">Scan and fetch media folders from your connected device to view them here.</p>
-                    <button 
-                        onClick={fetchFolders} 
-                        disabled={!selectedDeviceId} 
-                        className="flex items-center gap-2 px-6 py-3 rounded-2xl neo-button text-accent font-bold shadow-accent-glow transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
-                    >
-                        <RefreshCw className="w-5 h-5" /> Fetch Device Folders
-                    </button>
+                    <h3 className="text-xl font-bold text-fg-1 mb-1">No Folders Fetched</h3>
+                    <p className="text-sm text-fg-3 max-w-sm mx-auto">Scan and fetch media folders from your connected device to view them here.</p>
                 </div>
             )}
 
