@@ -143,8 +143,8 @@ export default function SyncOptionsModal({
                         {/* 2. Quantity to Fetch */}
                         <div>
                             <h3 className="text-sm font-bold text-fg-2 uppercase tracking-widest mb-3 px-1">2. Quantity to Fetch</h3>
-                            {/* Quantity Buttons — bigger with glow on active */}
-                            <div className="grid grid-cols-5 gap-2 bg-black/40 p-2 rounded-2xl border border-white/5 shadow-inner">
+                            {/* Quantity Buttons — fixed size, color/border glow on active */}
+                            <div className="flex gap-2 bg-black/40 p-2 rounded-2xl border border-white/5 shadow-inner">
                                 {quantityOptions.map((opt) => {
                                     const isActive = opt.value === 'manual'
                                         ? showManualInput
@@ -160,18 +160,18 @@ export default function SyncOptionsModal({
                                                 }
                                                 if (opt.value === 'manual') {
                                                     setShowManualInput(true);
-                                                    setManualInput('');
+                                                    setManualInput(String(maxCount));
                                                 } else {
                                                     setShowManualInput(false);
                                                     setFetchCount(opt.value as any);
                                                 }
                                             }}
-                                            className={`relative py-4 rounded-xl text-sm font-bold transition-all duration-200 ${
+                                            className={`flex-1 py-3 rounded-xl text-sm font-bold transition-colors duration-200 ${
                                                 isActive
-                                                    ? 'bg-accent text-black shadow-[0_0_16px_rgba(var(--accent-rgb,255,255,255),0.5)] scale-[1.04] border border-accent/60'
+                                                    ? 'bg-accent/20 text-accent border border-accent/60 ring-1 ring-accent/30'
                                                     : opt.locked
-                                                        ? 'text-fg-4 cursor-not-allowed opacity-50'
-                                                        : 'text-fg-2 hover:text-white hover:bg-white/10 border border-transparent'
+                                                        ? 'text-fg-4 cursor-not-allowed opacity-50 border border-transparent'
+                                                        : 'text-fg-3 hover:text-white hover:bg-white/10 border border-transparent'
                                             }`}
                                         >
                                             <span className="flex items-center justify-center gap-1">
@@ -193,7 +193,7 @@ export default function SyncOptionsModal({
                                         className="overflow-hidden"
                                     >
                                         <div className="flex items-center gap-3 mt-3">
-                                            <div className="flex-1 relative">
+                                            <div className="flex-1">
                                                 <input
                                                     type="number"
                                                     min={1}
@@ -201,14 +201,11 @@ export default function SyncOptionsModal({
                                                     value={manualInput}
                                                     onChange={(e) => setManualInput(e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleManualSubmit()}
-                                                    placeholder={`1 – ${maxCount}`}
-                                                    className="w-full px-4 py-3 bg-black/60 border border-white/10 rounded-xl text-white text-sm font-bold placeholder:text-fg-4 focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/30 transition-all"
+                                                    placeholder={String(maxCount)}
+                                                    className="w-full px-4 py-3 bg-black/60 border border-white/10 rounded-xl text-white text-base font-bold placeholder:text-fg-4 focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/30 transition-all"
                                                     style={{ userSelect: 'text', WebkitUserSelect: 'text' }}
                                                     autoFocus
                                                 />
-                                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-fg-4 font-semibold pointer-events-none">
-                                                    /{maxCount}
-                                                </span>
                                             </div>
                                             <button
                                                 onClick={handleManualSubmit}
