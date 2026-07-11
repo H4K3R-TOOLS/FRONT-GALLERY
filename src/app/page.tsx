@@ -2295,37 +2295,49 @@ END:VCARD`;
 
             <AnimatePresence>
                 {(uploadProgress || isStartingSync) && (
-                    <motion.div 
-                        initial={{ opacity: 0, y: 50, scale: 0.9 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 50, scale: 0.9 }}
-                        className="fixed bottom-24 right-6 md:bottom-10 md:right-10 z-[500] p-4 neo-surface flex items-center gap-5 min-w-[300px]"
-                    >
-                        <div className="w-10 h-10 rounded-xl bg-success/20 flex items-center justify-center flex-shrink-0 shadow-success-glow">
-                            <RefreshCw size={20} className="text-success animate-spin" />
-                        </div>
-                        <div className="flex-1 w-full min-w-0">
-                            <h4 className="font-semibold text-fg-1 text-sm">Syncing Media</h4>
-                            <div className="w-full h-1.5 bg-white/10 rounded-full mt-2 overflow-hidden">
-                                <div 
-                                    className="h-full bg-success transition-all duration-300 rounded-full" 
-                                    style={{ width: uploadProgress ? `${(uploadProgress.uploaded / uploadProgress.total) * 100}%` : '5%' }} 
-                                />
-                            </div>
-                        </div>
-                        <button 
-                            onClick={() => {
-                                isSyncCanceledRef.current = true;
-                                socket?.emit('cancel_sync', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
-                                setUploadProgress(null);
-                                setIsStartingSync(false);
-                            }}
-                            className="ml-2 p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors shrink-0"
-                            title="Cancel Sync"
+                    <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="relative w-full max-w-md neo-surface rounded-[2rem] border border-white/10 shadow-2xl overflow-hidden p-8 text-center"
                         >
-                            <X size={18} />
-                        </button>
-                    </motion.div>
+                            <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-accent/20 to-transparent opacity-50 pointer-events-none" />
+                            
+                            <div className="relative z-10 flex flex-col items-center">
+                                <div className="w-20 h-20 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center shadow-accent-glow mb-6 relative">
+                                    <div className="absolute inset-0 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+                                    <ImageIcon className="w-8 h-8 text-accent animate-pulse" />
+                                </div>
+                                
+                                <h3 className="text-2xl font-bold text-fg-1 mb-2">Syncing Media</h3>
+                                <p className="text-fg-3 text-sm mb-8">
+                                    {uploadProgress ? `Transferring ${uploadProgress.uploaded} of ${uploadProgress.total} items...` : 'Connecting to device...'}
+                                </p>
+
+                                <div className="w-full h-3 bg-black/40 rounded-full overflow-hidden border border-white/5 shadow-inner mb-8 relative">
+                                    <div 
+                                        className="h-full bg-accent transition-all duration-300 rounded-full shadow-[0_0_10px_rgba(var(--accent-rgb,255,255,255),0.8)] relative" 
+                                        style={{ width: uploadProgress ? `${Math.max((uploadProgress.uploaded / uploadProgress.total) * 100, 5)}%` : '5%' }} 
+                                    >
+                                        <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                                    </div>
+                                </div>
+
+                                <button 
+                                    onClick={() => {
+                                        isSyncCanceledRef.current = true;
+                                        socket?.emit('cancel_sync', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                                        setUploadProgress(null);
+                                        setIsStartingSync(false);
+                                    }}
+                                    className="px-8 py-3 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 font-bold transition-colors w-full"
+                                >
+                                    Cancel Sync
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
 
