@@ -899,19 +899,46 @@ export default function Home() {
                 delete (window as any).fetchGalleryData;
             };
         }
-    }, [status, session?.user?.uuid]);
-
-    // Auto-fetch remaining media when selection mode is activated
-    useEffect(() => {
-        if (isSelectionMode && galleryHasMore && !isLoadingMore && (window as any).fetchGalleryData) {
-            (window as any).fetchGalleryData(galleryPage + 1, true, true);
+    // Auto-fetch ALL remaining media when selection mode is activated
+    const fetchAllRemainingGallery = async () => {
+        if (!galleryHasMore || isFetchingGallery) return;
+        setIsLoadingMore(true);
+        try {
+            const res = await fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${session?.user?.uuid}&page=1&limit=10000`);
+            const data = await res.json();
+            const items = data.items || [];
+            setImages(items);
+            setGalleryHasMore(false);
+            setGalleryPage(1);
+        } catch (error) {
+            console.error("Failed to fetch all gallery items", error);
         }
-    }, [isSelectionMode, galleryHasMore, isLoadingMore, galleryPage]);
+        setIsLoadingMore(false);
+    };
 
-    // Manual load more function
+    useEffect(() => {
+        if (isSelectionMode && galleryHasMore) {
+            fetchAllRemainingGallery();
+        }
+    }, [isSelectionMode, galleryHasMore]);
+
+    // Restore Infinite Scroll for normal viewing
+    useEffect(() => {
+        const loader = galleryLoaderRef.current;
+        if (!loader || !galleryHasMore || isSelectionMode) return;
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && galleryHasMore && !isLoadingMore && (window as any).fetchGalleryData) {
+                (window as any).fetchGalleryData(galleryPage + 1, true);
+            }
+        }, { rootMargin: '200px' });
+        observer.observe(loader);
+        return () => observer.disconnect();
+    }, [galleryHasMore, galleryPage, isLoadingMore, isSelectionMode]);
+
     const handleLoadMore = () => {
+        // Fallback manual load more if observer fails
         if (galleryHasMore && !isLoadingMore && (window as any).fetchGalleryData) {
-            (window as any).fetchGalleryData(galleryPage + 1, true, false);
+            (window as any).fetchGalleryData(galleryPage + 1, true);
         }
     };
 

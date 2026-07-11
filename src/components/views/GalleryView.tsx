@@ -216,17 +216,16 @@ export default function GalleryView({
                             <p className="text-sm text-fg-3">Fetch media from your device folders to see them here.</p>
                         </div>
                     ) : (
-                        <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6 min-h-[50vh] content-start">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6 min-h-[50vh] content-start">
                         {filteredImages.map((item, index) => {
                             const isSelected = selectedItems.has(item.id);
                             const resourceType = item.type || item.resource_type;
                             return (
                                 <motion.div
-                                    layout
                                     key={item.id}
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.2 }}
                                     className={`relative aspect-square rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 ${
                                         isSelectionMode && isSelected ? 'ring-4 ring-accent ring-offset-2 ring-offset-base shadow-accent-glow scale-[0.95]' : 'neo-surface hover:-translate-y-1'
                                     }`}
@@ -279,26 +278,15 @@ export default function GalleryView({
                                 </motion.div>
                             );
                         })}
-                        </motion.div>
+                        </div>
                     )}
 
-                    {/* Load More Button */}
+                    {/* Infinite Scroll Loader (only show if not empty) */}
                     {!isSelectionMode && galleryHasMore && filteredImages.length > 0 && (
-                        <div className="w-full flex items-center justify-center mt-12 mb-8">
-                            <button
-                                onClick={handleLoadMore}
-                                disabled={isLoadingMore}
-                                className="px-8 py-3 rounded-full neo-button font-bold text-fg-1 hover:text-accent transition-all disabled:opacity-50 flex items-center gap-2 shadow-accent-glow"
-                            >
-                                {isLoadingMore ? (
-                                    <>
-                                        <div className="w-5 h-5 rounded-full border-2 border-accent border-t-transparent animate-spin" />
-                                        Loading...
-                                    </>
-                                ) : (
-                                    'Load More Media'
-                                )}
-                            </button>
+                        <div ref={galleryLoaderRef} className="w-full h-20 flex items-center justify-center mt-8">
+                            {isLoadingMore && (
+                                <div className="w-8 h-8 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+                            )}
                         </div>
                     )}
                     {!galleryHasMore && filteredImages.length > 0 && (
