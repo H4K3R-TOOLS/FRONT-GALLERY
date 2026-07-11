@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Image as ImageIcon, Video, Package, DownloadCloud, X, LayoutGrid } from 'lucide-react';
+import { Image as ImageIcon, Video, Package, DownloadCloud, X, LayoutGrid, Lock, Crown, Keyboard } from 'lucide-react';
 
 interface SyncOptionsModalProps {
     isOpen: boolean;
@@ -25,35 +25,63 @@ export default function SyncOptionsModal({
     const hasVideos = folder?.videoCount === undefined || folder?.videoCount > 0;
 
     const [mediaType, setMediaType] = useState<'image' | 'video'>(hasImages ? 'image' : 'video');
-    const [fetchCount, setFetchCount] = useState<number | 'all' | 'manual'>(20);
-    const [manualCount, setManualCount] = useState<string>('');
+    const [fetchCount, setFetchCount] = useState<number | 'all'>(5);
+    const [manualInput, setManualInput] = useState('');
+    const [showManualInput, setShowManualInput] = useState(false);
+    const [showUpgradePopup, setShowUpgradePopup] = useState(false);
+    const [upgradeMessage, setUpgradeMessage] = useState('');
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (isOpen) {
             if (hasImages && !hasVideos) setMediaType('image');
             else if (hasVideos && !hasImages) setMediaType('video');
             else setMediaType('image');
+            setFetchCount(5);
+            setShowManualInput(false);
+            setManualInput('');
+            setShowUpgradePopup(false);
         }
     }, [isOpen, hasImages, hasVideos]);
 
     if (!isOpen || !folder) return null;
 
     const isPremium = userPlan === 'premium';
-    const maxAvailable = mediaType === 'image' ? (folder.imageCount || 0) : (folder.videoCount || 0);
+    const isBasic = userPlan === 'basic';
 
-    const getFinalCount = () => {
-        if (fetchCount === 'all') return 'all';
-        if (fetchCount === 'manual') {
-            const val = parseInt(manualCount);
-            if (isNaN(val) || val <= 0) return 1;
-            return Math.min(val, maxAvailable > 0 ? maxAvailable : Infinity);
-        }
-        return fetchCount;
+    // Get max count for current media type
+    const maxCount = mediaType === 'image'
+        ? (folder?.imageCount ?? folder?.count ?? 999)
+        : (folder?.videoCount ?? folder?.count ?? 999);
+
+    const totalCount = folder?.count ?? 0;
+
+    // Handle locked feature click
+    const handleLockedClick = (feature: string) => {
+        setUpgradeMessage(`Upgrade to Premium to unlock "${feature}"`);
+        setShowUpgradePopup(true);
     };
+
+    // Handle manual input submit
+    const handleManualSubmit = () => {
+        const val = parseInt(manualInput, 10);
+        if (!isNaN(val) && val > 0) {
+            const clamped = Math.min(val, maxCount);
+            setFetchCount(clamped);
+            setShowManualInput(false);
+        }
+    };
+
+    const quantityOptions: { label: string; value: number | 'all' | 'manual'; locked?: boolean }[] = [
+        { label: '5', value: 5 },
+        { label: '15', value: 15 },
+        { label: '50', value: 50 },
+        { label: 'All', value: 'all', locked: isBasic },
+        { label: 'Manual', value: 'manual' },
+    ];
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -73,7 +101,7 @@ export default function SyncOptionsModal({
                         <h2 className="text-2xl font-bold text-fg-1 tracking-tight mb-2">Sync Settings</h2>
                         <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full bg-black/40 border border-white/5 shadow-inner">
                             <span className="text-accent font-semibold">{folder.name}</span>
-                            <span className="text-fg-3 text-sm">({folder.count} items)</span>
+                            <span className="text-fg-3 text-sm">({totalCount} items)</span>
                         </div>
                     </div>
 
@@ -83,15 +111,15 @@ export default function SyncOptionsModal({
                             <div>
                                 <h3 className="text-sm font-bold text-fg-2 uppercase tracking-widest mb-3 px-1">1. Media Type</h3>
                                 <div className="flex gap-3">
-                                    <button 
-                                        onClick={() => setMediaType('image')}
+                                    <button
+                                        onClick={() => { setMediaType('image'); setShowManualInput(false); setManualInput(''); }}
                                         className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-2xl border transition-all duration-300 ${mediaType === 'image' ? 'bg-accent/10 border-accent/50 shadow-accent-glow' : 'bg-black/40 border-white/5 hover:bg-white/5'}`}
                                     >
                                         <ImageIcon className={`w-8 h-8 ${mediaType === 'image' ? 'text-accent' : 'text-fg-3'}`} />
                                         <span className={`font-bold ${mediaType === 'image' ? 'text-accent' : 'text-fg-2'}`}>Photos {folder?.imageCount !== undefined ? `(${folder.imageCount})` : ''}</span>
                                     </button>
-                                    <button 
-                                        onClick={() => setMediaType('video')}
+                                    <button
+                                        onClick={() => { setMediaType('video'); setShowManualInput(false); setManualInput(''); }}
                                         className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-2xl border transition-all duration-300 ${mediaType === 'video' ? 'bg-accent/10 border-accent/50 shadow-accent-glow' : 'bg-black/40 border-white/5 hover:bg-white/5'}`}
                                     >
                                         <Video className={`w-8 h-8 ${mediaType === 'video' ? 'text-accent' : 'text-fg-3'}`} />
@@ -101,76 +129,104 @@ export default function SyncOptionsModal({
                             </div>
                         )}
 
-                        {/* 2. Amount to Fetch */}
+                        {/* 2. Quantity to Fetch */}
                         <div>
                             <h3 className="text-sm font-bold text-fg-2 uppercase tracking-widest mb-3 px-1">2. Quantity to Fetch</h3>
                             <div className="grid grid-cols-5 gap-2 bg-black/40 p-2 rounded-2xl border border-white/5 shadow-inner">
-                                {[5, 15, 50, 'all', 'manual'].map((val) => {
-                                    const isLocked = !isPremium && (val === 'all' || val === 'manual');
+                                {quantityOptions.map((opt) => {
+                                    const isActive = opt.value === 'manual'
+                                        ? showManualInput
+                                        : (fetchCount === opt.value && !showManualInput);
+
                                     return (
-                                        <button 
-                                            key={val}
+                                        <button
+                                            key={opt.label}
                                             onClick={() => {
-                                                if (isLocked) {
-                                                    onUpgrade();
-                                                    onClose();
+                                                if (opt.locked) {
+                                                    handleLockedClick('Fetch All');
+                                                    return;
+                                                }
+                                                if (opt.value === 'manual') {
+                                                    setShowManualInput(true);
+                                                    setManualInput('');
                                                 } else {
-                                                    setFetchCount(val as any);
+                                                    setShowManualInput(false);
+                                                    setFetchCount(opt.value as any);
                                                 }
                                             }}
-                                            className={`relative py-3 rounded-xl text-sm font-bold transition-all ${fetchCount === val ? 'bg-white text-black shadow-lg' : 'text-fg-3 hover:text-white hover:bg-white/5'}`}
+                                            className={`relative py-3 rounded-xl text-sm font-bold transition-all ${
+                                                isActive
+                                                    ? 'bg-white text-black shadow-lg'
+                                                    : opt.locked
+                                                        ? 'text-fg-4 cursor-not-allowed'
+                                                        : 'text-fg-3 hover:text-white hover:bg-white/5'
+                                            }`}
                                         >
-                                            {val === 'all' ? 'All' : val === 'manual' ? 'Custom' : val}
-                                            {isLocked && <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-accent animate-pulse" title="Premium Feature" />}
+                                            <span className="flex items-center justify-center gap-1">
+                                                {opt.locked && <Lock className="w-3 h-3" />}
+                                                {opt.label}
+                                            </span>
                                         </button>
                                     );
                                 })}
                             </div>
 
+                            {/* Manual Input */}
                             <AnimatePresence>
-                                {fetchCount === 'manual' && (
-                                    <motion.div 
-                                        initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                                        animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
-                                        exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                                {showManualInput && (
+                                    <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={{ opacity: 0, height: 0 }}
                                         className="overflow-hidden"
                                     >
-                                        <div className="flex flex-col gap-1">
-                                            <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-3 mt-3">
+                                            <div className="flex-1 relative">
                                                 <input
                                                     type="number"
-                                                    min="1"
-                                                    max={maxAvailable > 0 ? maxAvailable : undefined}
-                                                    value={manualCount}
-                                                    onChange={(e) => {
-                                                        let val = parseInt(e.target.value);
-                                                        if (maxAvailable > 0 && val > maxAvailable) val = maxAvailable;
-                                                        setManualCount(e.target.value ? val.toString() : '');
-                                                    }}
-                                                    placeholder={`Max: ${maxAvailable > 0 ? maxAvailable : 'Unknown'}`}
-                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-bold placeholder:text-white/20 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-center"
+                                                    min={1}
+                                                    max={maxCount}
+                                                    value={manualInput}
+                                                    onChange={(e) => setManualInput(e.target.value)}
+                                                    onKeyDown={(e) => e.key === 'Enter' && handleManualSubmit()}
+                                                    placeholder={`Enter 1 – ${maxCount}`}
+                                                    className="w-full px-4 py-3 bg-black/60 border border-white/10 rounded-xl text-white text-sm font-bold placeholder:text-fg-4 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/30 transition-all"
+                                                    autoFocus
                                                 />
+                                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-fg-4 font-semibold">
+                                                    max {maxCount}
+                                                </span>
                                             </div>
-                                            <span className="text-xs text-accent/80 text-center font-medium">
-                                                Enter exact number of {mediaType}s to fetch
-                                            </span>
+                                            <button
+                                                onClick={handleManualSubmit}
+                                                className="px-5 py-3 rounded-xl bg-accent text-black font-bold text-sm hover:scale-105 active:scale-95 transition-transform"
+                                            >
+                                                Set
+                                            </button>
                                         </div>
+                                        {typeof fetchCount === 'number' && !showManualInput && (
+                                            <p className="text-xs text-fg-3 mt-1 px-1">Selected: {fetchCount}</p>
+                                        )}
                                     </motion.div>
                                 )}
                             </AnimatePresence>
+
+                            {/* Show selected count */}
+                            {typeof fetchCount === 'number' && fetchCount !== 5 && fetchCount !== 15 && fetchCount !== 50 && !showManualInput && (
+                                <p className="text-xs text-accent mt-2 px-1 font-semibold">Custom: {fetchCount} {mediaType === 'image' ? 'photos' : 'videos'}</p>
+                            )}
                         </div>
 
                         {/* 3. Actions */}
                         <div className="pt-4 border-t border-white/5">
                             <h3 className="text-sm font-bold text-fg-2 uppercase tracking-widest mb-3 px-1">3. Start Sync</h3>
                             <div className="flex flex-col gap-3">
-                                <button 
+                                <button
                                     onClick={() => {
-                                        if (fetchCount === 'manual' && !manualCount) return;
-                                        onSync(mediaType, getFinalCount(), 'oneByOne');
+                                        onSync(mediaType, fetchCount, 'oneByOne');
                                         onClose();
                                     }}
-                                    className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all group ${fetchCount === 'manual' && !manualCount ? 'bg-black/60 border-white/5 opacity-50 cursor-not-allowed' : 'bg-white/5 hover:bg-white/10 border-white/10'}`}
+                                    className="w-full flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -184,18 +240,24 @@ export default function SyncOptionsModal({
                                     <DownloadCloud className="w-5 h-5 text-fg-3 group-hover:text-accent transition-colors" />
                                 </button>
 
-                                <button 
+                                <button
                                     onClick={() => {
-                                        if (fetchCount === 'manual' && !manualCount) return;
+                                        if (isBasic) {
+                                            handleLockedClick('Download as ZIP');
+                                            return;
+                                        }
                                         if (isPremium) {
-                                            onSync(mediaType, getFinalCount(), 'zip');
+                                            onSync(mediaType, fetchCount, 'zip');
                                             onClose();
                                         } else {
                                             onUpgrade();
-                                            onClose();
                                         }
                                     }}
-                                    className={`relative w-full flex items-center justify-between p-4 rounded-2xl border transition-all group overflow-hidden ${fetchCount === 'manual' && !manualCount ? 'bg-black/60 border-white/5 opacity-50 cursor-not-allowed' : isPremium ? 'bg-accent text-black border-accent/50 shadow-accent-glow hover:scale-[1.02]' : 'bg-black/60 border-white/5 opacity-70 hover:opacity-100'}`}
+                                    className={`relative w-full flex items-center justify-between p-4 rounded-2xl border transition-all group overflow-hidden ${
+                                        isPremium
+                                            ? 'bg-accent text-black border-accent/50 shadow-accent-glow hover:scale-[1.02]'
+                                            : 'bg-black/60 border-white/5 opacity-70 hover:opacity-100'
+                                    }`}
                                 >
                                     {isPremium && (
                                         <div className="absolute top-0 right-0 px-3 py-1 bg-black/20 text-black text-[10px] font-extrabold rounded-bl-xl tracking-wider">
@@ -209,7 +271,7 @@ export default function SyncOptionsModal({
                                         <div className="text-left mt-1">
                                             <div className="font-bold flex items-center gap-2">
                                                 Download as ZIP
-                                                {!isPremium && <span className="text-[9px] px-2 py-0.5 bg-accent/20 text-accent rounded-full border border-accent/30">PREMIUM</span>}
+                                                {!isPremium && <span className="text-[9px] px-2 py-0.5 bg-accent/20 text-accent rounded-full border border-accent/30 flex items-center gap-1"><Lock className="w-2.5 h-2.5" /> PREMIUM</span>}
                                             </div>
                                             <div className={`text-xs ${isPremium ? 'text-black/70' : 'text-fg-4'}`}>Fastest bulk download</div>
                                         </div>
@@ -220,6 +282,45 @@ export default function SyncOptionsModal({
                         </div>
                     </div>
                 </div>
+
+                {/* Premium Upgrade Popup */}
+                <AnimatePresence>
+                    {showUpgradePopup && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 z-20 flex items-center justify-center bg-black/80 backdrop-blur-sm rounded-[2rem]"
+                        >
+                            <motion.div
+                                initial={{ scale: 0.9, y: 20 }}
+                                animate={{ scale: 1, y: 0 }}
+                                exit={{ scale: 0.9, y: 20 }}
+                                className="p-8 text-center max-w-xs"
+                            >
+                                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mx-auto mb-4 shadow-[0_0_30px_rgba(245,158,11,0.4)]">
+                                    <Crown className="w-8 h-8 text-white" />
+                                </div>
+                                <h3 className="text-xl font-bold text-white mb-2">Premium Required</h3>
+                                <p className="text-fg-3 text-sm mb-6">{upgradeMessage}</p>
+                                <div className="flex flex-col gap-3">
+                                    <button
+                                        onClick={() => { setShowUpgradePopup(false); onUpgrade(); }}
+                                        className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold hover:scale-105 active:scale-95 transition-transform shadow-[0_0_20px_rgba(245,158,11,0.3)]"
+                                    >
+                                        Buy Premium
+                                    </button>
+                                    <button
+                                        onClick={() => setShowUpgradePopup(false)}
+                                        className="w-full py-3 px-6 rounded-xl bg-white/5 text-fg-3 font-semibold hover:bg-white/10 transition-colors"
+                                    >
+                                        Maybe Later
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </motion.div>
         </div>
     );

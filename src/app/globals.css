@@ -21,15 +21,12 @@ body {
   overscroll-behavior-y: none;
   /* Prevent pull-to-refresh on mobile */
   touch-action: pan-y;
-  /* Disable text selection globally to feel like a native app */
-  user-select: none;
+  /* Disable text selection and copy */
   -webkit-user-select: none;
-}
-
-/* Re-enable text selection for input fields */
-input, textarea, [contenteditable="true"] {
-  user-select: auto;
-  -webkit-user-select: auto;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 /* Custom scrollbar for desktop */
