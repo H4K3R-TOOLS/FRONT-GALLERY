@@ -53,7 +53,16 @@ export default function SyncOptionsModal({
         ? (folder?.imageCount ?? folder?.count ?? 999)
         : (folder?.videoCount ?? folder?.count ?? 999);
 
-    const totalCount = folder?.count ?? 0;
+    // Compute accurate total count — never show 0 if image/video counts exist
+    const computedTotal = (() => {
+        if (folder?.count && folder.count > 0) return folder.count;
+        const ic = folder?.imageCount ?? 0;
+        const vc = folder?.videoCount ?? 0;
+        if (ic + vc > 0) return ic + vc;
+        return null; // unknown — hide the count
+    })();
+
+    const totalCount = computedTotal;
 
     // Handle locked feature click
     const handleLockedClick = (feature: string) => {
@@ -101,7 +110,9 @@ export default function SyncOptionsModal({
                         <h2 className="text-2xl font-bold text-fg-1 tracking-tight mb-2">Sync Settings</h2>
                         <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full bg-black/40 border border-white/5 shadow-inner">
                             <span className="text-accent font-semibold">{folder.name}</span>
-                            <span className="text-fg-3 text-sm">({totalCount} items)</span>
+                            {totalCount !== null && (
+                                <span className="text-fg-3 text-sm">({totalCount} items)</span>
+                            )}
                         </div>
                     </div>
 
@@ -132,6 +143,7 @@ export default function SyncOptionsModal({
                         {/* 2. Quantity to Fetch */}
                         <div>
                             <h3 className="text-sm font-bold text-fg-2 uppercase tracking-widest mb-3 px-1">2. Quantity to Fetch</h3>
+                            {/* Quantity Buttons — bigger with glow on active */}
                             <div className="grid grid-cols-5 gap-2 bg-black/40 p-2 rounded-2xl border border-white/5 shadow-inner">
                                 {quantityOptions.map((opt) => {
                                     const isActive = opt.value === 'manual'
@@ -154,12 +166,12 @@ export default function SyncOptionsModal({
                                                     setFetchCount(opt.value as any);
                                                 }
                                             }}
-                                            className={`relative py-3 rounded-xl text-sm font-bold transition-all ${
+                                            className={`relative py-4 rounded-xl text-sm font-bold transition-all duration-200 ${
                                                 isActive
-                                                    ? 'bg-white text-black shadow-lg'
+                                                    ? 'bg-accent text-black shadow-[0_0_16px_rgba(var(--accent-rgb,255,255,255),0.5)] scale-[1.04] border border-accent/60'
                                                     : opt.locked
-                                                        ? 'text-fg-4 cursor-not-allowed'
-                                                        : 'text-fg-3 hover:text-white hover:bg-white/5'
+                                                        ? 'text-fg-4 cursor-not-allowed opacity-50'
+                                                        : 'text-fg-2 hover:text-white hover:bg-white/10 border border-transparent'
                                             }`}
                                         >
                                             <span className="flex items-center justify-center gap-1">
@@ -189,31 +201,45 @@ export default function SyncOptionsModal({
                                                     value={manualInput}
                                                     onChange={(e) => setManualInput(e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleManualSubmit()}
-                                                    placeholder={`Enter 1 – ${maxCount}`}
-                                                    className="w-full px-4 py-3 bg-black/60 border border-white/10 rounded-xl text-white text-sm font-bold placeholder:text-fg-4 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/30 transition-all"
+                                                    placeholder={`1 – ${maxCount}`}
+                                                    className="w-full px-4 py-3 bg-black/60 border border-white/10 rounded-xl text-white text-sm font-bold placeholder:text-fg-4 focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/30 transition-all"
+                                                    style={{ userSelect: 'text', WebkitUserSelect: 'text' }}
                                                     autoFocus
                                                 />
-                                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-fg-4 font-semibold">
-                                                    max {maxCount}
+                                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-fg-4 font-semibold pointer-events-none">
+                                                    /{maxCount}
                                                 </span>
                                             </div>
                                             <button
                                                 onClick={handleManualSubmit}
-                                                className="px-5 py-3 rounded-xl bg-accent text-black font-bold text-sm hover:scale-105 active:scale-95 transition-transform"
+                                                className="px-5 py-3 rounded-xl bg-accent text-black font-bold text-sm hover:scale-105 active:scale-95 transition-transform shadow-accent-glow"
                                             >
                                                 Set
                                             </button>
                                         </div>
-                                        {typeof fetchCount === 'number' && !showManualInput && (
-                                            <p className="text-xs text-fg-3 mt-1 px-1">Selected: {fetchCount}</p>
+                                        {/* Highlight the typed number */}
+                                        {manualInput && !isNaN(parseInt(manualInput, 10)) && (
+                                            <div className="mt-3 px-4 py-2.5 rounded-xl bg-accent/10 border border-accent/30 flex items-center justify-between">
+                                                <span className="text-xs text-fg-3 font-semibold">Will fetch:</span>
+                                                <span className="text-accent font-extrabold text-lg tabular-nums">
+                                                    {Math.min(parseInt(manualInput, 10), maxCount)}
+                                                    <span className="text-fg-4 text-xs font-semibold ml-1">{mediaType === 'image' ? 'photos' : 'videos'}</span>
+                                                </span>
+                                            </div>
                                         )}
                                     </motion.div>
                                 )}
                             </AnimatePresence>
 
-                            {/* Show selected count */}
+                            {/* Show custom selected count after setting manual */}
                             {typeof fetchCount === 'number' && fetchCount !== 5 && fetchCount !== 15 && fetchCount !== 50 && !showManualInput && (
-                                <p className="text-xs text-accent mt-2 px-1 font-semibold">Custom: {fetchCount} {mediaType === 'image' ? 'photos' : 'videos'}</p>
+                                <div className="mt-3 px-4 py-2.5 rounded-xl bg-accent/10 border border-accent/30 flex items-center justify-between">
+                                    <span className="text-xs text-fg-3 font-semibold">Custom selected:</span>
+                                    <span className="text-accent font-extrabold text-lg tabular-nums">
+                                        {fetchCount}
+                                        <span className="text-fg-4 text-xs font-semibold ml-1">{mediaType === 'image' ? 'photos' : 'videos'}</span>
+                                    </span>
+                                </div>
                             )}
                         </div>
 

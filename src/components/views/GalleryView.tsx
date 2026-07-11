@@ -114,10 +114,11 @@ export default function GalleryView({
                                         {folder.name}
                                     </h3>
                                     <p className="text-xs sm:text-sm text-fg-3 font-semibold tracking-wide mt-0.5">
-                                        <span className="text-fg-2 font-bold">{folder.count ?? (folder.imageCount + folder.videoCount)}</span> total
+                                        <span className="text-accent font-extrabold">{folder.count ?? ((folder.imageCount ?? 0) + (folder.videoCount ?? 0))}</span>
+                                        <span className="text-fg-3"> total</span>
                                         {folder.imageCount !== undefined && folder.videoCount !== undefined 
-                                            ? ` · ${folder.imageCount} photos · ${folder.videoCount} videos`
-                                            : ' items'}
+                                            ? <span className="text-fg-4"> · {folder.imageCount} photos · {folder.videoCount} videos</span>
+                                            : <span className="text-fg-4"> items</span>}
                                     </p>
                                 </div>
                             </motion.button>
