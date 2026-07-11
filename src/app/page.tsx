@@ -453,6 +453,7 @@ export default function Home() {
 
             // ZIP Download Event Listeners
             socket.on("zip_progress", (data: any) => {
+                setShowZipProgressModal(true);
                 setZipProgress(prev => ({
                     ...prev,
                     stage: data.stage,
@@ -462,6 +463,7 @@ export default function Home() {
             });
 
             socket.on("zip_ready", (data: any) => {
+                setShowZipProgressModal(true);
                 setZipProgress(prev => ({
                     ...prev,
                     stage: 'ready',

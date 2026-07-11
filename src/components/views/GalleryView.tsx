@@ -60,10 +60,8 @@ export default function GalleryView({
                     <button 
                         onClick={fetchFolders}
                         disabled={!selectedDeviceId || isFetchingFolders}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 shadow-lg ${
-                            isFetchingFolders 
-                                ? 'bg-accent/20 text-accent border border-accent/30 shadow-[0_0_15px_rgba(var(--accent-rgb),0.2)]'
-                                : 'bg-gradient-to-r from-accent to-accent-hover text-black shadow-accent-glow'
+                        className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl neo-button text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 ${
+                            isFetchingFolders ? 'text-accent shadow-[0_0_15px_rgba(var(--accent-rgb,255,255,255),0.2)]' : 'text-accent'
                         }`}
                     >
                         <RefreshCw className={`w-5 h-5 ${isFetchingFolders ? 'animate-spin' : ''}`} /> 
