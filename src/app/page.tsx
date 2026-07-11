@@ -53,6 +53,7 @@ export default function Home() {
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const galleryLoaderRef = useRef<HTMLDivElement>(null);
     const [folders, setFolders] = useState([]);
+    const [isFetchingFolders, setIsFetchingFolders] = useState(false);
 
     // Plan State
     const [userPlan, setUserPlan] = useState<'basic' | 'standard' | 'premium'>('basic');
@@ -447,6 +448,7 @@ export default function Home() {
 
             socket.on("folder_list", (data: any) => {
                 setFolders(data);
+                setIsFetchingFolders(false);
             });
 
             // ZIP Download Event Listeners
@@ -909,6 +911,7 @@ export default function Home() {
 
     const fetchFolders = () => {
         if (socket && selectedDeviceId) {
+            setIsFetchingFolders(true);
             socket.emit("get_folders", {
                 uuid: session?.user?.uuid,
                 targetDeviceId: selectedDeviceId
@@ -2174,6 +2177,7 @@ END:VCARD`;
                             // Folder Props
                             folders={folders}
                             fetchFolders={fetchFolders}
+                            isFetchingFolders={isFetchingFolders}
                             selectedDeviceId={selectedDeviceId}
                             setSyncOptionsFolder={setSyncOptionsFolder}
                             setShowSyncOptionsModal={setShowSyncOptionsModal}

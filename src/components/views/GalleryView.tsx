@@ -27,6 +27,7 @@ interface GalleryViewProps {
     // Folder Props
     folders: any[];
     fetchFolders: () => void;
+    isFetchingFolders: boolean;
     selectedDeviceId: string | null;
     setSyncOptionsFolder: (folder: any) => void;
     setShowSyncOptionsModal: (show: boolean) => void;
@@ -36,7 +37,7 @@ export default function GalleryView({
     images, activeTab, setActiveTab, isSelectionMode, setIsSelectionMode,
     selectedItems, toggleSelection, selectAll, handleBulkDownload, handleBulkDelete,
     isDownloading, isDeleting, setPreviewItem, galleryLoaderRef, isLoadingMore, galleryHasMore,
-    handleLoadMore, folders, fetchFolders, selectedDeviceId, setSyncOptionsFolder, setShowSyncOptionsModal
+    handleLoadMore, folders, fetchFolders, isFetchingFolders, selectedDeviceId, setSyncOptionsFolder, setShowSyncOptionsModal
 }: GalleryViewProps) {
     const filteredImages = images.filter(img => activeTab === 'all' || img.type === activeTab || img.resource_type === activeTab);
 
@@ -58,10 +59,15 @@ export default function GalleryView({
                 <div className="flex flex-wrap items-center gap-6">
                     <button 
                         onClick={fetchFolders}
-                        disabled={!selectedDeviceId}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-2xl neo-button text-sm font-bold text-accent disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
+                        disabled={!selectedDeviceId || isFetchingFolders}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 shadow-lg ${
+                            isFetchingFolders 
+                                ? 'bg-accent/20 text-accent border border-accent/30 shadow-[0_0_15px_rgba(var(--accent-rgb),0.2)]'
+                                : 'bg-gradient-to-r from-accent to-accent-hover text-black shadow-accent-glow'
+                        }`}
                     >
-                        <RefreshCw className="w-5 h-5" /> Fetch Folders
+                        <RefreshCw className={`w-5 h-5 ${isFetchingFolders ? 'animate-spin' : ''}`} /> 
+                        {isFetchingFolders ? 'Fetching...' : 'Fetch Folders'}
                     </button>
 
                     <button 

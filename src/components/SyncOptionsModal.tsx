@@ -160,7 +160,7 @@ export default function SyncOptionsModal({
                                                 }
                                                 if (opt.value === 'manual') {
                                                     setShowManualInput(true);
-                                                    setManualInput(String(maxCount));
+                                                    setManualInput('');
                                                 } else {
                                                     setShowManualInput(false);
                                                     setFetchCount(opt.value as any);
@@ -193,7 +193,7 @@ export default function SyncOptionsModal({
                                         className="overflow-hidden"
                                     >
                                         <div className="flex items-center gap-3 mt-3">
-                                            <div className="flex-1">
+                                            <div className="flex-1 relative">
                                                 <input
                                                     type="number"
                                                     min={1}
@@ -201,11 +201,17 @@ export default function SyncOptionsModal({
                                                     value={manualInput}
                                                     onChange={(e) => setManualInput(e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleManualSubmit()}
-                                                    placeholder={String(maxCount)}
-                                                    className="w-full px-4 py-3 bg-black/60 border border-white/10 rounded-xl text-white text-base font-bold placeholder:text-fg-4 focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/30 transition-all"
+                                                    placeholder={`1 - ${maxCount}`}
+                                                    className="w-full pl-4 pr-16 py-3 bg-black/60 border border-white/10 rounded-xl text-white text-base font-bold placeholder:text-fg-4 focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/30 transition-all"
                                                     style={{ userSelect: 'text', WebkitUserSelect: 'text' }}
                                                     autoFocus
                                                 />
+                                                <button
+                                                    onClick={() => setManualInput(String(maxCount))}
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] font-extrabold text-accent transition-colors uppercase tracking-wider"
+                                                >
+                                                    Max
+                                                </button>
                                             </div>
                                             <button
                                                 onClick={handleManualSubmit}
