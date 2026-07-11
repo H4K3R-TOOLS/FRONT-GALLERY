@@ -40,7 +40,7 @@ export default function GalleryView({
     const filteredImages = images.filter(img => activeTab === 'all' || img.type === activeTab || img.resource_type === activeTab);
 
     return (
-        <div className="w-full h-full p-4 md:p-8 pt-24 md:pt-12 max-w-7xl mx-auto overflow-y-auto no-scrollbar pb-32">
+        <div className="w-full h-full p-4 md:p-8 pt-16 md:pt-6 max-w-7xl mx-auto overflow-y-auto no-scrollbar pb-32">
             
             {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
@@ -166,14 +166,15 @@ export default function GalleryView({
                                 <AnimatePresence>
                                     {isSelectionMode && (
                                         <motion.div 
-                                            initial={{ opacity: 0, width: 0, x: 20 }}
-                                            animate={{ opacity: 1, width: 'auto', x: 0 }}
-                                            exit={{ opacity: 0, width: 0, x: 20 }}
+                                            initial={{ opacity: 0, scale: 0.9, x: 20, transformOrigin: "right center" }}
+                                            animate={{ opacity: 1, scale: 1, x: 0 }}
+                                            exit={{ opacity: 0, scale: 0.9, x: 20 }}
+                                            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                                             className="flex items-center gap-2 neo-surface px-3 py-1.5 rounded-full shadow-accent-glow"
                                         >
                                             <span className="text-sm font-bold text-accent px-2">{selectedItems.size}</span>
                                             <div className="w-px h-5 bg-white/10 mx-1" />
-                                            <button onClick={selectAll} className="p-2 text-fg-3 hover:text-white text-xs font-semibold transition-colors uppercase tracking-wider">
+                                            <button onClick={selectAll} className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all uppercase tracking-wider border border-white/5 shadow-sm">
                                                 All
                                             </button>
                                             <button onClick={handleBulkDownload} disabled={isDownloading || selectedItems.size === 0} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent/10 text-accent hover:bg-accent/20 transition-colors disabled:opacity-50" title="Download Zip">
