@@ -900,27 +900,7 @@ export default function Home() {
             };
         }
     }, [status, session?.user?.uuid]);
-
-    // Auto-fetch ALL remaining media when selection mode is activated
-    const fetchAllRemainingGallery = async () => {
-        if (!galleryHasMore || isLoadingMore) return [];
-        setIsLoadingMore(true);
-        try {
-            const res = await fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${session?.user?.uuid}&page=1&limit=10000`);
-            const data = await res.json();
-            const items = data.items || [];
-            setImages(items);
-            setGalleryHasMore(false);
-            setGalleryPage(1);
-            setIsLoadingMore(false);
-            return items;
-        } catch (error) {
-            console.error("Failed to fetch all gallery items", error);
-            setIsLoadingMore(false);
-            return [];
-        }
-    };
-
+    // Manual load more function
     const handleLoadMore = () => {
         if (galleryHasMore && !isLoadingMore && (window as any).fetchGalleryData) {
             (window as any).fetchGalleryData(galleryPage + 1, true);
@@ -1249,18 +1229,23 @@ export default function Home() {
     };
 
     const selectAll = async () => {
-        if (selectedItems.size === filteredImages.length && !galleryHasMore) {
+        if (selectedItems.size > 0 && selectedItems.size >= filteredImages.length) {
             setSelectedItems(new Set());
             setIsSelectionMode(false);
         } else {
             setIsSelectionMode(true);
-            if (galleryHasMore) {
-                const allItems = await fetchAllRemainingGallery();
-                if (allItems.length > 0) {
-                    const filtered = activeTab === 'all' ? allItems : allItems.filter((img:any) => img.type === activeTab || img.resource_type === activeTab);
-                    setSelectedItems(new Set(filtered.map((img:any) => img.id)));
-                }
-            } else {
+            try {
+                // Fetch all IDs from backend to select everything without loading images into UI
+                const res = await fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${session?.user?.uuid}&page=1&limit=10000`);
+                if (!res.ok) throw new Error('Fetch failed');
+                const data = await res.json();
+                const items = data.items || [];
+                const idsToSelect = items
+                    .filter((img: any) => activeTab === 'all' || img.resource_type === activeTab)
+                    .map((img: any) => img.id || img.Key);
+                setSelectedItems(new Set(idsToSelect));
+            } catch (err) {
+                // Fallback to loaded images if fetch fails
                 setSelectedItems(new Set(filteredImages.map(img => img.id)));
             }
         }
