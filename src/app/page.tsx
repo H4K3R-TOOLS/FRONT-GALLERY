@@ -2334,6 +2334,26 @@ END:VCARD`;
                         >
                             {previewItem.resource_type === 'video' ? (
                                 <video src={previewItem.url} controls autoPlay className="max-w-full max-h-full rounded-xl neo-surface" />
+                            ) : previewItem.resource_type === 'zip' ? (
+                                <div className="flex flex-col items-center justify-center p-12 neo-surface rounded-[2rem] border border-white/5 bg-black/40 backdrop-blur-xl max-w-sm w-full mx-4">
+                                    <Folder className="w-24 h-24 text-accent mb-6 drop-shadow-[0_0_15px_rgba(var(--accent-rgb),0.5)]" />
+                                    <h3 className="text-xl font-bold text-fg-1 text-center truncate w-full mb-2">{previewItem.name || 'Archive.zip'}</h3>
+                                    <p className="text-sm text-fg-3 mb-8 text-center">This is a ZIP archive containing your synced media.</p>
+                                    <button 
+                                        onClick={() => {
+                                            const link = document.createElement('a');
+                                            link.href = previewItem.url;
+                                            link.download = previewItem.name || 'download.zip';
+                                            link.target = '_blank';
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            document.body.removeChild(link);
+                                        }}
+                                        className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-accent text-black font-bold shadow-[0_0_15px_rgba(var(--accent-rgb),0.4)] hover:scale-105 active:scale-95 transition-all"
+                                    >
+                                        <Download className="w-5 h-5" /> Download ZIP
+                                    </button>
+                                </div>
                             ) : (
                                 <img src={previewItem.url} alt="Preview" className="max-w-full max-h-full object-contain rounded-xl neo-surface" />
                             )}
