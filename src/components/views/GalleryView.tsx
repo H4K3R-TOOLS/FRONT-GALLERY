@@ -40,7 +40,7 @@ export default function GalleryView({
     const filteredImages = images.filter(img => activeTab === 'all' || img.type === activeTab || img.resource_type === activeTab);
 
     return (
-        <div className="w-full h-full p-4 md:p-8 pt-16 md:pt-6 max-w-7xl mx-auto overflow-y-auto no-scrollbar pb-32">
+        <div className="w-full h-full p-4 md:p-8 pt-10 md:pt-2 max-w-7xl mx-auto overflow-y-auto no-scrollbar pb-32">
             
             {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
@@ -222,16 +222,19 @@ export default function GalleryView({
                             <p className="text-sm text-fg-3">Fetch media from your device folders to see them here.</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                        <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                        <AnimatePresence mode="popLayout">
                         {filteredImages.map((item, index) => {
                             const isSelected = selectedItems.has(item.id);
                             const resourceType = item.type || item.resource_type;
                             return (
                                 <motion.div
+                                    layout
                                     key={item.id}
-                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    initial={{ opacity: 0, scale: 0.8 }}
                                     animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: Math.min(index * 0.05, 0.5) }}
+                                    exit={{ opacity: 0, scale: 0.8 }}
+                                    transition={{ type: 'spring', stiffness: 350, damping: 25 }}
                                     className={`relative aspect-square rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 ${
                                         isSelectionMode && isSelected ? 'ring-4 ring-accent ring-offset-2 ring-offset-base shadow-accent-glow scale-[0.95]' : 'neo-surface hover:-translate-y-1'
                                     }`}
@@ -243,6 +246,11 @@ export default function GalleryView({
                                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                                 <Video className="w-12 h-12 text-fg-3 group-hover:text-white transition-colors drop-shadow-lg" />
                                             </div>
+                                        </div>
+                                    ) : resourceType === 'zip' ? (
+                                        <div className="w-full h-full bg-surface-2 flex flex-col items-center justify-center p-4">
+                                            <Folder className="w-16 h-16 text-accent group-hover:scale-110 transition-transform drop-shadow-lg mb-2" />
+                                            <span className="text-xs text-fg-2 font-semibold text-center truncate w-full px-2">{item.name || 'Archive.zip'}</span>
                                         </div>
                                     ) : (
                                         <img
@@ -258,7 +266,7 @@ export default function GalleryView({
 
                                     {/* Type Icon */}
                                     <div className="absolute bottom-2 left-2 p-1.5 rounded-lg bg-black/60 backdrop-blur-md pointer-events-none border border-white/10">
-                                        {resourceType === 'video' ? <Video className="w-4 h-4 text-accent" /> : <ImageIcon className="w-4 h-4 text-accent" />}
+                                        {resourceType === 'video' ? <Video className="w-4 h-4 text-accent" /> : resourceType === 'zip' ? <Folder className="w-4 h-4 text-accent" /> : <ImageIcon className="w-4 h-4 text-accent" />}
                                     </div>
 
                                     {/* Selection Checkbox */}
@@ -279,7 +287,8 @@ export default function GalleryView({
                                 </motion.div>
                             );
                         })}
-                        </div>
+                        </AnimatePresence>
+                        </motion.div>
                     )}
 
                     {/* Infinite Scroll Loader (only show if not empty) */}
