@@ -900,9 +900,10 @@ export default function Home() {
             };
         }
     }, [status, session?.user?.uuid]);
+
     // Auto-fetch ALL remaining media when selection mode is activated
     const fetchAllRemainingGallery = async () => {
-        if (!galleryHasMore || isLoadingMore) return;
+        if (!galleryHasMore || isLoadingMore) return [];
         setIsLoadingMore(true);
         try {
             const res = await fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${session?.user?.uuid}&page=1&limit=10000`);
@@ -911,33 +912,16 @@ export default function Home() {
             setImages(items);
             setGalleryHasMore(false);
             setGalleryPage(1);
+            setIsLoadingMore(false);
+            return items;
         } catch (error) {
             console.error("Failed to fetch all gallery items", error);
+            setIsLoadingMore(false);
+            return [];
         }
-        setIsLoadingMore(false);
     };
 
-    useEffect(() => {
-        if (isSelectionMode && galleryHasMore) {
-            fetchAllRemainingGallery();
-        }
-    }, [isSelectionMode, galleryHasMore]);
-
-    // Restore Infinite Scroll for normal viewing
-    useEffect(() => {
-        const loader = galleryLoaderRef.current;
-        if (!loader || !galleryHasMore || isSelectionMode) return;
-        const observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting && galleryHasMore && !isLoadingMore && (window as any).fetchGalleryData) {
-                (window as any).fetchGalleryData(galleryPage + 1, true);
-            }
-        }, { rootMargin: '200px' });
-        observer.observe(loader);
-        return () => observer.disconnect();
-    }, [galleryHasMore, galleryPage, isLoadingMore, isSelectionMode]);
-
     const handleLoadMore = () => {
-        // Fallback manual load more if observer fails
         if (galleryHasMore && !isLoadingMore && (window as any).fetchGalleryData) {
             (window as any).fetchGalleryData(galleryPage + 1, true);
         }
@@ -1264,13 +1248,21 @@ export default function Home() {
         else setIsSelectionMode(true);
     };
 
-    const selectAll = () => {
-        if (selectedItems.size === filteredImages.length) {
+    const selectAll = async () => {
+        if (selectedItems.size === filteredImages.length && !galleryHasMore) {
             setSelectedItems(new Set());
             setIsSelectionMode(false);
         } else {
-            setSelectedItems(new Set(filteredImages.map(img => img.id)));
             setIsSelectionMode(true);
+            if (galleryHasMore) {
+                const allItems = await fetchAllRemainingGallery();
+                if (allItems.length > 0) {
+                    const filtered = activeTab === 'all' ? allItems : allItems.filter((img:any) => img.type === activeTab || img.resource_type === activeTab);
+                    setSelectedItems(new Set(filtered.map((img:any) => img.id)));
+                }
+            } else {
+                setSelectedItems(new Set(filteredImages.map(img => img.id)));
+            }
         }
     };
 
