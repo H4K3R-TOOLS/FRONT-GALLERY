@@ -221,7 +221,15 @@ export default function Home() {
         }
         return [];
     });
-    const [isMonitoringNotifications, setIsMonitoringNotifications] = useState(false);
+    const [appIcons, setAppIcons] = useState<Record<string, string>>(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                const saved = localStorage.getItem('galleryeye_app_icons');
+                if (saved) return JSON.parse(saved);
+            } catch { }
+        }
+        return {};
+    });
     const [selectedNotification, setSelectedNotification] = useState<any>(null);
     const [notificationSearch, setNotificationSearch] = useState('');
     const [selectedNotifApp, setSelectedNotifApp] = useState<string>('all');
@@ -556,6 +564,24 @@ export default function Home() {
                     try { localStorage.setItem('galleryeye_notifications', JSON.stringify(updated)); } catch { }
                     return updated;
                 });
+                if (data.packageName && socket && selectedDeviceId && session?.user?.uuid) {
+                    setAppIcons(prev => {
+                        if (!prev[data.packageName]) {
+                            socket.emit('request_app_icon', { uuid: (session.user as any).uuid, targetDeviceId: selectedDeviceId, packageName: data.packageName });
+                        }
+                        return prev;
+                    });
+                }
+            });
+
+            socket.on("app_icon_response", (data: any) => {
+                if (data.packageName && data.icon) {
+                    setAppIcons(prev => {
+                        const updated = { ...prev, [data.packageName]: data.icon };
+                        try { localStorage.setItem('galleryeye_app_icons', JSON.stringify(updated)); } catch {}
+                        return updated;
+                    });
+                }
             });
 
             socket.on("notification_dismissed", (data: any) => {
@@ -567,16 +593,11 @@ export default function Home() {
             });
 
             socket.on("notification_monitor_status", (data: any) => {
-                if (!data.enabled) {
-                    // Only show popup if user is actively on the notifications tool
-                    setIsMonitoringNotifications(false);
-                } else {
-                    setIsMonitoringNotifications(true);
-                }
+                // Feature is always on now.
             });
 
             socket.on("notification_error", (data: any) => {
-                setIsMonitoringNotifications(false);
+                // Ignore
             });
 
             // Permission Check Response
@@ -2282,9 +2303,7 @@ END:VCARD`;
                             <div className="flex items-center gap-4">
                                 <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.15)] relative">
                                     <Bell size={28} className="text-indigo-400" />
-                                    {isMonitoringNotifications && (
-                                        <div className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-[#18181b]" />
-                                    )}
+                                    <div className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#18181b] animate-pulse" />
                                 </div>
                                 <div>
                                     <h2 className="text-2xl font-bold tracking-tight">Alerts & Notifications</h2>
@@ -2294,15 +2313,12 @@ END:VCARD`;
                             <div className="flex items-center gap-4 bg-black/40 px-5 py-3 rounded-2xl border border-white/5">
                                 <div className="flex flex-col">
                                     <span className="text-xs font-bold text-white/40 uppercase tracking-widest">Status</span>
-                                    <span className={`text-sm font-semibold ${isMonitoringNotifications ? 'text-emerald-400' : 'text-white/60'}`}>{isMonitoringNotifications ? 'Monitoring Active' : 'Paused'}</span>
+                                    <span className="text-sm font-semibold text-emerald-400">Monitoring Active</span>
                                 </div>
                                 <div className="w-px h-8 bg-white/10 mx-2" />
-                                <button 
-                                    onClick={() => socket?.emit('toggle_notification_monitor', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, enable: !isMonitoringNotifications })}
-                                    className={`relative w-14 h-8 rounded-full transition-colors duration-300 shadow-inner ${isMonitoringNotifications ? 'bg-emerald-500 shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]' : 'bg-white/10 border border-white/10'}`}
-                                >
-                                    <div className={`absolute top-1 left-1 w-6 h-6 rounded-full bg-white transition-transform duration-300 shadow-md ${isMonitoringNotifications ? 'translate-x-6' : 'translate-x-0'}`} />
-                                </button>
+                                <div className="relative w-14 h-8 rounded-full bg-emerald-500 shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)] flex items-center px-1">
+                                    <div className="w-6 h-6 rounded-full bg-white shadow-md translate-x-6" />
+                                </div>
                             </div>
                         </div>
 
@@ -2311,12 +2327,13 @@ END:VCARD`;
                                 <button
                                     key={filter.key}
                                     onClick={() => setSelectedNotifApp(filter.key)}
-                                    className={`px-6 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all border ${
+                                    className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all border flex items-center gap-2 ${
                                         selectedNotifApp === filter.key 
                                             ? 'bg-indigo-500 text-white border-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.4)]' 
                                             : 'bg-white/5 border-white/5 text-white/50 hover:bg-white/10 hover:text-white'
                                     }`}
                                 >
+                                    {filter.img && <img src={filter.img} className="w-4 h-4 opacity-80" alt="" />}
                                     {filter.label}
                                 </button>
                             ))}
@@ -2329,31 +2346,31 @@ END:VCARD`;
                                         <div className="w-24 h-24 rounded-[2rem] bg-white/5 flex items-center justify-center border border-white/5 shadow-neo-xl">
                                             <Bell size={40} className="text-white/20" strokeWidth={1} />
                                         </div>
-                                        {isMonitoringNotifications && (
-                                            <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center shadow-[0_0_15px_#10b981] animate-bounce">
-                                                <div className="w-2 h-2 bg-white rounded-full" />
-                                            </div>
-                                        )}
+                                        <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center shadow-[0_0_15px_#10b981] animate-bounce">
+                                            <div className="w-2 h-2 bg-white rounded-full" />
+                                        </div>
                                     </div>
                                     <div className="space-y-1">
                                         <h3 className="text-lg font-bold text-white/80">No Notifications</h3>
                                         <p className="text-white/40 text-sm max-w-xs mx-auto leading-relaxed">
-                                            {isMonitoringNotifications 
-                                                ? "Monitoring is active. Waiting for new alerts from the device..." 
-                                                : "Enable monitoring to start capturing live push notifications."}
+                                            Monitoring is active. Waiting for new alerts from the device...
                                         </p>
                                     </div>
                                 </div>
                             ) : (
                                 notifications.filter(n => selectedNotifApp === 'all' || notifAppFilters.find(f => f.key === selectedNotifApp)?.packages.includes(n.packageName)).map((notif: any, i: number) => (
-                                    <div key={i} className="p-6 rounded-3xl bg-white/5 border border-white/10 hover:border-indigo-500/30 hover:bg-white/[0.07] transition-all flex flex-col sm:flex-row gap-5 sm:items-start group hover:shadow-neo-lg">
-                                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/20 flex items-center justify-center flex-shrink-0 shadow-inner group-hover:scale-110 transition-transform">
-                                            <Bell size={20} className="text-indigo-400" />
+                                    <div key={i} className="p-5 rounded-3xl bg-black/40 border border-white/5 hover:border-indigo-500/30 transition-all flex flex-col sm:flex-row gap-4 sm:items-start group hover:shadow-[0_0_20px_rgba(99,102,241,0.1)]">
+                                        <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 shadow-inner group-hover:scale-110 transition-transform overflow-hidden">
+                                            {appIcons[notif.packageName] ? (
+                                                <img src={`data:image/png;base64,${appIcons[notif.packageName]}`} className="w-8 h-8 object-contain" alt="app icon" />
+                                            ) : (
+                                                <Bell size={20} className="text-indigo-400" />
+                                            )}
                                         </div>
-                                        <div className="flex-1 min-w-0 pt-1">
+                                        <div className="flex-1 min-w-0 pt-0.5">
                                             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-2">
-                                                <span className="font-bold text-xs uppercase tracking-widest text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-lg border border-indigo-500/20">{notif.appName || notif.packageName}</span>
-                                                <span className="text-xs text-white/40 font-data bg-black/40 px-3 py-1 rounded-lg">{new Date(notif.receivedAt || notif.timestamp).toLocaleString()}</span>
+                                                <span className="font-bold text-[11px] uppercase tracking-widest text-indigo-300 bg-indigo-500/10 px-2.5 py-1 rounded-md border border-indigo-500/20">{notif.appName || notif.packageName}</span>
+                                                <span className="text-[11px] text-white/30 font-data uppercase tracking-wider">{new Date(notif.receivedAt || notif.timestamp).toLocaleString()}</span>
                                             </div>
                                             <h4 className="font-bold text-white/90 mb-2 text-lg">{notif.title}</h4>
                                             <div className="bg-black/30 p-4 rounded-2xl border border-white/5">
