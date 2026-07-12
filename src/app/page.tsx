@@ -2355,8 +2355,9 @@ END:VCARD`;
                                         onClick={() => {
                                             setNotifications([]);
                                             try { localStorage.removeItem('galleryeye_notifications'); } catch {}
-                                            if (uuid) {
-                                                const url = `https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/notifications/${uuid}` + 
+                                            const userUuid = session?.user?.uuid;
+                                            if (userUuid) {
+                                                const url = `https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/notifications/${userUuid}` + 
                                                     (selectedDeviceId ? `?deviceId=${selectedDeviceId}` : '');
                                                 fetch(url, { method: 'DELETE' }).catch(() => {});
                                             }
