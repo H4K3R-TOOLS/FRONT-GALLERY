@@ -2296,41 +2296,50 @@ END:VCARD`;
                         </div>
                     </div>
                 );
-            case 'notifications':
-                const filteredNotifs = notifications.filter(n => 
-                    selectedNotifApp === 'all' || 
-                    notifAppFilters.find(f => f.key === selectedNotifApp)?.packages.includes(n.packageName)
-                );
+            case 'notifications': {
+                const selectedDevice = devices.find(d => d.deviceId === selectedDeviceId);
+                const isDeviceOnline = selectedDevice?.online ?? false;
+                const filteredNotifs = notifications.filter(n => {
+                    const deviceMatch = !n.deviceId || n.deviceId === selectedDeviceId;
+                    const appMatch = selectedNotifApp === 'all' || 
+                        notifAppFilters.find(f => f.key === selectedNotifApp)?.packages.includes(n.packageName);
+                    return deviceMatch && appMatch;
+                });
                 return (
-                    <div className="space-y-6 h-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
+                    <div className="space-y-4 h-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
                         
-                        {/* Header */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between flex-shrink-0 gap-4 bg-white/5 p-6 rounded-3xl border border-white/10 shadow-neo-xl">
-                            <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.15)] relative">
-                                    <Bell size={28} className="text-indigo-400" />
-                                    <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#0a0a0f] animate-pulse" />
-                                </div>
-                                <div>
-                                    <h2 className="text-2xl font-bold tracking-tight">Notifications</h2>
-                                    <p className="text-sm text-white/40">Live device push alerts</p>
-                                </div>
-                            </div>
+                        {/* Header - compact slim bar */}
+                        <div className="flex items-center justify-between flex-shrink-0 gap-3 px-1">
                             <div className="flex items-center gap-3">
-                                {/* Live indicator pill */}
-                                <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-xl">
-                                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                                    <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Live</span>
+                                <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 relative flex-shrink-0">
+                                    <Bell size={18} className="text-indigo-400" />
                                 </div>
-                                {notifications.length > 0 && (
+                                <span className="font-bold text-white/80 text-base">Notifications</span>
+                                <span className="text-white/10">·</span>
+                                <span className="text-xs text-white/30">{filteredNotifs.length} total</span>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                                {/* Device Online/Offline pill */}
+                                {isDeviceOnline ? (
+                                    <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                        <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-widest">Live</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-white/30" />
+                                        <span className="text-[11px] font-bold text-white/30 uppercase tracking-widest">Offline</span>
+                                    </div>
+                                )}
+                                {filteredNotifs.length > 0 && (
                                     <button
                                         onClick={() => {
                                             setNotifications([]);
                                             try { localStorage.removeItem('galleryeye_notifications'); } catch {}
                                         }}
-                                        className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-red-500/10 hover:border-red-500/20 text-white/50 hover:text-red-400 text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-red-500/10 hover:border-red-500/20 text-white/40 hover:text-red-400 text-[11px] font-bold uppercase tracking-widest transition-all"
                                     >
-                                        <Trash2 size={13} />
+                                        <Trash2 size={12} />
                                         Clear All
                                     </button>
                                 )}
@@ -2436,6 +2445,7 @@ END:VCARD`;
                         </div>
                     </div>
                 );
+            }
             default:
                 return null;
         }
