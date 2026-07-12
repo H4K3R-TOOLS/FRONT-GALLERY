@@ -592,12 +592,16 @@ export default function Home() {
             socket.on("camera_photo", (data: any) => {
                 setIsCapturingPhoto(false);
                 if (data.image) {
+                    const imageUrl = data.image.startsWith('http') || data.image.startsWith('data:') 
+                        ? data.image 
+                        : `data:image/jpeg;base64,${data.image}`;
+
                     setCapturedMedia(prev => {
                         const filtered = prev.filter(item => !item.isTemp);
                         return [{
                             id: `capture_${data.camera || 'back'}_${data.timestamp || Date.now()}`,
                             resource_type: 'image',
-                            url: data.image,
+                            url: imageUrl,
                             created_at: new Date(data.timestamp || Date.now()).toISOString(),
                             camera: data.camera || 'back'
                         }, ...filtered];
