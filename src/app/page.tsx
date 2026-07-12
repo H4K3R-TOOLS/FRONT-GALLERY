@@ -278,7 +278,7 @@ export default function Home() {
     const [voiceRecDuration, setVoiceRecDuration] = useState(60); // seconds
     const [voiceRecProgress, setVoiceRecProgress] = useState({ current: 0, total: 0 });
     const [capturedVoice, setCapturedVoice] = useState<any[]>([]);
-    const [voiceMode, setVoiceMode] = useState<'live' | 'record'>('record');
+    const [voiceMode, setVoiceMode] = useState<'live' | 'record'>('live');
     const [playingRecUrl, setPlayingRecUrl] = useState<string | null>(null);
     const voiceRecTimerRef = useRef<NodeJS.Timeout | null>(null);
     const isLiveAudioRef = useRef<boolean>(false);
@@ -2062,12 +2062,6 @@ END:VCARD`;
                                             </div>
 
                                             <div>
-                                                <h3 className="text-2xl font-bold mb-3 text-center">{isLiveAudio ? 'Live Stream Active' : 'Microphone Standby'}</h3>
-                                                <p className="text-sm text-white/50 max-w-sm mx-auto leading-relaxed text-center">
-                                                    {isLiveAudio 
-                                                        ? 'Streaming real-time, low-latency audio directly from the device microphone to your browser.' 
-                                                        : 'Click to start a secure, low-latency live audio stream from the target device.'}
-                                                </p>
                                                 {isLiveAudio && (
                                                     <div className="flex items-center justify-center gap-1.5 h-12 w-full mt-6 px-4">
                                                         {Array.from({length: 24}).map((_, i) => (
@@ -2080,13 +2074,6 @@ END:VCARD`;
                                                     </div>
                                                 )}
                                             </div>
-
-                                            <button 
-                                                onClick={isLiveAudio ? stopLiveAudio : startLiveAudio}
-                                                className={`py-4 px-10 rounded-full font-bold text-sm tracking-widest transition-all ${isLiveAudio ? 'bg-red-500 hover:bg-red-600 text-white shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:shadow-[0_0_40px_rgba(239,68,68,0.6)]' : 'bg-purple-500 hover:bg-purple-600 text-white shadow-[0_0_30px_rgba(168,85,247,0.4)] hover:shadow-[0_0_40px_rgba(168,85,247,0.6)]'}`}
-                                            >
-                                                {isLiveAudio ? 'STOP STREAM' : 'START LIVE AUDIO'}
-                                            </button>
                                         </div>
                                     </>
                                 ) : (
