@@ -2048,17 +2048,18 @@ END:VCARD`;
                                     <>
                                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/10 blur-[100px] rounded-full pointer-events-none" />
                                         
-                                        <div className="my-auto relative z-10 flex flex-col items-center gap-10 py-12">
-                                            <div className="relative">
+                                        <div className="my-auto relative z-10 flex flex-col items-center gap-10 py-6">
+                                            <div 
+                                                className={`relative w-36 h-36 rounded-full flex items-center justify-center shadow-2xl transition-all duration-500 cursor-pointer ${isLiveAudio ? 'bg-purple-500/20 text-purple-400 border-2 border-purple-500/50 shadow-[0_0_50px_rgba(168,85,247,0.3)]' : 'bg-white/5 text-white/30 border border-white/10 hover:bg-white/10 hover:text-white/60'}`} 
+                                                onClick={isLiveAudio ? stopLiveAudio : startLiveAudio}
+                                            >
                                                 {isLiveAudio && (
                                                     <>
-                                                        <div className="absolute inset-[-40px] rounded-full border border-purple-500/20 animate-[ping_2s_ease-out_infinite]" />
-                                                        <div className="absolute inset-[-20px] rounded-full border border-purple-500/40 animate-[ping_1.5s_ease-out_infinite]" />
+                                                        <div className="absolute inset-[-40px] rounded-full border border-purple-500/20 animate-[ping_2s_ease-out_infinite] pointer-events-none" />
+                                                        <div className="absolute inset-[-20px] rounded-full border border-purple-500/40 animate-[ping_1.5s_ease-out_infinite] pointer-events-none" />
                                                     </>
                                                 )}
-                                                <div className={`w-36 h-36 rounded-full flex items-center justify-center shadow-2xl transition-all duration-500 ${isLiveAudio ? 'bg-purple-500/20 text-purple-400 border-2 border-purple-500/50 shadow-[0_0_50px_rgba(168,85,247,0.3)]' : 'bg-white/5 text-white/30 border border-white/10 hover:bg-white/10 hover:text-white/60 cursor-pointer'}`} onClick={isLiveAudio ? stopLiveAudio : startLiveAudio}>
-                                                    <Mic size={56} strokeWidth={isLiveAudio ? 2 : 1.5} />
-                                                </div>
+                                                <Mic size={56} strokeWidth={isLiveAudio ? 2 : 1.5} className="relative z-10" />
                                             </div>
 
                                             <div>
