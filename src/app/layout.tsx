@@ -2,6 +2,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import Provider from './provider'
+import { Analytics } from '@vercel/analytics/next'
 
 const plusJakartaSans = Plus_Jakarta_Sans({
     subsets: ['latin'],
@@ -69,6 +70,7 @@ export default async function RootLayout({
                 <Provider session={session}>
                     {children}
                 </Provider>
+                <Analytics />
             </body>
         </html>
     )
