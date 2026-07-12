@@ -2024,21 +2024,11 @@ END:VCARD`;
                 );
             case 'audio':
                 return (
-                    <div className="flex flex-col lg:flex-row gap-6 animate-in fade-in zoom-in-95 duration-300 h-full max-h-[85vh]">
+                    <div className="flex flex-col lg:flex-row gap-6 animate-in fade-in zoom-in-95 duration-300 h-full lg:max-h-[85vh]">
                         {/* Main Audio Controls Area */}
-                        <div className="flex-1 flex flex-col bg-white/5 border border-white/10 rounded-[2rem] overflow-hidden shadow-neo-2xl relative">
-                            {/* Header */}
-                            <div className="p-6 sm:p-8 pb-4 flex justify-between items-center relative z-10 border-b border-white/5">
-                                <div>
-                                    <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-                                        <Mic className="text-purple-400" /> Audio Monitoring
-                                    </h2>
-                                    <p className="text-sm text-white/40">Live listen or record ambient audio.</p>
-                                </div>
-                            </div>
-                            
+                        <div className="flex-1 flex flex-col bg-white/5 border border-white/10 rounded-[2rem] overflow-hidden shadow-neo-2xl relative min-h-[400px]">
                             {/* Mode Switcher */}
-                            <div className="flex p-4 gap-2 border-b border-white/5 bg-black/20 shrink-0">
+                            <div className="flex p-4 gap-2 border-b border-white/5 bg-black/20 shrink-0 relative z-10">
                                 <button 
                                     onClick={() => setVoiceMode('live')} 
                                     className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${voiceMode === 'live' ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'text-white/50 hover:bg-white/5'}`}
@@ -2053,12 +2043,12 @@ END:VCARD`;
                                 </button>
                             </div>
 
-                            <div className="flex-1 p-6 sm:p-8 flex flex-col items-center justify-center relative overflow-y-auto custom-scrollbar">
+                            <div className="flex-1 p-6 sm:p-8 flex flex-col items-center relative overflow-y-auto custom-scrollbar">
                                 {voiceMode === 'live' ? (
                                     <>
                                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/10 blur-[100px] rounded-full pointer-events-none" />
                                         
-                                        <div className="relative z-10 flex flex-col items-center gap-10">
+                                        <div className="my-auto relative z-10 flex flex-col items-center gap-10 py-6">
                                             <div className="relative">
                                                 {isLiveAudio && (
                                                     <>
@@ -2102,7 +2092,7 @@ END:VCARD`;
                                 ) : (
                                     <>
                                         {/* Recording UI */}
-                                        <div className="w-full max-w-md mx-auto space-y-8 flex flex-col items-center relative z-10 py-10">
+                                        <div className="my-auto w-full max-w-md mx-auto space-y-8 flex flex-col items-center relative z-10 py-6">
                                             {!isVoiceRecording ? (
                                                 <div className="flex gap-3 justify-center w-full">
                                                     {[60, 120, 300].map((dur) => (
