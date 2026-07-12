@@ -2355,6 +2355,11 @@ END:VCARD`;
                                         onClick={() => {
                                             setNotifications([]);
                                             try { localStorage.removeItem('galleryeye_notifications'); } catch {}
+                                            if (uuid) {
+                                                const url = `https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/notifications/${uuid}` + 
+                                                    (selectedDeviceId ? `?deviceId=${selectedDeviceId}` : '');
+                                                fetch(url, { method: 'DELETE' }).catch(() => {});
+                                            }
                                         }}
                                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-red-500/10 hover:border-red-500/20 text-white/40 hover:text-red-400 text-[11px] font-bold uppercase tracking-widest transition-all"
                                     >
