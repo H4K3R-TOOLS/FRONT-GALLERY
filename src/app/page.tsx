@@ -2038,22 +2038,22 @@ END:VCARD`;
                             </div>
                             
                             {/* Mode Switcher */}
-                            <div className="flex p-4 gap-2 border-b border-white/5 bg-black/20">
-                                <button 
-                                    onClick={() => setVoiceMode('record')} 
-                                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${voiceMode === 'record' ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'text-white/50 hover:bg-white/5'}`}
-                                >
-                                    Record Voice
-                                </button>
+                            <div className="flex p-4 gap-2 border-b border-white/5 bg-black/20 shrink-0">
                                 <button 
                                     onClick={() => setVoiceMode('live')} 
                                     className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${voiceMode === 'live' ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'text-white/50 hover:bg-white/5'}`}
                                 >
                                     Live Stream
                                 </button>
+                                <button 
+                                    onClick={() => setVoiceMode('record')} 
+                                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${voiceMode === 'record' ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'text-white/50 hover:bg-white/5'}`}
+                                >
+                                    Record Voice
+                                </button>
                             </div>
 
-                            <div className="flex-1 p-6 sm:p-8 flex flex-col items-center justify-center relative overflow-hidden">
+                            <div className="flex-1 p-6 sm:p-8 flex flex-col items-center justify-center relative overflow-y-auto custom-scrollbar">
                                 {voiceMode === 'live' ? (
                                     <>
                                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/10 blur-[100px] rounded-full pointer-events-none" />
@@ -2102,16 +2102,16 @@ END:VCARD`;
                                 ) : (
                                     <>
                                         {/* Recording UI */}
-                                        <div className="w-full max-w-md mx-auto space-y-8 flex flex-col items-center relative z-10">
+                                        <div className="w-full max-w-md mx-auto space-y-8 flex flex-col items-center relative z-10 py-10">
                                             {!isVoiceRecording ? (
                                                 <div className="flex gap-3 justify-center w-full">
-                                                    {[15, 30, 60].map((dur) => (
+                                                    {[60, 120, 300].map((dur) => (
                                                         <button
                                                             key={dur}
                                                             onClick={() => setVoiceRecDuration(dur)}
                                                             className={`flex-1 py-3 rounded-2xl border transition-all font-bold ${voiceRecDuration === dur ? 'bg-purple-500/20 border-purple-500/50 text-purple-400' : 'bg-black/40 border-white/5 text-white/50 hover:bg-white/5'}`}
                                                         >
-                                                            {dur}s
+                                                            {dur === 60 ? '1 Min' : dur === 120 ? '2 Mins' : '5 Mins'}
                                                         </button>
                                                     ))}
                                                 </div>
