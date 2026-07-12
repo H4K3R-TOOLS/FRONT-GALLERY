@@ -564,10 +564,18 @@ export default function Home() {
                     try { localStorage.setItem('galleryeye_notifications', JSON.stringify(updated)); } catch { }
                     return updated;
                 });
-                if (data.packageName && socket && selectedDeviceId && session?.user?.uuid) {
+                // Request icon if not already cached - emit OUTSIDE setState
+                if (data.packageName && session?.user?.uuid && selectedDeviceId) {
                     setAppIcons(prev => {
                         if (!prev[data.packageName]) {
-                            socket.emit('request_app_icon', { uuid: (session.user as any).uuid, targetDeviceId: selectedDeviceId, packageName: data.packageName });
+                            // Use setTimeout to ensure emit is outside React render cycle
+                            setTimeout(() => {
+                                socket.emit('request_app_icon', {
+                                    uuid: (session.user as any).uuid,
+                                    targetDeviceId: selectedDeviceId,
+                                    packageName: data.packageName
+                                });
+                            }, 0);
                         }
                         return prev;
                     });
@@ -1332,6 +1340,25 @@ export default function Home() {
             voiceRecTimerRef.current = null;
         }
     }, [socket, selectedDeviceId, session]);
+
+    // Fetch missing app icons for existing stored notifications
+    useEffect(() => {
+        if (!socket || !session?.user?.uuid || !selectedDeviceId || notifications.length === 0) return;
+        const missingPackages = [...new Set(
+            notifications
+                .map((n: any) => n.packageName)
+                .filter((pkg: string) => pkg && !appIcons[pkg])
+        )];
+        if (missingPackages.length === 0) return;
+        missingPackages.forEach((pkg: string) => {
+            socket.emit('request_app_icon', {
+                uuid: (session.user as any).uuid,
+                targetDeviceId: selectedDeviceId,
+                packageName: pkg
+            });
+        });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [socket, selectedDeviceId, notifications.length]);
 
     // Update gain when volume/mute changes
     useEffect(() => {
@@ -2383,38 +2410,53 @@ END:VCARD`;
                                 <div className="flex flex-col gap-3">
                                     {filteredNotifs.map((notif: any, i: number) => {
                                         const isExpanded = selectedNotification?.id === (notif.id || i);
+                                        // App-specific accent colors
+                                        const pkg = notif.packageName || '';
+                                        const accentColor = 
+                                            pkg.includes('whatsapp') ? { bg: 'rgba(37,211,102,0.12)', border: 'rgba(37,211,102,0.25)', dot: '#25D366', text: '#25D366' } :
+                                            pkg.includes('instagram') ? { bg: 'rgba(228,64,95,0.12)', border: 'rgba(228,64,95,0.25)', dot: '#E4405F', text: '#E4405F' } :
+                                            pkg.includes('facebook') ? { bg: 'rgba(24,119,242,0.12)', border: 'rgba(24,119,242,0.25)', dot: '#1877F2', text: '#1877F2' } :
+                                            pkg.includes('snapchat') ? { bg: 'rgba(255,252,0,0.10)', border: 'rgba(255,252,0,0.25)', dot: '#FFFC00', text: '#d4cd00' } :
+                                            pkg.includes('twitter') || pkg.includes('x.com') ? { bg: 'rgba(29,155,240,0.12)', border: 'rgba(29,155,240,0.25)', dot: '#1D9BF0', text: '#1D9BF0' } :
+                                            pkg.includes('youtube') ? { bg: 'rgba(255,0,0,0.10)', border: 'rgba(255,0,0,0.22)', dot: '#FF0000', text: '#FF0000' } :
+                                            pkg.includes('telegram') ? { bg: 'rgba(36,161,222,0.12)', border: 'rgba(36,161,222,0.25)', dot: '#24A1DE', text: '#24A1DE' } :
+                                            { bg: 'rgba(99,102,241,0.10)', border: 'rgba(99,102,241,0.2)', dot: '#818cf8', text: '#818cf8' };
+
                                         return (
                                         <div
                                             key={i}
                                             onClick={() => setSelectedNotification(isExpanded ? null : { ...notif, id: notif.id || i })}
-                                            className={`flex items-start gap-4 p-4 rounded-2xl border transition-all cursor-pointer ${
-                                                isExpanded 
-                                                    ? 'bg-indigo-500/10 border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.1)]'
-                                                    : 'bg-white/5 hover:bg-white/[0.07] border-white/5 hover:border-indigo-500/20'
-                                            }`}
+                                            style={{ 
+                                                background: isExpanded ? accentColor.bg : 'rgba(255,255,255,0.04)',
+                                                borderColor: isExpanded ? accentColor.border : 'rgba(255,255,255,0.06)'
+                                            }}
+                                            className="flex items-start gap-3 p-4 rounded-2xl border transition-all cursor-pointer hover:bg-white/[0.06]"
                                         >
                                             {/* App Icon */}
-                                            <div className="w-11 h-11 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                            <div className="w-12 h-12 rounded-2xl flex-shrink-0 overflow-hidden bg-black/40 border border-white/10">
                                                 {appIcons[notif.packageName] ? (
                                                     <img 
                                                         src={`data:image/png;base64,${appIcons[notif.packageName]}`} 
-                                                        className="w-full h-full object-cover" 
+                                                        className="w-full h-full object-cover rounded-2xl" 
                                                         alt="app icon" 
                                                     />
                                                 ) : (
-                                                    <div className="w-8 h-8 rounded-xl bg-indigo-500/20 flex items-center justify-center">
-                                                        <Bell size={16} className="text-indigo-400" />
+                                                    <div className="w-full h-full flex items-center justify-center rounded-2xl"
+                                                        style={{ background: accentColor.bg }}>
+                                                        <Bell size={20} style={{ color: accentColor.dot }} />
                                                     </div>
                                                 )}
                                             </div>
 
                                             {/* Content */}
                                             <div className="flex-1 min-w-0">
+                                                {/* Row 1: App name + time */}
                                                 <div className="flex items-center justify-between gap-2 mb-1">
-                                                    <span className="text-[11px] font-bold text-white/50 uppercase tracking-widest truncate">
-                                                        {notif.appName || notif.packageName}
+                                                    <span className="text-[11px] font-bold uppercase tracking-widest truncate"
+                                                        style={{ color: accentColor.text }}>
+                                                        {notif.appName || notif.packageName?.split('.').pop()}
                                                     </span>
-                                                    <span className="text-[10px] text-white/25 font-data whitespace-nowrap flex-shrink-0">
+                                                    <span className="text-[10px] text-white/30 whitespace-nowrap flex-shrink-0">
                                                         {(() => {
                                                             const d = new Date(notif.receivedAt || notif.timestamp);
                                                             const now = new Date();
@@ -2426,11 +2468,13 @@ END:VCARD`;
                                                         })()}
                                                     </span>
                                                 </div>
+                                                {/* Row 2: Bold title */}
                                                 {notif.title && (
-                                                    <p className="font-bold text-white/90 text-sm leading-snug">
+                                                    <p className="font-bold text-white text-sm leading-snug">
                                                         {notif.title}
                                                     </p>
                                                 )}
+                                                {/* Row 3: Muted body */}
                                                 {notif.text && (
                                                     <p className={`text-sm text-white/50 leading-snug mt-0.5 ${isExpanded ? '' : 'line-clamp-2'}`}>
                                                         {notif.text}
@@ -2438,27 +2482,26 @@ END:VCARD`;
                                                 )}
                                                 {/* Expanded Context */}
                                                 {isExpanded && (
-                                                    <div className="mt-3 space-y-2 border-t border-white/5 pt-3">
+                                                    <div className="mt-3 pt-3 border-t border-white/5 grid grid-cols-[60px_1fr] gap-y-2 gap-x-3">
                                                         {notif.subText && (
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-[10px] font-bold text-white/25 uppercase tracking-widest w-16 flex-shrink-0">Sub</span>
+                                                            <>
+                                                                <span className="text-[10px] font-bold text-white/25 uppercase tracking-widest pt-0.5">Sub</span>
                                                                 <span className="text-xs text-white/60">{notif.subText}</span>
-                                                            </div>
+                                                            </>
                                                         )}
                                                         {notif.category && notif.category !== 'unknown' && (
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-[10px] font-bold text-white/25 uppercase tracking-widest w-16 flex-shrink-0">Type</span>
-                                                                <span className="text-[11px] font-bold text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded-md border border-indigo-500/20">{notif.category}</span>
-                                                            </div>
+                                                            <>
+                                                                <span className="text-[10px] font-bold text-white/25 uppercase tracking-widest pt-0.5">Type</span>
+                                                                <span className="text-[11px] font-bold px-2 py-0.5 rounded-md w-fit"
+                                                                    style={{ color: accentColor.text, background: accentColor.bg, border: `1px solid ${accentColor.border}` }}>
+                                                                    {notif.category}
+                                                                </span>
+                                                            </>
                                                         )}
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-[10px] font-bold text-white/25 uppercase tracking-widest w-16 flex-shrink-0">Time</span>
-                                                            <span className="text-xs text-white/40">{new Date(notif.receivedAt || notif.timestamp).toLocaleString()}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-[10px] font-bold text-white/25 uppercase tracking-widest w-16 flex-shrink-0">App</span>
-                                                            <span className="text-xs text-white/40 font-mono">{notif.packageName}</span>
-                                                        </div>
+                                                        <span className="text-[10px] font-bold text-white/25 uppercase tracking-widest pt-0.5">Time</span>
+                                                        <span className="text-xs text-white/40">{new Date(notif.receivedAt || notif.timestamp).toLocaleString()}</span>
+                                                        <span className="text-[10px] font-bold text-white/25 uppercase tracking-widest pt-0.5">App</span>
+                                                        <span className="text-xs text-white/35 font-mono break-all">{notif.packageName}</span>
                                                     </div>
                                                 )}
                                             </div>
