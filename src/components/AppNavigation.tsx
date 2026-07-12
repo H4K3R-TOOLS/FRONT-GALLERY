@@ -13,6 +13,7 @@ import PlanBadge from './PlanBadge';
 function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDropdown, onDeleteDevice }: any) {
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedForDeletion, setSelectedForDeletion] = useState<Set<string>>(new Set());
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const toggleSelection = (deviceId: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -22,10 +23,12 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
         setSelectedForDeletion(newSet);
     };
 
-    const handleBulkDelete = () => {
-        selectedForDeletion.forEach(id => onDeleteDevice(id));
+    const confirmBulkDelete = () => {
+        const ids = Array.from(selectedForDeletion);
+        onDeleteDevice(ids, true);
         setIsSelectionMode(false);
-        setSelectedForDeletion(newSet => new Set());
+        setSelectedForDeletion(new Set());
+        setShowDeleteConfirm(false);
     };
 
     return (
@@ -46,7 +49,7 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                 <div className="p-8 text-center text-fg-3 text-sm bg-black/40 border border-white/5 rounded-3xl">No devices found in database</div>
             ) : (
                 <>
-                    <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar overscroll-contain">
                         {devices.map((device: any) => (
                             <div key={device.deviceId} className="relative group">
                                 <button
@@ -90,13 +93,46 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                     </div>
                     {isSelectionMode && selectedForDeletion.size > 0 && (
                         <button 
-                            onClick={handleBulkDelete}
+                            onClick={() => setShowDeleteConfirm(true)}
                             className="mt-2 w-full py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all flex items-center justify-center gap-2"
                         >
                             <Trash2 size={16} /> Delete Selected ({selectedForDeletion.size})
                         </button>
                     )}
                 </>
+            )}
+
+            {showDeleteConfirm && (
+                <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+                    <div className="bg-[#121316] border border-white/10 rounded-3xl p-6 max-w-sm w-full space-y-5 shadow-2xl">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400">
+                                <Trash2 size={20} />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-fg-1 text-base">Delete Devices</h3>
+                                <p className="text-xs text-fg-3">Confirm device removal</p>
+                            </div>
+                        </div>
+                        <p className="text-sm text-fg-2">
+                            Are you sure you want to delete <span className="font-bold text-white">{selectedForDeletion.size}</span> selected device(s)? This action cannot be undone.
+                        </p>
+                        <div className="flex items-center gap-3">
+                            <button 
+                                onClick={() => setShowDeleteConfirm(false)}
+                                className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-xs transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={confirmBulkDelete}
+                                className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-xs shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all"
+                            >
+                                Confirm Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
@@ -234,9 +270,16 @@ export default function AppNavigation({
                     <div className="relative">
                         <button 
                             onClick={() => toggleDropdown('devices')}
-                            className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl transition-all duration-300 ${openDropdown === 'devices' ? 'neo-pressed text-accent' : 'neo-button text-fg-2 hover:text-fg-1'}`}
+                            className={`flex items-center gap-2.5 px-3 md:px-4 py-2 rounded-xl transition-all duration-300 ${openDropdown === 'devices' ? 'neo-pressed text-accent' : 'neo-button text-fg-2 hover:text-fg-1'}`}
                         >
-                            <Smartphone className="w-5 h-5" />
+                            <div className="relative flex items-center justify-center">
+                                <Smartphone className="w-5 h-5" />
+                                <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#0a0a0c] ${
+                                    devices.some(d => d.online) 
+                                        ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' 
+                                        : 'bg-red-500 shadow-[0_0_8px_#ef4444]'
+                                }`} />
+                            </div>
                             <span className="hidden sm:block font-semibold text-sm max-w-[100px] truncate">
                                 {selectedDevice?.name || selectedDevice?.model || selectedDevice?.deviceName || selectedDevice?.brand || 'Devices'}
                             </span>

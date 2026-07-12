@@ -146,29 +146,33 @@ export default function Home() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deviceToast, setDeviceToast] = useState<{ name: string; message: string } | null>(null);
+    const notifiedDevicesRef = useRef<Set<string>>(new Set());
 
-    const handleDeleteDevice = async (deviceId: string) => {
+    const handleDeleteDevice = async (deviceIds: string | string[], skipConfirm?: boolean) => {
         if (!session?.user?.uuid) return;
-        if (!confirm('Are you sure you want to delete this device? This cannot be undone.')) return;
+        const ids = Array.isArray(deviceIds) ? deviceIds : [deviceIds];
+        if (!skipConfirm) {
+            if (!confirm(`Are you sure you want to delete ${ids.length} device(s)? This cannot be undone.`)) return;
+        }
         
-        try {
-            const res = await fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/devices/delete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ uuid: session.user.uuid, deviceId })
-            });
-            const data = await res.json();
-            if (data.success) {
-                setDevices(prev => prev.filter(d => d.deviceId !== deviceId));
-                if (selectedDeviceId === deviceId) {
-                    setSelectedDeviceId(null);
+        for (const deviceId of ids) {
+            try {
+                const res = await fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/devices/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uuid: session.user.uuid, deviceId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    setDevices(prev => prev.filter(d => !ids.includes(d.deviceId)));
+                    if (selectedDeviceId && ids.includes(selectedDeviceId)) {
+                        setSelectedDeviceId(null);
+                    }
                 }
-            } else {
-                alert(data.error || 'Failed to delete device');
+            } catch (error) {
+                console.error('Failed to delete device', error);
             }
-        } catch (error) {
-            console.error('Failed to delete device', error);
-            alert('Failed to delete device');
         }
     };
 
@@ -444,6 +448,16 @@ export default function Home() {
 
             socket.on("device_list_update", (deviceList: any[]) => {
                 setDevices(deviceList);
+
+                deviceList.forEach(d => {
+                    if (d.online && !notifiedDevicesRef.current.has(d.deviceId)) {
+                        notifiedDevicesRef.current.add(d.deviceId);
+                        setDeviceToast({ name: d.name || d.model || d.deviceName || 'Device', message: 'is now Online' });
+                        setTimeout(() => setDeviceToast(null), 4000);
+                    } else if (!d.online) {
+                        notifiedDevicesRef.current.delete(d.deviceId);
+                    }
+                });
 
                 if (deviceList.length > 0) {
                     setSelectedDeviceId(prev => {
@@ -1748,12 +1762,6 @@ END:VCARD`;
                                     <button onClick={() => setCameraMode('back')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold ${cameraMode === 'back' ? 'bg-cyan-500 text-black' : 'text-white/50'}`}>Rear Camera</button>
                                     <button onClick={() => setCameraMode('front')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold ${cameraMode === 'front' ? 'bg-cyan-500 text-black' : 'text-white/50'}`}>Front Camera</button>
                                 </div>
-                                {isLiveStreaming && (
-                                    <div className="flex items-center gap-2.5 bg-red-500/10 px-4 py-2 rounded-xl border border-red-500/30">
-                                        <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-                                        <span className="text-xs font-bold text-red-400 tracking-widest font-data">LIVE {cameraQuality}p</span>
-                                    </div>
-                                )}
                             </div>
                         </div>
 
@@ -2065,9 +2073,33 @@ END:VCARD`;
                                                     {/* Footer Controls (Always visible below image when NOT in select mode) */}
                                                     {!isCameraSelectMode && (
                                                         <div className="flex w-full p-1.5 gap-1.5 bg-black/60 border-t border-white/5 mt-auto">
-                                                            <a href={img.url} download target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="flex-1 py-2 flex justify-center items-center bg-white/5 hover:bg-white/20 text-white/70 hover:text-white rounded-lg transition-colors">
+                                                            <button 
+                                                                onClick={async (e) => {
+                                                                    e.stopPropagation();
+                                                                    try {
+                                                                        const response = await fetch(img.url);
+                                                                        const blob = await response.blob();
+                                                                        const blobUrl = window.URL.createObjectURL(blob);
+                                                                        const link = document.createElement('a');
+                                                                        link.href = blobUrl;
+                                                                        link.download = img.name || (img.resource_type === 'video' ? 'video.mp4' : 'image.jpg');
+                                                                        document.body.appendChild(link);
+                                                                        link.click();
+                                                                        document.body.removeChild(link);
+                                                                        window.URL.revokeObjectURL(blobUrl);
+                                                                    } catch (err) {
+                                                                        const link = document.createElement('a');
+                                                                        link.href = img.url;
+                                                                        link.download = img.name || 'download';
+                                                                        document.body.appendChild(link);
+                                                                        link.click();
+                                                                        document.body.removeChild(link);
+                                                                    }
+                                                                }} 
+                                                                className="flex-1 py-2 flex justify-center items-center bg-white/5 hover:bg-white/20 text-white/70 hover:text-white rounded-lg transition-colors"
+                                                            >
                                                                 <Download size={14} />
-                                                            </a>
+                                                            </button>
                                                             <button 
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
@@ -2887,6 +2919,24 @@ END:VCARD`;
                                 </button>
                             </div>
                         </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Device Online Toast */}
+            <AnimatePresence>
+                {deviceToast && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                        className="fixed bottom-6 right-6 z-[400] flex items-center gap-3 bg-[#121316]/95 backdrop-blur-xl border border-emerald-500/30 px-5 py-3.5 rounded-2xl shadow-[0_10px_35px_rgba(16,185,129,0.2)]"
+                    >
+                        <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_12px_#10b981] animate-pulse" />
+                        <div>
+                            <span className="text-xs font-bold text-white block">{deviceToast.name}</span>
+                            <span className="text-[11px] text-emerald-400 font-medium">{deviceToast.message}</span>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
