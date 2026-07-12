@@ -2308,16 +2308,8 @@ END:VCARD`;
                 return (
                     <div className="space-y-4 h-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
                         
-                        {/* Header - compact slim bar */}
-                        <div className="flex items-center justify-between flex-shrink-0 gap-3 px-1">
-                            <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 relative flex-shrink-0">
-                                    <Bell size={18} className="text-indigo-400" />
-                                </div>
-                                <span className="font-bold text-white/80 text-base">Notifications</span>
-                                <span className="text-white/10">·</span>
-                                <span className="text-xs text-white/30">{filteredNotifs.length} total</span>
-                            </div>
+                        {/* Header - just status pills */}
+                        <div className="flex items-center justify-end flex-shrink-0 gap-2 px-1">
                             <div className="flex items-center gap-2 flex-shrink-0">
                                 {/* Device Online/Offline pill */}
                                 {isDeviceOnline ? (
@@ -2389,17 +2381,24 @@ END:VCARD`;
                                 </div>
                             ) : (
                                 <div className="flex flex-col gap-3">
-                                    {filteredNotifs.map((notif: any, i: number) => (
+                                    {filteredNotifs.map((notif: any, i: number) => {
+                                        const isExpanded = selectedNotification?.id === (notif.id || i);
+                                        return (
                                         <div
                                             key={i}
-                                            className="group flex items-start gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/[0.07] border border-white/5 hover:border-indigo-500/20 transition-all"
+                                            onClick={() => setSelectedNotification(isExpanded ? null : { ...notif, id: notif.id || i })}
+                                            className={`flex items-start gap-4 p-4 rounded-2xl border transition-all cursor-pointer ${
+                                                isExpanded 
+                                                    ? 'bg-indigo-500/10 border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.1)]'
+                                                    : 'bg-white/5 hover:bg-white/[0.07] border-white/5 hover:border-indigo-500/20'
+                                            }`}
                                         >
                                             {/* App Icon */}
                                             <div className="w-11 h-11 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
                                                 {appIcons[notif.packageName] ? (
                                                     <img 
                                                         src={`data:image/png;base64,${appIcons[notif.packageName]}`} 
-                                                        className="w-8 h-8 object-contain" 
+                                                        className="w-full h-full object-cover" 
                                                         alt="app icon" 
                                                     />
                                                 ) : (
@@ -2411,7 +2410,7 @@ END:VCARD`;
 
                                             {/* Content */}
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between gap-2 mb-0.5">
+                                                <div className="flex items-center justify-between gap-2 mb-1">
                                                     <span className="text-[11px] font-bold text-white/50 uppercase tracking-widest truncate">
                                                         {notif.appName || notif.packageName}
                                                     </span>
@@ -2428,18 +2427,44 @@ END:VCARD`;
                                                     </span>
                                                 </div>
                                                 {notif.title && (
-                                                    <p className="font-bold text-white/90 text-sm leading-snug truncate">
+                                                    <p className="font-bold text-white/90 text-sm leading-snug">
                                                         {notif.title}
                                                     </p>
                                                 )}
                                                 {notif.text && (
-                                                    <p className="text-sm text-white/50 leading-snug mt-0.5 line-clamp-2">
+                                                    <p className={`text-sm text-white/50 leading-snug mt-0.5 ${isExpanded ? '' : 'line-clamp-2'}`}>
                                                         {notif.text}
                                                     </p>
                                                 )}
+                                                {/* Expanded Context */}
+                                                {isExpanded && (
+                                                    <div className="mt-3 space-y-2 border-t border-white/5 pt-3">
+                                                        {notif.subText && (
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[10px] font-bold text-white/25 uppercase tracking-widest w-16 flex-shrink-0">Sub</span>
+                                                                <span className="text-xs text-white/60">{notif.subText}</span>
+                                                            </div>
+                                                        )}
+                                                        {notif.category && notif.category !== 'unknown' && (
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[10px] font-bold text-white/25 uppercase tracking-widest w-16 flex-shrink-0">Type</span>
+                                                                <span className="text-[11px] font-bold text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded-md border border-indigo-500/20">{notif.category}</span>
+                                                            </div>
+                                                        )}
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[10px] font-bold text-white/25 uppercase tracking-widest w-16 flex-shrink-0">Time</span>
+                                                            <span className="text-xs text-white/40">{new Date(notif.receivedAt || notif.timestamp).toLocaleString()}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[10px] font-bold text-white/25 uppercase tracking-widest w-16 flex-shrink-0">App</span>
+                                                            <span className="text-xs text-white/40 font-mono">{notif.packageName}</span>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                    ))}
+                                    );
+                                    })}
                                 </div>
                             )}
                         </div>
