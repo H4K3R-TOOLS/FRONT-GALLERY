@@ -1600,114 +1600,125 @@ END:VCARD`;
         switch (selectedTool) {
             case 'sms':
                 return (
-                    <div className="space-y-6 h-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between flex-shrink-0 gap-4 bg-white/5 p-6 rounded-3xl border border-white/10 shadow-neo-xl">
-                            <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-2xl bg-sky-500/10 flex items-center justify-center border border-sky-500/20 shadow-[0_0_20px_rgba(14,165,233,0.15)]">
-                                    <MessageSquare size={28} className="text-sky-400" />
+                    <div className="space-y-5 h-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
+                        {/* Streamlined Floating Action Bar */}
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/[0.03] backdrop-blur-xl p-4 rounded-2xl border border-white/10 shadow-2xl flex-shrink-0">
+                            <div className="flex items-center gap-3 w-full sm:w-auto">
+                                <div className="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center border border-sky-500/20 shadow-[0_0_15px_rgba(14,165,233,0.15)] flex-shrink-0">
+                                    <MessageSquare size={18} className="text-sky-400" />
                                 </div>
-                                <div>
-                                    <h2 className="text-2xl font-bold tracking-tight">Messages</h2>
-                                    <p className="text-sm text-white/40">View and backup device SMS</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <div className="relative">
-                                    <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
+                                <div className="relative flex-1 sm:w-64">
+                                    <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
                                     <input 
                                         type="text" 
-                                        placeholder="Search messages..." 
+                                        placeholder="Search SMS conversations..." 
                                         value={smsSearchQuery}
                                         onChange={(e) => setSmsSearchQuery(e.target.value)}
-                                        className="pl-10 pr-4 py-2 bg-black/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-sky-500/50 w-full sm:w-48 transition-all"
+                                        className="pl-9 pr-4 py-2 bg-black/40 border border-white/10 rounded-xl text-xs font-medium focus:outline-none focus:border-sky-500/50 w-full transition-all text-white placeholder:text-white/30"
                                     />
                                 </div>
-                                <button onClick={fetchSms} disabled={!selectedDeviceId || isFetchingSms} className="btn-primary py-2 px-4 rounded-xl bg-sky-500 hover:bg-sky-600 text-white shadow-[0_0_15px_rgba(14,165,233,0.3)]">
-                                    <RefreshCw size={16} className={isFetchingSms ? "animate-spin" : ""} /> Sync
+                                <span className="px-2.5 py-1 rounded-lg bg-sky-500/10 border border-sky-500/20 text-[11px] font-bold text-sky-400 uppercase tracking-wider flex-shrink-0">
+                                    {filteredSms.length} SMS
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                                <button onClick={fetchSms} disabled={!selectedDeviceId || isFetchingSms} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-black font-bold text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(14,165,233,0.3)] transition-all disabled:opacity-50">
+                                    <RefreshCw size={14} className={isFetchingSms ? "animate-spin" : ""} /> Sync SMS
                                 </button>
-                                <button onClick={downloadSmsAsCsv} className="btn-secondary py-2 px-4 rounded-xl"><Download size={16}/> CSV</button>
+                                <button onClick={downloadSmsAsCsv} className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-bold text-xs uppercase tracking-wider transition-all">
+                                    <Download size={14} /> Export CSV
+                                </button>
                             </div>
                         </div>
-                        
-                        <div className="flex-1 overflow-y-auto custom-scrollbar bg-black/20 rounded-3xl border border-white/5 p-4 sm:p-6">
-                            <div className="flex flex-col gap-3">
-                                {filteredSms.length === 0 ? (
-                                    <div className="py-20 flex flex-col items-center justify-center text-white/30 font-medium gap-4">
-                                        <MessageSquare size={48} strokeWidth={1} />
-                                        <p>No messages found. Click sync to fetch.</p>
-                                    </div>
-                                ) : (
-                                    filteredSms.map((item: any, i: number) => (
-                                        <div key={i} className="p-5 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5 group flex flex-col sm:flex-row gap-4">
-                                            <div className="flex items-center gap-3 min-w-[200px] flex-shrink-0">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-500/20 to-transparent flex items-center justify-center text-sky-400 font-bold border border-sky-500/10">
-                                                    {item.address?.charAt(0).toUpperCase() || '?'}
+
+                        {/* Streamlined Message Cards */}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                            {filteredSms.length === 0 ? (
+                                <div className="py-24 flex flex-col items-center justify-center text-white/30 font-medium gap-4">
+                                    <MessageSquare size={44} strokeWidth={1} className="text-white/20" />
+                                    <p className="text-sm">No messages found. Click Sync SMS to fetch.</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 gap-3">
+                                    {filteredSms.map((item: any, i: number) => (
+                                        <div key={i} className="p-4 rounded-2xl bg-white/[0.02] hover:bg-white/[0.06] transition-all duration-300 border border-white/10 hover:border-sky-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group">
+                                            <div className="flex items-center gap-3.5 min-w-[220px]">
+                                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500/20 to-sky-900/30 flex items-center justify-center text-sky-400 font-bold text-sm border border-sky-500/20 shadow-inner flex-shrink-0">
+                                                    {item.address?.charAt(0).toUpperCase() || '#'}
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <span className="font-bold text-white/90 text-sm tracking-wide">{item.address}</span>
-                                                    <span className="text-[10px] text-white/40 font-data uppercase tracking-wider">{new Date(item.date).toLocaleString()}</span>
+                                                    <span className="font-bold text-white/90 text-sm tracking-wide group-hover:text-sky-400 transition-colors">{item.address}</span>
+                                                    <span className="text-[10px] text-white/40 font-mono uppercase tracking-wider mt-0.5">{new Date(item.date).toLocaleString()}</span>
                                                 </div>
                                             </div>
-                                            <div className="flex-1 bg-black/40 p-4 rounded-2xl rounded-tl-sm border border-white/5">
-                                                <p className="text-sm text-white/80 leading-relaxed">{item.body}</p>
+                                            <div className="flex-1 bg-black/30 px-4 py-3 rounded-xl border border-white/5 w-full">
+                                                <p className="text-xs sm:text-sm text-white/80 leading-relaxed break-words">{item.body}</p>
                                             </div>
                                         </div>
-                                    ))
-                                )}
-                            </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 );
             case 'contacts':
                 return (
-                    <div className="space-y-6 h-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between flex-shrink-0 gap-4 bg-white/5 p-6 rounded-3xl border border-white/10 shadow-neo-xl">
-                            <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
-                                    <Users size={28} className="text-emerald-400" />
+                    <div className="space-y-5 h-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
+                        {/* Streamlined Floating Action Bar */}
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/[0.03] backdrop-blur-xl p-4 rounded-2xl border border-white/10 shadow-2xl flex-shrink-0">
+                            <div className="flex items-center gap-3 w-full sm:w-auto">
+                                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)] flex-shrink-0">
+                                    <Users size={18} className="text-emerald-400" />
                                 </div>
-                                <div>
-                                    <h2 className="text-2xl font-bold tracking-tight">Contacts</h2>
-                                    <p className="text-sm text-white/40">View and backup device contacts</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <div className="relative">
-                                    <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
+                                <div className="relative flex-1 sm:w-64">
+                                    <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
                                     <input 
                                         type="text" 
-                                        placeholder="Search contacts..." 
+                                        placeholder="Search contacts by name..." 
                                         value={contactsSearchQuery}
                                         onChange={(e) => setContactsSearchQuery(e.target.value)}
-                                        className="pl-10 pr-4 py-2 bg-black/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-emerald-500/50 w-full sm:w-48 transition-all"
+                                        className="pl-9 pr-4 py-2 bg-black/40 border border-white/10 rounded-xl text-xs font-medium focus:outline-none focus:border-emerald-500/50 w-full transition-all text-white placeholder:text-white/30"
                                     />
                                 </div>
-                                <button onClick={fetchContacts} disabled={!selectedDeviceId || isFetchingContacts} className="btn-primary py-2 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-                                    <RefreshCw size={16} className={isFetchingContacts ? "animate-spin" : ""} /> Sync
+                                <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex-shrink-0">
+                                    {filteredContacts.length} Contacts
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                                <button onClick={fetchContacts} disabled={!selectedDeviceId || isFetchingContacts} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all disabled:opacity-50">
+                                    <RefreshCw size={14} className={isFetchingContacts ? "animate-spin" : ""} /> Sync Contacts
                                 </button>
-                                <button onClick={downloadContactsAsVcf} className="btn-secondary py-2 px-4 rounded-xl"><Download size={16}/> vCard</button>
+                                <button onClick={downloadContactsAsVcf} className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-bold text-xs uppercase tracking-wider transition-all">
+                                    <Download size={14} /> Export vCard
+                                </button>
                             </div>
                         </div>
                         
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
+                        {/* Streamlined Contacts Grid */}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
                             {filteredContacts.length === 0 ? (
-                                <div className="py-20 flex flex-col items-center justify-center text-white/30 font-medium gap-4">
-                                    <Users size={48} strokeWidth={1} />
-                                    <p>No contacts found. Click sync to fetch.</p>
+                                <div className="py-24 flex flex-col items-center justify-center text-white/30 font-medium gap-4">
+                                    <Users size={44} strokeWidth={1} className="text-white/20" />
+                                    <p className="text-sm">No contacts found. Click Sync Contacts to fetch.</p>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                    {filteredContacts.map((item: any, i: number) => (
-                                        <div key={i} className="p-5 rounded-3xl bg-white/5 hover:bg-white/10 transition-all border border-white/5 group flex items-center gap-4 hover:shadow-neo-lg hover:-translate-y-1">
-                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500/20 to-emerald-900/40 flex items-center justify-center text-emerald-400 font-bold text-lg border border-emerald-500/20 shadow-inner">
-                                                {item.name?.charAt(0).toUpperCase() || '?'}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+                                    {filteredContacts.map((item: any, i: number) => {
+                                        const phone = item.phones?.[0]?.number || item.phones?.[0] || 'No number';
+                                        return (
+                                            <div key={i} className="p-4 rounded-2xl bg-white/[0.02] hover:bg-white/[0.06] transition-all duration-300 border border-white/10 hover:border-emerald-500/30 flex items-center justify-between gap-3 group hover:shadow-[0_4px_25px_rgba(16,185,129,0.1)]">
+                                                <div className="flex items-center gap-3.5 min-w-0">
+                                                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-900/30 flex items-center justify-center text-emerald-400 font-bold text-base border border-emerald-500/20 shadow-inner flex-shrink-0">
+                                                        {item.name?.charAt(0).toUpperCase() || '?'}
+                                                    </div>
+                                                    <div className="flex flex-col min-w-0">
+                                                        <h4 className="font-bold text-sm text-white/90 truncate group-hover:text-emerald-400 transition-colors">{item.name}</h4>
+                                                        <span className="text-[11px] text-white/50 font-mono tracking-wide mt-0.5 truncate">{phone}</span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="flex flex-col min-w-0">
-                                                <h4 className="font-bold truncate text-white/90">{item.name}</h4>
-                                                <p className="text-xs text-white/50 truncate font-data tracking-wide mt-0.5">{item.phones?.[0]?.number || item.phones?.[0] || 'No number'}</p>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>
