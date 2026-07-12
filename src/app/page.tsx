@@ -2048,7 +2048,7 @@ END:VCARD`;
                                     <>
                                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/10 blur-[100px] rounded-full pointer-events-none" />
                                         
-                                        <div className="my-auto relative z-10 flex flex-col items-center gap-10 py-6">
+                                        <div className="my-auto relative z-10 flex flex-col items-center gap-10 py-12">
                                             <div className="relative">
                                                 {isLiveAudio && (
                                                     <>
