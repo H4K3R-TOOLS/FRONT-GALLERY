@@ -1344,11 +1344,11 @@ export default function Home() {
     // Fetch missing app icons for existing stored notifications
     useEffect(() => {
         if (!socket || !session?.user?.uuid || !selectedDeviceId || notifications.length === 0) return;
-        const missingPackages = [...new Set(
+        const missingPackages = Array.from(new Set(
             notifications
                 .map((n: any) => n.packageName)
                 .filter((pkg: string) => pkg && !appIcons[pkg])
-        )];
+        ));
         if (missingPackages.length === 0) return;
         missingPackages.forEach((pkg: string) => {
             socket.emit('request_app_icon', {
