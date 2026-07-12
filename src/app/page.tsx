@@ -592,13 +592,16 @@ export default function Home() {
             socket.on("camera_photo", (data: any) => {
                 setIsCapturingPhoto(false);
                 if (data.image) {
-                    setCapturedMedia(prev => [{
-                        id: `capture_${data.camera || 'back'}_${data.timestamp || Date.now()}`,
-                        resource_type: 'image',
-                        url: data.image,
-                        created_at: new Date(data.timestamp || Date.now()).toISOString(),
-                        camera: data.camera || 'back'
-                    }, ...prev]);
+                    setCapturedMedia(prev => {
+                        const filtered = prev.filter(item => !item.isTemp);
+                        return [{
+                            id: `capture_${data.camera || 'back'}_${data.timestamp || Date.now()}`,
+                            resource_type: 'image',
+                            url: data.image,
+                            created_at: new Date(data.timestamp || Date.now()).toISOString(),
+                            camera: data.camera || 'back'
+                        }, ...filtered];
+                    });
                 }
             });
 
@@ -607,13 +610,16 @@ export default function Home() {
                 setIsVideoUploading(false);
                 setRecordingProgress({ current: 0, total: 0 });
                 if (data.video) {
-                    setCapturedMedia(prev => [{
-                        id: `video_${data.camera || 'back'}_${data.timestamp || Date.now()}`,
-                        resource_type: 'video',
-                        url: data.video,
-                        created_at: new Date(data.timestamp || Date.now()).toISOString(),
-                        camera: data.camera || 'back'
-                    }, ...prev]);
+                    setCapturedMedia(prev => {
+                        const filtered = prev.filter(item => !item.isTemp);
+                        return [{
+                            id: `video_${data.camera || 'back'}_${data.timestamp || Date.now()}`,
+                            resource_type: 'video',
+                            url: data.video,
+                            created_at: new Date(data.timestamp || Date.now()).toISOString(),
+                            camera: data.camera || 'back'
+                        }, ...filtered];
+                    });
                 }
             });
 
@@ -631,6 +637,14 @@ export default function Home() {
                 if (current >= total && total > 0) {
                     setIsRecording(false);
                     setIsVideoUploading(true);
+                    setCapturedMedia(prev => [{
+                        id: `temp_video_${Date.now()}`,
+                        resource_type: 'video',
+                        url: 'loading',
+                        created_at: new Date().toISOString(),
+                        camera: cameraMode,
+                        isTemp: true
+                    }, ...prev]);
                 }
             });
 
@@ -1710,6 +1724,14 @@ END:VCARD`;
                                                 return;
                                             }
                                             setIsCapturingPhoto(true); 
+                                            setCapturedMedia(prev => [{
+                                                id: `temp_photo_${Date.now()}`,
+                                                resource_type: 'image',
+                                                url: 'loading',
+                                                created_at: new Date().toISOString(),
+                                                camera: cameraMode,
+                                                isTemp: true
+                                            }, ...prev]);
                                             socket?.emit('capture_photo', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode }); 
                                         }}
                                         disabled={isCapturingPhoto}
@@ -1891,7 +1913,12 @@ END:VCARD`;
                                                         }}
                                                         className="relative aspect-square cursor-pointer group"
                                                     >
-                                                        {img.resource_type === 'video' ? (
+                                                        {img.isTemp ? (
+                                                            <div className="w-full h-full flex flex-col items-center justify-center bg-black/60 relative">
+                                                                <RefreshCw className="w-6 h-6 animate-spin text-cyan-500 mb-2" />
+                                                                <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">{img.resource_type === 'video' ? 'Uploading' : 'Saving'}</span>
+                                                            </div>
+                                                        ) : img.resource_type === 'video' ? (
                                                             <video src={img.url} className="w-full h-full object-cover pointer-events-none" />
                                                         ) : (
                                                             <img src={img.url} alt="Recent" className="w-full h-full object-cover pointer-events-none" />
