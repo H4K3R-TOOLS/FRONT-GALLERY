@@ -2474,11 +2474,35 @@ END:VCARD`;
                                                         {notif.title}
                                                     </p>
                                                 )}
-                                                {/* Row 3: Muted body */}
+                                                {/* Row 3: Structured / Multi-message Body */}
                                                 {notif.text && (
-                                                    <p className={`text-sm text-white/50 leading-snug mt-0.5 ${isExpanded ? '' : 'line-clamp-2'}`}>
-                                                        {notif.text}
-                                                    </p>
+                                                    <div className="mt-2 space-y-1.5">
+                                                        {String(notif.text).split('\n').map((line: string, lineIdx: number) => {
+                                                            if (!line.trim()) return null;
+                                                            const colonIdx = line.indexOf(':');
+                                                            const isMessageLike = colonIdx > 0 && colonIdx < 30;
+                                                            const sender = isMessageLike ? line.substring(0, colonIdx).trim() : null;
+                                                            const content = isMessageLike ? line.substring(colonIdx + 1).trim() : line;
+                                                            return (
+                                                                <div 
+                                                                    key={lineIdx} 
+                                                                    className="bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2 text-sm transition-all"
+                                                                >
+                                                                    {sender && (
+                                                                        <span 
+                                                                            className="font-bold text-xs block mb-0.5" 
+                                                                            style={{ color: accentColor.text }}
+                                                                        >
+                                                                            {sender}
+                                                                        </span>
+                                                                    )}
+                                                                    <span className="text-white/80 leading-relaxed whitespace-pre-wrap break-words">
+                                                                        {content}
+                                                                    </span>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
                                                 )}
                                                 {/* Expanded Context */}
                                                 {isExpanded && (
