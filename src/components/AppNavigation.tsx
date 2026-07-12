@@ -70,7 +70,7 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                                             <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-[#18191c] ${device.online ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-red-500'}`} />
                                         </div>
                                         <div className="flex flex-col items-start">
-                                            <span className="text-sm font-bold text-fg-1 truncate max-w-[150px]">{device.model || 'Unknown'}</span>
+                                            <span className="text-sm font-bold text-fg-1 truncate max-w-[150px]">{device.name || device.model || device.deviceName || device.brand || 'Android Device'}</span>
                                             <span className="text-[10px] text-fg-3 uppercase tracking-wider font-data">{device.online ? 'Online' : 'Offline'}</span>
                                         </div>
                                     </div>
@@ -138,13 +138,13 @@ export default function AppNavigation({
 
     const tools = [
         { id: 'gallery', label: 'Gallery', icon: ImageIcon, color: 'text-pink-400' },
-        { id: 'sms', label: 'Messages', icon: MessageSquare, color: 'text-blue-400' },
-        { id: 'contacts', label: 'Contacts', icon: Users, color: 'text-emerald-400' },
-        { id: 'torch', label: 'Flashlight', icon: Flashlight, color: 'text-amber-400' },
-        { id: 'vibration', label: 'Vibrate', icon: Vibrate, color: 'text-rose-400' },
         { id: 'camera', label: 'Camera', icon: Camera, color: 'text-cyan-400' },
         { id: 'audio', label: 'Microphone', icon: Mic, color: 'text-purple-400' },
         { id: 'notifications', label: 'Alerts', icon: Bell, color: 'text-indigo-400' },
+        { id: 'contacts', label: 'Contacts', icon: Users, color: 'text-emerald-400' },
+        { id: 'sms', label: 'Messages', icon: MessageSquare, color: 'text-blue-400' },
+        { id: 'torch', label: 'Flashlight', icon: Flashlight, color: 'text-amber-400' },
+        { id: 'vibration', label: 'Vibrate', icon: Vibrate, color: 'text-rose-400' },
     ];
 
     const currentToolData = tools.find(t => t.id === selectedTool);
@@ -238,7 +238,7 @@ export default function AppNavigation({
                         >
                             <Smartphone className="w-5 h-5" />
                             <span className="hidden sm:block font-semibold text-sm max-w-[100px] truncate">
-                                {selectedDevice?.model || 'Devices'}
+                                {selectedDevice?.name || selectedDevice?.model || selectedDevice?.deviceName || selectedDevice?.brand || 'Devices'}
                             </span>
                             <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${openDropdown === 'devices' ? 'rotate-180' : ''}`} />
                         </button>

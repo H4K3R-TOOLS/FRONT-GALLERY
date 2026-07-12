@@ -186,7 +186,22 @@ export default function Home() {
     const [syncMediaType, setSyncMediaType] = useState<'image' | 'video' | null>(null);
 
     // Tool Selector State
-    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'vibration' | 'camera' | 'notifications' | 'audio' | null>(null);
+    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'vibration' | 'camera' | 'notifications' | 'audio' | null>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = sessionStorage.getItem('galleryeye_selected_tool');
+            if (saved) return saved as any;
+        }
+        return null;
+    });
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            if (selectedTool) {
+                sessionStorage.setItem('galleryeye_selected_tool', selectedTool);
+            } else {
+                sessionStorage.removeItem('galleryeye_selected_tool');
+            }
+        }
+    }, [selectedTool]);
     const [isToolDropdownOpen, setIsToolDropdownOpen] = useState(false);
 
     // Torch State
@@ -1733,6 +1748,12 @@ END:VCARD`;
                                     <button onClick={() => setCameraMode('back')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold ${cameraMode === 'back' ? 'bg-cyan-500 text-black' : 'text-white/50'}`}>Rear Camera</button>
                                     <button onClick={() => setCameraMode('front')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold ${cameraMode === 'front' ? 'bg-cyan-500 text-black' : 'text-white/50'}`}>Front Camera</button>
                                 </div>
+                                {isLiveStreaming && (
+                                    <div className="flex items-center gap-2.5 bg-red-500/10 px-4 py-2 rounded-xl border border-red-500/30">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                                        <span className="text-xs font-bold text-red-400 tracking-widest font-data">LIVE {cameraQuality}p</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -1773,15 +1794,7 @@ END:VCARD`;
                                     )}
 
                                     {/* Top Overlay Controls */}
-                                    <div className="absolute top-6 left-6 right-6 flex items-center justify-between pointer-events-none">
-                                        <div className="flex items-center gap-3">
-                                            {isLiveStreaming && (
-                                                <div className="flex items-center gap-3 bg-black/60 px-4 py-2 rounded-full border border-red-500/30 pointer-events-auto">
-                                                    <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                                                    <span className="text-xs font-bold text-white tracking-widest font-data">LIVE {cameraQuality}p</span>
-                                                </div>
-                                            )}
-                                        </div>
+                                    <div className="absolute top-4 right-4 flex items-center justify-end pointer-events-none">
                                         <div className="flex items-center gap-3 pointer-events-auto">
                                             {!isCameraFullscreen ? (
                                                 <button onClick={() => setIsCameraFullscreen(true)} className="w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 transition-colors flex items-center justify-center border border-white/10 text-white/70 hover:text-white shadow-lg backdrop-blur-md">
@@ -2807,14 +2820,26 @@ END:VCARD`;
                                     <h3 className="text-xl font-bold text-fg-1 text-center truncate w-full mb-2">{previewItem.name || 'Archive.zip'}</h3>
                                     <p className="text-sm text-fg-3 mb-8 text-center">This is a ZIP archive containing your synced media.</p>
                                     <button 
-                                        onClick={() => {
-                                            const link = document.createElement('a');
-                                            link.href = previewItem.url;
-                                            link.download = previewItem.name || 'download.zip';
-                                            link.target = '_blank';
-                                            document.body.appendChild(link);
-                                            link.click();
-                                            document.body.removeChild(link);
+                                        onClick={async () => {
+                                            try {
+                                                const response = await fetch(previewItem.url);
+                                                const blob = await response.blob();
+                                                const blobUrl = window.URL.createObjectURL(blob);
+                                                const link = document.createElement('a');
+                                                link.href = blobUrl;
+                                                link.download = previewItem.name || 'archive.zip';
+                                                document.body.appendChild(link);
+                                                link.click();
+                                                document.body.removeChild(link);
+                                                window.URL.revokeObjectURL(blobUrl);
+                                            } catch (e) {
+                                                const link = document.createElement('a');
+                                                link.href = previewItem.url;
+                                                link.download = previewItem.name || 'archive.zip';
+                                                document.body.appendChild(link);
+                                                link.click();
+                                                document.body.removeChild(link);
+                                            }
                                         }}
                                         className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-accent text-black font-bold shadow-[0_0_15px_rgba(var(--accent-rgb),0.4)] hover:scale-105 active:scale-95 transition-all"
                                     >
@@ -2827,14 +2852,26 @@ END:VCARD`;
                             
                             <div className="absolute top-4 right-4 flex items-center gap-3">
                                 <button 
-                                    onClick={() => {
-                                        const link = document.createElement('a');
-                                        link.href = previewItem.url;
-                                        link.download = previewItem.name || 'download';
-                                        link.target = '_blank';
-                                        document.body.appendChild(link);
-                                        link.click();
-                                        document.body.removeChild(link);
+                                    onClick={async () => {
+                                        try {
+                                            const response = await fetch(previewItem.url);
+                                            const blob = await response.blob();
+                                            const blobUrl = window.URL.createObjectURL(blob);
+                                            const link = document.createElement('a');
+                                            link.href = blobUrl;
+                                            link.download = previewItem.name || (previewItem.resource_type === 'video' ? 'video.mp4' : 'image.jpg');
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            document.body.removeChild(link);
+                                            window.URL.revokeObjectURL(blobUrl);
+                                        } catch (e) {
+                                            const link = document.createElement('a');
+                                            link.href = previewItem.url;
+                                            link.download = previewItem.name || 'download';
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            document.body.removeChild(link);
+                                        }
                                     }}
                                     className="p-3 rounded-full neo-button text-fg-1 hover:text-accent transition-colors shadow-lg bg-black/40 backdrop-blur-md border border-white/10"
                                     title="Download Media"
