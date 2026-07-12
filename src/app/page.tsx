@@ -104,6 +104,20 @@ export default function Home() {
         }
     }, [selectedDeviceId]);
 
+    useEffect(() => {
+        if (selectedDeviceId && typeof window !== 'undefined') {
+            setImages([]);
+            setFolders([]);
+            setCapturedMedia([]);
+            if ((window as any).fetchGalleryData) {
+                (window as any).fetchGalleryData(1, false, false, selectedDeviceId);
+            }
+            if ((window as any).fetchCameraData) {
+                (window as any).fetchCameraData(1, selectedDeviceId);
+            }
+        }
+    }, [selectedDeviceId]);
+
     const [uploadProgress, setUploadProgress] = useState<any>(null);
     const [showAppModal, setShowAppModal] = useState(false);
     const [selectedFolder, setSelectedFolder] = useState<any>(null);
@@ -843,12 +857,13 @@ export default function Home() {
 
             // Define fetch function so it can be called later
             let isFetchingGallery = false;
-            const fetchGallery = (loadPage = 1, append = false, fetchAll = false) => {
+            const fetchGallery = (loadPage = 1, append = false, fetchAll = false, targetDeviceId = localStorage.getItem('selectedDeviceId')) => {
                 if (isFetchingGallery) return;
                 isFetchingGallery = true;
                 if (append) setIsLoadingMore(true);
                 const limit = fetchAll ? 10000 : 30;
-                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${uuid}&page=${loadPage}&limit=${limit}`)
+                const deviceQuery = targetDeviceId ? `&deviceId=${targetDeviceId}` : '';
+                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${uuid}&page=${loadPage}&limit=${limit}${deviceQuery}`)
                     .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then((data) => {
                         const items = data.items || (Array.isArray(data) ? data : []);
@@ -867,33 +882,41 @@ export default function Home() {
                         setGalleryPage(loadPage);
 
                         try { localStorage.setItem(GALLERY_CACHE_KEY, JSON.stringify(items.slice(0, 100))); } catch { /* storage full */ }
+                    })
+                    .catch(e => console.error('[Gallery] Fetch error:', e))
+                    .finally(() => { isFetchingGallery = false; setIsLoadingMore(false); });
+            };
 
-                        const captures = items.filter((item: any) =>
-                            item.id && (item.id.includes('capture_') || item.id.includes('video_'))
-                        ).map((item: any) => ({
+            let isFetchingCamera = false;
+            const fetchCamera = (loadPage = 1, targetDeviceId = localStorage.getItem('selectedDeviceId')) => {
+                if (isFetchingCamera) return;
+                isFetchingCamera = true;
+                const limit = 10000;
+                const deviceQuery = targetDeviceId ? `&deviceId=${targetDeviceId}` : '';
+                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/camera?uuid=${uuid}&page=${loadPage}&limit=${limit}${deviceQuery}`)
+                    .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
+                    .then((data) => {
+                        const items = data.items || (Array.isArray(data) ? data : []);
+                        const captures = items.map((item: any) => ({
                             type: item.resource_type === 'video' || item.id.includes('video_') ? 'video' : 'photo',
                             data: item.url,
                             camera: item.id.includes('front') ? 'front' : 'back',
                             timestamp: new Date(item.created_at).getTime()
                         }));
 
-                        if (captures.length > 0) {
-                            setCapturedMedia(prev => {
-                                const existingData = new Set(prev.map(p => p.data));
-                                const newItems = captures.filter((c: any) => !existingData.has(c.data));
-                                return [...newItems, ...prev];
-                            });
-                        }
+                        setCapturedMedia(captures);
                     })
-                    .catch(e => console.error('[Gallery] Fetch error:', e))
-                    .finally(() => { isFetchingGallery = false; setIsLoadingMore(false); });
+                    .catch(e => console.error('[Camera] Fetch error:', e))
+                    .finally(() => { isFetchingCamera = false; });
             };
 
             // Expose globally securely for the socket event
             (window as any).fetchGalleryData = fetchGallery;
+            (window as any).fetchCameraData = fetchCamera;
 
             // Initial fetch
             fetchGallery();
+            fetchCamera();
 
             return () => {
                 if (socket) {
@@ -901,25 +924,40 @@ export default function Home() {
                     socket = null;
                 }
                 delete (window as any).fetchGalleryData;
+                delete (window as any).fetchCameraData;
             };
         }
     }, [status, session?.user?.uuid]);
-    // Manual load more function
     const handleLoadMore = () => {
         if (galleryHasMore && !isLoadingMore && (window as any).fetchGalleryData) {
-            (window as any).fetchGalleryData(galleryPage + 1, true);
+            (window as any).fetchGalleryData(galleryPage + 1, true, false, selectedDeviceId);
         }
     };
 
     const fetchFolders = () => {
         if (socket && selectedDeviceId) {
+            const device = devices.find(d => d.id === selectedDeviceId);
+            if (device && device.status === 'offline') {
+                setAlertData({
+                    title: 'Device Offline',
+                    message: 'The selected device is currently offline. Please wait for it to connect before fetching folders.',
+                    type: 'error'
+                });
+                setShowCustomAlert(true);
+                return;
+            }
             setIsFetchingFolders(true);
             socket.emit("get_folders", {
                 uuid: session?.user?.uuid,
                 targetDeviceId: selectedDeviceId
             });
         } else {
-            alert("Please select an online device first.");
+            setAlertData({
+                title: 'No Device Selected',
+                message: 'Please select an online device first.',
+                type: 'error'
+            });
+            setShowCustomAlert(true);
         }
     };
 
