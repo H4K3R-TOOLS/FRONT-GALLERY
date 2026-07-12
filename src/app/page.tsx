@@ -237,7 +237,7 @@ export default function Home() {
     // App filter definitions for notification section
     const notifAppFilters = [
         { key: 'all', label: 'All', packages: [], color: '#06b6d4', img: '' },
-        { key: 'whatsapp', label: 'WhatsApp', packages: ['com.whatsapp'], color: '#25D366', img: 'https://img.icons8.com/color/48/000000/whatsapp--v1.png' },
+        { key: 'whatsapp', label: 'WhatsApp', packages: ['com.whatsapp', 'com.whatsapp.w4b'], color: '#25D366', img: 'https://img.icons8.com/color/48/000000/whatsapp--v1.png' },
         { key: 'facebook', label: 'Facebook', packages: ['com.facebook.katana', 'com.facebook.orca', 'com.facebook.lite'], color: '#1877F2', img: 'https://img.icons8.com/color/48/000000/facebook-new.png' },
         { key: 'instagram', label: 'Instagram', packages: ['com.instagram.android'], color: '#E4405F', img: 'https://img.icons8.com/fluency/48/000000/instagram-new.png' },
         { key: 'whatsapp_business', label: 'WA Biz', packages: ['com.whatsapp.w4b'], color: '#128C7E', img: 'https://img.icons8.com/color/48/000000/whatsapp--v1.png' },
@@ -2327,7 +2327,7 @@ END:VCARD`;
                 const selectedDevice = devices.find(d => d.deviceId === selectedDeviceId);
                 const isDeviceOnline = selectedDevice?.online ?? false;
                 const filteredNotifs = notifications.filter(n => {
-                    const deviceMatch = !n.deviceId || n.deviceId === selectedDeviceId;
+                    const deviceMatch = !n.deviceId || n.deviceId === 'unknown' || !selectedDeviceId || n.deviceId === selectedDeviceId;
                     const appMatch = selectedNotifApp === 'all' || 
                         notifAppFilters.find(f => f.key === selectedNotifApp)?.packages.includes(n.packageName);
                     return deviceMatch && appMatch;
