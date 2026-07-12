@@ -869,14 +869,19 @@ export default function Home() {
                         const items = data.items || (Array.isArray(data) ? data : []);
                         const hasMore = data.hasMore !== undefined ? data.hasMore : false;
 
+                        // Filter out camera captures from the gallery feed
+                        const galleryItems = items.filter((item: any) => 
+                            !(item.id && (item.id.includes('capture_') || item.id.includes('video_')))
+                        );
+
                         if (append) {
                             setImages(prev => {
                                 const existingIds = new Set(prev.map((i: any) => i.id));
-                                const newItems = items.filter((i: any) => !existingIds.has(i.id));
+                                const newItems = galleryItems.filter((i: any) => !existingIds.has(i.id));
                                 return [...prev, ...newItems];
                             });
                         } else {
-                            setImages(items);
+                            setImages(galleryItems);
                         }
                         setGalleryHasMore(hasMore);
                         setGalleryPage(loadPage);
@@ -936,8 +941,8 @@ export default function Home() {
 
     const fetchFolders = () => {
         if (socket && selectedDeviceId) {
-            const device = devices.find(d => d.id === selectedDeviceId);
-            if (device && device.status === 'offline') {
+            const device = devices.find(d => d.deviceId === selectedDeviceId);
+            if (!device?.online) {
                 setAlertData({
                     title: 'Device Offline',
                     message: 'The selected device is currently offline. Please wait for it to connect before fetching folders.',
