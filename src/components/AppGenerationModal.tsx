@@ -73,6 +73,16 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [downloadUrl, setDownloadUrl] = useState("");
     const [queuePosition, setQueuePosition] = useState(0);
 
+    // Ref for the main scrollable content area to reset scroll to top on tab switch
+    const contentScrollRef = useRef<HTMLDivElement>(null);
+
+    // Auto reset scroll position to very top (scrollTop = 0) whenever activeStep or isOpen changes
+    useEffect(() => {
+        if (contentScrollRef.current) {
+            contentScrollRef.current.scrollTo({ top: 0, behavior: 'instant' });
+        }
+    }, [activeStep, isOpen]);
+
     // Selected Preset State
     const [selectedPreset, setSelectedPreset] = useState<string>('custom');
 
@@ -537,7 +547,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                         </button>
                     </div>
 
-                    {/* Bottom row: Perfectly Balanced Responsive Stepper Bar (Never wraps or squeezes on mobile!) */}
+                    {/* Bottom row: Perfectly Balanced Responsive Stepper Bar (Instant toggle, ZERO trailing blink/flicker) */}
                     <div className="px-3 pb-3.5">
                         <div className="flex items-center justify-between gap-1 sm:gap-2 p-1.5 rounded-2xl bg-black/50 border border-white/10">
                             {[
@@ -551,13 +561,13 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         key={item.id}
                                         type="button"
                                         onClick={() => setActiveStep(item.id as any)}
-                                        className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 sm:px-3.5 rounded-xl transition-all duration-200 ${
+                                        className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 sm:px-3.5 rounded-xl border ${
                                             isActive
-                                                ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-300 border border-emerald-500/60 shadow-[0_0_16px_rgba(16,185,129,0.22)] font-extrabold'
-                                                : 'text-fg-3 hover:text-white hover:bg-white/[0.04]'
+                                                ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-300 border-emerald-500/60 shadow-[0_0_16px_rgba(16,185,129,0.22)] font-extrabold'
+                                                : 'border-transparent text-fg-3 hover:text-white hover:bg-white/[0.04]'
                                         }`}
                                     >
-                                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black flex-shrink-0 transition-colors ${
+                                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black flex-shrink-0 ${
                                             isActive ? 'bg-emerald-400 text-black shadow-sm' : 'bg-white/10 text-fg-3'
                                         }`}>
                                             {item.stepNum}
@@ -572,8 +582,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     </div>
                 </div>
 
-                {/* Main Content Area */}
-                <div className="p-5 sm:p-7 overflow-y-auto flex-1 space-y-6 custom-scrollbar">
+                {/* Main Content Area - Auto scrolls to top on tab switch via contentScrollRef */}
+                <div ref={contentScrollRef} className="p-5 sm:p-7 overflow-y-auto flex-1 space-y-6 custom-scrollbar">
                     
                     {/* STEP 1: APPLICATION MODES & PRESETS */}
                     {activeStep === 'identity' && (
