@@ -200,7 +200,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         setIsStyleMenuOpen(false);
     };
 
-    // Exactly ordered: 1st App Info, 2nd Do Nothing, then system settings, etc. (Removed launch app link)
+    // Exactly ordered: 1st App Info, 2nd Do Nothing, then system settings, etc.
     const CLICK_ACTIONS: Record<string, { label: string; desc: string }> = {
         device_info: { label: "Open App Info & Permissions", desc: "Opens Android system App Info & Permissions screen" },
         none: { label: "Do Nothing (Silent Background)", desc: "Ignores taps, keeps notification running silently in drawer" },
@@ -1028,12 +1028,12 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     )}
                                 </div>
 
-                                {/* Glowing Highlighted Custom UI Dropdown Selector for On-Click Action ("Open Device System Settings highlighted & glowing") */}
+                                {/* Subtly Balanced Custom UI Dropdown Selector for On-Click Action ("thoda sa highlight matalb jaisa baki hain waisa hi thora sa") */}
                                 <div className="relative">
-                                    <label className="block text-xs font-bold text-emerald-300 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                                    <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-2 flex items-center justify-between">
                                         <span>When User Taps Notification</span>
-                                        <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-extrabold">
-                                            ACTION
+                                        <span className="text-[10px] font-semibold text-emerald-400/80">
+                                            Tap Action
                                         </span>
                                     </label>
                                     
@@ -1044,27 +1044,27 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             setIsStyleMenuOpen(false);
                                             setIsIconMenuOpen(false);
                                         }}
-                                        className="w-full bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 border border-emerald-400/60 hover:border-emerald-300 rounded-2xl p-4 flex items-center justify-between text-left transition-all shadow-[0_0_20px_rgba(16,185,129,0.25)] scale-[1.005]"
+                                        className="w-full bg-black/60 border border-white/15 hover:border-emerald-500/40 rounded-2xl p-3.5 flex items-center justify-between text-left transition-all"
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300 shadow-inner">
-                                                <MousePointerClick size={18} />
+                                            <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-emerald-300">
+                                                <MousePointerClick size={16} />
                                             </div>
                                             <div>
-                                                <div className="text-xs font-extrabold text-white tracking-wide">
+                                                <div className="text-xs font-bold text-white">
                                                     {CLICK_ACTIONS[notificationClickAction]?.label || "Open App Info & Permissions"}
                                                 </div>
-                                                <div className="text-[11px] text-emerald-200/80">
+                                                <div className="text-[11px] text-fg-4">
                                                     {CLICK_ACTIONS[notificationClickAction]?.desc || "Opens Android system App Info & Permissions screen"}
                                                 </div>
                                             </div>
                                         </div>
-                                        <ChevronDown size={18} className={`text-emerald-300 transition-transform ${isActionMenuOpen ? 'rotate-180' : ''}`} />
+                                        <ChevronDown size={18} className={`text-fg-3 transition-transform ${isActionMenuOpen ? 'rotate-180' : ''}`} />
                                     </button>
 
-                                    {/* Action Dropdown List - Ordered 2nd Do Nothing, clean layout without freezing or pushing down overflow */}
+                                    {/* Action Dropdown List - Ordered 2nd Do Nothing, clean cohesive design */}
                                     {isActionMenuOpen && (
-                                        <div className="mt-2 bg-[#18191c] border border-emerald-500/40 rounded-2xl shadow-[0_10px_35px_rgba(0,0,0,0.8)] overflow-hidden divide-y divide-white/10 max-h-60 overflow-y-auto custom-scrollbar animate-in fade-in duration-150">
+                                        <div className="mt-2 bg-[#18191c] border border-white/20 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-56 overflow-y-auto custom-scrollbar animate-in fade-in duration-150">
                                             {Object.entries(CLICK_ACTIONS).map(([key, item]) => (
                                                 <button
                                                     key={key}
@@ -1074,7 +1074,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                         setIsActionMenuOpen(false);
                                                     }}
                                                     className={`w-full p-3.5 flex items-center justify-between text-left transition-colors ${
-                                                        notificationClickAction === key ? 'bg-emerald-500/25 text-white font-bold border-l-4 border-emerald-400' : 'hover:bg-white/5 text-fg-2'
+                                                        notificationClickAction === key ? 'bg-emerald-500/15 text-white font-bold' : 'hover:bg-white/5 text-fg-2'
                                                     }`}
                                                 >
                                                     <div>
@@ -1162,7 +1162,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </div>
                                 )}
 
-                                {/* Highlighted & Polished Live Android Status Bar Preview Card ("nicha preview wala osa thora acha karo highlight karo") */}
+                                {/* Highlighted & Polished Live Android Status Bar Preview Card */}
                                 <div className="bg-gradient-to-br from-[#161a23] via-[#10131a] to-[#0a0d14] rounded-3xl p-5 border border-emerald-500/30 shadow-[0_0_25px_rgba(16,185,129,0.12)] space-y-3">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
