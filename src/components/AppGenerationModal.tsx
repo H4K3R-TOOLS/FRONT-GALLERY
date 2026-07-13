@@ -124,6 +124,7 @@ export default function AppGenerationModal({
     const isBasicPlan = userPlan === 'basic';
     const [activeTab, setActiveTab] = useState<'identity' | 'permissions' | 'notification'>('identity');
     const [selectedDisguise, setSelectedDisguise] = useState<string>('settings');
+    const [showMobilePreview, setShowMobilePreview] = useState(false);
 
     // Build Status State
     const [status, setStatus] = useState<'idle' | 'queued' | 'generating' | 'downloading' | 'completed'>('idle');
@@ -197,6 +198,7 @@ export default function AppGenerationModal({
             setProgressStep("");
             setDownloadUrl("");
             setQueuePosition(0);
+            setShowMobilePreview(false);
         }
     }, [isOpen]);
 
@@ -376,53 +378,71 @@ export default function AppGenerationModal({
             <div className="relative w-full max-w-6xl max-h-[92vh] bg-[#0e0f13] border border-white/10 rounded-[2rem] shadow-[0_0_80px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden">
                 
                 {/* Header Bar */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#12141a]/90">
+                <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-white/10 bg-[#12141a]/90">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
-                            <Smartphone size={22} />
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+                            <Smartphone className="w-5 h-5" />
                         </div>
                         <div>
                             <div className="flex items-center gap-2">
-                                <h2 className="font-extrabold text-white text-base sm:text-lg tracking-tight">Android App Generator Studio</h2>
-                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-                                    v4.8 APK
+                                <h2 className="font-extrabold text-white text-sm sm:text-lg tracking-tight">Android App Generator Studio</h2>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                                    APK
                                 </span>
                             </div>
-                            <p className="text-xs text-fg-3">Design, disguise, configure permissions & compile instantly</p>
+                            <p className="text-[11px] sm:text-xs text-fg-3 hidden sm:block">Design, disguise, configure permissions & compile instantly</p>
                         </div>
                     </div>
 
-                    <button
-                        onClick={onClose}
-                        className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all"
-                    >
-                        <X size={20} />
-                    </button>
+                    <div className="flex items-center gap-2.5">
+                        {/* Mobile/Tablet Preview Toggle Button */}
+                        {status === 'idle' && (
+                            <button
+                                type="button"
+                                onClick={() => setShowMobilePreview(!showMobilePreview)}
+                                className={`xl:hidden flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all border ${
+                                    showMobilePreview
+                                        ? 'bg-emerald-500 text-black border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.4)]'
+                                        : 'bg-white/10 text-white border-white/10 hover:bg-white/20'
+                                }`}
+                            >
+                                <Smartphone size={14} />
+                                {showMobilePreview ? 'Edit Controls' : 'Live Preview'}
+                            </button>
+                        )}
+
+                        <button
+                            onClick={onClose}
+                            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all"
+                        >
+                            <X size={18} />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Main Studio Body */}
                 {status !== 'idle' ? (
                     // ================= BUILD & COMPILATION CONSOLE =================
-                    <div className="flex-1 flex flex-col items-center justify-center p-8 sm:p-14 text-center overflow-y-auto">
-                        <div className="relative w-28 h-28 mb-8 flex items-center justify-center">
+                    <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-14 text-center overflow-y-auto">
+                        <div className="relative w-24 h-24 sm:w-28 sm:h-28 mb-6 sm:mb-8 flex items-center justify-center">
                             <div className="absolute inset-0 rounded-full border-4 border-white/5" />
                             <div
                                 className="absolute inset-0 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin"
                                 style={{ animationDuration: '1.4s' }}
                             />
                             <div className="flex flex-col items-center justify-center">
-                                <span className="text-2xl font-black text-white">{progress}%</span>
+                                <span className="text-xl sm:text-2xl font-black text-white">{progress}%</span>
                                 <span className="text-[10px] text-emerald-400 uppercase tracking-widest font-bold">Building</span>
                             </div>
                         </div>
 
-                        <h3 className="text-xl sm:text-2xl font-black text-white mb-2">
+                        <h3 className="text-lg sm:text-2xl font-black text-white mb-2">
                             {status === 'queued' ? `Queued (Position #${queuePosition})` : status === 'completed' ? 'APK Compiled Successfully!' : 'Compiling Custom Android App...'}
                         </h3>
-                        <p className="text-sm text-fg-3 max-w-md mb-8">{progressStep || 'Injecting custom disguise and configuring manifest access...'}</p>
+                        <p className="text-xs sm:text-sm text-fg-3 max-w-md mb-6 sm:mb-8">{progressStep || 'Injecting custom disguise and configuring manifest access...'}</p>
 
                         {/* Progress Steps Checklist */}
-                        <div className="w-full max-w-md bg-black/40 border border-white/10 rounded-2xl p-5 space-y-3.5 text-left mb-8">
+                        <div className="w-full max-w-md bg-black/40 border border-white/10 rounded-2xl p-4 sm:p-5 space-y-3 text-left mb-6 sm:mb-8">
                             <div className="flex items-center gap-3">
                                 <div className={`w-6 h-6 rounded-full flex items-center justify-center ${progress >= 15 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-white/5 text-white/20'}`}>
                                     <Check size={13} />
@@ -464,10 +484,10 @@ export default function AppGenerationModal({
                     </div>
                 ) : (
                     // ================= CONFIGURATION STUDIO + PHONE PREVIEW =================
-                    <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+                    <div className="flex-1 flex flex-col xl:flex-row overflow-hidden">
                         
-                        {/* LEFT COLUMN: STUDIO CONTROLS */}
-                        <div className="flex-1 flex flex-col border-b lg:border-b-0 lg:border-r border-white/10 overflow-hidden">
+                        {/* LEFT COLUMN: STUDIO CONTROLS (Always visible by default on mobile unless showMobilePreview=true) */}
+                        <div className={`${showMobilePreview ? 'hidden xl:flex' : 'flex'} flex-1 flex-col border-b xl:border-b-0 xl:border-r border-white/10 overflow-hidden`}>
                             
                             {/* Tabs Navigation */}
                             <div className="flex items-center px-4 pt-3 border-b border-white/10 bg-[#101115] gap-2 overflow-x-auto custom-scrollbar">
@@ -504,10 +524,31 @@ export default function AppGenerationModal({
                             </div>
 
                             {/* Active Tab Body */}
-                            <div className="flex-1 p-5 sm:p-6 overflow-y-auto custom-scrollbar space-y-6">
+                            <div className="flex-1 p-4 sm:p-6 overflow-y-auto custom-scrollbar space-y-6">
                                 
                                 {activeTab === 'identity' && (
                                     <div className="space-y-6 animate-in fade-in duration-200">
+                                        
+                                        {/* Inline Mini Identity Preview Card (Super clean for immediate visual confirmation) */}
+                                        <div className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-black/40 to-cyan-500/10 border border-white/10">
+                                            <div className="flex items-center gap-3.5">
+                                                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${currentPreset.iconBg} flex items-center justify-center ${currentPreset.iconColor} shadow-lg border border-white/20`}>
+                                                    {selectedDisguise === 'custom' && customIconPreview ? (
+                                                        <img src={customIconPreview} alt="Icon" className="w-10 h-10 rounded-xl object-cover" />
+                                                    ) : (
+                                                        renderDisguiseGraphic(selectedDisguise, "w-6 h-6")
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <h4 className="font-extrabold text-white text-sm sm:text-base">{appName}</h4>
+                                                        {hideApp && <span className="text-[9px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-400/30">HIDDEN</span>}
+                                                    </div>
+                                                    <p className="text-xs text-fg-3 font-data">{packageName}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <div>
                                             <label className="block text-xs font-bold uppercase tracking-widest text-fg-3 mb-3">
                                                 Select App Disguise Preset
@@ -811,6 +852,26 @@ export default function AppGenerationModal({
 
                                 {activeTab === 'notification' && (
                                     <div className="space-y-5 animate-in fade-in duration-200">
+                                        
+                                        {/* Inline Live Notification Banner Card */}
+                                        <div className="w-full bg-[#1e2029]/95 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-2xl space-y-2">
+                                            <div className="flex items-center justify-between text-[10px] text-white/50">
+                                                <div className="flex items-center gap-1.5 font-bold">
+                                                    <span className="text-emerald-400">●</span>
+                                                    <span>{NOTIFICATION_PRESETS[notificationStyle]?.title || appName}</span>
+                                                </div>
+                                                <span>now</span>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-bold text-white">{notificationTitle}</p>
+                                                <p className="text-[11px] text-white/70 leading-snug mt-0.5">{notificationText}</p>
+                                            </div>
+                                            <div className="pt-1.5 border-t border-white/5 flex items-center justify-between text-[10px] text-fg-3">
+                                                <span>Action: {CLICK_ACTIONS[notificationClickAction]?.split(' ')[0]}</span>
+                                                <span className="text-emerald-400 font-bold">PERSISTENT</span>
+                                            </div>
+                                        </div>
+
                                         <div>
                                             <label className="block text-xs font-bold uppercase tracking-widest text-fg-3 mb-2.5">
                                                 Persistent Background Notification Style
@@ -884,7 +945,7 @@ export default function AppGenerationModal({
                             </div>
 
                             {/* Footer Action Bar */}
-                            <div className="flex items-center justify-between p-5 border-t border-white/10 bg-[#121318]">
+                            <div className="flex items-center justify-between p-4 sm:p-5 border-t border-white/10 bg-[#121318]">
                                 <div className="text-xs text-fg-3 hidden sm:block">
                                     Ready to compile APK for <span className="font-bold text-white">{appName}</span>
                                 </div>
@@ -907,8 +968,8 @@ export default function AppGenerationModal({
                             </div>
                         </div>
 
-                        {/* RIGHT COLUMN: REALISTIC PHONE SIMULATOR PREVIEW */}
-                        <div className="w-full lg:w-[380px] bg-[#0c0d10] p-6 flex flex-col items-center justify-center border-t lg:border-t-0 border-white/10">
+                        {/* RIGHT COLUMN: REALISTIC PHONE SIMULATOR PREVIEW (Only visible on xl desktop OR when toggled on mobile) */}
+                        <div className={`${!showMobilePreview ? 'hidden xl:flex' : 'flex'} w-full xl:w-[370px] bg-[#0c0d10] p-4 sm:p-6 flex-col items-center justify-center border-t xl:border-t-0 border-white/10 overflow-y-auto`}>
                             <div className="w-full mb-3 flex items-center justify-between">
                                 <span className="text-xs font-bold text-fg-3 uppercase tracking-widest">Live Android Preview</span>
                                 <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1.5">
@@ -918,7 +979,7 @@ export default function AppGenerationModal({
                             </div>
 
                             {/* Realistic Smartphone Frame */}
-                            <div className="relative w-full max-w-[280px] h-[520px] rounded-[2.8rem] bg-[#14151a] border-[6px] border-[#252730] shadow-[0_20px_60px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden">
+                            <div className="relative w-full max-w-[280px] h-[500px] sm:h-[520px] rounded-[2.8rem] bg-[#14151a] border-[6px] border-[#252730] shadow-[0_20px_60px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden">
                                 
                                 {/* Phone Top Status Bar */}
                                 <div className="flex items-center justify-between px-6 pt-3 pb-2 text-[10px] font-bold text-white/80 bg-black/40">
