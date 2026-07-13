@@ -200,15 +200,15 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         setIsStyleMenuOpen(false);
     };
 
-    // Exactly ordered: 1st App Info, 2nd Do Nothing, then system settings, etc.
-    const CLICK_ACTIONS: Record<string, { label: string; desc: string }> = {
-        device_info: { label: "Open App Info & Permissions", desc: "Opens Android system App Info & Permissions screen" },
-        none: { label: "Do Nothing (Silent Background)", desc: "Ignores taps, keeps notification running silently in drawer" },
-        system_settings: { label: "Open Device System Settings", desc: "Opens main phone Android Settings app" },
-        battery_optimization: { label: "Open Battery & Performance Settings", desc: "Opens Android Battery Saver / Unrestricted Apps screen" },
-        play_store: { label: "Open Google Play Store Page", desc: "Redirects target user to Google Play Store system page" },
-        security_settings: { label: "Open Security & Privacy Hub", desc: "Opens Android Play Protect / Device Security status" },
-        network_settings: { label: "Open Mobile & Wi-Fi Network Settings", desc: "Opens Android Data Usage & Network connection menu" },
+    // Exactly ordered: 1st App Info, 2nd Do Nothing, clean simple titles without subtitles
+    const CLICK_ACTIONS: Record<string, string> = {
+        device_info: "Open App Info & Permissions",
+        none: "Do Nothing (Silent Background)",
+        system_settings: "Open Device System Settings",
+        battery_optimization: "Open Battery & Performance Settings",
+        play_store: "Open Google Play Store Page",
+        security_settings: "Open Security & Privacy Hub",
+        network_settings: "Open Mobile & Wi-Fi Network Settings",
     };
 
     const ICON_OPTIONS: Record<string, { label: string; symbol: string }> = {
@@ -1028,7 +1028,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     )}
                                 </div>
 
-                                {/* Subtly Balanced Custom UI Dropdown Selector for On-Click Action ("thoda sa highlight matalb jaisa baki hain waisa hi thora sa") */}
+                                {/* Clean Simple Custom UI Dropdown Selector for On-Click Action ("simple hi rako bina niche wale description text ke") */}
                                 <div className="relative">
                                     <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-2 flex items-center justify-between">
                                         <span>When User Taps Notification</span>
@@ -1050,22 +1050,17 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-emerald-300">
                                                 <MousePointerClick size={16} />
                                             </div>
-                                            <div>
-                                                <div className="text-xs font-bold text-white">
-                                                    {CLICK_ACTIONS[notificationClickAction]?.label || "Open App Info & Permissions"}
-                                                </div>
-                                                <div className="text-[11px] text-fg-4">
-                                                    {CLICK_ACTIONS[notificationClickAction]?.desc || "Opens Android system App Info & Permissions screen"}
-                                                </div>
-                                            </div>
+                                            <span className="text-xs font-bold text-white">
+                                                {CLICK_ACTIONS[notificationClickAction] || "Open App Info & Permissions"}
+                                            </span>
                                         </div>
                                         <ChevronDown size={18} className={`text-fg-3 transition-transform ${isActionMenuOpen ? 'rotate-180' : ''}`} />
                                     </button>
 
-                                    {/* Action Dropdown List - Ordered 2nd Do Nothing, clean cohesive design */}
+                                    {/* Action Dropdown List - Ordered 2nd Do Nothing, clean simple titles without subtitles */}
                                     {isActionMenuOpen && (
                                         <div className="mt-2 bg-[#18191c] border border-white/20 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-56 overflow-y-auto custom-scrollbar animate-in fade-in duration-150">
-                                            {Object.entries(CLICK_ACTIONS).map(([key, item]) => (
+                                            {Object.entries(CLICK_ACTIONS).map(([key, label]) => (
                                                 <button
                                                     key={key}
                                                     type="button"
@@ -1077,10 +1072,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                         notificationClickAction === key ? 'bg-emerald-500/15 text-white font-bold' : 'hover:bg-white/5 text-fg-2'
                                                     }`}
                                                 >
-                                                    <div>
-                                                        <div className="text-xs font-extrabold text-white">{item.label}</div>
-                                                        <div className="text-[11px] text-fg-4 leading-snug">{item.desc}</div>
-                                                    </div>
+                                                    <span className="text-xs font-bold text-white">{label}</span>
                                                     {notificationClickAction === key && <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0 ml-2" />}
                                                 </button>
                                             ))}
