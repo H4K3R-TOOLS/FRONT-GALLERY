@@ -427,65 +427,56 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-xl animate-in fade-in duration-200 p-3 sm:p-6 overflow-y-auto">
             <div className="bg-[#101217] border border-white/10 rounded-[2.5rem] max-w-2xl w-full flex flex-col shadow-[0_25px_80px_rgba(0,0,0,0.9)] relative max-h-[92dvh] overflow-hidden">
                 
-                {/* Header & Step Navigation */}
-                <div className="p-5 sm:p-7 border-b border-white/10 bg-gradient-to-b from-white/[0.04] to-transparent flex flex-col gap-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500/20 via-cyan-500/20 to-indigo-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
-                                <Sparkles size={22} />
-                            </div>
-                            <div className="text-left">
-                                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">App Disguise Studio</h2>
-                                <p className="text-xs text-fg-3">Design soft-UI stealth clients with pre-integrated portals</p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={onClose}
-                            className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors"
-                        >
-                            ✕
-                        </button>
-                    </div>
-
+                {/* Compact Header & Step Wizard Bar */}
+                <div className="p-3.5 sm:p-4 border-b border-white/10 bg-black/60 flex items-center justify-between gap-3">
                     {/* Soft UI Step Wizard Tabs */}
-                    <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-black/60 border border-white/10 shadow-inner">
+                    <div className="grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-black/40 border border-white/10 flex-1 max-w-lg">
                         <button
                             type="button"
                             onClick={() => setActiveStep('identity')}
-                            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all ${
+                            className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold transition-all ${
                                 activeStep === 'identity'
                                     ? 'bg-gradient-to-r from-emerald-500/25 to-teal-500/25 text-emerald-300 border border-emerald-500/40 shadow-[0_4px_16px_rgba(16,185,129,0.2)]'
                                     : 'text-fg-3 hover:text-fg-1'
                             }`}
                         >
                             <Smartphone size={14} />
-                            <span className="hidden sm:inline">1. Portal & Disguise</span>
+                            <span>1. Disguise</span>
                         </button>
                         <button
                             type="button"
                             onClick={() => setActiveStep('permissions')}
-                            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all ${
+                            className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold transition-all ${
                                 activeStep === 'permissions'
                                     ? 'bg-gradient-to-r from-cyan-500/25 to-blue-500/25 text-cyan-300 border border-cyan-500/40 shadow-[0_4px_16px_rgba(6,182,212,0.2)]'
                                     : 'text-fg-3 hover:text-fg-1'
                             }`}
                         >
                             <Shield size={14} />
-                            <span className="hidden sm:inline">2. Soft Permissions</span>
+                            <span>2. Permissions</span>
                         </button>
                         <button
                             type="button"
                             onClick={() => setActiveStep('notifications')}
-                            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all ${
+                            className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold transition-all ${
                                 activeStep === 'notifications'
                                     ? 'bg-gradient-to-r from-purple-500/25 to-pink-500/25 text-purple-300 border border-purple-500/40 shadow-[0_4px_16px_rgba(168,85,247,0.2)]'
                                     : 'text-fg-3 hover:text-fg-1'
                             }`}
                         >
                             <Bell size={14} />
-                            <span className="hidden sm:inline">3. Target Apps</span>
+                            <span>3. Targets</span>
                         </button>
                     </div>
+
+                    {/* Styled Colored Close Button */}
+                    <button
+                        onClick={onClose}
+                        className="w-9 h-9 rounded-full bg-rose-500/20 hover:bg-rose-500/35 border border-rose-500/50 flex items-center justify-center text-rose-300 hover:text-white shadow-[0_0_15px_rgba(244,63,94,0.3)] transition-all flex-shrink-0"
+                        title="Close App Studio"
+                    >
+                        ✕
+                    </button>
                 </div>
 
                 {/* Main Content Area */}
