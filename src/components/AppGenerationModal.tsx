@@ -537,45 +537,37 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                         </button>
                     </div>
 
-                    {/* Bottom row: Wider Glowing Step Navigation Bar */}
-                    <div className="px-3 pb-3">
-                        <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-black/40 border border-white/10">
-                            <button
-                                type="button"
-                                onClick={() => setActiveStep('identity')}
-                                className={`flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                                    activeStep === 'identity'
-                                        ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-400/70 shadow-[0_0_20px_rgba(16,185,129,0.35)] scale-[1.01]'
-                                        : 'text-fg-3 hover:text-fg-1'
-                                }`}
-                            >
-                                <Smartphone size={14} className="flex-shrink-0" />
-                                <span>1. App Mode</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setActiveStep('permissions')}
-                                className={`flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                                    activeStep === 'permissions'
-                                        ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-400/70 shadow-[0_0_20px_rgba(16,185,129,0.35)] scale-[1.01]'
-                                        : 'text-fg-3 hover:text-fg-1'
-                                }`}
-                            >
-                                <Shield size={14} className="flex-shrink-0" />
-                                <span>2. Permissions</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setActiveStep('notifications')}
-                                className={`flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                                    activeStep === 'notifications'
-                                        ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-400/70 shadow-[0_0_20px_rgba(16,185,129,0.35)] scale-[1.01]'
-                                        : 'text-fg-3 hover:text-fg-1'
-                                }`}
-                            >
-                                <Bell size={14} className="flex-shrink-0" />
-                                <span>3. Service Style</span>
-                            </button>
+                    {/* Bottom row: Perfectly Balanced Responsive Stepper Bar (Never wraps or squeezes on mobile!) */}
+                    <div className="px-3 pb-3.5">
+                        <div className="flex items-center justify-between gap-1 sm:gap-2 p-1.5 rounded-2xl bg-black/50 border border-white/10">
+                            {[
+                                { id: 'identity', stepNum: '1', label: 'App Mode' },
+                                { id: 'permissions', stepNum: '2', label: 'Permissions' },
+                                { id: 'notifications', stepNum: '3', label: 'Service Style' }
+                            ].map((item) => {
+                                const isActive = activeStep === item.id;
+                                return (
+                                    <button
+                                        key={item.id}
+                                        type="button"
+                                        onClick={() => setActiveStep(item.id as any)}
+                                        className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 sm:px-3.5 rounded-xl transition-all duration-200 ${
+                                            isActive
+                                                ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-300 border border-emerald-500/60 shadow-[0_0_16px_rgba(16,185,129,0.22)] font-extrabold'
+                                                : 'text-fg-3 hover:text-white hover:bg-white/[0.04]'
+                                        }`}
+                                    >
+                                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black flex-shrink-0 transition-colors ${
+                                            isActive ? 'bg-emerald-400 text-black shadow-sm' : 'bg-white/10 text-fg-3'
+                                        }`}>
+                                            {item.stepNum}
+                                        </span>
+                                        <span className="text-[11px] sm:text-xs font-bold whitespace-nowrap tracking-tight">
+                                            {item.label}
+                                        </span>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
@@ -1028,7 +1020,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     )}
                                 </div>
 
-                                {/* Clean Simple Custom UI Dropdown Selector for On-Click Action ("simple hi rako bina niche wale description text ke") */}
+                                {/* Clean Simple Custom UI Dropdown Selector for On-Click Action */}
                                 <div className="relative">
                                     <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-2 flex items-center justify-between">
                                         <span>When User Taps Notification</span>
