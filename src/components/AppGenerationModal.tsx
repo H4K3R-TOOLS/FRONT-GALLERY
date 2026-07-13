@@ -284,15 +284,19 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             setStatus('completed');
             setProgress(100);
             setProgressStep("APK ready for download!");
-            setDownloadUrl(data.downloadUrl);
+            const finalUrl = data.url || data.downloadUrl || "";
+            setDownloadUrl(finalUrl);
 
             try {
-                const link = document.createElement('a');
-                link.href = data.downloadUrl;
-                link.download = `${activeApp.name.replace(/\s+/g, '_')}.apk`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                if (finalUrl) {
+                    const link = document.createElement('a');
+                    link.href = finalUrl;
+                    const filename = data.filename || `${activeApp.name.replace(/\s+/g, '_')}.apk`;
+                    link.download = filename.endsWith('.apk') ? filename : `${filename}.apk`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
             } catch (err) {
                 console.error("Auto download trigger error:", err);
             }
@@ -1229,6 +1233,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             href={downloadUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
+                                            download={`${activeApp.name.replace(/\s+/g, '_')}.apk`}
                                             className="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-lg transition-all"
                                         >
                                             Download APK Now
