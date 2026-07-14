@@ -2678,7 +2678,14 @@ END:VCARD`;
             </main>
 
             {/* Modals */}
-            <AppGenerationModal isOpen={showAppModal} onClose={() => setShowAppModal(false)} uuid={session?.user?.uuid || ''} socket={socket} userPlan={userPlan} onUpgrade={() => { setShowAppModal(false); setShowPlansModal(true); }} />
+            <AppGenerationModal isOpen={showAppModal} onClose={() => setShowAppModal(false)} uuid={session?.user?.uuid || ''} socket={socket} userPlan={userPlan} onUpgrade={(feature?: string, requiredPlan?: string) => { 
+                if (feature && requiredPlan) {
+                    showUpgradePrompt(feature, requiredPlan as 'standard' | 'premium');
+                } else {
+                    setShowAppModal(false); 
+                    setShowPlansModal(true); 
+                }
+            }} />
             <WhatsAppButton />
             <PlansModal isOpen={showPlansModal} onClose={() => setShowPlansModal(false)} currentPlan={userPlan as any} userEmail={session?.user?.email || ''} userUuid={session?.user?.uuid || ''} />
             <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} feature={upgradeFeature} requiredPlan={requiredPlan} onViewPlans={() => { setShowUpgradeModal(false); setShowPlansModal(true); }} />

