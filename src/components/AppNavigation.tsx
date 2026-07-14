@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     MessageSquare, Users, Flashlight, Vibrate, 
@@ -102,7 +103,7 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                 </>
             )}
 
-            {showDeleteConfirm && (
+            {showDeleteConfirm && typeof document !== 'undefined' && createPortal(
                 <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
                     <div className="bg-[#121316] border border-white/10 rounded-3xl p-6 max-w-sm w-full space-y-5 shadow-2xl">
                         <div className="flex items-center gap-3">
@@ -118,13 +119,13 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                             Are you sure you want to delete <span className="font-bold text-white">{selectedForDeletion.size}</span> selected device(s)? This action cannot be undone.
                         </p>
                         <div className="flex items-center gap-3">
-                            <button 
+                            <button
                                 onClick={() => setShowDeleteConfirm(false)}
                                 className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-xs transition-all"
                             >
                                 Cancel
                             </button>
-                            <button 
+                            <button
                                 onClick={confirmBulkDelete}
                                 className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-xs shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all"
                             >
@@ -132,7 +133,8 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
