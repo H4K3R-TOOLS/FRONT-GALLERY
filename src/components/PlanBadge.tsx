@@ -14,15 +14,18 @@ const config = {
         label: 'STANDARD',
         className: 'plan-badge plan-badge-standard',
     },
+    premium: {
+        label: 'PREMIUM',
+        className: 'plan-badge plan-badge-premium',
+    },
 };
 
 export default function PlanBadge({ plan, onClick }: PlanBadgeProps) {
-    const p = (plan === 'standard' || (plan as string) === 'premium') ? 'standard' : 'basic';
-    const { label, className } = config[p];
+    const { label, className } = config[plan] || config.basic;
     return (
         <button
             className={className}
-            aria-label={`${p} plan — click to manage`}
+            aria-label={`${plan} plan — click to manage`}
             onClick={onClick}
             style={{ cursor: onClick ? 'pointer' : 'default' }}
         >
