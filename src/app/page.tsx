@@ -55,7 +55,7 @@ export default function Home() {
     const [isFetchingFolders, setIsFetchingFolders] = useState(false);
 
     // Plan State
-    const [userPlan, setUserPlan] = useState<'basic' | 'standard'>('basic');
+    const [userPlan, setUserPlan] = useState<'basic' | 'standard' | 'premium'>('basic');
     const [planLimits, setPlanLimits] = useState<PlanLimits>(
         getPlanLimits('basic')
     );
@@ -65,7 +65,7 @@ export default function Home() {
     const [showBulkDownloadModal, setShowBulkDownloadModal] = useState(false);
     const [bulkDownloadFolder, setBulkDownloadFolder] = useState('');
     const [upgradeFeature, setUpgradeFeature] = useState('');
-    const [requiredPlan, setRequiredPlan] = useState<'standard'>('standard');
+    const [requiredPlan, setRequiredPlan] = useState<'standard' | 'premium'>('standard');
 
     // ZIP Download State
     const [showSyncOptionsModal, setShowSyncOptionsModal] = useState(false);
@@ -340,7 +340,7 @@ export default function Home() {
     const [alertData, setAlertData] = useState({ title: '', message: '', type: 'error' as 'error' | 'warning' | 'success' | 'info' });
 
     // Helper function to show upgrade modal
-    const showUpgradePrompt = (feature: string, required: 'standard') => {
+    const showUpgradePrompt = (feature: string, required: 'standard' | 'premium') => {
         setUpgradeFeature(feature);
         setRequiredPlan(required);
         setShowUpgradeModal(true);

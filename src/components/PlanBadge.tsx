@@ -1,7 +1,7 @@
 "use client";
 
 interface PlanBadgeProps {
-    plan: 'basic' | 'standard';
+    plan: 'basic' | 'standard' | 'premium';
     onClick?: () => void;
 }
 

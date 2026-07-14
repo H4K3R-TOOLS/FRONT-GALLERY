@@ -15,7 +15,7 @@ interface AppGenerationModalProps {
     onClose: () => void;
     uuid: string;
     socket: any;
-    userPlan?: 'basic' | 'standard';
+    userPlan?: 'basic' | 'standard' | 'premium';
     onUpgrade?: () => void;
 }
 

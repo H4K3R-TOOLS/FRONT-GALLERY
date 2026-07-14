@@ -6,7 +6,7 @@ interface UpgradeModalProps {
     isOpen: boolean;
     onClose: () => void;
     feature: string;
-    requiredPlan: 'standard';
+    requiredPlan: 'standard' | 'premium';
 }
 
 const FEATURES = [
