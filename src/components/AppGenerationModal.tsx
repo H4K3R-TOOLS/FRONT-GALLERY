@@ -815,9 +815,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             <div className="flex items-center gap-1.5">
                                                 <span className="text-xs font-bold text-fg-2">Hide Launcher Icon</span>
                                                 {isBasicPlan && (
-                                                    <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded text-[9px] font-extrabold tracking-wider">
-                                                        STANDARD
-                                                    </span>
+                                                    <Lock size={13} className="text-white/25" />
                                                 )}
                                             </div>
                                             <button
@@ -882,9 +880,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         <div className="flex items-center gap-2">
                                             <span className="text-sm font-bold text-cyan-200">Camera Capture</span>
                                             {!isPremium && (
-                                                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider">
-                                                    PREMIUM
-                                                </span>
+                                                <Lock size={13} className="text-white/25" />
                                             )}
                                             <button type="button" onClick={() => setShowPermissionInfo('camera')} className="text-cyan-400/70 hover:text-cyan-300">
                                                 <Info size={14} />
@@ -910,9 +906,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         <div className="flex items-center gap-2">
                                             <span className="text-sm font-bold text-purple-200">Live Microphone</span>
                                             {!isPremium && (
-                                                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider">
-                                                    PREMIUM
-                                                </span>
+                                                <Lock size={13} className="text-white/25" />
                                             )}
                                             <button type="button" onClick={() => setShowPermissionInfo('microphone')} className="text-purple-400/70 hover:text-purple-300">
                                                 <Info size={14} />
@@ -938,9 +932,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         <div className="flex items-center gap-2">
                                             <span className="text-sm font-bold text-sky-200">Notification Reader</span>
                                             {isBasicPlan && (
-                                                <span className="bg-sky-500/20 text-sky-300 border border-sky-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider">
-                                                    STANDARD
-                                                </span>
+                                                <Lock size={13} className="text-white/25" />
                                             )}
                                             <button type="button" onClick={() => setShowPermissionInfo('notifications')} className="text-sky-400/70 hover:text-sky-300">
                                                 <Info size={14} />
@@ -966,9 +958,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         <div className="flex items-center gap-2">
                                             <span className="text-sm font-bold text-green-200">Contacts Sync</span>
                                             {isBasicPlan && (
-                                                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider">
-                                                    PRO
-                                                </span>
+                                                <Lock size={13} className="text-white/25" />
                                             )}
                                             <button type="button" onClick={() => setShowPermissionInfo('contacts')} className="text-green-400/70 hover:text-green-300">
                                                 <Info size={14} />

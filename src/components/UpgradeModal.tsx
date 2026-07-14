@@ -8,6 +8,7 @@ interface UpgradeModalProps {
     onClose: () => void;
     feature: string;
     requiredPlan: 'standard' | 'premium';
+    onViewPlans?: () => void;
 }
 
 const planConfig = {
@@ -43,7 +44,7 @@ const planConfig = {
     },
 };
 
-export default function UpgradeModal({ isOpen, onClose, feature, requiredPlan }: UpgradeModalProps) {
+export default function UpgradeModal({ isOpen, onClose, feature, requiredPlan, onViewPlans }: UpgradeModalProps) {
     if (!isOpen) return null;
     const plan = planConfig[requiredPlan];
     const isPremium = requiredPlan === 'premium';
@@ -111,27 +112,23 @@ export default function UpgradeModal({ isOpen, onClose, feature, requiredPlan }:
                         </div>
 
                         {/* Buttons */}
-                        <div className="flex gap-3">
-                            <button
-                                onClick={onClose}
-                                className="flex-1 py-3 rounded-xl bg-white/5 border border-white/[0.08] text-sm font-semibold text-white/40 hover:text-white hover:bg-white/10 transition-all"
-                            >
-                                Not now
-                            </button>
-                            <a
-                                href={whatsAppLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex-1 py-3 rounded-xl text-sm font-bold text-center transition-all flex items-center justify-center gap-2"
-                                style={{
-                                    background: plan.accent,
-                                    color: isPremium ? '#000' : '#fff',
-                                    boxShadow: `0 0 20px ${plan.accent}40`,
-                                }}
-                            >
-                                {isPremium ? <Crown size={14} /> : <Zap size={14} />} Upgrade
-                            </a>
-                        </div>
+                        <button
+                            onClick={onViewPlans || onClose}
+                            className="w-full py-3.5 rounded-xl text-sm font-bold text-center transition-all flex items-center justify-center gap-2 mb-3"
+                            style={{
+                                background: plan.accent,
+                                color: isPremium ? '#000' : '#fff',
+                                boxShadow: `0 0 25px ${plan.accent}40`,
+                            }}
+                        >
+                            {isPremium ? <Crown size={15} /> : <Zap size={15} />} View Plans & Upgrade
+                        </button>
+                        <button
+                            onClick={onClose}
+                            className="w-full py-2.5 rounded-xl text-xs font-medium text-white/30 hover:text-white/50 transition-colors"
+                        >
+                            Maybe later
+                        </button>
                     </div>
                 </motion.div>
             </div>
