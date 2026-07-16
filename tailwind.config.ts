@@ -45,7 +45,6 @@ const config: Config = {
                 'fade-in': 'fadeIn 0.3s cubic-bezier(0.16,1,0.3,1) both',
                 'slide-up': 'slideUp 0.4s cubic-bezier(0.16,1,0.3,1) both',
                 'pulse-soft': 'pulse-soft 2s infinite',
-                'marquee': 'marquee 35s linear infinite',
             },
             keyframes: {
                 float: {
@@ -63,10 +62,6 @@ const config: Config = {
                 'pulse-soft': {
                     '0%, 100%': { opacity: '1' },
                     '50%': { opacity: '0.7' },
-                },
-                marquee: {
-                    '0%': { transform: 'translateX(0%)' },
-                    '100%': { transform: 'translateX(-50%)' },
                 }
             },
         },
