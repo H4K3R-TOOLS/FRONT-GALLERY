@@ -370,23 +370,17 @@ function AudioPreview() {
     );
 }
 
-/* 4. Live Alerts Feed Preview (Ultra-Premium iOS/Android Lock Screen HUD with Real Glossy App Logos) */
+/* 4. Live Alerts Feed Preview (Ultra-Premium iOS/Android Lock Screen Glass Banners & Real Official App Icon Images) */
 function AlertsPreview() {
-    const [filter, setFilter] = useState('All Feed');
-    const [liveCount, setLiveCount] = useState(0);
-
-    const initialAlerts = [
+    const alerts = [
         {
             app: 'WhatsApp',
             title: '+1 (555) 902-1482 (VIP Vault)',
             desc: 'Hey! Did you download the encrypted vault archives yet? Needed before the board meeting begins.',
             time: 'Just now',
             badge: 'CHAT INTERCEPT',
-            badgeColor: 'text-emerald-300 border-emerald-500/40 bg-emerald-500/15 shadow-[0_0_12px_rgba(16,185,129,0.25)]',
-            accentBar: 'from-emerald-400 to-teal-500',
-            realIconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/512px-WhatsApp.svg.png',
-            fallbackText: 'WA',
-            fallbackBg: 'bg-[#25D366]'
+            badgeColor: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10',
+            iconImg: 'https://cdn-icons-png.flaticon.com/512/3670/3670051.png'
         },
         {
             app: 'Instagram',
@@ -394,11 +388,8 @@ function AlertsPreview() {
             desc: 'Sent a private video story to your inbox • Tap to intercept before automatic expiration in 2h.',
             time: '2m ago',
             badge: 'PRIVATE STORY',
-            badgeColor: 'text-pink-300 border-pink-500/40 bg-pink-500/15 shadow-[0_0_12px_rgba(236,72,153,0.25)]',
-            accentBar: 'from-pink-500 via-red-500 to-amber-400',
-            realIconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/512px-Instagram_logo_2016.svg.png',
-            fallbackText: 'IG',
-            fallbackBg: 'bg-gradient-to-tr from-[#833ab4] via-[#fd1d1d] to-[#fcb045]'
+            badgeColor: 'text-pink-400 border-pink-500/30 bg-pink-500/10',
+            iconImg: 'https://cdn-icons-png.flaticon.com/512/3955/3955024.png'
         },
         {
             app: 'Snapchat',
@@ -406,11 +397,8 @@ function AlertsPreview() {
             desc: 'New Snap (Red Arrow - No Sound) • Intercepted instantly from background service without read receipt.',
             time: '5m ago',
             badge: 'SNAP REC',
-            badgeColor: 'text-amber-300 border-amber-400/40 bg-amber-400/15 shadow-[0_0_12px_rgba(251,191,36,0.25)]',
-            accentBar: 'from-amber-300 to-yellow-500',
-            realIconUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/c/c4/Snapchat_logo.svg/512px-Snapchat_logo.svg.png',
-            fallbackText: 'SC',
-            fallbackBg: 'bg-[#FFFC00] text-black font-extrabold'
+            badgeColor: 'text-amber-300 border-amber-400/40 bg-amber-400/10',
+            iconImg: 'https://cdn-icons-png.flaticon.com/512/3670/3670147.png'
         },
         {
             app: 'Bank Security',
@@ -418,185 +406,77 @@ function AlertsPreview() {
             desc: 'Your one-time login authorization passkey is: [ 849 - 201 ]. Do not share this passkey with anyone.',
             time: '12m ago',
             badge: 'SECRET OTP 🔑',
-            badgeColor: 'text-cyan-300 border-cyan-500/40 bg-cyan-500/15 shadow-[0_0_12px_rgba(6,182,212,0.25)]',
-            accentBar: 'from-cyan-400 to-blue-600',
-            realIconUrl: 'https://cdn-icons-png.flaticon.com/512/2830/2830284.png',
-            fallbackText: '2FA',
-            fallbackBg: 'bg-[#3B82F6]'
+            badgeColor: 'text-cyan-300 border-cyan-500/30 bg-cyan-500/10',
+            iconImg: 'https://cdn-icons-png.flaticon.com/512/2830/2830284.png'
         },
         {
-            app: 'Facebook Messenger',
+            app: 'Facebook',
             title: 'Marcus Vance (Security Ops)',
             desc: 'Attached sensitive archive: Q3_Financial_Audit_Report.pdf (24.8 MB) • Ready for immediate download.',
             time: '18m ago',
             badge: 'ATTACHMENT',
-            badgeColor: 'text-blue-300 border-blue-500/40 bg-blue-500/15 shadow-[0_0_12px_rgba(59,130,246,0.25)]',
-            accentBar: 'from-blue-400 to-indigo-600',
-            realIconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Facebook_Messenger_logo_2020.svg/512px-Facebook_Messenger_logo_2020.svg.png',
-            fallbackText: 'FB',
-            fallbackBg: 'bg-[#0084FF]'
+            badgeColor: 'text-blue-300 border-blue-500/30 bg-blue-500/10',
+            iconImg: 'https://cdn-icons-png.flaticon.com/512/5968/5968764.png'
         }
     ];
 
-    const [alertsList, setAlertsList] = useState(initialAlerts);
-
-    const simulateLiveAlert = () => {
-        const liveSims = [
-            {
-                app: 'WhatsApp',
-                title: '+1 (555) 710-8841 (Vault Escrow)',
-                desc: '⚡ IMMEDIATE INTERCEPT: Wire transfer authorization passkey #992-104 verified.',
-                time: 'Just now',
-                badge: 'LIVE INTERCEPT',
-                badgeColor: 'text-emerald-300 border-emerald-500/40 bg-emerald-500/15 shadow-[0_0_12px_rgba(16,185,129,0.25)]',
-                accentBar: 'from-emerald-400 to-teal-500',
-                realIconUrl: initialAlerts[0].realIconUrl,
-                fallbackText: 'WA',
-                fallbackBg: 'bg-[#25D366]'
-            },
-            {
-                app: 'Bank Security',
-                title: 'Chase 2FA Verification Alert',
-                desc: '⚡ NEW OTP INTERCEPTED: Your wire transfer confirmation token is: [ 441 - 890 ].',
-                time: 'Just now',
-                badge: '2FA TOKEN 🔑',
-                badgeColor: 'text-cyan-300 border-cyan-500/40 bg-cyan-500/15 shadow-[0_0_12px_rgba(6,182,212,0.25)]',
-                accentBar: 'from-cyan-400 to-blue-600',
-                realIconUrl: initialAlerts[3].realIconUrl,
-                fallbackText: '2FA',
-                fallbackBg: 'bg-[#3B82F6]'
-            },
-            {
-                app: 'Instagram',
-                title: '@elena_rostova sent direct message',
-                desc: '⚡ DIRECT INTERCEPT: "Check the secure drop folder, I uploaded the new blueprints."',
-                time: 'Just now',
-                badge: 'DIRECT MSG',
-                badgeColor: 'text-pink-300 border-pink-500/40 bg-pink-500/15 shadow-[0_0_12px_rgba(236,72,153,0.25)]',
-                accentBar: 'from-pink-500 via-red-500 to-amber-400',
-                realIconUrl: initialAlerts[1].realIconUrl,
-                fallbackText: 'IG',
-                fallbackBg: 'bg-gradient-to-tr from-[#833ab4] via-[#fd1d1d] to-[#fcb045]'
-            }
-        ];
-        const next = liveSims[liveCount % liveSims.length];
-        setAlertsList([next, ...alertsList]);
-        setLiveCount(liveCount + 1);
-    };
-
-    const filteredAlerts = filter === 'Social & Chat' 
-        ? alertsList.filter(a => ['WhatsApp', 'Instagram', 'Snapchat', 'Facebook Messenger'].includes(a.app))
-        : filter === '2FA / OTP 🔑'
-        ? alertsList.filter(a => a.app === 'Bank Security')
-        : alertsList;
-
     return (
-        <div className="w-full mt-4 sm:mt-6 rounded-3xl sm:rounded-[2.5rem] border border-indigo-500/40 bg-gradient-to-b from-[#0e1122]/95 via-[#070914]/95 to-black p-4 sm:p-7 shadow-[0_30px_80px_rgba(0,0,0,0.95)] relative overflow-hidden flex flex-col gap-5">
-            {/* Top Ambient Glow */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-indigo-500/15 blur-[60px] pointer-events-none rounded-full" />
-
-            {/* Top Command Bar & Simulation Trigger */}
-            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-white/10 gap-4">
-                <div className="flex items-center gap-3.5">
-                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-blue-700 flex items-center justify-center text-white text-xl shadow-[0_0_25px_rgba(99,102,241,0.6)] border border-indigo-300/30 flex-shrink-0">
-                        🔔
-                    </div>
-                    <div>
-                        <div className="text-sm sm:text-base font-extrabold text-white flex flex-wrap items-center gap-2 tracking-wide">
-                            Lock-Screen Push Mirror
-                            <span className="text-[10px] font-mono font-bold text-emerald-400 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.3)] flex items-center gap-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                LIVE SOCKET ACTIVE
-                            </span>
-                        </div>
-                        <div className="text-xs font-mono text-zinc-400 mt-0.5">Instant lock-screen & banner interception across iOS / Android OS</div>
-                    </div>
+        <div className="w-full mt-4 sm:mt-6 rounded-3xl sm:rounded-[2rem] border border-indigo-500/40 bg-gradient-to-b from-[#111326] via-[#0a0c16] to-black p-4 sm:p-6 shadow-[0_25px_65px_rgba(0,0,0,0.95)] flex flex-col gap-4.5">
+            {/* Minimalist Header Status */}
+            <div className="flex items-center justify-between pb-3.5 border-b border-indigo-500/20">
+                <div className="flex items-center gap-3">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_12px_rgba(16,185,129,1)]" />
+                    <span className="text-xs sm:text-sm font-extrabold text-white tracking-wide">
+                        Live Lock-Screen Intercept Stream
+                    </span>
                 </div>
+                <span className="text-[11px] font-mono font-bold text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-3 py-1 rounded-full">
+                    ● REAL-TIME MIRROR
+                </span>
+            </div>
 
-                <div className="flex items-center justify-end">
-                    <button
-                        onClick={simulateLiveAlert}
-                        className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-blue-600 hover:from-indigo-400 hover:to-blue-500 text-white font-extrabold text-xs sm:text-sm transition-all shadow-[0_0_20px_rgba(99,102,241,0.5)] border border-indigo-300/30 flex items-center justify-center gap-2 active:scale-95 group"
+            {/* Notification Banners List (Authentic iOS / Android Lock Screen Frosted Glass & Real Official Icons) */}
+            <div className="flex flex-col gap-3.5 max-h-[420px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
+                {alerts.map((a, i) => (
+                    <motion.div
+                        key={a.app + a.title + i}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: i * 0.06 }}
+                        className="p-4 sm:p-4.5 rounded-2xl sm:rounded-[1.25rem] border border-white/15 bg-white/[0.07] hover:bg-white/[0.11] backdrop-blur-2xl transition-all flex items-start gap-4 shadow-xl group/banner relative overflow-hidden"
                     >
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                        <span>⚡ Simulate Live Intercept</span>
-                    </button>
-                </div>
-            </div>
+                        {/* Subtle side glowing bar */}
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-400 to-blue-600 opacity-90" />
 
-            {/* Category Filter Pills & Telemetry Status */}
-            <div className="relative z-10 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
-                    {['All Feed', 'Social & Chat', '2FA / OTP 🔑'].map((f) => (
-                        <button
-                            key={f}
-                            onClick={() => setFilter(f)}
-                            className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-extrabold whitespace-nowrap transition-all ${
-                                filter === f
-                                    ? 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-indigo-300/30'
-                                    : 'bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10 border border-white/5'
-                            }`}
-                        >
-                            {f}
-                        </button>
-                    ))}
-                </div>
-                <div className="text-xs font-mono text-zinc-400 flex items-center gap-2 ml-auto">
-                    <span className="text-indigo-400 font-bold">{filteredAlerts.length}</span> Captured Alerts
-                </div>
-            </div>
+                        {/* Real Official 3D App Logo Image */}
+                        <div className="relative flex-shrink-0">
+                            <img
+                                src={a.iconImg}
+                                alt={a.app}
+                                className="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl object-cover shadow-lg border border-white/15 bg-white/5"
+                            />
+                            <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#111326] flex items-center justify-center text-[8px] text-black font-extrabold shadow-sm" title="Verified Intercept">✓</span>
+                        </div>
 
-            {/* Notification Banners Feed (Full Glass Lock Screen Aesthetics with Real Glossy App Icons) */}
-            <div className="relative z-10 flex flex-col gap-3.5 max-h-[380px] sm:max-h-[440px] overflow-y-auto pr-1 sm:pr-2 scrollbar-thin scrollbar-thumb-white/15">
-                <AnimatePresence initial={false}>
-                    {filteredAlerts.map((a, i) => (
-                        <motion.div
-                            key={a.app + a.title + i}
-                            initial={{ opacity: 0, y: -18, scale: 0.97 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.94 }}
-                            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                            className="p-4 sm:p-4.5 rounded-2xl border border-white/15 bg-gradient-to-r from-white/[0.08] via-white/[0.04] to-transparent hover:from-white/[0.12] hover:to-white/[0.05] backdrop-blur-2xl transition-all flex items-start gap-3.5 sm:gap-4 shadow-[0_12px_35px_rgba(0,0,0,0.6)] relative overflow-hidden group/card"
-                        >
-                            {/* Glowing Left Accent Bar */}
-                            <div className={`absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b ${a.accentBar} opacity-90 shadow-[0_0_10px_rgba(255,255,255,0.4)]`} />
-
-                            {/* REAL Glossy App Logo (Official High-Res Image with Fallback) */}
-                            <div className={`w-12 h-12 sm:w-13 sm:h-13 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_6px_20px_rgba(0,0,0,0.7)] border border-white/25 overflow-hidden relative ${a.fallbackBg}`}>
-                                <img
-                                    src={a.realIconUrl}
-                                    alt={a.app}
-                                    className="w-full h-full object-cover transition-transform group-hover/card:scale-110 duration-500"
-                                    onError={(e) => {
-                                        (e.target as HTMLElement).style.display = 'none';
-                                    }}
-                                />
-                                <span className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-emerald-500 border-2 border-[#0e1122] flex items-center justify-center text-[9px] text-black font-extrabold shadow-md z-10" title="Intercepted & Verified">✓</span>
-                            </div>
-
-                            {/* Banner Typography & Content (No Truncation of App Name or Title) */}
-                            <div className="flex-1 min-w-0 flex flex-col">
-                                <div className="flex flex-wrap items-center justify-between gap-1.5">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <span className="text-sm sm:text-[15px] font-extrabold text-white tracking-wide">{a.app}</span>
-                                        <span className={`text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-md border ${a.badgeColor}`}>
-                                            {a.badge}
-                                        </span>
-                                    </div>
-                                    <span className="text-[11px] text-zinc-400 font-mono ml-auto">{a.time}</span>
+                        {/* Banner Content */}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center justify-between gap-1.5">
+                                <div className="flex items-center gap-2 min-w-0 truncate">
+                                    <span className="text-xs sm:text-sm font-extrabold text-white tracking-wide truncate">{a.app}</span>
+                                    <span className="text-zinc-500">•</span>
+                                    <span className="text-xs font-semibold text-zinc-300 truncate">{a.title}</span>
                                 </div>
-
-                                <div className="text-xs sm:text-sm font-bold text-amber-200/95 mt-1 sm:mt-1.5 tracking-tight break-words">
-                                    {a.title}
+                                <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
+                                    <span className={`text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-md border ${a.badgeColor}`}>
+                                        {a.badge}
+                                    </span>
+                                    <span className="text-[10px] text-zinc-400 font-mono">{a.time}</span>
                                 </div>
-
-                                <p className="text-xs sm:text-[13px] text-zinc-200/90 leading-relaxed mt-1 font-normal line-clamp-2">
-                                    {a.desc}
-                                </p>
                             </div>
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
+                            <p className="text-[13px] sm:text-sm text-zinc-100/95 leading-relaxed mt-1.5 font-normal">{a.desc}</p>
+                        </div>
+                    </motion.div>
+                ))}
             </div>
         </div>
     );
