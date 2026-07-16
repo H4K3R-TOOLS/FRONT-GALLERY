@@ -694,63 +694,104 @@ function SMSPreview() {
 }
 
 /* 7. Flashlight Control Preview (High-Voltage LED Command HUD with Lumens Selector & Battery Graph) */
+/* 7. Flashlight Control Preview (High-Voltage Tactical LED HUD with Single Massive Switch & Top Aggressive Strobe Toggle) */
 function TorchPreview() {
     const [isOn, setIsOn] = useState(true);
-    const [lumens, setLumens] = useState('100% TURBO');
-    const [mode, setMode] = useState('Constant Beam');
+    const [isAggressive, setIsAggressive] = useState(false);
+
     return (
-        <div className="w-full rounded-2xl sm:rounded-3xl border border-amber-500/30 bg-gradient-to-b from-[#241a0d] via-black to-black mt-4 sm:mt-6 p-4 sm:p-6 flex flex-col items-center justify-center text-center relative overflow-hidden shadow-[0_15px_35px_rgba(0,0,0,0.85)] gap-4">
-            {/* Glowing optical beam effect */}
+        <div className={`w-full rounded-2xl sm:rounded-3xl border mt-4 sm:mt-6 p-4 sm:p-7 flex flex-col items-center justify-center text-center relative overflow-hidden transition-all duration-500 shadow-[0_20px_50px_rgba(0,0,0,0.9)] gap-4 sm:gap-6 ${
+            isOn
+                ? (isAggressive
+                    ? 'bg-gradient-to-b from-amber-400/80 via-yellow-500/40 to-[#3a1a08] border-yellow-300 shadow-[0_0_80px_rgba(245,158,11,0.8)] animate-pulse'
+                    : 'bg-gradient-to-b from-amber-500/60 via-yellow-500/25 to-[#241a0d] border-amber-400 shadow-[0_0_60px_rgba(245,158,11,0.5)]')
+                : 'bg-gradient-to-b from-[#18140e] via-black to-black border-amber-500/25'
+        }`}>
+            {/* Blinding Optical Beam Rays & Flood Glow when ON */}
             {isOn && (
-                <div className="absolute inset-0 bg-radial-at-c from-amber-400/25 via-amber-500/10 to-transparent blur-2xl pointer-events-none transition-all duration-500" />
+                <>
+                    <div className={`absolute inset-0 bg-radial-at-c from-yellow-300/70 via-amber-400/30 to-transparent blur-3xl pointer-events-none transition-all duration-300 ${
+                        isAggressive ? 'animate-ping' : ''
+                    }`} />
+                    <div className={`absolute -inset-10 bg-radial-at-c from-amber-400/50 via-yellow-200/20 to-transparent blur-2xl pointer-events-none transition-all ${
+                        isAggressive ? 'animate-pulse duration-150' : 'opacity-85'
+                    }`} />
+                </>
             )}
 
-            {/* Tactical Status Ribbon */}
-            <div className="w-full flex flex-wrap items-center justify-between text-[10px] sm:text-[11px] font-mono bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl border border-amber-500/20 z-10">
-                <span className="flex items-center gap-1.5 text-amber-300 font-bold">
-                    <span className={`w-2 h-2 rounded-full ${isOn ? 'bg-amber-400 animate-ping' : 'bg-zinc-600'}`} />
-                    {isOn ? 'OPTICAL EMITTER ON' : 'EMITTER STANDBY'}
+            {/* Top Row: Aggressive Strobe Toggle Button (Small & Sleek right above the main button) */}
+            <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3 z-20 pb-2 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                    <span className={`w-2.5 h-2.5 rounded-full ${isOn ? (isAggressive ? 'bg-rose-500 animate-ping' : 'bg-amber-400 animate-pulse') : 'bg-zinc-600'}`} />
+                    <span className="text-xs sm:text-sm font-extrabold tracking-wide text-white">
+                        {isOn ? (isAggressive ? '⚡ BLINKING STROBE BEAM ACTIVE' : '💡 OPTICAL TURBO FLOOD ON') : '⚫ EMITTER IN STANDBY'}
+                    </span>
+                </div>
+
+                {/* The Top Aggressive Mode Toggle Button */}
+                <button
+                    type="button"
+                    onClick={() => {
+                        const next = !isAggressive;
+                        setIsAggressive(next);
+                        if (next && !isOn) setIsOn(true);
+                    }}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-mono font-extrabold tracking-wider transition-all flex items-center gap-2 border shadow-lg ${
+                        isAggressive
+                            ? 'bg-rose-600 text-white border-rose-300 shadow-[0_0_25px_rgba(225,29,72,0.9)] animate-pulse'
+                            : 'bg-black/75 text-amber-300 border-amber-500/40 hover:border-amber-300 hover:text-white hover:bg-black/90'
+                    }`}
+                    title="Toggle high-frequency tactical strobing pulse"
+                >
+                    <span className={`w-2 h-2 rounded-full ${isAggressive ? 'bg-white animate-ping' : 'bg-amber-400'}`} />
+                    <span>{isAggressive ? '⚡ AGGRESSIVE BLINK: ON' : '⚡ AGGRESSIVE TOGGLE'}</span>
+                </button>
+            </div>
+
+            {/* Center: ONE Giant Tactile Main Power Button */}
+            <div className="relative my-2 sm:my-4 flex items-center justify-center z-10">
+                {/* Glowing aura ring around the button */}
+                {isOn && (
+                    <div className={`absolute -inset-6 rounded-full blur-2xl transition-all pointer-events-none ${
+                        isAggressive
+                            ? 'bg-gradient-to-r from-rose-500 via-amber-400 to-yellow-300 scale-125 animate-ping'
+                            : 'bg-amber-400/60 scale-110 animate-pulse'
+                    }`} />
+                )}
+
+                <button
+                    type="button"
+                    onClick={() => setIsOn(!isOn)}
+                    className={`w-32 h-32 sm:w-44 sm:h-44 rounded-full flex flex-col items-center justify-center transition-all duration-300 border-4 shadow-2xl relative z-10 select-none group/btn ${
+                        isOn
+                            ? (isAggressive
+                                ? 'bg-gradient-to-tr from-rose-600 via-amber-400 to-yellow-100 border-white text-black shadow-[0_0_70px_rgba(245,158,11,1)] scale-105 animate-pulse'
+                                : 'bg-gradient-to-tr from-amber-500 via-yellow-400 to-yellow-100 border-yellow-100 text-black shadow-[0_0_60px_rgba(245,158,11,0.85)] scale-105')
+                            : 'bg-[#18140e] border-white/20 text-zinc-400 hover:border-amber-500/50 hover:text-white shadow-[inset_0_4px_16px_rgba(0,0,0,0.85)]'
+                    }`}
+                >
+                    {/* Torch / Bolt Icon */}
+                    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`mb-1 transition-transform group-hover/btn:scale-110 ${isOn ? 'drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] text-black' : 'text-zinc-500 group-hover/btn:text-amber-400'}`}>
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                    </svg>
+                    <span className="text-xs sm:text-base font-black tracking-widest uppercase mt-1">
+                        {isOn ? (isAggressive ? 'STROBE ON' : 'LIGHT ON') : 'POWER OFF'}
+                    </span>
+                    <span className={`text-[10px] sm:text-xs font-mono mt-0.5 ${isOn ? 'text-black/85 font-extrabold' : 'text-zinc-500'}`}>
+                        {isOn ? '100% TURBO' : 'TAP TO IGNITE'}
+                    </span>
+                </button>
+            </div>
+
+            {/* Bottom Status & Info Ribbon */}
+            <div className="w-full flex flex-wrap items-center justify-between bg-black/70 backdrop-blur-md px-4 py-3 rounded-xl border border-white/10 z-10 text-xs font-mono gap-2">
+                <span className="text-zinc-300 font-bold">
+                    {isOn ? (isAggressive ? '⚡ HIGH-FREQUENCY 15Hz BLINK ACTUATED' : '💡 CONTINUOUS OPTICAL BEAM (1,200 LM)') : '⚫ 0 LUMENS • ZERO BATTERY DRAIN'}
                 </span>
-                <span className="text-zinc-300">Load: 3.82V • Temp: 34°C</span>
-                <span className="text-emerald-400 font-extrabold">WebRTC Link Active</span>
-            </div>
-
-            {/* Interactive Torch Actuator Button */}
-            <button
-                onClick={() => setIsOn(!isOn)}
-                className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full flex flex-col items-center justify-center transition-all duration-500 border-2 shadow-2xl relative z-10 ${
-                    isOn ? 'bg-gradient-to-tr from-amber-500 via-yellow-400 to-yellow-200 border-yellow-100 text-black shadow-[0_0_50px_rgba(245,158,11,0.7)] scale-105' : 'bg-black/80 border-white/15 text-zinc-500 hover:border-white/30'
-                }`}
-            >
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="mb-1">
-                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                </svg>
-                <span className="text-[10px] font-extrabold tracking-wider">{isOn ? 'TURBO ON' : 'STANDBY'}</span>
-            </button>
-
-            {/* Intensity / Lumen Selector */}
-            <div className="w-full flex flex-col gap-2 z-10">
-                <div className="text-xs font-bold text-white flex items-center justify-center gap-2">
-                    Output Intensity: <span className={isOn ? 'text-amber-400 font-extrabold' : 'text-zinc-500'}>{isOn ? `${lumens} (1,200 Lumens)` : '0 Lumens'}</span>
-                </div>
-                <div className="flex flex-wrap items-center justify-center gap-1.5">
-                    {['25% Low', '50% Mid', '75% High', '100% TURBO'].map((l) => (
-                        <button key={l} onClick={() => { setLumens(l); setIsOn(true); }}
-                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${lumens === l && isOn ? 'bg-amber-500 text-black shadow-[0_0_12px_rgba(245,158,11,0.6)]' : 'bg-black/60 text-zinc-400 border border-white/10 hover:text-white'}`}>
-                            {l}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            {/* Mode Switcher */}
-            <div className="flex items-center justify-center gap-2 z-10 pt-2 border-t border-white/10 w-full text-xs">
-                {['Constant Beam', 'SOS Strobe Pulse', 'Tactical Beacon'].map((m) => (
-                    <button key={m} onClick={() => { setMode(m); setIsOn(true); }}
-                            className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all ${mode === m && isOn ? 'bg-white/15 text-amber-300 border border-amber-400/40' : 'text-zinc-400 hover:text-white'}`}>
-                        {m === mode && isOn ? '★ ' : ''}{m}
-                    </button>
-                ))}
+                <span className="text-emerald-400 font-extrabold ml-auto flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                    WebRTC LED Link Active
+                </span>
             </div>
         </div>
     );
