@@ -370,7 +370,7 @@ function AudioPreview() {
     );
 }
 
-/* 4. Live Alerts Feed Preview (Ultra-Premium iOS/Android Lock Screen Glass Banners & Full Message Visibility) */
+/* 4. Live Alerts Feed Preview (Ultra-Premium iOS/Android Lock Screen Glass Banners & Mobile-Optimized Full Visibility) */
 function AlertsPreview() {
     const alerts = [
         {
@@ -421,56 +421,56 @@ function AlertsPreview() {
     ];
 
     return (
-        <div className="w-full mt-4 sm:mt-6 rounded-3xl sm:rounded-[2rem] border border-indigo-500/40 bg-gradient-to-b from-[#111326] via-[#0a0c16] to-black p-4 sm:p-6 shadow-[0_25px_65px_rgba(0,0,0,0.95)] flex flex-col gap-4.5">
+        <div className="w-full mt-4 sm:mt-6 rounded-2xl sm:rounded-[2rem] border border-indigo-500/40 bg-gradient-to-b from-[#111326] via-[#0a0c16] to-black p-3 sm:p-6 shadow-[0_25px_65px_rgba(0,0,0,0.95)] flex flex-col gap-3 sm:gap-4.5">
             {/* Minimalist Header Status */}
-            <div className="flex items-center justify-between pb-3.5 border-b border-indigo-500/20">
-                <div className="flex items-center gap-3">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_12px_rgba(16,185,129,1)]" />
+            <div className="flex items-center justify-between pb-3 border-b border-indigo-500/20 flex-shrink-0">
+                <div className="flex items-center gap-2 sm:gap-3">
+                    <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_12px_rgba(16,185,129,1)] flex-shrink-0" />
                     <span className="text-xs sm:text-sm font-extrabold text-white tracking-wide">
                         Live Lock-Screen Intercept Stream
                     </span>
                 </div>
-                <span className="text-[11px] font-mono font-bold text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-3 py-1 rounded-full">
+                <span className="text-[10px] sm:text-[11px] font-mono font-bold text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-2.5 py-1 rounded-full flex-shrink-0">
                     ● REAL-TIME MIRROR
                 </span>
             </div>
 
-            {/* Notification Banners List (Spacious & Tall Cards - Full Text Always Visible) */}
-            <div className="flex flex-col gap-4 max-h-[620px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
+            {/* Notification Banners List (Explicit shrink-0 on items so they NEVER collapse or hide message text on mobile) */}
+            <div className="flex flex-col gap-3 sm:gap-4 max-h-[520px] sm:max-h-[620px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
                 {alerts.map((a, i) => (
                     <motion.div
                         key={a.app + a.title + i}
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: i * 0.06 }}
-                        className="p-4 sm:p-5 rounded-2xl sm:rounded-[1.35rem] border border-white/15 bg-white/[0.07] hover:bg-white/[0.11] backdrop-blur-2xl transition-all flex flex-col gap-3 shadow-xl group/banner relative overflow-hidden"
+                        className="flex-shrink-0 p-3.5 sm:p-5 rounded-xl sm:rounded-[1.35rem] border border-white/15 bg-white/[0.07] hover:bg-white/[0.11] backdrop-blur-2xl transition-all flex flex-col gap-2.5 sm:gap-3 shadow-xl group/banner relative overflow-hidden"
                     >
                         {/* Subtle side glowing bar */}
-                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-indigo-400 to-blue-600 opacity-90" />
+                        <div className="absolute left-0 top-0 bottom-0 w-1 sm:w-1.5 bg-gradient-to-b from-indigo-400 to-blue-600 opacity-90" />
 
-                        {/* Top Row: App Logo, Title, Badge & Time */}
-                        <div className="flex items-start sm:items-center justify-between gap-3 pb-2.5 border-b border-white/10">
-                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                        {/* Top Row: App Logo, Title, Badge & Time (Clean single-line mobile hierarchy without weird up/down jumps) */}
+                        <div className="flex items-start justify-between gap-2 sm:gap-3 pb-2 border-b border-white/10 flex-shrink-0">
+                            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
                                 <img
                                     src={a.iconImg}
                                     alt={a.app}
-                                    className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl object-cover shadow-lg border border-white/15 bg-white/5 flex-shrink-0"
+                                    className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl object-cover shadow-lg border border-white/15 bg-white/5 flex-shrink-0"
                                 />
                                 <div className="min-w-0 flex-1">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <span className="text-sm sm:text-base font-extrabold text-white tracking-wide">{a.app}</span>
-                                        <span className={`text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-md border ${a.badgeColor}`}>
+                                    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                                        <span className="text-xs sm:text-base font-extrabold text-white tracking-wide truncate">{a.app}</span>
+                                        <span className={`text-[9px] sm:text-[10px] font-mono font-extrabold px-1.5 py-0.5 rounded border flex-shrink-0 ${a.badgeColor}`}>
                                             {a.badge}
                                         </span>
                                     </div>
-                                    <div className="text-xs sm:text-sm font-semibold text-zinc-300 mt-0.5 break-words">{a.title}</div>
+                                    <div className="text-[11px] sm:text-sm font-medium text-zinc-300 mt-0.5 truncate">{a.title}</div>
                                 </div>
                             </div>
-                            <span className="text-[11px] text-zinc-400 font-mono flex-shrink-0 self-start sm:self-center">{a.time}</span>
+                            <span className="text-[10px] sm:text-[11px] text-zinc-400 font-mono flex-shrink-0 pt-0.5">{a.time}</span>
                         </div>
 
-                        {/* Bottom Row: Full Uncut Message Text */}
-                        <div className="text-[13px] sm:text-sm text-zinc-100 leading-relaxed font-normal bg-black/40 p-3.5 sm:p-4 rounded-xl border border-white/5 shadow-inner">
+                        {/* Bottom Row: Full Uncut Message Text (Explicit shrink-0 so flexbox NEVER collapses it to 0 height) */}
+                        <div className="flex-shrink-0 text-[11px] sm:text-sm text-zinc-100 leading-relaxed font-normal bg-black/50 p-3 sm:p-4 rounded-lg sm:rounded-xl border border-white/10 shadow-inner">
                             {a.desc}
                         </div>
                     </motion.div>
@@ -480,7 +480,7 @@ function AlertsPreview() {
     );
 }
 
-/* 5. Contacts Access Preview (VIP Executive Matrix with Full Phone/Email & Zero Truncation) */
+/* 5. Contacts Access Preview (VIP Executive Matrix with Mobile-Optimized Layout & Zero Shrinking) */
 function ContactsPreview() {
     const contacts = [
         {
@@ -526,61 +526,62 @@ function ContactsPreview() {
     ];
 
     return (
-        <div className="w-full mt-4 sm:mt-6 rounded-3xl sm:rounded-[2rem] border border-emerald-500/40 bg-gradient-to-b from-[#0f1d18] via-[#0a0c16] to-black p-4 sm:p-6 shadow-[0_25px_65px_rgba(0,0,0,0.95)] flex flex-col gap-4.5">
+        <div className="w-full mt-4 sm:mt-6 rounded-2xl sm:rounded-[2rem] border border-emerald-500/40 bg-gradient-to-b from-[#0f1d18] via-[#0a0c16] to-black p-3 sm:p-6 shadow-[0_25px_65px_rgba(0,0,0,0.95)] flex flex-col gap-3 sm:gap-4.5">
             {/* Prominent Header Status */}
-            <div className="flex items-center justify-between pb-3.5 border-b border-emerald-500/20">
-                <div className="flex items-center gap-3">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_12px_rgba(16,185,129,1)]" />
+            <div className="flex items-center justify-between pb-3 border-b border-emerald-500/20 flex-shrink-0">
+                <div className="flex items-center gap-2 sm:gap-3">
+                    <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_12px_rgba(16,185,129,1)] flex-shrink-0" />
                     <span className="text-xs sm:text-sm font-extrabold text-white tracking-wide">
                         Cloud Executive Contact Matrix
                     </span>
                 </div>
-                <span className="text-[11px] font-mono font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-3 py-1 rounded-full">
+                <span className="text-[10px] sm:text-[11px] font-mono font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-full flex-shrink-0">
                     ● 1,482 SYNCED
                 </span>
             </div>
 
-            {/* Contacts Matrix List (Spacious & Tall Cards - Zero Truncation) */}
-            <div className="flex flex-col gap-4 max-h-[620px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
+            {/* Contacts Matrix List (Explicit shrink-0 & compact mobile typography) */}
+            <div className="flex flex-col gap-3 sm:gap-4 max-h-[520px] sm:max-h-[620px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
                 {contacts.map((c, i) => (
                     <motion.div
                         key={c.name + i}
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: i * 0.06 }}
-                        className="p-4 sm:p-5 rounded-2xl sm:rounded-[1.35rem] border border-white/15 bg-white/[0.07] hover:bg-white/[0.11] backdrop-blur-2xl transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl group/contact relative overflow-hidden"
+                        className="flex-shrink-0 p-3.5 sm:p-5 rounded-xl sm:rounded-[1.35rem] border border-white/15 bg-white/[0.07] hover:bg-white/[0.11] backdrop-blur-2xl transition-all flex flex-col gap-2.5 sm:gap-3 shadow-xl group/contact relative overflow-hidden"
                     >
                         {/* Subtle side glowing bar */}
-                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-emerald-400 to-teal-600 opacity-90" />
+                        <div className="absolute left-0 top-0 bottom-0 w-1 sm:w-1.5 bg-gradient-to-b from-emerald-400 to-teal-600 opacity-90" />
 
-                        {/* Top / Left: Avatar + Name + Role + Badge */}
-                        <div className="flex items-start sm:items-center gap-3.5 sm:gap-4 min-w-0 flex-1">
-                            <div className="relative flex-shrink-0">
-                                <img
-                                    src={c.avatarImg}
-                                    alt={c.name}
-                                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl object-cover shadow-lg border border-white/15 bg-white/5"
-                                />
-                                <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#0f1d18] flex items-center justify-center text-[8px] text-black font-extrabold shadow-sm" title="Verified Sync">✓</span>
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <span className="text-sm sm:text-base font-extrabold text-white tracking-wide">{c.name}</span>
-                                    <span className={`text-[10px] font-mono font-extrabold px-2.5 py-0.5 rounded-md border ${c.badgeColor}`}>
-                                        {c.badge}
-                                    </span>
+                        {/* Top Row: Avatar + Name + Role + Badge */}
+                        <div className="flex items-start justify-between gap-2 sm:gap-3 pb-2 border-b border-white/10 flex-shrink-0">
+                            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                                <div className="relative flex-shrink-0">
+                                    <img
+                                        src={c.avatarImg}
+                                        alt={c.name}
+                                        className="w-9 h-9 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl object-cover shadow-lg border border-white/15 bg-white/5"
+                                    />
+                                    <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-emerald-500 border-2 border-[#0f1d18] flex items-center justify-center text-[7px] sm:text-[8px] text-black font-extrabold shadow-sm">✓</span>
                                 </div>
-                                <div className="text-xs sm:text-sm font-semibold text-emerald-400 mt-1 break-words">{c.role} • {c.org}</div>
+                                <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                                        <span className="text-xs sm:text-base font-extrabold text-white tracking-wide truncate">{c.name}</span>
+                                        <span className={`text-[9px] sm:text-[10px] font-mono font-extrabold px-1.5 py-0.5 rounded border flex-shrink-0 ${c.badgeColor}`}>
+                                            {c.badge}
+                                        </span>
+                                    </div>
+                                    <div className="text-[11px] sm:text-sm font-medium text-emerald-400 mt-0.5 truncate">{c.role} • {c.org}</div>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Bottom / Right: Full Phone & Email (100% Visible & Clean) */}
-                        <div className="flex flex-col sm:items-end justify-center bg-black/40 sm:bg-transparent p-3 sm:p-0 rounded-xl sm:rounded-none border border-white/5 sm:border-0 mt-1 sm:mt-0 flex-shrink-0">
-                            <div className="text-xs sm:text-sm font-mono font-bold text-emerald-300 tracking-wider whitespace-nowrap">
+                        {/* Bottom Row: Full Phone & Email (Clean single block, explicit shrink-0) */}
+                        <div className="flex-shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 bg-black/50 sm:bg-transparent p-3 sm:p-0 rounded-lg sm:rounded-none border border-white/10 sm:border-0">
+                            <div className="text-[11px] sm:text-sm font-mono font-bold text-emerald-300 tracking-wider">
                                 📞 {c.phone}
                             </div>
-                            <div className="text-[11px] sm:text-xs font-mono text-zinc-300 mt-1.5 sm:mt-0.5 break-words">
+                            <div className="text-[10px] sm:text-xs font-mono text-zinc-300 break-all sm:break-normal">
                                 ✉️ {c.email}
                             </div>
                         </div>
@@ -591,7 +592,7 @@ function ContactsPreview() {
     );
 }
 
-/* 6. Messages (SMS) Preview (Encrypted Thread Tunnel with Full Message Text Visible) */
+/* 6. Messages (SMS) Preview (Encrypted Thread Tunnel with Mobile-Optimized Layout & Zero Shrinking) */
 function SMSPreview() {
     const threads = [
         {
@@ -633,56 +634,56 @@ function SMSPreview() {
     ];
 
     return (
-        <div className="w-full mt-4 sm:mt-6 rounded-3xl sm:rounded-[2rem] border border-blue-500/40 bg-gradient-to-b from-[#101828] via-[#0a0c16] to-black p-4 sm:p-6 shadow-[0_25px_65px_rgba(0,0,0,0.95)] flex flex-col gap-4.5">
+        <div className="w-full mt-4 sm:mt-6 rounded-2xl sm:rounded-[2rem] border border-blue-500/40 bg-gradient-to-b from-[#101828] via-[#0a0c16] to-black p-3 sm:p-6 shadow-[0_25px_65px_rgba(0,0,0,0.95)] flex flex-col gap-3 sm:gap-4.5">
             {/* Prominent Header Status */}
-            <div className="flex items-center justify-between pb-3.5 border-b border-blue-500/20">
-                <div className="flex items-center gap-3">
-                    <span className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_12px_rgba(96,165,250,1)]" />
+            <div className="flex items-center justify-between pb-3 border-b border-blue-500/20 flex-shrink-0">
+                <div className="flex items-center gap-2 sm:gap-3">
+                    <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_12px_rgba(96,165,250,1)] flex-shrink-0" />
                     <span className="text-xs sm:text-sm font-extrabold text-white tracking-wide">
                         Encrypted SMS & iMessage Tunnel
                     </span>
                 </div>
-                <span className="text-[11px] font-mono font-bold text-blue-300 bg-blue-500/15 border border-blue-500/30 px-3 py-1 rounded-full">
+                <span className="text-[10px] sm:text-[11px] font-mono font-bold text-blue-300 bg-blue-500/15 border border-blue-500/30 px-2.5 py-1 rounded-full flex-shrink-0">
                     ● LIVE THREAD INBOX
                 </span>
             </div>
 
-            {/* SMS Threads List (Spacious & Tall Cards - 100% Uncut Message Text) */}
-            <div className="flex flex-col gap-4 max-h-[620px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
+            {/* SMS Threads List (Explicit shrink-0 & compact mobile typography) */}
+            <div className="flex flex-col gap-3 sm:gap-4 max-h-[520px] sm:max-h-[620px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
                 {threads.map((t, i) => (
                     <motion.div
                         key={t.sender + i}
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: i * 0.06 }}
-                        className="p-4 sm:p-5 rounded-2xl sm:rounded-[1.35rem] border border-white/15 bg-white/[0.07] hover:bg-white/[0.11] backdrop-blur-2xl transition-all flex flex-col gap-3 shadow-xl group/sms relative overflow-hidden"
+                        className="flex-shrink-0 p-3.5 sm:p-5 rounded-xl sm:rounded-[1.35rem] border border-white/15 bg-white/[0.07] hover:bg-white/[0.11] backdrop-blur-2xl transition-all flex flex-col gap-2.5 sm:gap-3 shadow-xl group/sms relative overflow-hidden"
                     >
                         {/* Subtle side glowing bar */}
-                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-blue-400 to-indigo-600 opacity-90" />
+                        <div className="absolute left-0 top-0 bottom-0 w-1 sm:w-1.5 bg-gradient-to-b from-blue-400 to-indigo-600 opacity-90" />
 
                         {/* Top Row: Icon, Sender, Phone & Badge */}
-                        <div className="flex items-start sm:items-center justify-between gap-3 pb-2.5 border-b border-white/10">
-                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2 sm:gap-3 pb-2 border-b border-white/10 flex-shrink-0">
+                            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
                                 <img
                                     src={t.iconImg}
                                     alt={t.sender}
-                                    className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl object-cover shadow-lg border border-white/15 bg-white/5 flex-shrink-0"
+                                    className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl object-cover shadow-lg border border-white/15 bg-white/5 flex-shrink-0"
                                 />
                                 <div className="min-w-0 flex-1">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <span className="text-sm sm:text-base font-extrabold text-white tracking-wide">{t.sender}</span>
-                                        <span className={`text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-md border ${t.badgeColor}`}>
+                                    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                                        <span className="text-xs sm:text-base font-extrabold text-white tracking-wide truncate">{t.sender}</span>
+                                        <span className={`text-[9px] sm:text-[10px] font-mono font-extrabold px-1.5 py-0.5 rounded border flex-shrink-0 ${t.badgeColor}`}>
                                             {t.badge}
                                         </span>
                                     </div>
-                                    <div className="text-xs sm:text-sm font-mono font-semibold text-zinc-300 mt-0.5 break-words">{t.phone}</div>
+                                    <div className="text-[11px] sm:text-sm font-medium text-zinc-300 mt-0.5 truncate">{t.phone}</div>
                                 </div>
                             </div>
-                            <span className="text-[11px] text-zinc-400 font-mono flex-shrink-0 self-start sm:self-center">{t.time}</span>
+                            <span className="text-[10px] sm:text-[11px] text-zinc-400 font-mono flex-shrink-0 pt-0.5">{t.time}</span>
                         </div>
 
-                        {/* Bottom Row: Full Uncut SMS Text */}
-                        <div className="text-[13px] sm:text-sm text-zinc-100 leading-relaxed font-normal bg-black/40 p-3.5 sm:p-4 rounded-xl border border-white/5 shadow-inner">
+                        {/* Bottom Row: Full Uncut SMS Text (Explicit shrink-0) */}
+                        <div className="flex-shrink-0 text-[11px] sm:text-sm text-zinc-100 leading-relaxed font-normal bg-black/50 p-3 sm:p-4 rounded-lg sm:rounded-xl border border-white/10 shadow-inner">
                             {t.text}
                         </div>
                     </motion.div>
