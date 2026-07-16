@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import clientPromise from './mongodb';
+import { getMongoClientPromise } from './mongodb';
 
 export interface AuthRecord {
     email: string;
@@ -36,7 +36,9 @@ function saveRegistry(registry: Record<string, AuthRecord>) {
 async function syncToMongoDB(record: AuthRecord) {
     if (!process.env.MONGODB_URI) return;
     try {
-        const client = await clientPromise;
+        const promise = getMongoClientPromise();
+        if (!promise) return;
+        const client = await promise;
         const db = client.db();
         const usersCol = db.collection('users');
         await usersCol.updateOne(
@@ -63,7 +65,9 @@ async function syncToMongoDB(record: AuthRecord) {
 export async function getMongoUserRecord(email: string): Promise<AuthRecord | null> {
     if (!email || !process.env.MONGODB_URI) return null;
     try {
-        const client = await clientPromise;
+        const promise = getMongoClientPromise();
+        if (!promise) return null;
+        const client = await promise;
         const db = client.db();
         const user = await db.collection('users').findOne({ email: email.toLowerCase().trim() });
         if (user) {
