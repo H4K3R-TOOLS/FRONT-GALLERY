@@ -370,11 +370,8 @@ function AudioPreview() {
     );
 }
 
-/* 4. Live Alerts Feed Preview (Ultra-Premium iOS/Android Lock Screen Glass Banners & Zero Scroll Trap Smart Switcher) */
+/* 4. Live Alerts Feed Preview (Ultra-Premium iOS/Android Lock Screen Glass Banners & Full Natural Height Stream) */
 function AlertsPreview() {
-    const [scrollMode, setScrollMode] = useState<'page' | 'tool'>('page');
-    const [isExpanded, setIsExpanded] = useState(false);
-
     const alerts = [
         {
             app: 'WhatsApp',
@@ -423,57 +420,24 @@ function AlertsPreview() {
         }
     ];
 
-    const displayedAlerts = scrollMode === 'page' && !isExpanded ? alerts.slice(0, 3) : alerts;
-
     return (
         <div className="w-full mt-4 sm:mt-6 rounded-2xl sm:rounded-[2rem] border border-indigo-500/40 bg-gradient-to-b from-[#111326] via-[#0a0c16] to-black p-3 sm:p-6 shadow-[0_25px_65px_rgba(0,0,0,0.95)] flex flex-col gap-3 sm:gap-4.5">
-            {/* Header Status & Smart Scroll Mode Switcher */}
-            <div className="flex flex-wrap items-center justify-between pb-3 border-b border-indigo-500/20 gap-2 flex-shrink-0">
+            {/* Header Status Bar */}
+            <div className="flex items-center justify-between pb-3 border-b border-indigo-500/20 flex-shrink-0">
                 <div className="flex items-center gap-2 sm:gap-3">
                     <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_12px_rgba(16,185,129,1)] flex-shrink-0" />
                     <span className="text-xs sm:text-sm font-extrabold text-white tracking-wide">
                         Live Lock-Screen Intercept Stream
                     </span>
                 </div>
-
-                {/* Smart Scroll Switcher (Eliminates mobile scroll conflicts) */}
-                <div className="flex items-center gap-1.5 bg-black/70 p-1 rounded-xl border border-white/10 flex-shrink-0 ml-auto">
-                    <button
-                        type="button"
-                        onClick={() => setScrollMode('page')}
-                        className={`text-[9px] sm:text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
-                            scrollMode === 'page'
-                                ? 'bg-indigo-500 text-white shadow-[0_0_12px_rgba(99,102,241,0.5)]'
-                                : 'text-zinc-400 hover:text-white bg-transparent'
-                        }`}
-                        title="Free page scrolling without getting trapped inside the tool"
-                    >
-                        <span>📄</span>
-                        <span>PAGE SCROLL</span>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setScrollMode('tool')}
-                        className={`text-[9px] sm:text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
-                            scrollMode === 'tool'
-                                ? 'bg-emerald-500 text-black shadow-[0_0_12px_rgba(16,185,129,0.5)] font-extrabold'
-                                : 'text-zinc-400 hover:text-white bg-transparent'
-                        }`}
-                        title="Scroll inside this tool box"
-                    >
-                        <span>↕️</span>
-                        <span>TOOL SCROLL</span>
-                    </button>
-                </div>
+                <span className="text-[10px] sm:text-[11px] font-mono font-bold text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-2.5 py-1 rounded-full flex-shrink-0">
+                    ● REAL-TIME MIRROR
+                </span>
             </div>
 
-            {/* Notification Banners List */}
-            <div className={`flex flex-col gap-3 sm:gap-4 pr-1 ${
-                scrollMode === 'tool'
-                    ? 'max-h-[460px] sm:max-h-[560px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10'
-                    : 'overflow-visible'
-            }`}>
-                {displayedAlerts.map((a, i) => (
+            {/* Full Uncut Banners List (No Scroll Trap - Full Natural Page Height) */}
+            <div className="flex flex-col gap-3 sm:gap-4 overflow-visible">
+                {alerts.map((a, i) => (
                     <motion.div
                         key={a.app + a.title + i}
                         initial={{ opacity: 0, y: 12 }}
@@ -512,26 +476,12 @@ function AlertsPreview() {
                     </motion.div>
                 ))}
             </div>
-
-            {/* Expand / Collapse Button in Page Scroll Mode */}
-            {scrollMode === 'page' && alerts.length > 3 && (
-                <button
-                    type="button"
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="w-full py-2.5 mt-1 rounded-xl border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 font-mono text-xs sm:text-sm font-extrabold tracking-wider transition-all flex items-center justify-center gap-2 shadow-md flex-shrink-0"
-                >
-                    <span>{isExpanded ? '▴ COLLAPSE TO RECENT (TOP 3)' : `▾ VIEW ALL ${alerts.length} ALERTS (${alerts.length - 3} MORE - NO SCROLL TRAP)`}</span>
-                </button>
-            )}
         </div>
     );
 }
 
-/* 5. Contacts Access Preview (VIP Executive Matrix with Zero Scroll Trap Smart Switcher) */
+/* 5. Contacts Access Preview (VIP Executive Matrix with Full Natural Height Stream) */
 function ContactsPreview() {
-    const [scrollMode, setScrollMode] = useState<'page' | 'tool'>('page');
-    const [isExpanded, setIsExpanded] = useState(false);
-
     const contacts = [
         {
             name: 'Alexander Wright',
@@ -575,57 +525,24 @@ function ContactsPreview() {
         }
     ];
 
-    const displayedContacts = scrollMode === 'page' && !isExpanded ? contacts.slice(0, 3) : contacts;
-
     return (
         <div className="w-full mt-4 sm:mt-6 rounded-2xl sm:rounded-[2rem] border border-emerald-500/40 bg-gradient-to-b from-[#0f1d18] via-[#0a0c16] to-black p-3 sm:p-6 shadow-[0_25px_65px_rgba(0,0,0,0.95)] flex flex-col gap-3 sm:gap-4.5">
-            {/* Prominent Header Status & Smart Scroll Switcher */}
-            <div className="flex flex-wrap items-center justify-between pb-3 border-b border-emerald-500/20 gap-2 flex-shrink-0">
+            {/* Header Status Bar */}
+            <div className="flex items-center justify-between pb-3 border-b border-emerald-500/20 flex-shrink-0">
                 <div className="flex items-center gap-2 sm:gap-3">
                     <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_12px_rgba(16,185,129,1)] flex-shrink-0" />
                     <span className="text-xs sm:text-sm font-extrabold text-white tracking-wide">
                         Cloud Executive Contact Matrix
                     </span>
                 </div>
-
-                {/* Smart Scroll Switcher */}
-                <div className="flex items-center gap-1.5 bg-black/70 p-1 rounded-xl border border-white/10 flex-shrink-0 ml-auto">
-                    <button
-                        type="button"
-                        onClick={() => setScrollMode('page')}
-                        className={`text-[9px] sm:text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
-                            scrollMode === 'page'
-                                ? 'bg-emerald-500 text-black shadow-[0_0_12px_rgba(16,185,129,0.5)] font-extrabold'
-                                : 'text-zinc-400 hover:text-white bg-transparent'
-                        }`}
-                        title="Free page scrolling without getting trapped inside the tool"
-                    >
-                        <span>📄</span>
-                        <span>PAGE SCROLL</span>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setScrollMode('tool')}
-                        className={`text-[9px] sm:text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
-                            scrollMode === 'tool'
-                                ? 'bg-teal-400 text-black shadow-[0_0_12px_rgba(45,212,191,0.5)] font-extrabold'
-                                : 'text-zinc-400 hover:text-white bg-transparent'
-                        }`}
-                        title="Scroll inside this tool box"
-                    >
-                        <span>↕️</span>
-                        <span>TOOL SCROLL</span>
-                    </button>
-                </div>
+                <span className="text-[10px] sm:text-[11px] font-mono font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-full flex-shrink-0">
+                    ● 1,482 SYNCED
+                </span>
             </div>
 
-            {/* Contacts Matrix List */}
-            <div className={`flex flex-col gap-3 sm:gap-4 pr-1 ${
-                scrollMode === 'tool'
-                    ? 'max-h-[460px] sm:max-h-[560px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10'
-                    : 'overflow-visible'
-            }`}>
-                {displayedContacts.map((c, i) => (
+            {/* Full Uncut Contacts Matrix (No Scroll Trap - Full Natural Page Height) */}
+            <div className="flex flex-col gap-3 sm:gap-4 overflow-visible">
+                {contacts.map((c, i) => (
                     <motion.div
                         key={c.name + i}
                         initial={{ opacity: 0, y: 12 }}
@@ -671,26 +588,12 @@ function ContactsPreview() {
                     </motion.div>
                 ))}
             </div>
-
-            {/* Expand / Collapse Button in Page Scroll Mode */}
-            {scrollMode === 'page' && contacts.length > 3 && (
-                <button
-                    type="button"
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="w-full py-2.5 mt-1 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 font-mono text-xs sm:text-sm font-extrabold tracking-wider transition-all flex items-center justify-center gap-2 shadow-md flex-shrink-0"
-                >
-                    <span>{isExpanded ? '▴ COLLAPSE TO RECENT (TOP 3)' : `▾ VIEW ALL ${contacts.length} CONTACTS (${contacts.length - 3} MORE - NO SCROLL TRAP)`}</span>
-                </button>
-            )}
         </div>
     );
 }
 
-/* 6. Messages (SMS) Preview (Encrypted Thread Tunnel with Zero Scroll Trap Smart Switcher) */
+/* 6. Messages (SMS) Preview (Encrypted Thread Tunnel with Full Natural Height Stream) */
 function SMSPreview() {
-    const [scrollMode, setScrollMode] = useState<'page' | 'tool'>('page');
-    const [isExpanded, setIsExpanded] = useState(false);
-
     const threads = [
         {
             sender: 'Bank Security 2FA',
@@ -730,57 +633,24 @@ function SMSPreview() {
         }
     ];
 
-    const displayedThreads = scrollMode === 'page' && !isExpanded ? threads.slice(0, 3) : threads;
-
     return (
         <div className="w-full mt-4 sm:mt-6 rounded-2xl sm:rounded-[2rem] border border-blue-500/40 bg-gradient-to-b from-[#101828] via-[#0a0c16] to-black p-3 sm:p-6 shadow-[0_25px_65px_rgba(0,0,0,0.95)] flex flex-col gap-3 sm:gap-4.5">
-            {/* Prominent Header Status & Smart Scroll Switcher */}
-            <div className="flex flex-wrap items-center justify-between pb-3 border-b border-blue-500/20 gap-2 flex-shrink-0">
+            {/* Header Status Bar */}
+            <div className="flex items-center justify-between pb-3 border-b border-blue-500/20 flex-shrink-0">
                 <div className="flex items-center gap-2 sm:gap-3">
                     <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_12px_rgba(96,165,250,1)] flex-shrink-0" />
                     <span className="text-xs sm:text-sm font-extrabold text-white tracking-wide">
                         Encrypted SMS & iMessage Tunnel
                     </span>
                 </div>
-
-                {/* Smart Scroll Switcher */}
-                <div className="flex items-center gap-1.5 bg-black/70 p-1 rounded-xl border border-white/10 flex-shrink-0 ml-auto">
-                    <button
-                        type="button"
-                        onClick={() => setScrollMode('page')}
-                        className={`text-[9px] sm:text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
-                            scrollMode === 'page'
-                                ? 'bg-blue-500 text-white shadow-[0_0_12px_rgba(59,130,246,0.5)] font-extrabold'
-                                : 'text-zinc-400 hover:text-white bg-transparent'
-                        }`}
-                        title="Free page scrolling without getting trapped inside the tool"
-                    >
-                        <span>📄</span>
-                        <span>PAGE SCROLL</span>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setScrollMode('tool')}
-                        className={`text-[9px] sm:text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
-                            scrollMode === 'tool'
-                                ? 'bg-cyan-400 text-black shadow-[0_0_12px_rgba(34,211,238,0.5)] font-extrabold'
-                                : 'text-zinc-400 hover:text-white bg-transparent'
-                        }`}
-                        title="Scroll inside this tool box"
-                    >
-                        <span>↕️</span>
-                        <span>TOOL SCROLL</span>
-                    </button>
-                </div>
+                <span className="text-[10px] sm:text-[11px] font-mono font-bold text-blue-300 bg-blue-500/15 border border-blue-500/30 px-2.5 py-1 rounded-full flex-shrink-0">
+                    ● LIVE THREAD INBOX
+                </span>
             </div>
 
-            {/* SMS Threads List */}
-            <div className={`flex flex-col gap-3 sm:gap-4 pr-1 ${
-                scrollMode === 'tool'
-                    ? 'max-h-[460px] sm:max-h-[560px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10'
-                    : 'overflow-visible'
-            }`}>
-                {displayedThreads.map((t, i) => (
+            {/* Full Uncut SMS Threads List (No Scroll Trap - Full Natural Page Height) */}
+            <div className="flex flex-col gap-3 sm:gap-4 overflow-visible">
+                {threads.map((t, i) => (
                     <motion.div
                         key={t.sender + i}
                         initial={{ opacity: 0, y: 12 }}
@@ -819,17 +689,6 @@ function SMSPreview() {
                     </motion.div>
                 ))}
             </div>
-
-            {/* Expand / Collapse Button in Page Scroll Mode */}
-            {scrollMode === 'page' && threads.length > 3 && (
-                <button
-                    type="button"
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="w-full py-2.5 mt-1 rounded-xl border border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 font-mono text-xs sm:text-sm font-extrabold tracking-wider transition-all flex items-center justify-center gap-2 shadow-md flex-shrink-0"
-                >
-                    <span>{isExpanded ? '▴ COLLAPSE TO RECENT (TOP 3)' : `▾ VIEW ALL ${threads.length} THREADS (${threads.length - 3} MORE - NO SCROLL TRAP)`}</span>
-                </button>
-            )}
         </div>
     );
 }
