@@ -109,7 +109,109 @@ function MagneticCard({ children, className = '' }: { children: React.ReactNode;
     return <div ref={ref} onMouseMove={onMove} onMouseLeave={onLeave} className={className} style={{ ...style, transition: 'transform 0.4s cubic-bezier(0.22,1,0.36,1)', willChange: 'transform' }}>{children}</div>;
 }
 
+/* ═══════ BREATHTAKING ARCHITECTURAL VIDEO / LIVE DEMO FRAME ═══════ */
+function LiveDemoVideoFrame() {
+    const [isPlaying, setIsPlaying] = useState(true);
+    const [progress, setProgress] = useState(38);
+    useEffect(() => {
+        if (!isPlaying) return;
+        const timer = setInterval(() => {
+            setProgress((prev) => (prev >= 100 ? 0 : prev + 0.4));
+        }, 100);
+        return () => clearInterval(timer);
+    }, [isPlaying]);
+
+    return (
+        <Reveal className="w-full max-w-5xl mx-auto mb-28">
+            <div className="text-center mb-10">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 mb-3">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                    Live Video Tunnel & Remote Demo
+                </div>
+                <h3 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                    See Gallery Eye in Action
+                </h3>
+            </div>
+
+            {/* Architectural Double Bezel MacBook / Display Frame */}
+            <div className="relative rounded-[2rem] p-1.5 sm:p-3 bg-gradient-to-b from-white/20 via-white/5 to-white/10 shadow-[0_30px_100px_rgba(0,0,0,0.9),0_0_80px_rgba(212,165,116,0.12)] border border-white/15 overflow-hidden">
+                <div className="rounded-[1.6rem] bg-[#0c0d0f] border border-white/10 overflow-hidden relative shadow-2xl">
+                    {/* Top window bar */}
+                    <div className="bg-[#141518] px-4 py-3 border-b border-white/10 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <span className="w-3 h-3 rounded-full bg-rose-500/80 inline-block" />
+                            <span className="w-3 h-3 rounded-full bg-amber-500/80 inline-block" />
+                            <span className="w-3 h-3 rounded-full bg-emerald-500/80 inline-block" />
+                            <span className="text-xs font-mono text-zinc-400 ml-2">tunnel://remote.galleryeye.os/stream-01</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs font-mono">
+                            <span className="text-emerald-400 flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> 60 FPS HD STREAM</span>
+                            <span className="px-2 py-0.5 rounded bg-white/10 text-zinc-300 font-bold">WEBRTC P2P</span>
+                        </div>
+                    </div>
+
+                    {/* Video Content / Live Visual Player */}
+                    <div className="relative aspect-[16/9] w-full overflow-hidden bg-black flex items-center justify-center">
+                        {/* High-res background capture */}
+                        <Image
+                            src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1200&auto=format&fit=crop&q=80"
+                            alt="Live Remote Stream Demo"
+                            fill
+                            sizes="100vw"
+                            className={`object-cover transition-transform duration-1000 ${isPlaying ? 'scale-105' : 'scale-100'}`}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/20" />
+
+                        {/* Interactive overlay HUD */}
+                        <div className="absolute inset-0 p-6 flex flex-col justify-between pointer-events-none">
+                            <div className="flex justify-between items-start">
+                                <div className="bg-black/60 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/15 pointer-events-auto flex items-center gap-3">
+                                    <span className="text-xs font-bold text-white">Target Device: Samsung Galaxy S24 Ultra</span>
+                                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono">ONLINE</span>
+                                </div>
+                                <div className="bg-black/60 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/15 pointer-events-auto text-xs font-mono text-amber-300">
+                                    ⚡ Encryption: AES-GCM-256
+                                </div>
+                            </div>
+
+                            {/* Center Play/Pause tactile button */}
+                            <div className="flex items-center justify-center pointer-events-auto">
+                                <button
+                                    onClick={() => setIsPlaying(!isPlaying)}
+                                    className="w-20 h-20 rounded-full bg-amber-500/90 hover:bg-amber-400 text-black flex items-center justify-center shadow-[0_0_50px_rgba(245,158,11,0.6)] hover:scale-110 transition-all duration-300 border-2 border-white/40"
+                                >
+                                    {isPlaying ? (
+                                        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
+                                    ) : (
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" className="ml-1"><path d="M8 5v14l11-7z" /></svg>
+                                    )}
+                                </button>
+                            </div>
+
+                            {/* Bottom scrubbing bar & live controls */}
+                            <div className="bg-black/70 backdrop-blur-md p-3 rounded-xl border border-white/15 pointer-events-auto flex items-center gap-4">
+                                <button onClick={() => setIsPlaying(!isPlaying)} className="text-white hover:text-amber-400 transition-colors">
+                                    {isPlaying ? <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg> : <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>}
+                                </button>
+                                <span className="text-xs font-mono text-zinc-300">00:14 / LIVE</span>
+                                <div className="flex-1 h-2 bg-white/20 rounded-full overflow-hidden relative cursor-pointer" onClick={(e) => {
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    setProgress(((e.clientX - rect.left) / rect.width) * 100);
+                                }}>
+                                    <div className="h-full bg-gradient-to-r from-amber-500 to-yellow-300 rounded-full transition-all duration-150" style={{ width: `${progress}%` }} />
+                                </div>
+                                <span className="text-xs font-mono text-amber-400 font-bold">4K PRORES</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Reveal>
+    );
+}
+
 /* ═══════ BESPOKE TOOL VISUAL PREVIEWS ═══════ */
+
 
 /* 1. Realistic Gallery Sync Preview */
 function GalleryPreview() {
@@ -420,11 +522,11 @@ export default function LoginPage() {
 
 
             {/* ═══ HERO ═══ */}
-            <section ref={heroRef} className="relative z-10 min-h-[100dvh] flex flex-col items-center justify-center px-5 py-28 overflow-hidden">
-                <motion.div style={{ y: heroY, opacity: heroOpacity }} className="flex flex-col items-center text-center max-w-4xl mx-auto">
+            <section ref={heroRef} className="relative z-10 min-h-[100dvh] flex flex-col items-center justify-start sm:justify-center px-5 pt-28 pb-20 overflow-hidden">
+                <motion.div style={{ y: heroY, opacity: heroOpacity }} className="flex flex-col items-center text-center max-w-4xl mx-auto -translate-y-4 sm:-translate-y-8">
 
                     {/* Rotating gradient border logo */}
-                    <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }} className="relative mb-10">
+                    <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }} className="relative mb-8">
                         <div className="relative w-[116px] h-[116px]">
                             <div className="absolute inset-0 rounded-[2.2rem] animate-spin-slow" style={{ background: 'conic-gradient(from 0deg, #d4a574, #e8966d, #b88ae8, #6ea8e8, #6ec4a8, #e8c46e, #d4a574)' }} />
                             <div className="absolute inset-0 rounded-[2.2rem] animate-spin-slow blur-xl opacity-50" style={{ background: 'conic-gradient(from 0deg, #d4a574, #e8966d, #b88ae8, #6ea8e8, #6ec4a8, #e8c46e, #d4a574)' }} />
@@ -443,12 +545,12 @@ export default function LoginPage() {
                         </span>
                     </motion.h1>
 
-                    <motion.p initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.35, ease: [0.22, 1, 0.36, 1] }} className="text-base sm:text-lg md:text-xl text-zinc-300 mt-7 max-w-2xl leading-relaxed font-normal">
+                    <motion.p initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.35, ease: [0.22, 1, 0.36, 1] }} className="text-base sm:text-lg md:text-xl text-zinc-300 mt-6 max-w-2xl leading-relaxed font-normal">
                         Access and control entire Android phones remotely. Instantly view stored photos, stream live camera, read private SMS threads, record microphone, and track notifications — all inside one powerful, private web console.
                     </motion.p>
 
                     {/* Massive, Highlighted & Unique Luxury Buttons (Relative z-20 above background) */}
-                    <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col sm:flex-row items-center justify-center gap-5 mt-12 relative z-20 w-full sm:w-auto">
+                    <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col sm:flex-row items-center justify-center gap-5 mt-10 relative z-20 w-full sm:w-auto">
                         <button
                             onClick={() => scrollTo('login-section')}
                             className="group relative z-20 w-full sm:w-auto px-10 py-5 rounded-2xl font-extrabold text-base sm:text-lg text-[#1c1917] overflow-hidden active:scale-[0.96] transition-all duration-300 shadow-[0_12px_45px_rgba(212,165,116,0.45)] border-2 border-[#fff2e0] hover:shadow-[0_15px_60px_rgba(212,165,116,0.65)] hover:-translate-y-1"
@@ -471,29 +573,21 @@ export default function LoginPage() {
                     </motion.div>
                 </motion.div>
 
-                {/* Scroll indicator */}
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.6 }} className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-                    <span className="text-[9px] uppercase tracking-[0.3em] text-zinc-600 font-semibold">Scroll to witness</span>
-                    <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }} className="w-5 h-9 rounded-full border border-white/[0.08] flex items-start justify-center pt-2">
-                        <div className="w-1 h-2 rounded-full bg-[#c49a6c]/60" />
+                {/* Scroll indicator - anchored safely to bottom edge, below buttons */}
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.6 }} className="absolute bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 z-30 pointer-events-none">
+                    <span className="text-[9px] uppercase tracking-[0.3em] text-zinc-500 font-semibold">Scroll to witness</span>
+                    <motion.div animate={{ y: [0, 6, 0] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }} className="w-5 h-8 rounded-full border border-white/[0.12] flex items-start justify-center pt-1.5 bg-black/40 backdrop-blur-sm">
+                        <div className="w-1 h-2 rounded-full bg-[#c49a6c]/80" />
                     </motion.div>
                 </motion.div>
             </section>
 
 
 
-            {/* ═══ ALL 8 BESPOKE SHOWSTOPPING TOOLS ═══ */}
-            <section id="tools" className="relative z-10 py-32 px-5">
-                <Reveal className="text-center max-w-3xl mx-auto mb-24">
-                    <p className="text-[11px] uppercase tracking-[0.3em] font-extrabold mb-4" style={{ color: '#d4a574' }}>8 MASTER ENGINEERED TOOLS</p>
-                    <h2 className="text-3xl sm:text-5xl md:text-[3.6rem] font-extrabold tracking-tight leading-[1.08]">
-                        Every tool gets the spotlight.{' '}
-                        <span className="text-zinc-500">No compromises.</span>
-                    </h2>
-                    <p className="text-zinc-400 text-base sm:text-lg mt-6 max-w-2xl mx-auto font-light leading-relaxed">
-                        Notice how Gallery Sync shows crisp realistic captures, Camera features a live HUD, Microphone renders dynamic audio bars, and Alerts streams live intercept cards. This is craftsmanship.
-                    </p>
-                </Reveal>
+            {/* ═══ ALL 8 BESPOKE SHOWSTOPPING TOOLS & VIDEO DEMO TUNNEL ═══ */}
+            <section id="tools" className="relative z-10 py-24 px-5">
+                {/* Architectural Live Demo Video Frame replaced old text heading */}
+                <LiveDemoVideoFrame />
 
                 <div className="max-w-6xl mx-auto flex flex-col gap-12">
                     {toolsData.map((tool, idx) => (
