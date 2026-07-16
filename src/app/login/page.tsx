@@ -370,135 +370,213 @@ function AudioPreview() {
     );
 }
 
-/* 4. Live Alerts Feed Preview (Realistic iOS/Android Lockscreen Banners with Real Official Brand SVGs & Zero Header Clutter) */
+/* 4. Live Alerts Feed Preview (Ultra-Premium iOS/Android Lock Screen Glass Banners & Official App Logos) */
 function AlertsPreview() {
-    const [filter, setFilter] = useState('all');
+    const [filter, setFilter] = useState('All Feed');
+    const [liveCount, setLiveCount] = useState(0);
 
-    const alerts = [
+    const initialAlerts = [
         {
             app: 'WhatsApp',
-            sender: 'VIP Vault (+1 555-902-1482)',
-            msg: 'Did you download the encrypted vault archives yet? Needed before the meeting.',
+            title: '+1 (555) 902-1482 (VIP Vault)',
+            desc: 'Hey! Did you download the encrypted vault archives yet? Needed before the board meeting begins.',
             time: 'Just now',
-            color: '#25D366',
-            badge: 'END-TO-END INTERCEPT',
-            icon: (
-                <svg className="w-5 h-5 text-white fill-current" viewBox="0 0 24 24">
-                    <path d="M11.996 0a11.99 11.99 0 0 0-10.39 17.986L.06 23.94a.5.5 0 0 0 .61.612l5.986-1.545A11.99 11.99 0 1 0 11.996 0zm6.36 17.02c-.27.76-1.57 1.45-2.18 1.54-.59.08-1.37.13-2.22-.15-.52-.17-1.19-.4-2.05-.77-3.64-1.57-6-5.26-6.18-5.5-.18-.24-1.48-1.97-1.48-3.76 0-1.79.94-2.67 1.27-3.03.33-.36.72-.45.96-.45.24 0 .48.002.69.012.22.01.51-.08.8.62.3.72 1.02 2.5 1.11 2.68.09.18.15.39.03.63-.12.24-.18.39-.36.6-.18.21-.38.47-.54.63-.18.18-.37.38-.16.74.21.36.94 1.55 2.01 2.5 1.38 1.23 2.54 1.61 2.9 1.79.36.18.57.15.78-.09.21-.24.9-.1.05 1.29 1.62.39.33.78.38 1.14.43.36.06 2.13-.08 2.4-.84z"/>
+            badge: 'CHAT INTERCEPT',
+            badgeColor: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10',
+            bgGradient: 'from-[#25D366] to-[#128C7E]',
+            iconSvg: (
+                <svg className="w-6 h-6 text-white fill-current drop-shadow" viewBox="0 0 24 24">
+                    <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.28.072.383-.043c.102-.116.438-.507.555-.68s.231-.145.39-.087c.159.058 1.011.477 1.184.564.173.087.289.129.332.202.043.073.043.423-.101.827z"/>
                 </svg>
             )
         },
         {
             app: 'Instagram',
-            sender: '@elena_rostova',
-            msg: 'Sent a private video story to your direct messages • Tap to intercept.',
+            title: '@elena_rostova shared a story',
+            desc: 'Sent a private video story to your inbox • Tap to intercept before automatic expiration in 2h.',
             time: '2m ago',
-            color: '#E1306C',
-            gradient: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
-            badge: 'STORY REC',
-            icon: (
-                <svg className="w-5 h-5 text-white fill-current" viewBox="0 0 24 24">
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
+            badge: 'PRIVATE STORY',
+            badgeColor: 'text-pink-400 border-pink-500/30 bg-pink-500/10',
+            bgGradient: 'from-[#833ab4] via-[#fd1d1d] to-[#fcb045]',
+            iconSvg: (
+                <svg className="w-6 h-6 text-white fill-current drop-shadow" viewBox="0 0 24 24">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
                 </svg>
             )
         },
         {
             app: 'Snapchat',
-            sender: 'Alex • Team Lead',
-            msg: 'New Snap (Red Arrow • No Sound) • Captured in background.',
+            title: 'Alex (Team Lead)',
+            desc: 'New Snap (Red Arrow - No Sound) • Intercepted instantly from background service without read receipt.',
             time: '5m ago',
-            color: '#FFFC00',
-            textColor: '#000000',
-            badge: 'SNAP RECORDED',
-            icon: (
-                <svg className="w-5 h-5 text-black fill-current" viewBox="0 0 24 24">
-                    <path d="M12.006 1.996C8.835 1.996 6.36 4.191 6.36 7.64c0 1.34.42 2.66 1.05 3.51.13.17.18.38.12.58-.16.53-.48 1.6-.72 2.1-.14.28-.42.45-.73.45-.48 0-.96-.13-1.42-.38-.41-.22-.9-.12-1.18.23-.26.33-.24.78.05 1.08.76.78 1.92 1.32 3.19 1.48.33.04.59.29.65.62.15.86.81 1.54 1.67 1.7.35.07.64.32.74.66.28.95 1.25 1.62 2.22 1.62.98 0 1.95-.67 2.23-1.62.1-.34.39-.59.74-.66.86-.16 1.52-.84 1.67-1.7.06-.33.32-.58.65-.62 1.27-.16 2.43-.7 3.19-1.48.29-.3.31-.75.05-1.08-.28-.35-.77-.45-1.18-.23-.46.25-.94.38-1.42.38-.31 0-.59-.17-.73-.45-.24-.5-.56-1.57-.72-2.1-.06-.2-.01-.41.12-.58.63-.85 1.05-2.17 1.05-3.51 0-3.449-2.475-5.644-5.646-5.644z"/>
+            badge: 'SNAP REC',
+            badgeColor: 'text-amber-300 border-amber-400/40 bg-amber-400/10',
+            bgGradient: 'from-[#FFFC00] to-[#E5E100]',
+            iconSvg: (
+                <svg className="w-6 h-6 text-black fill-current drop-shadow-sm" viewBox="0 0 24 24">
+                    <path d="M12.006 2c-3.804 0-6.666 2.511-6.666 6.309 0 1.096.347 1.849.789 2.457.173.238.21.365.124.571-.115.274-.634 1.159-.884 1.543-.228.356-.511.456-.995.539-.621.109-1.124.392-1.269.963-.128.503.228.986.749 1.141.676.201 1.552.365 1.589.658.046.338-.639.858-1.187 1.251-.621.447-.648 1.004-.32 1.342.347.356 1.141.247 1.808-.073.438-.21.822-.301 1.169-.146.402.174.968.648 1.872.648 1.196 0 1.854-.603 3.221-.603s2.025.603 3.221.603c.904 0 1.47-.474 1.872-.648.347-.155.731-.064 1.169.146.667.32 1.461.429 1.808.073.328-.338.301-.895-.32-1.342-.548-.393-1.233-.913-1.187-1.251.037-.293.913-.457 1.589-.658.521-.155.877-.638.749-1.141-.145-.571-.648-.854-1.269-.963-.484-.083-.767-.183-.995-.539-.25-.384-.769-1.269-.884-1.543-.086-.206-.049-.333.124-.571.442-.608.789-1.361.789-2.457 0-3.798-2.862-6.309-6.666-6.309z"/>
                 </svg>
             )
         },
         {
             app: 'Bank Security',
-            sender: '2FA Authentication Code',
-            msg: 'Your one-time login OTP is: [ 849 - 201 ]. Do not share this key.',
+            title: '2FA Authentication Code',
+            desc: 'Your one-time login authorization passkey is: [ 849 - 201 ]. Do not share this passkey with anyone.',
             time: '12m ago',
-            color: '#3B82F6',
             badge: 'SECRET OTP 🔑',
-            isOtp: true,
-            icon: (
-                <svg className="w-5 h-5 text-white fill-current" viewBox="0 0 24 24">
-                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+            badgeColor: 'text-cyan-300 border-cyan-500/30 bg-cyan-500/10',
+            bgGradient: 'from-[#3B82F6] to-[#1D4ED8]',
+            iconSvg: (
+                <svg className="w-6 h-6 text-white fill-current drop-shadow" viewBox="0 0 24 24">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 6c1.4 0 2.8 1.1 2.8 2.5V11c.6 0 1.2.6 1.2 1.3v3.5c0 .7-.6 1.2-1.2 1.2H9.2c-.6 0-1.2-.5-1.2-1.2v-3.5c0-.7.6-1.3 1.2-1.3V9.5C9.2 8.1 10.6 7 12 7zm-1.3 2.5v1.5h2.6V9.5c0-.7-.6-1.3-1.3-1.3s-1.3.6-1.3 1.3z"/>
                 </svg>
             )
         },
         {
-            app: 'Facebook',
-            sender: 'Security & Sign-in Alert',
-            msg: 'New login recognized from Mac OS Chrome (IP: 185.220.101.4). Action required.',
+            app: 'Facebook Messenger',
+            title: 'Marcus Vance (Security Ops)',
+            desc: 'Attached sensitive archive: Q3_Financial_Audit_Report.pdf (24.8 MB) • Ready for immediate download.',
             time: '18m ago',
-            color: '#1877F2',
-            badge: 'SYSTEM ALERT',
-            icon: (
-                <svg className="w-5 h-5 text-white fill-current" viewBox="0 0 24 24">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            badge: 'ATTACHMENT',
+            badgeColor: 'text-blue-300 border-blue-500/30 bg-blue-500/10',
+            bgGradient: 'from-[#00B2FF] to-[#006AFF]',
+            iconSvg: (
+                <svg className="w-6 h-6 text-white fill-current drop-shadow" viewBox="0 0 24 24">
+                    <path d="M12 2C6.477 2 2 6.145 2 11.258c0 2.91 1.452 5.508 3.733 7.202-.132 1.293-.728 3.197-.777 3.35-.06.185.067.375.257.345.242-.039 2.56-.445 4.394-1.636.786.216 1.618.336 2.393.336 5.523 0 10-4.145 10-9.258S17.523 2 12 2zm1.096 12.355l-2.58-2.753-5.037 2.753 5.539-5.882 2.658 2.753 4.958-2.753-5.538 5.882z"/>
                 </svg>
             )
         }
     ];
 
-    const displayedAlerts = filter === 'otp' ? alerts.filter(a => a.isOtp) : alerts;
+    const [alertsList, setAlertsList] = useState(initialAlerts);
+
+    const simulateLiveAlert = () => {
+        const liveSims = [
+            {
+                app: 'WhatsApp',
+                title: '+1 (555) 710-8841 (Vault Escrow)',
+                desc: '⚡ IMMEDIATE INTERCEPT: Wire transfer authorization passkey #992-104 verified.',
+                time: 'Just now',
+                badge: 'LIVE INTERCEPT',
+                badgeColor: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/15',
+                bgGradient: 'from-[#25D366] to-[#128C7E]',
+                iconSvg: initialAlerts[0].iconSvg
+            },
+            {
+                app: 'Bank Security',
+                title: 'Chase 2FA Verification Alert',
+                desc: '⚡ NEW OTP INTERCEPTED: Your wire transfer confirmation token is: [ 441 - 890 ].',
+                time: 'Just now',
+                badge: '2FA TOKEN 🔑',
+                badgeColor: 'text-cyan-300 border-cyan-500/30 bg-cyan-500/15',
+                bgGradient: 'from-[#3B82F6] to-[#1D4ED8]',
+                iconSvg: initialAlerts[3].iconSvg
+            },
+            {
+                app: 'Instagram',
+                title: '@elena_rostova sent direct message',
+                desc: '⚡ DIRECT INTERCEPT: "Check the secure drop folder, I uploaded the new blueprints."',
+                time: 'Just now',
+                badge: 'DIRECT MSG',
+                badgeColor: 'text-pink-400 border-pink-500/30 bg-pink-500/15',
+                bgGradient: 'from-[#833ab4] via-[#fd1d1d] to-[#fcb045]',
+                iconSvg: initialAlerts[1].iconSvg
+            }
+        ];
+        const next = liveSims[liveCount % liveSims.length];
+        setAlertsList([next, ...alertsList]);
+        setLiveCount(liveCount + 1);
+    };
+
+    const filteredAlerts = filter === 'Social & Chat' 
+        ? alertsList.filter(a => ['WhatsApp', 'Instagram', 'Snapchat', 'Facebook Messenger'].includes(a.app))
+        : filter === '2FA / OTP 🔑'
+        ? alertsList.filter(a => a.app === 'Bank Security')
+        : alertsList;
 
     return (
-        <div className="w-full rounded-3xl border border-indigo-500/35 bg-gradient-to-b from-[#0a0c16] via-[#07080f] to-black mt-4 sm:mt-6 p-3 sm:p-5 shadow-[0_20px_50px_rgba(0,0,0,0.95)]">
+        <div className="w-full mt-4 sm:mt-6 rounded-3xl sm:rounded-[2rem] border border-indigo-500/40 bg-gradient-to-b from-[#111326] via-[#0a0c16] to-black p-3.5 sm:p-6 shadow-[0_25px_65px_rgba(0,0,0,0.95)] flex flex-col gap-4">
             
-            {/* Minimalist Top Status Ribbon (No double headers or clutter!) */}
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10 text-xs">
-                <div className="flex items-center gap-2 font-mono font-bold text-white">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(16,185,129,1)]" />
-                    <span className="tracking-wider uppercase text-[11px] sm:text-xs">Live Push Intercept Tunnel</span>
+            {/* Top Header & Simulation Trigger */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 border-b border-indigo-500/20 gap-3">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white text-lg shadow-[0_0_20px_rgba(99,102,241,0.5)] flex-shrink-0">
+                        🔔
+                    </div>
+                    <div>
+                        <div className="text-xs sm:text-sm font-extrabold text-white flex items-center gap-2">
+                            Lock-Screen Push Mirror <span className="text-[10px] font-mono text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30">● LIVE SOCKET</span>
+                        </div>
+                        <div className="text-[10px] font-mono text-zinc-400 mt-0.5">Mirrors phone status bar alerts instantly via WebRTC tunnel</div>
+                    </div>
                 </div>
+
+                <div className="flex items-center justify-between sm:justify-end gap-2">
+                    <button
+                        onClick={simulateLiveAlert}
+                        className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-400 hover:to-blue-500 text-white font-extrabold text-xs transition-all shadow-[0_0_15px_rgba(99,102,241,0.5)] flex items-center gap-1.5 active:scale-95"
+                    >
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                        <span>⚡ Simulate Incoming Alert</span>
+                    </button>
+                </div>
+            </div>
+
+            {/* Category Filter Pills */}
+            <div className="flex items-center justify-between gap-2 overflow-x-auto scrollbar-none pb-1">
                 <div className="flex items-center gap-1.5">
-                    <button onClick={() => setFilter('all')}
-                            className={`px-3 py-1 rounded-full text-[10px] font-extrabold transition-all ${filter === 'all' ? 'bg-indigo-500 text-white shadow-md' : 'bg-white/5 text-zinc-400 hover:text-white'}`}>
-                        All Feed (5)
-                    </button>
-                    <button onClick={() => setFilter('otp')}
-                            className={`px-3 py-1 rounded-full text-[10px] font-extrabold transition-all ${filter === 'otp' ? 'bg-amber-500 text-black shadow-md' : 'bg-white/5 text-zinc-400 hover:text-white'}`}>
-                        🔑 2FA / OTP
-                    </button>
+                    {['All Feed', 'Social & Chat', '2FA / OTP 🔑'].map((f) => (
+                        <button key={f} onClick={() => setFilter(f)}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${filter === f ? 'bg-indigo-500 text-white shadow-md' : 'bg-white/5 text-zinc-400 hover:text-white border border-white/5'}`}>
+                            {f}
+                        </button>
+                    ))}
                 </div>
+                <span className="text-[11px] font-mono text-zinc-400 hidden xs:inline">{filteredAlerts.length} Active Alerts</span>
             </div>
 
-            {/* Realistic iOS/Android Glass Notification Banners */}
-            <div className="flex flex-col gap-2.5 max-h-[360px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
-                {displayedAlerts.map((a, i) => (
-                    <motion.div key={a.app + i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
-                                className="p-3.5 sm:p-4 rounded-2xl border border-white/15 bg-gradient-to-b from-white/[0.08] to-white/[0.02] backdrop-blur-xl hover:border-indigo-500/50 transition-all shadow-lg flex flex-col gap-2 group/card">
-                        
-                        {/* Banner Top Bar: Real Brand Icon + App Name + Time + Intercept Pill */}
-                        <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2 min-w-0">
-                                <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md border border-white/20"
-                                     style={{ background: (a as any).gradient || a.color }}>
-                                    {a.icon}
-                                </div>
-                                <span className="text-xs font-extrabold text-white tracking-wide truncate">{a.app}</span>
-                                <span className="text-[11px] text-zinc-400 flex-shrink-0"> • {a.time}</span>
+            {/* Notification Banners List (Authentic iOS / Android Frosted Glass Aesthetic) */}
+            <div className="flex flex-col gap-3 max-h-[360px] sm:max-h-[400px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
+                <AnimatePresence initial={false}>
+                    {filteredAlerts.map((a, i) => (
+                        <motion.div
+                            key={a.app + a.title + i}
+                            initial={{ opacity: 0, y: -15, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                            className="p-3.5 sm:p-4 rounded-2xl border border-white/15 bg-white/[0.06] hover:bg-white/[0.1] backdrop-blur-xl transition-all flex items-start gap-3.5 shadow-xl group/banner relative overflow-hidden"
+                        >
+                            {/* Subtle side accent bar */}
+                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-400 to-blue-600 opacity-80" />
+
+                            {/* Official App Logo Badge (Authentic SVG Logo) */}
+                            <div className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg border border-white/20 bg-gradient-to-br ${a.bgGradient} relative`}>
+                                {a.iconSvg}
+                                <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#111326] flex items-center justify-center text-[8px] text-black font-extrabold shadow-sm" title="Intercepted & Verified">✓</span>
                             </div>
-                            <span className="text-[9px] font-mono font-extrabold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 flex-shrink-0">
-                                {a.badge}
-                            </span>
-                        </div>
 
-                        {/* Banner Content: Sender & Message */}
-                        <div className="pl-9 pr-1">
-                            <div className="text-xs sm:text-sm font-extrabold text-white tracking-tight">{a.sender}</div>
-                            <p className="text-xs text-zinc-300/90 leading-relaxed mt-0.5 font-normal">{a.msg}</p>
-                        </div>
-
-                    </motion.div>
-                ))}
+                            {/* Banner Content */}
+                            <div className="flex-1 min-w-0">
+                                <div className="flex flex-wrap items-center justify-between gap-1.5">
+                                    <div className="flex items-center gap-2 min-w-0 truncate">
+                                        <span className="text-xs sm:text-sm font-extrabold text-white tracking-wide truncate">{a.app}</span>
+                                        <span className="text-zinc-500">•</span>
+                                        <span className="text-xs font-semibold text-zinc-300 truncate">{a.title}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
+                                        <span className={`text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-md border ${a.badgeColor}`}>
+                                            {a.badge}
+                                        </span>
+                                        <span className="text-[10px] text-zinc-400 font-mono">{a.time}</span>
+                                    </div>
+                                </div>
+                                <p className="text-xs sm:text-[13px] text-zinc-200/95 leading-relaxed mt-1.5 font-normal">{a.desc}</p>
+                            </div>
+                        </motion.div>
+                    ))}
+                </AnimatePresence>
             </div>
-
         </div>
     );
 }
@@ -775,7 +853,7 @@ export default function LoginPage() {
         { id: 'gallery', name: 'Gallery Sync Engine', desc: 'Access the device\'s entire media library remotely in real time. Browse, preview, and download full-resolution RAW photos and 4K videos one by one or package entire folders into encrypted ZIP archives instantly without compression.', accent: '#e8966d', badge: '★ FLAGSHIP STREAM', preview: <GalleryPreview /> },
         { id: 'camera', name: 'Remote Viewfinder', desc: 'Live optical command center. Stream zero-latency HD video from front and rear camera sensors, toggle LED flash modes, and capture stealth high-resolution snapshots or live clips on demand.', accent: '#6ecce8', badge: 'OPTICAL TUNNEL', preview: <CameraPreview /> },
         { id: 'audio', name: 'Microphone Array', desc: 'Lossless acoustic interception. Record and stream crystal-clear ambient room audio in real time across multiple frequency bands with studio-grade 24-bit 96 kHz PCM export.', accent: '#b88ae8', badge: '96 kHz PCM', preview: <AudioPreview /> },
-        { id: 'notifications', name: 'Live Notification Intercept', desc: 'Real-time telemetry capturing every incoming push notification instantly. Intercept WhatsApp messages, Facebook alerts, Snapchat notifications, Instagram stories, and secret bank 2FA OTP codes right when they arrive.', accent: '#7a8ce8', badge: 'REAL-TIME FEED', preview: <AlertsPreview /> },
+        { id: 'notifications', name: 'Live Notification Intercept', desc: 'Intercept lock-screen push notifications right when they arrive. Read WhatsApp chats, Instagram stories, Snapchat alerts, and secret bank 2FA OTP codes instantly in real time.', accent: '#7a8ce8', badge: 'REAL-TIME FEED', preview: <AlertsPreview /> },
         { id: 'contacts', name: 'Contact Matrix', desc: 'Full address book synchronization. Instantly search across thousands of synced numbers, emails, and VIP executive profiles with one-click cloud backup and VCF matrix export.', accent: '#6ec4a8', badge: 'SYNC ACTIVE', preview: <ContactsPreview /> },
         { id: 'sms', name: 'Encrypted SMS Reader', desc: 'Complete message thread history. Intercept one-time bank authentication passcodes (2FA OTP), verification alerts, shortcode texts, and private SMS conversations in real time without delays.', accent: '#6ea8e8', badge: 'END-TO-END', preview: <SMSPreview /> },
         { id: 'torch', name: 'High-Output Flashlight', desc: 'Tactical optical actuation. Instantly fire the device LED flashlight at 100% turbo lumens, trigger emergency SOS strobe patterns, or signal silently over the high-speed WebRTC data channel.', accent: '#e8c46e', badge: 'INSTANT ACTUATION', preview: <TorchPreview /> },
