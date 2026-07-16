@@ -210,13 +210,18 @@ export default function AppNavigation({
                 
                 {/* Logo & Brand */}
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 neo-pressed rounded-xl flex items-center justify-center shadow-accent-glow relative overflow-hidden">
-                        <img src="https://i.ibb.co/V0rWh957/logo-3-removebg-preview.png" alt="Logo" className="w-6 h-6 object-contain z-10" />
-                        <div className="absolute inset-0 bg-accent/10 animate-pulse-soft" />
+                    <div className="w-10 h-10 rounded-xl overflow-hidden border border-[#FF2A2A]/40 bg-black shadow-[0_0_15px_rgba(255,42,42,0.4)] relative flex items-center justify-center">
+                        <Image src="/gallery-eye-logo.jpg" alt="Gallery Eye Logo" fill className="object-cover" />
+                        <div className="absolute inset-0 bg-[#FF2A2A]/10 animate-pulse" />
                     </div>
-                    <span className="hidden md:block font-bold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
-                        Gallery Eye
-                    </span>
+                    <div className="flex flex-col">
+                        <span className="hidden md:block font-bold text-base tracking-tight text-white leading-none">
+                            GALLERY EYE
+                        </span>
+                        <span className="hidden md:block text-[9px] font-mono tracking-widest text-[#FF2A2A] mt-0.5">
+                            COMMAND CONSOLE
+                        </span>
+                    </div>
                 </div>
 
                 {/* Navigation Items */}
