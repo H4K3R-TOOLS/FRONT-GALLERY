@@ -89,3 +89,177 @@ body {
 .neo-button:active, .neo-button.active {
   box-shadow: inset 2px 2px 4px #0c0d0e, inset -2px -2px 4px #24252a;
 }
+
+/* Login page premium styles */
+.login-gradient-text {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.login-card {
+  background: rgba(24, 25, 28, 0.85);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 20px 60px -10px rgba(0, 0, 0, 0.5),
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.login-input {
+  width: 100%;
+  padding: 0.8125rem 1rem;
+  background: rgba(19, 20, 23, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.75rem;
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+  font-family: var(--font-plus-jakarta), sans-serif;
+  outline: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.login-input::placeholder {
+  color: rgba(156, 163, 175, 0.5);
+}
+
+.login-input:focus {
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.08), 0 0 20px rgba(16, 185, 129, 0.05);
+  background: rgba(19, 20, 23, 1);
+}
+
+.login-btn-primary {
+  width: 100%;
+  padding: 0.8125rem 1.25rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  font-family: var(--font-plus-jakarta), sans-serif;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3), 0 2px 4px rgba(16, 185, 129, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.login-btn-primary:hover::before {
+  opacity: 1;
+}
+
+.login-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4), 0 4px 8px rgba(16, 185, 129, 0.2);
+}
+
+.login-btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.login-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: wait;
+  transform: none;
+  box-shadow: none;
+}
+
+.login-btn-google {
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  color: var(--text-primary);
+  font-family: var(--font-plus-jakarta), sans-serif;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.login-btn-google:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.login-btn-google:active {
+  transform: translateY(0);
+}
+
+/* Animations for login */
+@keyframes login-fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes login-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-8px) rotate(1deg); }
+  66% { transform: translateY(4px) rotate(-1deg); }
+}
+
+@keyframes login-pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.5; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+  100% { transform: scale(0.95); opacity: 0.5; }
+}
+
+@keyframes login-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.login-animate-in {
+  animation: login-fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+.login-animate-float {
+  animation: login-float 6s ease-in-out infinite;
+}
+
+.login-animate-pulse-ring {
+  animation: login-pulse-ring 3s ease-in-out infinite;
+}
+
+/* Feature card hover */
+.login-feature-card {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.login-feature-card:hover {
+  transform: translateX(4px);
+  background: rgba(255, 255, 255, 0.04) !important;
+}
