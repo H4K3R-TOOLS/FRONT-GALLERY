@@ -482,129 +482,218 @@ function AlertsPreview() {
     );
 }
 
-/* 5. Contacts Access Preview (VIP Matrix with VCF Export & Sync Status) */
+/* 5. Contacts Access Preview (VIP Executive Matrix with Real Avatar Images & Zero Buttons) */
 function ContactsPreview() {
     const contacts = [
-        { name: 'Alexander Wright', phone: '+1 (555) 234-8901', role: 'Executive Vice President', org: 'Wright Holdings LLC', status: 'Cloud Synced', initials: 'AW', color: '#10B981', backupTime: 'Today, 09:42 AM' },
-        { name: 'Elena Rostova', phone: '+44 20 7946 0921', role: 'Lead Cyber Architect', org: 'Quantum Labs UK', status: 'Cloud Synced', initials: 'ER', color: '#F59E0B', backupTime: 'Today, 08:15 AM' },
-        { name: 'Marcus Vance', phone: '+1 (555) 890-1234', role: 'Security Ops Commander', org: 'Vance Security Group', status: 'Cloud Synced', initials: 'MV', color: '#6366F1', backupTime: 'Yesterday' },
+        {
+            name: 'Alexander Wright',
+            phone: '+1 (555) 234-8901',
+            role: 'Executive Vice President',
+            org: 'Wright Holdings LLC',
+            email: 'a.wright@wrightholdings.com • Swiss Vault #09',
+            badge: 'VIP EXECUTIVE',
+            badgeColor: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10',
+            avatarImg: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'
+        },
+        {
+            name: 'Elena Rostova',
+            phone: '+44 20 7946 0921',
+            role: 'Lead Cyber Architect',
+            org: 'Quantum Labs UK',
+            email: 'e.rostova@quantum-labs.uk • Keycard Level 5',
+            badge: 'CYBER ARCHITECT',
+            badgeColor: 'text-amber-300 border-amber-400/30 bg-amber-400/10',
+            avatarImg: 'https://cdn-icons-png.flaticon.com/512/4140/4140048.png'
+        },
+        {
+            name: 'Marcus Vance',
+            phone: '+1 (555) 890-1234',
+            role: 'Security Ops Commander',
+            org: 'Vance Security Group',
+            email: 'm.vance@vancesecurity.com • Armed Escorts',
+            badge: 'SECURITY OPS',
+            badgeColor: 'text-indigo-300 border-indigo-400/30 bg-indigo-500/10',
+            avatarImg: 'https://cdn-icons-png.flaticon.com/512/3135/3135823.png'
+        },
+        {
+            name: 'Dr. Sophia Chen',
+            phone: '+41 22 767 6111',
+            role: 'Head of Biometric Research',
+            org: 'Genève Biotech Institute',
+            email: 's.chen@geneve-bio.ch • Cryo Storage Access',
+            badge: 'BIO RESEARCH',
+            badgeColor: 'text-cyan-300 border-cyan-400/30 bg-cyan-500/10',
+            avatarImg: 'https://cdn-icons-png.flaticon.com/512/2202/2202112.png'
+        }
     ];
+
     return (
-        <div className="w-full rounded-2xl sm:rounded-3xl border border-emerald-500/30 bg-gradient-to-b from-[#0f1d18] via-black to-black mt-4 sm:mt-6 p-3.5 sm:p-5 shadow-[0_15px_35px_rgba(0,0,0,0.85)] flex flex-col gap-3">
-            {/* Contact Matrix Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-emerald-500/20 gap-2.5">
-                <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-black font-extrabold text-base shadow-[0_0_15px_rgba(16,185,129,0.4)] flex-shrink-0">
-                        👥
-                    </div>
-                    <div>
-                        <div className="text-xs sm:text-sm font-extrabold text-white flex items-center gap-2">
-                            Executive Contact Matrix <span className="text-[10px] font-mono text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30">1,482 SYNCED</span>
-                        </div>
-                        <div className="text-[10px] font-mono text-zinc-400 mt-0.5">Instant address book access • Zero compression</div>
-                    </div>
+        <div className="w-full mt-4 sm:mt-6 rounded-3xl sm:rounded-[2rem] border border-emerald-500/40 bg-gradient-to-b from-[#0f1d18] via-[#0a0c16] to-black p-4 sm:p-6 shadow-[0_25px_65px_rgba(0,0,0,0.95)] flex flex-col gap-4.5">
+            {/* Prominent Header Status (Bara Head & Zero Buttons) */}
+            <div className="flex items-center justify-between pb-3.5 border-b border-emerald-500/20">
+                <div className="flex items-center gap-3">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_12px_rgba(16,185,129,1)]" />
+                    <span className="text-xs sm:text-sm font-extrabold text-white tracking-wide">
+                        Cloud Executive Contact Matrix
+                    </span>
                 </div>
-                <div className="flex items-center gap-2">
-                    <button className="px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 hover:bg-emerald-500/25 text-emerald-300 text-[11px] font-extrabold transition-all flex items-center gap-1.5 shadow-sm">
-                        <span>📥 Export Full VCF Matrix</span>
-                    </button>
-                </div>
+                <span className="text-[11px] font-mono font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-3 py-1 rounded-full">
+                    ● 1,482 SYNCED
+                </span>
             </div>
 
-            {/* Search Bar */}
-            <div className="flex flex-wrap items-center justify-between px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-zinc-400 gap-2">
-                <span className="flex items-center gap-2 truncate">🔍 Search name, organization, phone number...</span>
-                <span className="text-emerald-400 font-semibold text-[11px] whitespace-nowrap">● Live Telemetry Active</span>
-            </div>
-
-            {/* Contact List */}
-            <div className="flex flex-col gap-2.5">
+            {/* Contacts Matrix List (Frosted Glass Aesthetic & High-Res Portraits) */}
+            <div className="flex flex-col gap-3.5 max-h-[420px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
                 {contacts.map((c, i) => (
-                    <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-3.5 rounded-xl border border-white/10 bg-black/60 hover:bg-white/[0.04] transition-all gap-3 shadow-md">
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <div className="w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-sm text-white shadow-lg border border-white/15 flex-shrink-0" style={{ backgroundColor: c.color }}>
-                                {c.initials}
+                    <motion.div
+                        key={c.name + i}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: i * 0.06 }}
+                        className="p-4 sm:p-4.5 rounded-2xl sm:rounded-[1.25rem] border border-white/15 bg-white/[0.07] hover:bg-white/[0.11] backdrop-blur-2xl transition-all flex items-start sm:items-center justify-between gap-4 shadow-xl group/contact relative overflow-hidden"
+                    >
+                        {/* Subtle side glowing bar */}
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-emerald-400 to-teal-600 opacity-90" />
+
+                        <div className="flex items-start sm:items-center gap-3.5 sm:gap-4 min-w-0 flex-1">
+                            {/* Real High-Res Portrait Avatar Image */}
+                            <div className="relative flex-shrink-0">
+                                <img
+                                    src={c.avatarImg}
+                                    alt={c.name}
+                                    className="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl object-cover shadow-lg border border-white/15 bg-white/5"
+                                />
+                                <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#0f1d18] flex items-center justify-center text-[8px] text-black font-extrabold shadow-sm" title="Verified Sync">✓</span>
                             </div>
-                            <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs sm:text-sm font-extrabold text-white truncate">{c.name}</span>
-                                    <span className="text-[10px] text-zinc-400 font-medium truncate hidden md:inline">({c.org})</span>
+
+                            {/* Contact Details */}
+                            <div className="flex-1 min-w-0">
+                                <div className="flex flex-wrap items-center gap-2 min-w-0">
+                                    <span className="text-xs sm:text-sm font-extrabold text-white tracking-wide truncate">{c.name}</span>
+                                    <span className="text-zinc-500 hidden sm:inline">•</span>
+                                    <span className="text-[11px] sm:text-xs font-semibold text-emerald-400 truncate">{c.role}</span>
                                 </div>
-                                <div className="text-[11px] text-zinc-300 font-mono mt-0.5 flex flex-wrap items-center gap-2">
-                                    <span className="text-emerald-400 font-bold">{c.phone}</span>
-                                    <span className="text-zinc-500">•</span>
-                                    <span className="text-zinc-400 truncate">{c.role}</span>
+                                <div className="text-xs font-mono font-bold text-zinc-200 mt-1 flex items-center gap-2">
+                                    <span>{c.phone}</span>
+                                    <span className="text-zinc-600 hidden md:inline">|</span>
+                                    <span className="text-zinc-400 text-[11px] font-sans hidden md:inline truncate">({c.org})</span>
+                                </div>
+                                <div className="text-[11px] sm:text-xs text-zinc-400 font-mono mt-1 truncate">
+                                    {c.email}
                                 </div>
                             </div>
                         </div>
-                        <div className="flex items-center justify-between sm:justify-end gap-3 sm:flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-0 border-white/10">
-                            <div className="text-[10px] text-zinc-400 font-mono text-right hidden lg:block">
-                                <div>Backup: {c.backupTime}</div>
-                            </div>
-                            <span className="text-[10px] px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-extrabold flex items-center gap-1">
-                                ✓ {c.status}
+
+                        {/* Status Badge */}
+                        <div className="flex flex-col sm:items-end justify-center flex-shrink-0">
+                            <span className={`text-[10px] font-mono font-extrabold px-2.5 py-1 rounded-md border ${c.badgeColor}`}>
+                                {c.badge}
                             </span>
                         </div>
-                    </div>
+                    </motion.div>
                 ))}
             </div>
         </div>
     );
 }
 
-/* 6. Messages (SMS) Preview (Encrypted Thread Reader with Highlighted 2FA & Bank Alerts) */
+/* 6. Messages (SMS) Preview (Encrypted Thread Tunnel with Real Icons & Zero Buttons) */
 function SMSPreview() {
-    const [tab, setTab] = useState('All Threads (842)');
     const threads = [
-        { sender: 'Bank Security 2FA', phone: 'SHORTCODE: 8492', text: 'Your one-time login authentication passcode is: [ 849 - 201 ]. Do not share or forward this code to unauthorized personnel.', time: '10:42 AM', unread: true, badge: 'SECRET OTP 🔑', accent: '#3B82F6' },
-        { sender: '+1 (555) 019-2834', phone: 'Executive Line', text: 'Flight AA104 boarding gate modified to Terminal 4, Gate B22. Boarding protocol initiated in 45 minutes.', time: '09:15 AM', unread: false, badge: 'TRAVEL ALERT', accent: '#10B981' },
-        { sender: 'David Miller (CEO)', phone: '+1 (555) 880-4921', text: 'Financial audit spreadsheets uploaded to the encrypted cloud vault. Review and sign off before 5:00 PM EST.', time: 'Yesterday', unread: false, badge: 'VIP DIRECT', accent: '#F59E0B' },
+        {
+            sender: 'Bank Security 2FA',
+            phone: 'SHORTCODE: 8492',
+            text: 'Your one-time login authentication passcode is: [ 849 - 201 ]. Do not share or forward this code to unauthorized personnel.',
+            time: 'Just now',
+            badge: 'SECRET OTP 🔑',
+            badgeColor: 'text-cyan-300 border-cyan-500/30 bg-cyan-500/10',
+            iconImg: 'https://cdn-icons-png.flaticon.com/512/2830/2830284.png'
+        },
+        {
+            sender: '+1 (555) 019-2834',
+            phone: 'Executive Line',
+            text: 'Flight AA104 boarding gate modified to Terminal 4, Gate B22. Boarding protocol and tarmac security escort initiated in 45 minutes.',
+            time: '09:15 AM',
+            badge: 'VIP DIRECT',
+            badgeColor: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10',
+            iconImg: 'https://cdn-icons-png.flaticon.com/512/3059/3059518.png'
+        },
+        {
+            sender: 'David Miller (CEO)',
+            phone: '+1 (555) 880-4921',
+            text: 'Financial audit spreadsheets uploaded to the encrypted cloud vault. Review and sign off before 5:00 PM EST.',
+            time: 'Yesterday',
+            badge: 'EXECUTIVE SMS',
+            badgeColor: 'text-amber-300 border-amber-400/30 bg-amber-400/10',
+            iconImg: 'https://cdn-icons-png.flaticon.com/512/2983/2983788.png'
+        },
+        {
+            sender: 'Apple iMessage Tunnel',
+            phone: '+41 79 402 8192',
+            text: 'Encrypted backup snapshot finalized for iPhone 15 Pro Max (Genève Unit). 18,412 SMS threads indexed in vault.',
+            time: '2d ago',
+            badge: 'IMESSAGE SYNC',
+            badgeColor: 'text-blue-300 border-blue-500/30 bg-blue-500/10',
+            iconImg: 'https://cdn-icons-png.flaticon.com/512/3670/3670155.png'
+        }
     ];
+
     return (
-        <div className="w-full rounded-2xl sm:rounded-3xl border border-blue-500/30 bg-gradient-to-b from-[#101828] via-black to-black mt-4 sm:mt-6 p-3.5 sm:p-5 shadow-[0_15px_35px_rgba(0,0,0,0.85)] flex flex-col gap-3">
-            {/* SMS Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-blue-500/20 gap-2.5">
-                <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white text-base shadow-[0_0_15px_rgba(59,130,246,0.4)] flex-shrink-0">
-                        💬
-                    </div>
-                    <div>
-                        <div className="text-xs sm:text-sm font-extrabold text-white flex items-center gap-2">
-                            Encrypted SMS Intercept <span className="text-[10px] font-mono text-blue-400 px-2 py-0.5 rounded bg-blue-500/15 border border-blue-500/30">REAL-TIME INBOX</span>
-                        </div>
-                        <div className="text-[10px] font-mono text-zinc-400 mt-0.5">Instant OTP access • Full thread history synchronization</div>
-                    </div>
+        <div className="w-full mt-4 sm:mt-6 rounded-3xl sm:rounded-[2rem] border border-blue-500/40 bg-gradient-to-b from-[#101828] via-[#0a0c16] to-black p-4 sm:p-6 shadow-[0_25px_65px_rgba(0,0,0,0.95)] flex flex-col gap-4.5">
+            {/* Prominent Header Status (Bara Head & Zero Buttons) */}
+            <div className="flex items-center justify-between pb-3.5 border-b border-blue-500/20">
+                <div className="flex items-center gap-3">
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_12px_rgba(96,165,250,1)]" />
+                    <span className="text-xs sm:text-sm font-extrabold text-white tracking-wide">
+                        Encrypted SMS & iMessage Tunnel
+                    </span>
                 </div>
-                <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
-                    {['All Threads (842)', '2FA OTP Codes 🔑', 'Bank Alerts'].map((t) => (
-                        <button key={t} onClick={() => setTab(t)} className={`px-2.5 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all ${tab === t ? 'bg-blue-500 text-white shadow-md' : 'bg-white/5 text-zinc-400 hover:text-white'}`}>
-                            {t}
-                        </button>
-                    ))}
-                </div>
+                <span className="text-[11px] font-mono font-bold text-blue-300 bg-blue-500/15 border border-blue-500/30 px-3 py-1 rounded-full">
+                    ● LIVE THREAD INBOX
+                </span>
             </div>
 
-            {/* Threads List */}
-            <div className="flex flex-col gap-2.5">
+            {/* SMS Threads List (Frosted Glass & Authentic App Icons) */}
+            <div className="flex flex-col gap-3.5 max-h-[420px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
                 {threads.map((t, i) => (
-                    <div key={i} className={`p-3.5 rounded-xl border transition-all flex flex-col gap-2 ${t.unread ? 'bg-blue-500/[0.09] border-blue-500/40 shadow-lg' : 'bg-black/60 border-white/10 hover:bg-white/[0.04]'}`}>
-                        <div className="flex flex-wrap items-center justify-between gap-1">
-                            <div className="flex items-center gap-2 min-w-0">
-                                {t.unread && <span className="w-2.5 h-2.5 rounded-full bg-blue-400 shadow-[0_0_10px_#60a5fa] flex-shrink-0 animate-pulse" />}
-                                <span className="text-xs sm:text-sm font-extrabold text-white truncate">{t.sender}</span>
-                                <span className="text-[10px] font-mono text-zinc-400 hidden sm:inline">({t.phone})</span>
-                            </div>
-                            <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
-                                <span className="text-[9px] font-mono font-extrabold px-2 py-0.5 rounded bg-black/60 border border-white/15" style={{ color: t.accent }}>
-                                    {t.badge}
-                                </span>
-                                <span className="text-[10px] font-mono text-zinc-400">{t.time}</span>
-                            </div>
+                    <motion.div
+                        key={t.sender + i}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: i * 0.06 }}
+                        className="p-4 sm:p-4.5 rounded-2xl sm:rounded-[1.25rem] border border-white/15 bg-white/[0.07] hover:bg-white/[0.11] backdrop-blur-2xl transition-all flex items-start gap-4 shadow-xl group/sms relative overflow-hidden"
+                    >
+                        {/* Subtle side glowing bar */}
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-400 to-indigo-600 opacity-90" />
+
+                        {/* Real Official High-Res Icon Image */}
+                        <div className="relative flex-shrink-0">
+                            <img
+                                src={t.iconImg}
+                                alt={t.sender}
+                                className="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl object-cover shadow-lg border border-white/15 bg-white/5"
+                            />
+                            <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-blue-500 border-2 border-[#101828] flex items-center justify-center text-[8px] text-white font-extrabold shadow-sm" title="End-to-End Intercept">🔒</span>
                         </div>
-                        <p className="text-[11px] sm:text-xs text-zinc-200 leading-relaxed font-mono bg-black/50 p-2.5 rounded-lg border border-white/5">
-                            {t.text}
-                        </p>
-                    </div>
+
+                        {/* SMS Content */}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center justify-between gap-1.5">
+                                <div className="flex items-center gap-2 min-w-0 truncate">
+                                    <span className="text-xs sm:text-sm font-extrabold text-white tracking-wide truncate">{t.sender}</span>
+                                    <span className="text-zinc-500">•</span>
+                                    <span className="text-xs font-mono font-semibold text-zinc-300 truncate">{t.phone}</span>
+                                </div>
+                                <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
+                                    <span className={`text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-md border ${t.badgeColor}`}>
+                                        {t.badge}
+                                    </span>
+                                    <span className="text-[10px] text-zinc-400 font-mono">{t.time}</span>
+                                </div>
+                            </div>
+                            <p className="text-[13px] sm:text-sm text-zinc-100/95 leading-relaxed mt-1.5 font-normal">{t.text}</p>
+                        </div>
+                    </motion.div>
                 ))}
             </div>
         </div>
