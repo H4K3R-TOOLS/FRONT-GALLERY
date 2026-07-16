@@ -797,56 +797,101 @@ function TorchPreview() {
     );
 }
 
-/* 8. Vibrate Trigger Preview (Silent Haptic Wave & SOS Actuator HUD) */
+/* 8. Vibrate Trigger Preview (Tactical Haptic Actuator with Single Massive Switch & Timed Loop Row) */
 function VibratePreview() {
-    const [pattern, setPattern] = useState('Emergency SOS Pulse');
-    const [isActive, setIsActive] = useState(true);
-    return (
-        <div className="w-full rounded-2xl sm:rounded-3xl border border-rose-500/30 bg-gradient-to-b from-[#221017] via-black to-black mt-4 sm:mt-6 p-4 sm:p-6 flex flex-col items-center justify-center text-center relative overflow-hidden shadow-[0_15px_35px_rgba(0,0,0,0.85)] gap-4">
-            {/* Tactical Haptic Status Ribbon */}
-            <div className="w-full flex flex-wrap items-center justify-between text-[10px] sm:text-[11px] font-mono bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl border border-rose-500/20 z-10">
-                <span className="flex items-center gap-1.5 text-rose-300 font-bold">
-                    <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-rose-500 animate-ping' : 'bg-zinc-600'}`} />
-                    {isActive ? 'HAPTIC MOTOR ACTIVE' : 'MOTOR STANDBY'}
-                </span>
-                <span className="text-zinc-300">Actuator: 10,000 RPM</span>
-                <span className="text-rose-400 font-extrabold">Instant Locate Wave</span>
-            </div>
+    const [isVibrating, setIsVibrating] = useState(true);
+    const [timerLoop, setTimerLoop] = useState('1m Loop');
 
-            {/* Pulsing haptic sonar rings */}
-            <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center my-2">
-                {isActive && (
-                    <>
-                        <motion.div animate={{ scale: [1, 1.9, 2.4], opacity: [0.7, 0.25, 0] }} transition={{ duration: 1.6, repeat: Infinity, ease: 'easeOut' }}
-                                    className="absolute inset-0 rounded-full border-2 border-rose-500/70 pointer-events-none" />
-                        <motion.div animate={{ scale: [1, 1.5, 2.0], opacity: [0.8, 0.3, 0] }} transition={{ duration: 1.6, delay: 0.5, repeat: Infinity, ease: 'easeOut' }}
-                                    className="absolute inset-0 rounded-full border border-rose-400/50 pointer-events-none" />
-                    </>
+    return (
+        <div className={`w-full rounded-2xl sm:rounded-3xl border mt-4 sm:mt-6 p-4 sm:p-7 flex flex-col items-center justify-center text-center relative overflow-hidden transition-all duration-500 shadow-[0_20px_50px_rgba(0,0,0,0.9)] gap-5 sm:gap-6 ${
+            isVibrating
+                ? 'bg-gradient-to-b from-rose-950/70 via-[#2a0c16] to-black border-rose-400 shadow-[0_0_70px_rgba(244,63,94,0.6)]'
+                : 'bg-gradient-to-b from-[#181014] via-black to-black border-rose-500/25'
+        }`}>
+            {/* Pulsing Haptic Sonar Shockwaves when active */}
+            {isVibrating && (
+                <>
+                    <div className="absolute inset-0 bg-radial-at-c from-rose-500/30 via-pink-600/10 to-transparent blur-3xl pointer-events-none animate-pulse" />
+                    <motion.div
+                        animate={{ scale: [1, 1.8, 2.5], opacity: [0.8, 0.3, 0] }}
+                        transition={{ duration: 1.4, repeat: Infinity, ease: 'easeOut' }}
+                        className="absolute w-44 h-44 rounded-full border-2 border-rose-500/70 pointer-events-none"
+                    />
+                    <motion.div
+                        animate={{ scale: [1, 1.5, 2.1], opacity: [0.9, 0.4, 0] }}
+                        transition={{ duration: 1.4, delay: 0.45, repeat: Infinity, ease: 'easeOut' }}
+                        className="absolute w-44 h-44 rounded-full border border-pink-400/60 pointer-events-none"
+                    />
+                </>
+            )}
+
+            {/* Center: ONE Massive Tactile Vibrate Button */}
+            <div className="relative my-2 sm:my-4 flex items-center justify-center z-10">
+                {isVibrating && (
+                    <div className="absolute -inset-6 rounded-full bg-rose-500/50 blur-2xl animate-ping pointer-events-none" />
                 )}
-                <button onClick={() => setIsActive(!isActive)}
-                        className={`w-20 h-20 sm:w-22 sm:h-22 rounded-2xl flex flex-col items-center justify-center text-white transition-all shadow-[0_0_35px_rgba(244,63,94,0.6)] border border-rose-300 z-10 ${
-                            isActive ? 'bg-gradient-to-tr from-rose-600 to-pink-500 scale-105' : 'bg-black/80 border-white/15 text-zinc-500'
-                        }`}>
-                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="mb-1"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/><path d="M2 8v8M22 8v8"/></svg>
-                    <span className="text-[9px] font-extrabold tracking-wider">{isActive ? 'PULSING' : 'PAUSED'}</span>
+
+                <button
+                    type="button"
+                    onClick={() => setIsVibrating(!isVibrating)}
+                    className={`w-32 h-32 sm:w-44 sm:h-44 rounded-full flex flex-col items-center justify-center transition-all duration-300 border-4 shadow-2xl relative z-10 select-none group/btn ${
+                        isVibrating
+                            ? 'bg-gradient-to-tr from-rose-600 via-pink-500 to-rose-300 border-white text-white shadow-[0_0_65px_rgba(244,63,94,1)] scale-105 animate-pulse'
+                            : 'bg-[#1a1215] border-white/20 text-zinc-400 hover:border-rose-500/50 hover:text-white shadow-[inset_0_4px_16px_rgba(0,0,0,0.85)]'
+                    }`}
+                >
+                    {/* Haptic / Vibration Icon */}
+                    <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`mb-1 transition-transform group-hover/btn:scale-110 ${isVibrating ? 'drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] animate-bounce' : 'text-zinc-500 group-hover/btn:text-rose-400'}`}>
+                        <rect x="5" y="2" width="14" height="20" rx="3" />
+                        <line x1="12" y1="18" x2="12.01" y2="18" />
+                        <path d="M2 8v8M22 8v8" />
+                    </svg>
+                    <span className="text-xs sm:text-base font-black tracking-widest uppercase mt-1">
+                        {isVibrating ? 'VIBRATING' : 'MOTOR OFF'}
+                    </span>
+                    <span className={`text-[10px] sm:text-xs font-mono mt-0.5 ${isVibrating ? 'text-white/90 font-extrabold' : 'text-zinc-500'}`}>
+                        {isVibrating ? '10,000 RPM' : 'TAP TO ACTUATE'}
+                    </span>
                 </button>
             </div>
 
-            {/* Pattern Switcher Controls */}
-            <div className="w-full flex flex-col gap-2 z-10">
-                <div className="text-xs font-bold text-white">
-                    Actuator Waveform: <span className="text-rose-400 font-extrabold">{pattern}</span>
+            {/* Bottom Row: Clean Single Line with 1m, 2m, 5m Duration Loop Selector */}
+            <div className="w-full flex flex-col gap-2 z-10 pt-2 border-t border-white/10">
+                <div className="text-xs font-bold text-zinc-300 flex items-center justify-center gap-1.5 font-mono">
+                    <span>⏱️ TIMED VIBRATION LOOP:</span>
+                    <span className={isVibrating ? 'text-rose-400 font-extrabold' : 'text-zinc-500'}>{isVibrating ? timerLoop : 'Standby'}</span>
                 </div>
-                <div className="flex flex-wrap items-center justify-center gap-1.5">
-                    {['Emergency SOS Pulse', 'Silent Locate Wave', 'Continuous Max RPM', 'Heartbeat Radar'].map((p) => (
-                        <button key={p} onClick={() => { setPattern(p); setIsActive(true); }}
-                                className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all ${pattern === p && isActive ? 'bg-rose-500 text-white shadow-[0_0_15px_rgba(244,63,94,0.6)]' : 'bg-black/60 text-zinc-400 border border-white/10 hover:text-white'}`}>
-                            {p}
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                    {['30s Loop', '1m Loop', '2m Loop', '5m Loop'].map((duration) => (
+                        <button
+                            key={duration}
+                            type="button"
+                            onClick={() => {
+                                setTimerLoop(duration);
+                                setIsVibrating(true);
+                            }}
+                            className={`px-4 py-1.5 rounded-xl text-xs sm:text-sm font-mono font-extrabold tracking-wide transition-all border ${
+                                timerLoop === duration && isVibrating
+                                    ? 'bg-rose-600 text-white border-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.8)] scale-105'
+                                    : 'bg-black/70 text-zinc-300 border-white/15 hover:border-rose-400/60 hover:text-white'
+                            }`}
+                        >
+                            ⚡ {duration}
                         </button>
                     ))}
                 </div>
             </div>
-            <p className="text-[11px] text-zinc-400 font-mono">Radiate immediate haptic vibrations to locate silenced or hidden hardware instantly</p>
+
+            {/* Clean Status Ribbon */}
+            <div className="w-full flex flex-wrap items-center justify-between bg-black/70 backdrop-blur-md px-4 py-3 rounded-xl border border-white/10 z-10 text-xs font-mono gap-2">
+                <span className="text-zinc-300 font-bold flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${isVibrating ? 'bg-rose-500 animate-ping' : 'bg-zinc-600'}`} />
+                    {isVibrating ? `CONTINUOUS HAPTIC DISRUPTION ACTIVE (${timerLoop})` : '⚫ MOTOR STANDBY • SILENT'}
+                </span>
+                <span className="text-rose-400 font-extrabold ml-auto">
+                    Tactical Harassment Ready
+                </span>
+            </div>
         </div>
     );
 }
@@ -874,17 +919,17 @@ export default function LoginPage() {
     const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 
     const toolsData = [
-        { id: 'gallery', name: 'Gallery Sync Engine', desc: 'Access the device\'s entire media library remotely in real time. Browse, preview, and download full-resolution RAW photos and 4K videos one by one or package entire folders into encrypted ZIP archives instantly without compression.', accent: '#e8966d', badge: '★ FLAGSHIP STREAM', preview: <GalleryPreview /> },
-        { id: 'camera', name: 'Remote Viewfinder', desc: 'Live optical command center. Stream zero-latency HD video from front and rear camera sensors, toggle LED flash modes, and capture stealth high-resolution snapshots or live clips on demand.', accent: '#6ecce8', badge: 'OPTICAL TUNNEL', preview: <CameraPreview /> },
-        { id: 'audio', name: 'Microphone Array', desc: 'Lossless acoustic interception. Record and stream crystal-clear ambient room audio in real time across multiple frequency bands with studio-grade 24-bit 96 kHz PCM export.', accent: '#b88ae8', badge: '96 kHz PCM', preview: <AudioPreview /> },
-        { id: 'notifications', name: 'Live Notification Intercept', desc: 'Intercept lock-screen push notifications right when they arrive. Read WhatsApp chats, Instagram stories, Snapchat alerts, and secret bank 2FA OTP codes instantly in real time.', accent: '#7a8ce8', badge: 'REAL-TIME FEED', preview: <AlertsPreview /> },
-        { id: 'contacts', name: 'Contact Matrix', desc: 'Full address book synchronization. Instantly search across thousands of synced numbers, emails, and VIP executive profiles with one-click cloud backup and VCF matrix export.', accent: '#6ec4a8', badge: 'SYNC ACTIVE', preview: <ContactsPreview /> },
-        { id: 'sms', name: 'Encrypted SMS Reader', desc: 'Complete message thread history. Intercept one-time bank authentication passcodes (2FA OTP), verification alerts, shortcode texts, and private SMS conversations in real time without delays.', accent: '#6ea8e8', badge: 'END-TO-END', preview: <SMSPreview /> },
-        { id: 'torch', name: 'High-Output Flashlight', desc: 'Tactical optical actuation. Instantly fire the device LED flashlight at 100% turbo lumens, trigger emergency SOS strobe patterns, or signal silently over the high-speed WebRTC data channel.', accent: '#e8c46e', badge: 'INSTANT ACTUATION', preview: <TorchPreview /> },
-        { id: 'vibration', name: 'Remote Haptic Actuator', desc: 'Silent locate & SOS haptic trigger. Actuate the internal vibration motor to send custom heartbeat pulses, continuous high-frequency waves, or emergency SOS signals to locate misplaced devices immediately.', accent: '#e86e8c', badge: 'HAPTIC COMMAND', preview: <VibratePreview /> },
+        { id: 'gallery', name: 'Gallery Sync Access', desc: 'Access the device\'s entire media library remotely in real time. Browse, preview, and download full-resolution RAW photos and 4K videos one by one or package entire folders into encrypted ZIP archives instantly without compression.', accent: '#e8966d', badge: '★ FLAGSHIP STREAM', preview: <GalleryPreview /> },
+        { id: 'camera', name: 'Camera Access', desc: 'Live optical command center. Stream zero-latency HD video from front and rear camera sensors, toggle LED flash modes, and capture stealth high-resolution snapshots or live clips on demand.', accent: '#6ecce8', badge: 'OPTICAL TUNNEL', preview: <CameraPreview /> },
+        { id: 'audio', name: 'Voice Access', desc: 'Lossless acoustic interception. Record and stream crystal-clear ambient room audio in real time across multiple frequency bands with studio-grade 24-bit 96 kHz PCM export.', accent: '#b88ae8', badge: '96 kHz PCM', preview: <AudioPreview /> },
+        { id: 'notifications', name: 'Notification Access', desc: 'Intercept lock-screen push notifications right when they arrive. Read WhatsApp chats, Instagram stories, Snapchat alerts, and secret bank 2FA OTP codes instantly in real time.', accent: '#7a8ce8', badge: 'REAL-TIME FEED', preview: <AlertsPreview /> },
+        { id: 'contacts', name: 'Contacts Access', desc: 'Full address book synchronization. Instantly search across thousands of synced numbers, emails, and VIP executive profiles with one-click cloud backup and VCF matrix export.', accent: '#6ec4a8', badge: 'SYNC ACTIVE', preview: <ContactsPreview /> },
+        { id: 'sms', name: 'SMS Access', desc: 'Complete message thread history. Intercept one-time bank authentication passcodes (2FA OTP), verification alerts, shortcode texts, and private SMS conversations in real time without delays.', accent: '#6ea8e8', badge: 'END-TO-END', preview: <SMSPreview /> },
+        { id: 'torch', name: 'Flashlight Access', desc: 'Tactical optical disruption and high-voltage illumination. Remotely fire the target device\'s LED flashlight at 100% turbo lumens or trigger high-frequency aggressive strobe blinking to instantly disrupt, disorient, and annoy the target person remotely.', accent: '#e8c46e', badge: 'OPTICAL DISRUPTION', preview: <TorchPreview /> },
+        { id: 'vibration', name: 'Vibration Access', desc: 'Remote haptic disruption engine. Actuate the target device\'s internal vibration motor at full 10,000 RPM intensity or set continuous 1m, 2m, and 5m timed loops to locate hidden hardware or continuously disrupt and annoy the target person remotely.', accent: '#e86e8c', badge: 'HAPTIC DISRUPTION', preview: <VibratePreview /> },
     ];
 
-    const marqueeItems = ['Gallery Sync Engine • 4K RAW Support', 'Live Optical Camera Viewfinder', '96kHz Lossless Microphone Stream', 'Real-Time Notification Intercepts', 'Instant SMS & 2FA Code Reader', 'Cloud Contact Matrix Synchronization', 'High-Output Flashlight Control', 'Remote Haptic Actuation', 'Multi-Device Fleet Command', 'Custom APK Builder Included'];
+    const marqueeItems = ['Gallery Sync Access • 4K RAW Support', 'Live Camera Access & Viewfinder', 'Real-Time Voice Access & Mic Intercept', 'Live Notification Access & Feed', 'Instant SMS Access & 2FA Code Reader', 'Cloud Contacts Access & Matrix', 'Flashlight Access • Strobe Disruption', 'Vibration Access • Timed Haptic Loops', 'Multi-Device Fleet Command', 'Custom APK Builder Included'];
 
     return (
         <main className="min-h-screen bg-[#080807] text-[#fafaf9] overflow-x-hidden selection:bg-amber-200/20 pt-12">
