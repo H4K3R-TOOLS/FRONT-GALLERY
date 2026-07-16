@@ -272,39 +272,18 @@ function CameraPreview() {
                     </div>
                 </div>
 
-                {/* Continuously Moving Biometric Scanner Box Over Girl's Face */}
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center pb-12">
-                    <motion.div
-                        animate={{
-                            scale: [0.96, 1.05, 0.96],
-                            y: [-12, 12, -12],
-                            rotate: [-1, 1, -1]
-                        }}
-                        transition={{
-                            duration: 3.5,
-                            repeat: Infinity,
-                            ease: 'easeInOut'
-                        }}
-                        className="relative w-44 h-48 sm:w-52 sm:h-56 border-2 border-emerald-400/85 rounded-[2rem] flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.35)]"
-                    >
+                {/* Continuously Roving Face Target Box (Pure GPU CSS Animation - Zero Scroll Lag or Text) */}
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center pb-8">
+                    <div className="relative w-24 h-24 sm:w-28 sm:h-28 border-[1.5px] border-emerald-400/80 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.4)] animate-roving-target">
                         {/* Corner Brackets */}
-                        <div className="absolute -top-1 -left-1 w-5 h-5 border-t-[3px] border-l-[3px] border-emerald-300 rounded-tl-lg" />
-                        <div className="absolute -top-1 -right-1 w-5 h-5 border-t-[3px] border-r-[3px] border-emerald-300 rounded-tr-lg" />
-                        <div className="absolute -bottom-1 -left-1 w-5 h-5 border-b-[3px] border-l-[3px] border-emerald-300 rounded-bl-lg" />
-                        <div className="absolute -bottom-1 -right-1 w-5 h-5 border-b-[3px] border-r-[3px] border-emerald-300 rounded-br-lg" />
+                        <div className="absolute -top-1 -left-1 w-3.5 h-3.5 border-t-2 border-l-2 border-emerald-300 rounded-tl" />
+                        <div className="absolute -top-1 -right-1 w-3.5 h-3.5 border-t-2 border-r-2 border-emerald-300 rounded-tr" />
+                        <div className="absolute -bottom-1 -left-1 w-3.5 h-3.5 border-b-2 border-l-2 border-emerald-300 rounded-bl" />
+                        <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 border-b-2 border-r-2 border-emerald-300 rounded-br" />
 
-                        {/* Animated Laser Scan Line Moving Up & Down */}
-                        <motion.div
-                            animate={{ y: ['-85%', '85%', '-85%'] }}
-                            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-                            className="w-full h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_15px_rgba(16,185,129,1)] absolute"
-                        />
-
-                        {/* Scanner Telemetry Label */}
-                        <span className="absolute -bottom-8 text-[10px] font-mono font-bold text-emerald-300 bg-black/85 backdrop-blur-md px-3 py-1 rounded-full border border-emerald-500/40 tracking-wider shadow-lg whitespace-nowrap">
-                            [ BIOMETRIC FACE TRACK: 99.8% ]
-                        </span>
-                    </motion.div>
+                        {/* Roving Laser Scan Line (Pure CSS) */}
+                        <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_rgba(16,185,129,1)] absolute animate-roving-laser" />
+                    </div>
                 </div>
 
                 {/* Toast Notification Bar */}

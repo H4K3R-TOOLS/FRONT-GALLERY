@@ -298,6 +298,28 @@ body {
   z-index: 200;
   pointer-events: none;
   opacity: 0.018;
-  mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+
+/* Roving face tracking target box animation (GPU-accelerated, zero repaints) */
+@keyframes roving-target {
+  0% { transform: translate3d(-18px, -18px, 0) scale(0.96); }
+  25% { transform: translate3d(22px, -22px, 0) scale(1.04); }
+  50% { transform: translate3d(25px, 22px, 0) scale(0.98); }
+  75% { transform: translate3d(-22px, 18px, 0) scale(1.05); }
+  100% { transform: translate3d(-18px, -18px, 0) scale(0.96); }
+}
+.animate-roving-target {
+  animation: roving-target 4.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Roving laser scan line inside the box */
+@keyframes roving-laser {
+  0%, 100% { transform: translate3d(0, -38px, 0); }
+  50% { transform: translate3d(0, 38px, 0); }
+}
+.animate-roving-laser {
+  animation: roving-laser 1.8s ease-in-out infinite;
+  will-change: transform;
 }
