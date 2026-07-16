@@ -872,7 +872,7 @@ export default function LoginPage() {
     const heroRef = useRef<HTMLDivElement>(null);
 
     const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-    const heroY = useTransform(scrollYProgress, [0, 1], [0, 140]);
+    const heroY = useTransform(scrollYProgress, [0, 1], [0, 0]);
     const heroOpacity = useTransform(scrollYProgress, [0, 0.65], [1, 0]);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -990,22 +990,22 @@ export default function LoginPage() {
 
 
             {/* ═══ HERO ═══ */}
-            <section ref={heroRef} className="relative z-10 min-h-[85dvh] sm:min-h-[90dvh] flex flex-col items-center justify-start pt-[72px] sm:pt-32 pb-16 sm:pb-24 px-4 sm:px-5 overflow-hidden">
-                <motion.div style={{ y: heroY, opacity: heroOpacity }} className="flex flex-col items-center text-center max-w-4xl mx-auto w-full">
+            <section ref={heroRef} className="relative z-10 min-h-[85dvh] sm:min-h-[90dvh] flex flex-col items-center justify-start pt-[76px] sm:pt-32 pb-16 sm:pb-24 px-4 sm:px-5 overflow-hidden">
+                <motion.div style={{ opacity: heroOpacity }} className="flex flex-col items-center text-center max-w-4xl mx-auto w-full">
 
-                    {/* Rotating gradient border logo */}
-                    <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }} className="relative mb-3 sm:mb-8">
-                        <div className="relative w-[78px] h-[78px] sm:w-[116px] sm:h-[116px]">
-                            <div className="absolute inset-0 rounded-2xl sm:rounded-[2.2rem] animate-spin-slow" style={{ background: 'conic-gradient(from 0deg, #d4a574, #e8966d, #b88ae8, #6ea8e8, #6ec4a8, #e8c46e, #d4a574)' }} />
-                            <div className="absolute inset-0 rounded-2xl sm:rounded-[2.2rem] animate-spin-slow blur-xl opacity-50" style={{ background: 'conic-gradient(from 0deg, #d4a574, #e8966d, #b88ae8, #6ea8e8, #6ec4a8, #e8c46e, #d4a574)' }} />
-                            <div className="absolute inset-[2.5px] sm:inset-[3px] rounded-[calc(1rem-2.5px)] sm:rounded-[calc(2.2rem-3px)] overflow-hidden bg-[#080807] flex items-center justify-center">
-                                <Image src="/gallery-eye-logo.jpg" alt="Gallery Eye" width={110} height={110} className="w-full h-full object-cover" priority />
+                    {/* Rotating gradient border logo (Slightly larger as requested) */}
+                    <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }} className="relative mb-5 sm:mb-8 mt-2 sm:mt-0">
+                        <div className="relative w-[94px] h-[94px] sm:w-[126px] sm:h-[126px]">
+                            <div className="absolute inset-0 rounded-[1.4rem] sm:rounded-[2.4rem] animate-spin-slow" style={{ background: 'conic-gradient(from 0deg, #d4a574, #e8966d, #b88ae8, #6ea8e8, #6ec4a8, #e8c46e, #d4a574)' }} />
+                            <div className="absolute inset-0 rounded-[1.4rem] sm:rounded-[2.4rem] animate-spin-slow blur-xl opacity-50" style={{ background: 'conic-gradient(from 0deg, #d4a574, #e8966d, #b88ae8, #6ea8e8, #6ec4a8, #e8c46e, #d4a574)' }} />
+                            <div className="absolute inset-[2.5px] sm:inset-[3px] rounded-[calc(1.4rem-2.5px)] sm:rounded-[calc(2.4rem-3px)] overflow-hidden bg-[#080807] flex items-center justify-center">
+                                <Image src="/gallery-eye-logo.jpg" alt="Gallery Eye" width={120} height={120} className="w-full h-full object-cover" priority />
                             </div>
                         </div>
                     </motion.div>
 
-                    {/* Powerful & Easy-to-Understand Headline */}
-                    <motion.h1 initial={{ opacity: 0, y: 36 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }} className="text-[clamp(2.15rem,7.8vw,5.8rem)] font-extrabold tracking-[-0.04em] leading-[1.05]">
+                    {/* Powerful & Easy-to-Understand Headline with comfortable top space */}
+                    <motion.h1 initial={{ opacity: 0, y: 36 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }} className="text-[clamp(2.15rem,7.8vw,5.8rem)] font-extrabold tracking-[-0.04em] leading-[1.05] mt-2 sm:mt-3 mb-2 sm:mb-4">
                         Full Mobile Access.
                         <br className="hidden sm:block" />
                         <span className="bg-gradient-to-r from-[#d4a574] via-[#e8966d] to-[#b88ae8] bg-clip-text text-transparent animate-gradient-text">
@@ -1013,12 +1013,12 @@ export default function LoginPage() {
                         </span>
                     </motion.h1>
 
-                    <motion.p initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.35, ease: [0.22, 1, 0.36, 1] }} className="text-xs sm:text-lg md:text-xl text-zinc-300 mt-2.5 sm:mt-6 max-w-xl sm:max-w-2xl leading-normal sm:leading-relaxed font-normal px-2">
+                    <motion.p initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.35, ease: [0.22, 1, 0.36, 1] }} className="text-xs sm:text-lg md:text-xl text-zinc-300 mt-4 sm:mt-6 max-w-xl sm:max-w-2xl leading-normal sm:leading-relaxed font-normal px-2">
                         Access and control entire Android phones remotely. Instantly view stored photos, stream live camera, read private SMS threads, record microphone, and track notifications — all inside one powerful, private web console.
                     </motion.p>
 
-                    {/* Massive, Highlighted & Unique Luxury Buttons (Both visible on mobile without scrolling) */}
-                    <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-5 mt-5 sm:mt-12 mb-6 sm:mb-12 relative z-20 w-full sm:w-auto px-2 sm:px-0">
+                    {/* Massive, Highlighted & Unique Luxury Buttons (Shifted slightly lower down while staying above fold) */}
+                    <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-5 mt-8 sm:mt-14 mb-8 sm:mb-12 relative z-20 w-full sm:w-auto px-2 sm:px-0">
                         <button
                             type="button"
                             onClick={() => setShowLoginModal(true)}
