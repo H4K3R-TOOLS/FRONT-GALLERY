@@ -233,57 +233,92 @@ function GalleryPreview() {
     );
 }
 
-/* 2. Remote Camera Viewfinder Preview (Mobile & Desktop Responsive) */
+/* 2. Remote Camera Viewfinder Preview (Mobile & Desktop Responsive & Interactive) */
 function CameraPreview() {
     const [lens, setLens] = useState('1x Main');
+    const [mode, setMode] = useState('HD Video');
+    const [isCapturing, setIsCapturing] = useState(false);
+
+    const handleCapture = () => {
+        setIsCapturing(true);
+        setTimeout(() => setIsCapturing(false), 600);
+    };
+
     return (
-        <div className="w-full rounded-2xl overflow-hidden border border-white/10 bg-black/60 mt-4 sm:mt-6 relative aspect-[16/11] sm:aspect-[16/10] shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col justify-between p-3 sm:p-4"
-             style={{ backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&auto=format&fit=crop&q=80")', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <div className="w-full rounded-2xl sm:rounded-3xl overflow-hidden border border-cyan-500/30 bg-black/80 mt-4 sm:mt-6 relative aspect-[16/11] sm:aspect-[16/10] shadow-[0_15px_35px_rgba(0,0,0,0.8)] flex flex-col justify-between p-3 sm:p-4 transition-all"
+             style={{ backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,0.45), rgba(0,0,0,0.8)), url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&auto=format&fit=crop&q=80")', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+            {/* Capture flash overlay */}
+            {isCapturing && <div className="absolute inset-0 bg-white z-50 animate-fade-out pointer-events-none" />}
+
             {/* HUD Top */}
-            <div className="flex flex-wrap items-center justify-between text-[10px] sm:text-[11px] font-mono text-cyan-300/90 bg-black/60 backdrop-blur-md px-2.5 sm:px-3 py-1.5 rounded-xl border border-cyan-500/20 gap-1.5 z-10">
-                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-500 animate-ping" /> LIVE</span>
-                <span className="hidden sm:inline">ISO 400 • 1/120s • f/1.8</span>
-                <span className="text-emerald-400 font-bold">1080p 60FPS</span>
+            <div className="flex flex-wrap items-center justify-between text-[10px] sm:text-[11px] font-mono text-cyan-300/90 bg-black/70 backdrop-blur-md px-2.5 sm:px-3 py-1.5 rounded-xl border border-cyan-500/25 gap-1.5 z-10 shadow-sm">
+                <span className="flex items-center gap-1.5 font-bold"><span className="w-2 h-2 rounded-full bg-red-500 animate-ping" /> OPTICAL TUNNEL</span>
+                <span className="hidden sm:inline text-zinc-300">ISO 400 • 1/120s • f/1.8 • 4K HDR</span>
+                <span className="text-emerald-400 font-extrabold px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">60 FPS LIVE</span>
             </div>
-            {/* Viewfinder crosshairs */}
+
+            {/* Viewfinder crosshairs & Face Track Box */}
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 border border-white/20 rounded-2xl flex items-center justify-center">
-                    <div className="w-2 h-2 rounded-full bg-cyan-400/80" />
+                <div className="relative w-28 h-28 sm:w-36 sm:h-36 border border-cyan-400/40 rounded-2xl flex items-center justify-center">
+                    <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyan-400" />
+                    <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-cyan-400" />
+                    <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-cyan-400" />
+                    <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-cyan-400" />
+                    <div className="w-2 h-2 rounded-full bg-cyan-400/90 animate-pulse" />
+                    <span className="absolute -bottom-5 text-[9px] font-mono text-cyan-300 bg-black/60 px-1.5 py-0.5 rounded border border-cyan-500/20">STEALTH FOCUS LOCKED</span>
                 </div>
             </div>
-            {/* Lens Switcher & Controls */}
-            <div className="flex flex-wrap items-center justify-between bg-black/70 backdrop-blur-md p-1.5 sm:p-2 rounded-xl border border-white/10 z-10 gap-2">
-                <div className="flex gap-1">
-                    {['0.5x Ultra', '1x Main', '3x Tele'].map((l) => (
-                        <button key={l} onClick={() => setLens(l)} className={`px-2 sm:px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-bold transition-all ${lens === l ? 'bg-cyan-500 text-black shadow-[0_0_12px_rgba(6,182,212,0.5)]' : 'text-zinc-400 hover:text-white'}`}>
-                            {l}
-                        </button>
-                    ))}
+
+            {/* Bottom Controls Panel */}
+            <div className="flex flex-col gap-2 z-10">
+                {/* Mode & Lens Switcher */}
+                <div className="flex flex-wrap items-center justify-between bg-black/80 backdrop-blur-md p-1.5 sm:p-2 rounded-xl border border-white/10 gap-2">
+                    <div className="flex items-center gap-1">
+                        {['0.5x Ultra', '1x Main', '3x Tele'].map((l) => (
+                            <button key={l} onClick={() => setLens(l)} className={`px-2 sm:px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-bold transition-all ${lens === l ? 'bg-cyan-500 text-black shadow-[0_0_12px_rgba(6,182,212,0.6)]' : 'text-zinc-400 hover:text-white'}`}>
+                                {l}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="flex items-center gap-1">
+                        {['HD Video', 'Stealth Photo'].map((m) => (
+                            <button key={m} onClick={() => setMode(m)} className={`px-2 sm:px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-bold transition-all ${mode === m ? 'bg-gradient-to-r from-cyan-400 to-blue-500 text-black shadow-md' : 'text-zinc-400 hover:text-white'}`}>
+                                {m}
+                            </button>
+                        ))}
+                    </div>
                 </div>
-                <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-white/90">
-                    <span className="w-2 h-2 rounded-full bg-amber-400" /> <span className="hidden xs:inline">Flash:</span> AUTO
+
+                {/* Capture & Sensor Actions */}
+                <div className="flex items-center justify-between bg-black/80 backdrop-blur-md px-3 py-2 rounded-xl border border-cyan-500/20 text-xs">
+                    <div className="flex items-center gap-2 text-zinc-300">
+                        <span className="w-2 h-2 rounded-full bg-amber-400" /> <span className="text-[11px] font-mono">Flash: AUTO • Front/Rear Ready</span>
+                    </div>
+                    <button onClick={handleCapture} className="px-3.5 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-extrabold text-[11px] transition-all shadow-[0_0_15px_rgba(6,182,212,0.5)] flex items-center gap-1.5">
+                        <span>📸 {isCapturing ? 'Capturing...' : 'Trigger Snap'}</span>
+                    </button>
                 </div>
             </div>
         </div>
     );
 }
 
-/* 3. Live Microphone Waveform Preview */
+/* 3. Live Microphone Waveform Preview (Responsive) */
 function AudioPreview() {
     const heights = [35, 65, 90, 45, 80, 100, 70, 40, 85, 60, 95, 50, 75, 88, 42, 68, 92, 55];
     return (
-        <div className="w-full rounded-2xl border border-purple-500/20 bg-gradient-to-b from-purple-950/30 to-black/60 mt-6 p-5 shadow-[0_10px_25px_rgba(0,0,0,0.6)]">
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-purple-500 animate-pulse shadow-[0_0_12px_rgba(168,85,247,0.8)]" />
-                    <span className="text-xs font-bold text-purple-300 uppercase tracking-wider">Remote Mic Recording</span>
+        <div className="w-full rounded-2xl sm:rounded-3xl border border-purple-500/30 bg-gradient-to-b from-purple-950/40 via-black/80 to-black mt-4 sm:mt-6 p-4 sm:p-5 shadow-[0_15px_35px_rgba(0,0,0,0.8)]">
+            <div className="flex flex-wrap items-center justify-between pb-3 mb-3 border-b border-purple-500/20 gap-2">
+                <div className="flex items-center gap-2.5">
+                    <span className="w-3 h-3 rounded-full bg-purple-500 animate-pulse shadow-[0_0_15px_rgba(168,85,247,0.9)] flex-shrink-0" />
+                    <span className="text-xs sm:text-sm font-extrabold text-purple-200 uppercase tracking-wider">Remote Acoustic Array</span>
                 </div>
-                <span className="text-xs font-mono text-purple-400 font-semibold bg-purple-500/10 px-2.5 py-1 rounded-lg border border-purple-500/20">
-                    24-bit • 96 kHz Lossless
+                <span className="text-[10px] sm:text-xs font-mono text-purple-300 font-semibold bg-purple-500/15 px-2.5 py-1 rounded-lg border border-purple-500/30">
+                    24-Bit • 96 kHz Studio Lossless
                 </span>
             </div>
             {/* Waveform Bars */}
-            <div className="flex items-center justify-between h-20 gap-1 px-2">
+            <div className="flex items-center justify-between h-20 sm:h-24 gap-1 px-1 py-2">
                 {heights.map((h, i) => (
                     <motion.div
                         key={i}
@@ -293,150 +328,337 @@ function AudioPreview() {
                     />
                 ))}
             </div>
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-purple-500/10 text-xs text-zinc-400">
-                <span>Duration: <strong className="text-white font-mono">00:14:28</strong></span>
-                <span className="text-emerald-400 flex items-center gap-1">● Stream Active</span>
+            <div className="flex flex-wrap items-center justify-between mt-3 pt-3 border-t border-purple-500/15 text-[11px] sm:text-xs text-zinc-400 gap-2 font-mono">
+                <span>Intercept Duration: <strong className="text-white">00:14:28</strong></span>
+                <div className="flex items-center gap-3">
+                    <span className="text-emerald-400 flex items-center gap-1 font-bold">● Live PCM Stream</span>
+                    <button className="px-2.5 py-1 rounded bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30 text-[10px] font-bold transition-all">
+                        ⬇ WAV Export
+                    </button>
+                </div>
             </div>
         </div>
     );
 }
 
-/* 4. Live Alerts Feed Preview */
+/* 4. Live Alerts Feed Preview (Showstopping WhatsApp, FB, Insta, Snap, Bank OTP Icons & Intercept HUD) */
 function AlertsPreview() {
+    const [filter, setFilter] = useState('All Feed (12)');
     const alerts = [
-        { app: 'WhatsApp', title: 'New Message from Sarah', desc: 'Hey! Are we still meeting for coffee at 5 PM today?', time: 'Just now', icon: '💬', color: '#25D366' },
-        { app: 'Gmail', title: 'Security Alert: New sign-in', desc: 'We noticed a new login to your Google account from Mac OS...', time: '2m ago', icon: '✉️', color: '#EA4335' },
-        { app: 'System Shield', title: 'Background Scan Complete', desc: 'Zero threats detected. Device storage optimized.', time: '14m ago', icon: '🛡️', color: '#3B82F6' },
+        { app: 'WhatsApp', title: '+1 (555) 902-1482 (VIP Vault)', desc: 'Hey! Did you download the encrypted vault archives yet? Needed before the meeting.', time: 'Just now', icon: '💬', color: '#25D366', badge: 'MESSAGE INTERCEPT' },
+        { app: 'Instagram', title: '@elena_rostova shared a story', desc: 'Sent a private video story to your inbox • Tap to intercept before it expires in 2h.', time: '2m ago', icon: '📸', color: '#E1306C', badge: 'INSTA STORY' },
+        { app: 'Snapchat', title: 'Alex (Team Lead)', desc: 'New Snap (Red Arrow - No Sound) • Intercepted instantly from background service.', time: '5m ago', icon: '👻', color: '#FFFC00', textColor: '#000000', badge: 'SNAP REC' },
+        { app: 'Bank Security', title: '2FA Authentication Code', desc: 'Your one-time login OTP is: [ 849 - 201 ]. Do not share this passkey with anyone.', time: '12m ago', icon: '🔒', color: '#3B82F6', badge: 'SECRET OTP 🔑' },
+        { app: 'Facebook', title: 'Security & Sign-in Warning', desc: 'New device login recognized from Mac OS Chrome (IP: 185.220.101.4). Action required.', time: '18m ago', icon: '📘', color: '#1877F2', badge: 'SYSTEM ALERT' },
     ];
+
+    const filteredAlerts = filter === 'Social Media' 
+        ? alerts.filter(a => ['WhatsApp', 'Instagram', 'Snapchat', 'Facebook'].includes(a.app))
+        : filter === '2FA / OTP 🔑'
+        ? alerts.filter(a => a.app === 'Bank Security')
+        : alerts;
+
     return (
-        <div className="w-full flex flex-col gap-2.5 mt-6">
-            {alerts.map((a, i) => (
-                <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.15 }}
-                            className="p-3.5 rounded-xl border border-white/10 bg-black/50 hover:bg-white/[0.04] transition-colors flex items-start gap-3 shadow-md">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0 shadow-inner border border-white/10" style={{ backgroundColor: `${a.color}20` }}>
-                        {a.icon}
+        <div className="w-full rounded-2xl sm:rounded-3xl border border-indigo-500/30 bg-gradient-to-b from-[#111322] via-black to-black mt-4 sm:mt-6 p-3.5 sm:p-5 shadow-[0_15px_35px_rgba(0,0,0,0.85)]">
+            {/* Top Intercept Ribbon */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 mb-3.5 border-b border-indigo-500/20 gap-2.5">
+                <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white text-base shadow-[0_0_15px_rgba(99,102,241,0.5)] flex-shrink-0">
+                        🔔
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-white truncate">{a.app} • <span className="text-zinc-300 font-medium">{a.title}</span></span>
-                            <span className="text-[10px] text-indigo-300/80 font-mono flex-shrink-0 ml-2">{a.time}</span>
+                    <div>
+                        <div className="text-xs sm:text-sm font-extrabold text-white flex items-center gap-2">
+                            Real-Time Push Intercept <span className="text-[10px] font-mono text-indigo-400 px-2 py-0.5 rounded bg-indigo-500/15 border border-indigo-500/30">SOCKET LINKED</span>
                         </div>
-                        <p className="text-xs text-zinc-400 truncate mt-0.5">{a.desc}</p>
+                        <div className="text-[10px] font-mono text-zinc-400 mt-0.5 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" /> Capturing WhatsApp, FB, Snap, Insta & OTPs instantly
+                        </div>
                     </div>
-                </motion.div>
-            ))}
+                </div>
+                <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+                    {['All Feed (12)', 'Social Media', '2FA / OTP 🔑'].map((f) => (
+                        <button key={f} onClick={() => setFilter(f)} className={`px-2.5 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all ${filter === f ? 'bg-indigo-500 text-white shadow-md' : 'bg-white/5 text-zinc-400 hover:text-white'}`}>
+                            {f}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Notification Cards List */}
+            <div className="flex flex-col gap-2.5 max-h-[340px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
+                {filteredAlerts.map((a, i) => (
+                    <motion.div key={a.app + i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
+                                className="p-3 sm:p-3.5 rounded-xl border border-white/10 bg-black/60 hover:bg-white/[0.04] transition-all flex items-start gap-3 shadow-md group/alert">
+                        {/* App Icon Badge */}
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0 shadow-lg border border-white/15 relative"
+                             style={{ backgroundColor: a.color, color: (a as any).textColor || '#ffffff' }}>
+                            {a.icon}
+                            <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-black flex items-center justify-center text-[7px] text-black font-extrabold">✓</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center justify-between gap-1">
+                                <div className="flex items-center gap-1.5 min-w-0 truncate">
+                                    <span className="text-xs font-extrabold text-white truncate">{a.app}</span>
+                                    <span className="text-[10px] text-zinc-400 font-medium truncate"> • {a.title}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 flex-shrink-0 ml-auto">
+                                    <span className="text-[9px] font-mono font-extrabold px-1.5 py-0.5 rounded bg-white/10 text-indigo-300 border border-white/10">
+                                        {a.badge}
+                                    </span>
+                                    <span className="text-[10px] text-zinc-400 font-mono">{a.time}</span>
+                                </div>
+                            </div>
+                            <p className="text-[11px] sm:text-xs text-zinc-300/90 leading-relaxed mt-1 line-clamp-2">{a.desc}</p>
+                        </div>
+                    </motion.div>
+                ))}
+            </div>
         </div>
     );
 }
 
-/* 5. Contacts Access Preview (Mobile & Desktop Responsive) */
+/* 5. Contacts Access Preview (VIP Matrix with VCF Export & Sync Status) */
 function ContactsPreview() {
     const contacts = [
-        { name: 'Alexander Wright', phone: '+1 (555) 234-8901', role: 'Executive Vice President', status: 'Synced', initials: 'AW', color: '#10B981' },
-        { name: 'Elena Rostova', phone: '+44 20 7946 0921', role: 'Lead Architect', status: 'Synced', initials: 'ER', color: '#F59E0B' },
-        { name: 'Marcus Vance', phone: '+1 (555) 890-1234', role: 'Security Ops Chief', status: 'Synced', initials: 'MV', color: '#6366F1' },
+        { name: 'Alexander Wright', phone: '+1 (555) 234-8901', role: 'Executive Vice President', org: 'Wright Holdings LLC', status: 'Cloud Synced', initials: 'AW', color: '#10B981', backupTime: 'Today, 09:42 AM' },
+        { name: 'Elena Rostova', phone: '+44 20 7946 0921', role: 'Lead Cyber Architect', org: 'Quantum Labs UK', status: 'Cloud Synced', initials: 'ER', color: '#F59E0B', backupTime: 'Today, 08:15 AM' },
+        { name: 'Marcus Vance', phone: '+1 (555) 890-1234', role: 'Security Ops Commander', org: 'Vance Security Group', status: 'Cloud Synced', initials: 'MV', color: '#6366F1', backupTime: 'Yesterday' },
     ];
     return (
-        <div className="w-full flex flex-col gap-2.5 mt-4 sm:mt-6">
-            <div className="flex flex-wrap items-center justify-between px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-zinc-400 gap-1">
-                <span className="flex items-center gap-2 truncate">🔍 Search 1,482 contacts...</span>
-                <span className="text-emerald-400 font-semibold text-[11px] whitespace-nowrap">● Cloud Active</span>
+        <div className="w-full rounded-2xl sm:rounded-3xl border border-emerald-500/30 bg-gradient-to-b from-[#0f1d18] via-black to-black mt-4 sm:mt-6 p-3.5 sm:p-5 shadow-[0_15px_35px_rgba(0,0,0,0.85)] flex flex-col gap-3">
+            {/* Contact Matrix Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-emerald-500/20 gap-2.5">
+                <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-black font-extrabold text-base shadow-[0_0_15px_rgba(16,185,129,0.4)] flex-shrink-0">
+                        👥
+                    </div>
+                    <div>
+                        <div className="text-xs sm:text-sm font-extrabold text-white flex items-center gap-2">
+                            Executive Contact Matrix <span className="text-[10px] font-mono text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30">1,482 SYNCED</span>
+                        </div>
+                        <div className="text-[10px] font-mono text-zinc-400 mt-0.5">Instant address book access • Zero compression</div>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    <button className="px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 hover:bg-emerald-500/25 text-emerald-300 text-[11px] font-extrabold transition-all flex items-center gap-1.5 shadow-sm">
+                        <span>📥 Export Full VCF Matrix</span>
+                    </button>
+                </div>
             </div>
-            {contacts.map((c, i) => (
-                <div key={i} className="flex items-center justify-between p-3 rounded-xl border border-white/5 bg-black/40 hover:bg-white/[0.04] transition-colors gap-2">
-                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-md border border-white/10 flex-shrink-0" style={{ backgroundColor: c.color }}>
-                            {c.initials}
+
+            {/* Search Bar */}
+            <div className="flex flex-wrap items-center justify-between px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-zinc-400 gap-2">
+                <span className="flex items-center gap-2 truncate">🔍 Search name, organization, phone number...</span>
+                <span className="text-emerald-400 font-semibold text-[11px] whitespace-nowrap">● Live Telemetry Active</span>
+            </div>
+
+            {/* Contact List */}
+            <div className="flex flex-col gap-2.5">
+                {contacts.map((c, i) => (
+                    <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-3.5 rounded-xl border border-white/10 bg-black/60 hover:bg-white/[0.04] transition-all gap-3 shadow-md">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-sm text-white shadow-lg border border-white/15 flex-shrink-0" style={{ backgroundColor: c.color }}>
+                                {c.initials}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs sm:text-sm font-extrabold text-white truncate">{c.name}</span>
+                                    <span className="text-[10px] text-zinc-400 font-medium truncate hidden md:inline">({c.org})</span>
+                                </div>
+                                <div className="text-[11px] text-zinc-300 font-mono mt-0.5 flex flex-wrap items-center gap-2">
+                                    <span className="text-emerald-400 font-bold">{c.phone}</span>
+                                    <span className="text-zinc-500">•</span>
+                                    <span className="text-zinc-400 truncate">{c.role}</span>
+                                </div>
+                            </div>
                         </div>
-                        <div className="min-w-0 flex-1">
-                            <div className="text-xs font-bold text-white truncate">{c.name}</div>
-                            <div className="text-[10px] sm:text-[11px] text-zinc-400 font-mono truncate">{c.phone}</div>
+                        <div className="flex items-center justify-between sm:justify-end gap-3 sm:flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-0 border-white/10">
+                            <div className="text-[10px] text-zinc-400 font-mono text-right hidden lg:block">
+                                <div>Backup: {c.backupTime}</div>
+                            </div>
+                            <span className="text-[10px] px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-extrabold flex items-center gap-1">
+                                ✓ {c.status}
+                            </span>
                         </div>
                     </div>
-                    <span className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium flex-shrink-0">
-                        ✓ {c.status}
-                    </span>
-                </div>
-            ))}
+                ))}
+            </div>
         </div>
     );
 }
 
-/* 6. Messages (SMS) Preview */
+/* 6. Messages (SMS) Preview (Encrypted Thread Reader with Highlighted 2FA & Bank Alerts) */
 function SMSPreview() {
+    const [tab, setTab] = useState('All Threads (842)');
     const threads = [
-        { sender: 'Bank verification', text: 'Your one-time authentication code is 849-201. Do not share this with anyone.', time: '10:42 AM', unread: true },
-        { sender: '+1 (555) 019-2834', text: 'Flight AA104 gate updated to Terminal 4, Gate B22. Boarding begins in 45 mins.', time: '09:15 AM', unread: false },
-        { sender: 'David Miller', text: 'Documents uploaded to the encrypted vault. Let me know when you review.', time: 'Yesterday', unread: false },
+        { sender: 'Bank Security 2FA', phone: 'SHORTCODE: 8492', text: 'Your one-time login authentication passcode is: [ 849 - 201 ]. Do not share or forward this code to unauthorized personnel.', time: '10:42 AM', unread: true, badge: 'SECRET OTP 🔑', accent: '#3B82F6' },
+        { sender: '+1 (555) 019-2834', phone: 'Executive Line', text: 'Flight AA104 boarding gate modified to Terminal 4, Gate B22. Boarding protocol initiated in 45 minutes.', time: '09:15 AM', unread: false, badge: 'TRAVEL ALERT', accent: '#10B981' },
+        { sender: 'David Miller (CEO)', phone: '+1 (555) 880-4921', text: 'Financial audit spreadsheets uploaded to the encrypted cloud vault. Review and sign off before 5:00 PM EST.', time: 'Yesterday', unread: false, badge: 'VIP DIRECT', accent: '#F59E0B' },
     ];
     return (
-        <div className="w-full flex flex-col gap-2.5 mt-6">
-            {threads.map((t, i) => (
-                <div key={i} className={`p-3.5 rounded-xl border transition-colors flex flex-col gap-1.5 ${t.unread ? 'bg-blue-500/[0.07] border-blue-500/30' : 'bg-black/40 border-white/5 hover:bg-white/[0.03]'}`}>
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            {t.unread && <span className="w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_8px_#60a5fa]" />}
-                            <span className="text-xs font-bold text-white">{t.sender}</span>
-                        </div>
-                        <span className="text-[10px] font-mono text-zinc-400">{t.time}</span>
+        <div className="w-full rounded-2xl sm:rounded-3xl border border-blue-500/30 bg-gradient-to-b from-[#101828] via-black to-black mt-4 sm:mt-6 p-3.5 sm:p-5 shadow-[0_15px_35px_rgba(0,0,0,0.85)] flex flex-col gap-3">
+            {/* SMS Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-blue-500/20 gap-2.5">
+                <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white text-base shadow-[0_0_15px_rgba(59,130,246,0.4)] flex-shrink-0">
+                        💬
                     </div>
-                    <p className="text-xs text-zinc-300 line-clamp-2 leading-relaxed">{t.text}</p>
+                    <div>
+                        <div className="text-xs sm:text-sm font-extrabold text-white flex items-center gap-2">
+                            Encrypted SMS Intercept <span className="text-[10px] font-mono text-blue-400 px-2 py-0.5 rounded bg-blue-500/15 border border-blue-500/30">REAL-TIME INBOX</span>
+                        </div>
+                        <div className="text-[10px] font-mono text-zinc-400 mt-0.5">Instant OTP access • Full thread history synchronization</div>
+                    </div>
                 </div>
-            ))}
+                <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+                    {['All Threads (842)', '2FA OTP Codes 🔑', 'Bank Alerts'].map((t) => (
+                        <button key={t} onClick={() => setTab(t)} className={`px-2.5 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all ${tab === t ? 'bg-blue-500 text-white shadow-md' : 'bg-white/5 text-zinc-400 hover:text-white'}`}>
+                            {t}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Threads List */}
+            <div className="flex flex-col gap-2.5">
+                {threads.map((t, i) => (
+                    <div key={i} className={`p-3.5 rounded-xl border transition-all flex flex-col gap-2 ${t.unread ? 'bg-blue-500/[0.09] border-blue-500/40 shadow-lg' : 'bg-black/60 border-white/10 hover:bg-white/[0.04]'}`}>
+                        <div className="flex flex-wrap items-center justify-between gap-1">
+                            <div className="flex items-center gap-2 min-w-0">
+                                {t.unread && <span className="w-2.5 h-2.5 rounded-full bg-blue-400 shadow-[0_0_10px_#60a5fa] flex-shrink-0 animate-pulse" />}
+                                <span className="text-xs sm:text-sm font-extrabold text-white truncate">{t.sender}</span>
+                                <span className="text-[10px] font-mono text-zinc-400 hidden sm:inline">({t.phone})</span>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
+                                <span className="text-[9px] font-mono font-extrabold px-2 py-0.5 rounded bg-black/60 border border-white/15" style={{ color: t.accent }}>
+                                    {t.badge}
+                                </span>
+                                <span className="text-[10px] font-mono text-zinc-400">{t.time}</span>
+                            </div>
+                        </div>
+                        <p className="text-[11px] sm:text-xs text-zinc-200 leading-relaxed font-mono bg-black/50 p-2.5 rounded-lg border border-white/5">
+                            {t.text}
+                        </p>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }
 
-/* 7. Flashlight Control Preview */
+/* 7. Flashlight Control Preview (High-Voltage LED Command HUD with Lumens Selector & Battery Graph) */
 function TorchPreview() {
     const [isOn, setIsOn] = useState(true);
+    const [lumens, setLumens] = useState('100% TURBO');
+    const [mode, setMode] = useState('Constant Beam');
     return (
-        <div className="w-full rounded-2xl border border-amber-500/20 bg-gradient-to-b from-amber-950/20 to-black/60 mt-6 p-6 flex flex-col items-center justify-center text-center relative overflow-hidden shadow-lg">
-            {/* Glowing beam */}
+        <div className="w-full rounded-2xl sm:rounded-3xl border border-amber-500/30 bg-gradient-to-b from-[#241a0d] via-black to-black mt-4 sm:mt-6 p-4 sm:p-6 flex flex-col items-center justify-center text-center relative overflow-hidden shadow-[0_15px_35px_rgba(0,0,0,0.85)] gap-4">
+            {/* Glowing optical beam effect */}
             {isOn && (
-                <div className="absolute inset-0 bg-radial-at-c from-amber-400/20 via-amber-500/5 to-transparent blur-xl pointer-events-none transition-all duration-500" />
+                <div className="absolute inset-0 bg-radial-at-c from-amber-400/25 via-amber-500/10 to-transparent blur-2xl pointer-events-none transition-all duration-500" />
             )}
+
+            {/* Tactical Status Ribbon */}
+            <div className="w-full flex flex-wrap items-center justify-between text-[10px] sm:text-[11px] font-mono bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl border border-amber-500/20 z-10">
+                <span className="flex items-center gap-1.5 text-amber-300 font-bold">
+                    <span className={`w-2 h-2 rounded-full ${isOn ? 'bg-amber-400 animate-ping' : 'bg-zinc-600'}`} />
+                    {isOn ? 'OPTICAL EMITTER ON' : 'EMITTER STANDBY'}
+                </span>
+                <span className="text-zinc-300">Load: 3.82V • Temp: 34°C</span>
+                <span className="text-emerald-400 font-extrabold">WebRTC Link Active</span>
+            </div>
+
+            {/* Interactive Torch Actuator Button */}
             <button
                 onClick={() => setIsOn(!isOn)}
-                className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 mb-4 border-2 shadow-2xl relative ${
-                    isOn ? 'bg-gradient-to-tr from-amber-500 to-yellow-300 border-yellow-200 text-black shadow-[0_0_40px_rgba(245,158,11,0.6)] scale-105' : 'bg-black/80 border-white/10 text-zinc-500 hover:border-white/20'
+                className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full flex flex-col items-center justify-center transition-all duration-500 border-2 shadow-2xl relative z-10 ${
+                    isOn ? 'bg-gradient-to-tr from-amber-500 via-yellow-400 to-yellow-200 border-yellow-100 text-black shadow-[0_0_50px_rgba(245,158,11,0.7)] scale-105' : 'bg-black/80 border-white/15 text-zinc-500 hover:border-white/30'
                 }`}
             >
-                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="mb-1">
                     <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                 </svg>
+                <span className="text-[10px] font-extrabold tracking-wider">{isOn ? 'TURBO ON' : 'STANDBY'}</span>
             </button>
-            <div className="text-sm font-bold text-white mb-1">
-                Flashlight Status: <span className={isOn ? 'text-amber-400 font-extrabold' : 'text-zinc-500'}>{isOn ? '100% ACTIVE OUTPUT' : 'STANDBY'}</span>
-            </div>
-            <p className="text-xs text-zinc-400">Single-tap instant toggle over WebRTC high-speed data channel</p>
-        </div>
-    );
-}
 
-/* 8. Vibrate Trigger Preview */
-function VibratePreview() {
-    const [pattern, setPattern] = useState('SOS Pulse');
-    return (
-        <div className="w-full rounded-2xl border border-rose-500/20 bg-gradient-to-b from-rose-950/20 to-black/60 mt-6 p-6 flex flex-col items-center justify-center text-center relative overflow-hidden shadow-lg">
-            {/* Pulsing haptic rings */}
-            <div className="relative w-20 h-20 flex items-center justify-center mb-5">
-                <motion.div animate={{ scale: [1, 1.8, 2.2], opacity: [0.6, 0.2, 0] }} transition={{ duration: 1.8, repeat: Infinity, ease: 'easeOut' }}
-                            className="absolute inset-0 rounded-full border-2 border-rose-500/60 pointer-events-none" />
-                <motion.div animate={{ scale: [1, 1.4, 1.8], opacity: [0.8, 0.3, 0] }} transition={{ duration: 1.8, delay: 0.6, repeat: Infinity, ease: 'easeOut' }}
-                            className="absolute inset-0 rounded-full border border-rose-400/40 pointer-events-none" />
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-rose-600 to-pink-400 flex items-center justify-center text-white shadow-[0_0_25px_rgba(244,63,94,0.5)] border border-rose-300">
-                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/><path d="M2 8v8M22 8v8"/></svg>
+            {/* Intensity / Lumen Selector */}
+            <div className="w-full flex flex-col gap-2 z-10">
+                <div className="text-xs font-bold text-white flex items-center justify-center gap-2">
+                    Output Intensity: <span className={isOn ? 'text-amber-400 font-extrabold' : 'text-zinc-500'}>{isOn ? `${lumens} (1,200 Lumens)` : '0 Lumens'}</span>
+                </div>
+                <div className="flex flex-wrap items-center justify-center gap-1.5">
+                    {['25% Low', '50% Mid', '75% High', '100% TURBO'].map((l) => (
+                        <button key={l} onClick={() => { setLumens(l); setIsOn(true); }}
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${lumens === l && isOn ? 'bg-amber-500 text-black shadow-[0_0_12px_rgba(245,158,11,0.6)]' : 'bg-black/60 text-zinc-400 border border-white/10 hover:text-white'}`}>
+                            {l}
+                        </button>
+                    ))}
                 </div>
             </div>
-            <div className="flex items-center gap-2 mb-3">
-                {['SOS Pulse', 'Continuous', 'Heartbeat'].map((p) => (
-                    <button key={p} onClick={() => setPattern(p)} className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${pattern === p ? 'bg-rose-500 text-white shadow-[0_0_12px_rgba(244,63,94,0.5)]' : 'bg-black/50 text-zinc-400 border border-white/10 hover:text-white'}`}>
-                        {p}
+
+            {/* Mode Switcher */}
+            <div className="flex items-center justify-center gap-2 z-10 pt-2 border-t border-white/10 w-full text-xs">
+                {['Constant Beam', 'SOS Strobe Pulse', 'Tactical Beacon'].map((m) => (
+                    <button key={m} onClick={() => { setMode(m); setIsOn(true); }}
+                            className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all ${mode === m && isOn ? 'bg-white/15 text-amber-300 border border-amber-400/40' : 'text-zinc-400 hover:text-white'}`}>
+                        {m === mode && isOn ? '★ ' : ''}{m}
                     </button>
                 ))}
             </div>
-            <p className="text-xs text-zinc-400">Trigger remote haptic feedback instantly to locate lost or silenced devices</p>
+        </div>
+    );
+}
+
+/* 8. Vibrate Trigger Preview (Silent Haptic Wave & SOS Actuator HUD) */
+function VibratePreview() {
+    const [pattern, setPattern] = useState('Emergency SOS Pulse');
+    const [isActive, setIsActive] = useState(true);
+    return (
+        <div className="w-full rounded-2xl sm:rounded-3xl border border-rose-500/30 bg-gradient-to-b from-[#221017] via-black to-black mt-4 sm:mt-6 p-4 sm:p-6 flex flex-col items-center justify-center text-center relative overflow-hidden shadow-[0_15px_35px_rgba(0,0,0,0.85)] gap-4">
+            {/* Tactical Haptic Status Ribbon */}
+            <div className="w-full flex flex-wrap items-center justify-between text-[10px] sm:text-[11px] font-mono bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl border border-rose-500/20 z-10">
+                <span className="flex items-center gap-1.5 text-rose-300 font-bold">
+                    <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-rose-500 animate-ping' : 'bg-zinc-600'}`} />
+                    {isActive ? 'HAPTIC MOTOR ACTIVE' : 'MOTOR STANDBY'}
+                </span>
+                <span className="text-zinc-300">Actuator: 10,000 RPM</span>
+                <span className="text-rose-400 font-extrabold">Instant Locate Wave</span>
+            </div>
+
+            {/* Pulsing haptic sonar rings */}
+            <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center my-2">
+                {isActive && (
+                    <>
+                        <motion.div animate={{ scale: [1, 1.9, 2.4], opacity: [0.7, 0.25, 0] }} transition={{ duration: 1.6, repeat: Infinity, ease: 'easeOut' }}
+                                    className="absolute inset-0 rounded-full border-2 border-rose-500/70 pointer-events-none" />
+                        <motion.div animate={{ scale: [1, 1.5, 2.0], opacity: [0.8, 0.3, 0] }} transition={{ duration: 1.6, delay: 0.5, repeat: Infinity, ease: 'easeOut' }}
+                                    className="absolute inset-0 rounded-full border border-rose-400/50 pointer-events-none" />
+                    </>
+                )}
+                <button onClick={() => setIsActive(!isActive)}
+                        className={`w-20 h-20 sm:w-22 sm:h-22 rounded-2xl flex flex-col items-center justify-center text-white transition-all shadow-[0_0_35px_rgba(244,63,94,0.6)] border border-rose-300 z-10 ${
+                            isActive ? 'bg-gradient-to-tr from-rose-600 to-pink-500 scale-105' : 'bg-black/80 border-white/15 text-zinc-500'
+                        }`}>
+                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="mb-1"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/><path d="M2 8v8M22 8v8"/></svg>
+                    <span className="text-[9px] font-extrabold tracking-wider">{isActive ? 'PULSING' : 'PAUSED'}</span>
+                </button>
+            </div>
+
+            {/* Pattern Switcher Controls */}
+            <div className="w-full flex flex-col gap-2 z-10">
+                <div className="text-xs font-bold text-white">
+                    Actuator Waveform: <span className="text-rose-400 font-extrabold">{pattern}</span>
+                </div>
+                <div className="flex flex-wrap items-center justify-center gap-1.5">
+                    {['Emergency SOS Pulse', 'Silent Locate Wave', 'Continuous Max RPM', 'Heartbeat Radar'].map((p) => (
+                        <button key={p} onClick={() => { setPattern(p); setIsActive(true); }}
+                                className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all ${pattern === p && isActive ? 'bg-rose-500 text-white shadow-[0_0_15px_rgba(244,63,94,0.6)]' : 'bg-black/60 text-zinc-400 border border-white/10 hover:text-white'}`}>
+                            {p}
+                        </button>
+                    ))}
+                </div>
+            </div>
+            <p className="text-[11px] text-zinc-400 font-mono">Radiate immediate haptic vibrations to locate silenced or hidden hardware instantly</p>
         </div>
     );
 }
@@ -464,14 +686,14 @@ export default function LoginPage() {
     const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 
     const toolsData = [
-        { id: 'gallery', name: 'Gallery Sync Engine', desc: 'Real-time media tunnel. Browse, preview, and bulk-export high-resolution RAW photos and 4K videos directly from the device storage without compression.', accent: '#e8966d', badge: '★ FLAGSHIP STREAM', preview: <GalleryPreview /> },
-        { id: 'camera', name: 'Remote Viewfinder', desc: 'Live optical command. Stream zero-latency video from front or rear sensors, toggle flash modes, and capture stealth snapshots instantly.', accent: '#6ecce8', badge: 'OPTICAL TUNNEL', preview: <CameraPreview /> },
-        { id: 'audio', name: 'Microphone Array', desc: 'Lossless audio interception. Record ambient room acoustics across multiple frequency bands and download studio-grade PCM files.', accent: '#b88ae8', badge: '96 kHz PCM', preview: <AudioPreview /> },
-        { id: 'notifications', name: 'Live Notification Intercept', desc: 'Real-time telemetry feed capturing every push notification, message preview, system warning, and authentication alert as it happens.', accent: '#7a8ce8', badge: 'REAL-TIME FEED', preview: <AlertsPreview /> },
-        { id: 'contacts', name: 'Contact Matrix', desc: 'Full address book synchronization. Instant search across thousands of synced numbers, emails, and VIP executive profiles.', accent: '#6ec4a8', badge: 'SYNC ACTIVE', preview: <ContactsPreview /> },
-        { id: 'sms', name: 'Encrypted SMS Reader', desc: 'Complete thread history. Access one-time passcodes, verification SMS, and private conversations right inside your browser.', accent: '#6ea8e8', badge: 'END-TO-END', preview: <SMSPreview /> },
-        { id: 'torch', name: 'High-Output Flashlight', desc: 'Stealth optical signaling. Instantly fire the LED flashlight beam at full lumens or SOS pattern over the socket link.', accent: '#e8c46e', badge: 'INSTANT ACTUATION', preview: <TorchPreview /> },
-        { id: 'vibration', name: 'Remote Haptic Actuator', desc: 'Radiate silent vibration waves or emergency SOS pulses to locate misplaced hardware immediately.', accent: '#e86e8c', badge: 'HAPTIC COMMAND', preview: <VibratePreview /> },
+        { id: 'gallery', name: 'Gallery Sync Engine', desc: 'Access the device\'s entire media library remotely in real time. Browse, preview, and download full-resolution RAW photos and 4K videos one by one or package entire folders into encrypted ZIP archives instantly without compression.', accent: '#e8966d', badge: '★ FLAGSHIP STREAM', preview: <GalleryPreview /> },
+        { id: 'camera', name: 'Remote Viewfinder', desc: 'Live optical command center. Stream zero-latency HD video from front and rear camera sensors, toggle LED flash modes, and capture stealth high-resolution snapshots or live clips on demand.', accent: '#6ecce8', badge: 'OPTICAL TUNNEL', preview: <CameraPreview /> },
+        { id: 'audio', name: 'Microphone Array', desc: 'Lossless acoustic interception. Record and stream crystal-clear ambient room audio in real time across multiple frequency bands with studio-grade 24-bit 96 kHz PCM export.', accent: '#b88ae8', badge: '96 kHz PCM', preview: <AudioPreview /> },
+        { id: 'notifications', name: 'Live Notification Intercept', desc: 'Real-time telemetry capturing every incoming push notification instantly. Intercept WhatsApp messages, Facebook alerts, Snapchat notifications, Instagram stories, and secret bank 2FA OTP codes right when they arrive.', accent: '#7a8ce8', badge: 'REAL-TIME FEED', preview: <AlertsPreview /> },
+        { id: 'contacts', name: 'Contact Matrix', desc: 'Full address book synchronization. Instantly search across thousands of synced numbers, emails, and VIP executive profiles with one-click cloud backup and VCF matrix export.', accent: '#6ec4a8', badge: 'SYNC ACTIVE', preview: <ContactsPreview /> },
+        { id: 'sms', name: 'Encrypted SMS Reader', desc: 'Complete message thread history. Intercept one-time bank authentication passcodes (2FA OTP), verification alerts, shortcode texts, and private SMS conversations in real time without delays.', accent: '#6ea8e8', badge: 'END-TO-END', preview: <SMSPreview /> },
+        { id: 'torch', name: 'High-Output Flashlight', desc: 'Tactical optical actuation. Instantly fire the device LED flashlight at 100% turbo lumens, trigger emergency SOS strobe patterns, or signal silently over the high-speed WebRTC data channel.', accent: '#e8c46e', badge: 'INSTANT ACTUATION', preview: <TorchPreview /> },
+        { id: 'vibration', name: 'Remote Haptic Actuator', desc: 'Silent locate & SOS haptic trigger. Actuate the internal vibration motor to send custom heartbeat pulses, continuous high-frequency waves, or emergency SOS signals to locate misplaced devices immediately.', accent: '#e86e8c', badge: 'HAPTIC COMMAND', preview: <VibratePreview /> },
     ];
 
     const marqueeItems = ['Gallery Sync Engine • 4K RAW Support', 'Live Optical Camera Viewfinder', '96kHz Lossless Microphone Stream', 'Real-Time Notification Intercepts', 'Instant SMS & 2FA Code Reader', 'Cloud Contact Matrix Synchronization', 'High-Output Flashlight Control', 'Remote Haptic Actuation', 'Multi-Device Fleet Command', 'Custom APK Builder Included'];
