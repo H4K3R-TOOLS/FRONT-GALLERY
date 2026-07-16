@@ -109,109 +109,7 @@ function MagneticCard({ children, className = '' }: { children: React.ReactNode;
     return <div ref={ref} onMouseMove={onMove} onMouseLeave={onLeave} className={className} style={{ ...style, transition: 'transform 0.4s cubic-bezier(0.22,1,0.36,1)', willChange: 'transform' }}>{children}</div>;
 }
 
-/* ═══════ BREATHTAKING ARCHITECTURAL VIDEO / LIVE DEMO FRAME ═══════ */
-function LiveDemoVideoFrame() {
-    const [isPlaying, setIsPlaying] = useState(true);
-    const [progress, setProgress] = useState(38);
-    useEffect(() => {
-        if (!isPlaying) return;
-        const timer = setInterval(() => {
-            setProgress((prev) => (prev >= 100 ? 0 : prev + 0.4));
-        }, 100);
-        return () => clearInterval(timer);
-    }, [isPlaying]);
-
-    return (
-        <Reveal className="w-full max-w-5xl mx-auto mb-28">
-            <div className="text-center mb-10">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 mb-3">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                    Live Video Tunnel & Remote Demo
-                </div>
-                <h3 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                    See Gallery Eye in Action
-                </h3>
-            </div>
-
-            {/* Architectural Double Bezel MacBook / Display Frame */}
-            <div className="relative rounded-[2rem] p-1.5 sm:p-3 bg-gradient-to-b from-white/20 via-white/5 to-white/10 shadow-[0_30px_100px_rgba(0,0,0,0.9),0_0_80px_rgba(212,165,116,0.12)] border border-white/15 overflow-hidden">
-                <div className="rounded-[1.6rem] bg-[#0c0d0f] border border-white/10 overflow-hidden relative shadow-2xl">
-                    {/* Top window bar */}
-                    <div className="bg-[#141518] px-4 py-3 border-b border-white/10 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <span className="w-3 h-3 rounded-full bg-rose-500/80 inline-block" />
-                            <span className="w-3 h-3 rounded-full bg-amber-500/80 inline-block" />
-                            <span className="w-3 h-3 rounded-full bg-emerald-500/80 inline-block" />
-                            <span className="text-xs font-mono text-zinc-400 ml-2">tunnel://remote.galleryeye.os/stream-01</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-xs font-mono">
-                            <span className="text-emerald-400 flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> 60 FPS HD STREAM</span>
-                            <span className="px-2 py-0.5 rounded bg-white/10 text-zinc-300 font-bold">WEBRTC P2P</span>
-                        </div>
-                    </div>
-
-                    {/* Video Content / Live Visual Player */}
-                    <div className="relative aspect-[16/9] w-full overflow-hidden bg-black flex items-center justify-center">
-                        {/* High-res background capture */}
-                        <Image
-                            src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1200&auto=format&fit=crop&q=80"
-                            alt="Live Remote Stream Demo"
-                            fill
-                            sizes="100vw"
-                            className={`object-cover transition-transform duration-1000 ${isPlaying ? 'scale-105' : 'scale-100'}`}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/20" />
-
-                        {/* Interactive overlay HUD */}
-                        <div className="absolute inset-0 p-6 flex flex-col justify-between pointer-events-none">
-                            <div className="flex justify-between items-start">
-                                <div className="bg-black/60 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/15 pointer-events-auto flex items-center gap-3">
-                                    <span className="text-xs font-bold text-white">Target Device: Samsung Galaxy S24 Ultra</span>
-                                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono">ONLINE</span>
-                                </div>
-                                <div className="bg-black/60 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/15 pointer-events-auto text-xs font-mono text-amber-300">
-                                    ⚡ Encryption: AES-GCM-256
-                                </div>
-                            </div>
-
-                            {/* Center Play/Pause tactile button */}
-                            <div className="flex items-center justify-center pointer-events-auto">
-                                <button
-                                    onClick={() => setIsPlaying(!isPlaying)}
-                                    className="w-20 h-20 rounded-full bg-amber-500/90 hover:bg-amber-400 text-black flex items-center justify-center shadow-[0_0_50px_rgba(245,158,11,0.6)] hover:scale-110 transition-all duration-300 border-2 border-white/40"
-                                >
-                                    {isPlaying ? (
-                                        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
-                                    ) : (
-                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" className="ml-1"><path d="M8 5v14l11-7z" /></svg>
-                                    )}
-                                </button>
-                            </div>
-
-                            {/* Bottom scrubbing bar & live controls */}
-                            <div className="bg-black/70 backdrop-blur-md p-3 rounded-xl border border-white/15 pointer-events-auto flex items-center gap-4">
-                                <button onClick={() => setIsPlaying(!isPlaying)} className="text-white hover:text-amber-400 transition-colors">
-                                    {isPlaying ? <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg> : <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>}
-                                </button>
-                                <span className="text-xs font-mono text-zinc-300">00:14 / LIVE</span>
-                                <div className="flex-1 h-2 bg-white/20 rounded-full overflow-hidden relative cursor-pointer" onClick={(e) => {
-                                    const rect = e.currentTarget.getBoundingClientRect();
-                                    setProgress(((e.clientX - rect.left) / rect.width) * 100);
-                                }}>
-                                    <div className="h-full bg-gradient-to-r from-amber-500 to-yellow-300 rounded-full transition-all duration-150" style={{ width: `${progress}%` }} />
-                                </div>
-                                <span className="text-xs font-mono text-amber-400 font-bold">4K PRORES</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </Reveal>
-    );
-}
-
 /* ═══════ BESPOKE TOOL VISUAL PREVIEWS ═══════ */
-
 
 /* 1. Realistic Gallery Sync Preview */
 function GalleryPreview() {
@@ -522,11 +420,11 @@ export default function LoginPage() {
 
 
             {/* ═══ HERO ═══ */}
-            <section ref={heroRef} className="relative z-10 min-h-[100dvh] flex flex-col items-center justify-start sm:justify-center px-5 pt-28 pb-20 overflow-hidden">
-                <motion.div style={{ y: heroY, opacity: heroOpacity }} className="flex flex-col items-center text-center max-w-4xl mx-auto -translate-y-4 sm:-translate-y-8">
+            <section ref={heroRef} className="relative z-10 min-h-[100dvh] flex flex-col items-center justify-start pt-32 sm:pt-36 pb-36 px-5 overflow-hidden">
+                <motion.div style={{ y: heroY, opacity: heroOpacity }} className="flex flex-col items-center text-center max-w-4xl mx-auto">
 
                     {/* Rotating gradient border logo */}
-                    <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }} className="relative mb-8">
+                    <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }} className="relative mb-8 sm:mb-10">
                         <div className="relative w-[116px] h-[116px]">
                             <div className="absolute inset-0 rounded-[2.2rem] animate-spin-slow" style={{ background: 'conic-gradient(from 0deg, #d4a574, #e8966d, #b88ae8, #6ea8e8, #6ec4a8, #e8c46e, #d4a574)' }} />
                             <div className="absolute inset-0 rounded-[2.2rem] animate-spin-slow blur-xl opacity-50" style={{ background: 'conic-gradient(from 0deg, #d4a574, #e8966d, #b88ae8, #6ea8e8, #6ec4a8, #e8c46e, #d4a574)' }} />
@@ -550,7 +448,7 @@ export default function LoginPage() {
                     </motion.p>
 
                     {/* Massive, Highlighted & Unique Luxury Buttons (Relative z-20 above background) */}
-                    <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col sm:flex-row items-center justify-center gap-5 mt-10 relative z-20 w-full sm:w-auto">
+                    <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col sm:flex-row items-center justify-center gap-5 mt-10 sm:mt-12 mb-12 relative z-20 w-full sm:w-auto">
                         <button
                             onClick={() => scrollTo('login-section')}
                             className="group relative z-20 w-full sm:w-auto px-10 py-5 rounded-2xl font-extrabold text-base sm:text-lg text-[#1c1917] overflow-hidden active:scale-[0.96] transition-all duration-300 shadow-[0_12px_45px_rgba(212,165,116,0.45)] border-2 border-[#fff2e0] hover:shadow-[0_15px_60px_rgba(212,165,116,0.65)] hover:-translate-y-1"
@@ -564,19 +462,19 @@ export default function LoginPage() {
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/70 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                         </button>
                         <button
-                            onClick={() => scrollTo('tools')}
+                            onClick={() => scrollTo('demo-video')}
                             className="group relative z-20 w-full sm:w-auto px-9 py-5 rounded-2xl font-bold text-base sm:text-lg text-white border-2 border-white/20 bg-white/[0.05] backdrop-blur-xl hover:bg-white/[0.12] hover:border-amber-400/60 hover:shadow-[0_0_35px_rgba(212,165,116,0.25)] hover:-translate-y-1 transition-all duration-300 active:scale-[0.96] flex items-center justify-center gap-2.5"
                         >
                             <span className="text-amber-400 font-extrabold">⚡</span>
-                            <span>See How 8 Tools Work</span>
+                            <span>See Live Video Demo</span>
                         </button>
                     </motion.div>
                 </motion.div>
 
-                {/* Scroll indicator - anchored safely to bottom edge, below buttons */}
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.6 }} className="absolute bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 z-30 pointer-events-none">
+                {/* Scroll indicator (Moved down to bottom-3 z-30 with pointer-events-none so never collides with buttons) */}
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.6 }} className="absolute bottom-3 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-30 pointer-events-none">
                     <span className="text-[9px] uppercase tracking-[0.3em] text-zinc-500 font-semibold">Scroll to witness</span>
-                    <motion.div animate={{ y: [0, 6, 0] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }} className="w-5 h-8 rounded-full border border-white/[0.12] flex items-start justify-center pt-1.5 bg-black/40 backdrop-blur-sm">
+                    <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }} className="w-5 h-9 rounded-full border border-white/[0.1] flex items-start justify-center pt-2 bg-black/40 backdrop-blur-sm">
                         <div className="w-1 h-2 rounded-full bg-[#c49a6c]/80" />
                     </motion.div>
                 </motion.div>
@@ -584,10 +482,59 @@ export default function LoginPage() {
 
 
 
-            {/* ═══ ALL 8 BESPOKE SHOWSTOPPING TOOLS & VIDEO DEMO TUNNEL ═══ */}
-            <section id="tools" className="relative z-10 py-24 px-5">
-                {/* Architectural Live Demo Video Frame replaced old text heading */}
-                <LiveDemoVideoFrame />
+            {/* ═══ SHOWSTOPPING LIVE DEMO VIDEO FRAME (REPLACED TEXT HEADING BLOCK AS REQUESTED) ═══ */}
+            <section id="demo-video" className="relative z-10 pt-20 pb-28 sm:pb-36 px-5 border-b border-white/[0.04]">
+                <Reveal className="max-w-5xl mx-auto text-center">
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-widest mb-6 border border-[#d4a574]/40 bg-[#d4a574]/10 text-[#d4a574] shadow-md">
+                        <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                        LIVE ACTION STREAM • SYSTEM DEMO
+                    </div>
+                    <h2 className="text-3xl sm:text-5xl md:text-[3.6rem] font-extrabold tracking-tight text-white mb-6 leading-[1.08]">
+                        Witness Total Device Mastery in Action
+                    </h2>
+                    <p className="text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto mb-14 font-light leading-relaxed">
+                        Watch real-time media synchronization, optical camera viewfinder streaming, and instant telemetry interception directly from our encrypted web portal.
+                    </p>
+
+                    {/* Beautiful Luxury Video Frame Container */}
+                    <div className="relative mx-auto rounded-[2.5rem] p-3 sm:p-4 bg-gradient-to-b from-white/15 via-white/5 to-white/10 border border-white/20 shadow-[0_30px_100px_rgba(0,0,0,0.9),0_0_80px_rgba(212,165,116,0.15)] overflow-hidden">
+                        {/* Glowing ambient ring behind frame */}
+                        <div className="absolute inset-0 bg-radial-at-c from-[#d4a574]/20 via-transparent to-transparent blur-3xl pointer-events-none" />
+                        
+                        {/* Player HUD bar */}
+                        <div className="flex items-center justify-between px-6 py-3 bg-[#12110f]/95 backdrop-blur-xl rounded-t-2xl border-b border-white/10 text-xs font-mono text-zinc-300">
+                            <div className="flex items-center gap-2">
+                                <span className="w-3 h-3 rounded-full bg-red-500/80 inline-block" />
+                                <span className="w-3 h-3 rounded-full bg-yellow-500/80 inline-block" />
+                                <span className="w-3 h-3 rounded-full bg-emerald-500/80 inline-block" />
+                                <span className="ml-3 text-zinc-300 font-bold tracking-wide hidden sm:inline">DEMO_TUNNEL_STREAM_v2.6.mp4</span>
+                            </div>
+                            <div className="flex items-center gap-4 text-[11px] text-emerald-400 font-bold tracking-wider">
+                                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> 1080P • 60 FPS • WEBRTC</span>
+                            </div>
+                        </div>
+
+                        {/* Video iframe Aspect Ratio Container */}
+                        <div className="relative aspect-video w-full rounded-b-2xl overflow-hidden bg-black shadow-inner border-t border-white/5">
+                            <iframe
+                                width="100%"
+                                height="100%"
+                                src="https://www.youtube.com/embed/0xQaikNVyn0?rel=0&modestbranding=1"
+                                title="Gallery Eye System Demo"
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowFullScreen
+                                className="w-full h-full object-cover"
+                            ></iframe>
+                        </div>
+                    </div>
+                </Reveal>
+            </section>
+
+
+            {/* ═══ ALL 8 BESPOKE SHOWSTOPPING TOOLS (WITH GENEROUS TOP SPACING FROM VIDEO) ═══ */}
+            <section id="tools" className="relative z-10 pt-28 sm:pt-36 pb-32 px-5">
+
 
                 <div className="max-w-6xl mx-auto flex flex-col gap-12">
                     {toolsData.map((tool, idx) => (
