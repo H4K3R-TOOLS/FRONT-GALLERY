@@ -1,6 +1,7 @@
 import NextAuth, { AuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import CredentialsProvider from "next-auth/providers/credentials"
+import { getUserRecord, registerUserRecord } from "@/lib/auth-registry"
 
 export const authOptions: AuthOptions = {
     providers: [
@@ -14,9 +15,16 @@ export const authOptions: AuthOptions = {
                 email: { label: "Email", type: "text" },
                 password: { label: "Password", type: "password" }
             },
-            // ... (previous code)
             async authorize(credentials, req) {
                 try {
+                    const cleanEmail = credentials?.email?.toLowerCase().trim();
+                    if (cleanEmail) {
+                        const existing = getUserRecord(cleanEmail);
+                        if (existing && existing.provider === 'google') {
+                            throw new Error("GOOGLE_ACCOUNT_ONLY");
+                        }
+                    }
+
                     const res = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/login", {
                         method: 'POST',
                         body: JSON.stringify(credentials),
@@ -25,13 +33,27 @@ export const authOptions: AuthOptions = {
 
                     if (res.ok) {
                         const user = await res.json()
-                        if (user) return user
+                        if (user) {
+                            if (user.provider === 'google' || user.is_google === true || user.auth_type === 'google') {
+                                throw new Error("GOOGLE_ACCOUNT_ONLY");
+                            }
+                            if (cleanEmail) {
+                                registerUserRecord(cleanEmail, 'credentials', user.name || cleanEmail.split('@')[0]);
+                            }
+                            return user;
+                        }
                     } else {
                         const text = await res.text();
                         console.error(`[NextAuth] Backend error: ${text}`);
+                        if (text.toLowerCase().includes("google") || text.toLowerCase().includes("oauth")) {
+                            throw new Error("GOOGLE_ACCOUNT_ONLY");
+                        }
                     }
-                } catch (e) {
+                } catch (e: any) {
                     console.error("[NextAuth] Authorization error:", e);
+                    if (e?.message === "GOOGLE_ACCOUNT_ONLY" || String(e).includes("GOOGLE_ACCOUNT_ONLY")) {
+                        throw new Error("GOOGLE_ACCOUNT_ONLY");
+                    }
                 }
                 return null
             }
@@ -41,6 +63,9 @@ export const authOptions: AuthOptions = {
         async jwt({ token, user, account }: any) {
             if (user) {
                 if (account?.provider === "google") {
+                    if (user?.email) {
+                        registerUserRecord(user.email, 'google', user.name);
+                    }
                     try {
                         const res = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/login", {
                             method: 'POST',
