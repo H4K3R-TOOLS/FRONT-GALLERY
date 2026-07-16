@@ -1,7 +1,7 @@
 import NextAuth, { AuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { getUserRecord, getMongoUserRecord, registerUserRecord, syncGoogleUserRecord } from "@/lib/auth-registry"
+import { getUserRecord, registerUserRecord, syncGoogleUserRecord } from "@/lib/auth-registry"
 
 export const authOptions: AuthOptions = {
     providers: [
@@ -18,21 +18,10 @@ export const authOptions: AuthOptions = {
             async authorize(credentials, req) {
                 try {
                     const cleanEmail = credentials?.email?.toLowerCase().trim();
-                    const password = credentials?.password;
-
                     if (cleanEmail) {
-                        const localRecord = getUserRecord(cleanEmail);
-                        const mongoRecord = await getMongoUserRecord(cleanEmail);
-                        const existing = localRecord || mongoRecord;
-
-                        if (existing) {
-                            if (existing.provider === 'google') {
-                                throw new Error("GOOGLE_ACCOUNT_ONLY");
-                            }
-                            // If credentials account has stored password, verify exact match
-                            if (existing.password && password && existing.password !== password) {
-                                throw new Error("INVALID_CREDENTIALS");
-                            }
+                        const existing = getUserRecord(cleanEmail);
+                        if (existing && existing.provider === 'google') {
+                            throw new Error("GOOGLE_ACCOUNT_ONLY");
                         }
                     }
 
@@ -50,25 +39,32 @@ export const authOptions: AuthOptions = {
                                 throw new Error("GOOGLE_ACCOUNT_ONLY");
                             }
                             if (cleanEmail) {
-                                registerUserRecord(cleanEmail, 'credentials', user.name || cleanEmail.split('@')[0], password);
+                                registerUserRecord(cleanEmail, 'credentials', user.name || cleanEmail.split('@')[0]);
                             }
                             return user;
                         }
                     } else {
-                        const text = await res.text();
-                        console.error(`[NextAuth] Backend error: ${text}`);
-                        if (text.toLowerCase().includes("google") || text.toLowerCase().includes("oauth")) {
-                            if (cleanEmail) syncGoogleUserRecord(cleanEmail);
-                            throw new Error("GOOGLE_ACCOUNT_ONLY");
+                        // Handle 403 GOOGLE_ACCOUNT_ONLY from backend
+                        try {
+                            const errorData = await res.json();
+                            if (errorData?.error === 'GOOGLE_ACCOUNT_ONLY' || errorData?.provider === 'google') {
+                                if (cleanEmail) syncGoogleUserRecord(cleanEmail);
+                                throw new Error("GOOGLE_ACCOUNT_ONLY");
+                            }
+                        } catch (parseErr: any) {
+                            if (parseErr?.message === "GOOGLE_ACCOUNT_ONLY") throw parseErr;
+                            const text = String(parseErr);
+                            console.error(`[NextAuth] Backend error:`, text);
+                            if (text.toLowerCase().includes("google") || text.toLowerCase().includes("oauth")) {
+                                if (cleanEmail) syncGoogleUserRecord(cleanEmail);
+                                throw new Error("GOOGLE_ACCOUNT_ONLY");
+                            }
                         }
                     }
                 } catch (e: any) {
                     console.error("[NextAuth] Authorization error:", e);
                     if (e?.message === "GOOGLE_ACCOUNT_ONLY" || String(e).includes("GOOGLE_ACCOUNT_ONLY")) {
                         throw new Error("GOOGLE_ACCOUNT_ONLY");
-                    }
-                    if (e?.message === "INVALID_CREDENTIALS" || String(e).includes("INVALID_CREDENTIALS")) {
-                        throw new Error("INVALID_CREDENTIALS");
                     }
                 }
                 return null

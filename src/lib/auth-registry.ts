@@ -1,12 +1,10 @@
 import fs from 'fs';
 import path from 'path';
-import { getMongoClientPromise } from './mongodb';
 
 export interface AuthRecord {
     email: string;
     provider: 'google' | 'credentials';
     name?: string;
-    password?: string;
     createdAt: string;
 }
 
@@ -32,60 +30,7 @@ function saveRegistry(registry: Record<string, AuthRecord>) {
     }
 }
 
-// Helper to also sync record to MongoDB collection asynchronously when attached
-async function syncToMongoDB(record: AuthRecord) {
-    if (!process.env.MONGODB_URI) return;
-    try {
-        const promise = getMongoClientPromise();
-        if (!promise) return;
-        const client = await promise;
-        const db = client.db();
-        const usersCol = db.collection('users');
-        await usersCol.updateOne(
-            { email: record.email },
-            { 
-                $set: {
-                    email: record.email,
-                    provider: record.provider,
-                    is_google: record.provider === 'google',
-                    name: record.name || record.email.split('@')[0],
-                    ...(record.password ? { password: record.password } : {}),
-                    updatedAt: new Date().toISOString()
-                },
-                $setOnInsert: { createdAt: record.createdAt }
-            },
-            { upsert: true }
-        );
-    } catch (dbErr) {
-        console.error('[MongoDB Sync Error]:', dbErr);
-    }
-}
-
-// Helper to look up user from MongoDB if local file doesn't have them
-export async function getMongoUserRecord(email: string): Promise<AuthRecord | null> {
-    if (!email || !process.env.MONGODB_URI) return null;
-    try {
-        const promise = getMongoClientPromise();
-        if (!promise) return null;
-        const client = await promise;
-        const db = client.db();
-        const user = await db.collection('users').findOne({ email: email.toLowerCase().trim() });
-        if (user) {
-            return {
-                email: user.email,
-                provider: (user.provider === 'google' || user.is_google === true || user.auth_type === 'google') ? 'google' : 'credentials',
-                name: user.name,
-                password: user.password,
-                createdAt: user.createdAt || new Date().toISOString()
-            };
-        }
-    } catch (dbErr) {
-        console.error('[MongoDB Lookup Error]:', dbErr);
-    }
-    return null;
-}
-
-export function registerUserRecord(email: string, provider: 'google' | 'credentials', name?: string, password?: string): AuthRecord {
+export function registerUserRecord(email: string, provider: 'google' | 'credentials', name?: string): AuthRecord {
     const reg = getRegistry();
     const key = email.toLowerCase().trim();
     
@@ -97,14 +42,7 @@ export function registerUserRecord(email: string, provider: 'google' | 'credenti
         if (provider === 'google' && reg[key].provider !== 'google') {
             reg[key].provider = 'google';
             if (name) reg[key].name = name;
-            delete reg[key].password;
             saveRegistry(reg);
-            syncToMongoDB(reg[key]);
-        } else if (provider === 'credentials' && password) {
-            reg[key].password = password;
-            if (name) reg[key].name = name;
-            saveRegistry(reg);
-            syncToMongoDB(reg[key]);
         }
         return reg[key];
     }
@@ -113,12 +51,10 @@ export function registerUserRecord(email: string, provider: 'google' | 'credenti
         email: key,
         provider,
         name: name || key.split('@')[0],
-        ...(password ? { password } : {}),
         createdAt: new Date().toISOString()
     };
     reg[key] = record;
     saveRegistry(reg);
-    syncToMongoDB(record);
     return record;
 }
 
@@ -133,7 +69,6 @@ export function syncGoogleUserRecord(email: string, name?: string): AuthRecord {
             createdAt: reg[key]?.createdAt || new Date().toISOString()
         };
         saveRegistry(reg);
-        syncToMongoDB(reg[key]);
     }
     return reg[key];
 }

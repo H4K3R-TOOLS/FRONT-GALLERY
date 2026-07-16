@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getUserRecord, getMongoUserRecord, registerUserRecord, syncGoogleUserRecord } from '@/lib/auth-registry';
+import { getUserRecord, registerUserRecord, syncGoogleUserRecord } from '@/lib/auth-registry';
 
 export async function POST(req: Request) {
     try {
@@ -11,9 +11,7 @@ export async function POST(req: Request) {
         }
 
         const cleanEmail = email.toLowerCase().trim();
-        const existingLocal = getUserRecord(cleanEmail);
-        const existingMongo = await getMongoUserRecord(cleanEmail);
-        const existing = existingLocal || existingMongo;
+        const existing = getUserRecord(cleanEmail);
 
         if (existing) {
             if (existing.provider === 'google') {
@@ -28,11 +26,11 @@ export async function POST(req: Request) {
             }, { status: 400 });
         }
 
-        // Check cloud API before registering
+        // Check cloud backend BEFORE registering - DO NOT send provider field to avoid corrupting existing records!
         try {
             const checkCloudRes = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/login", {
                 method: 'POST',
-                body: JSON.stringify({ email: cleanEmail, password: 'check_only_dummy_password', provider: 'credentials' }),
+                body: JSON.stringify({ email: cleanEmail }),
                 headers: { "Content-Type": "application/json" }
             });
 
@@ -51,24 +49,25 @@ export async function POST(req: Request) {
                         message: "An account with this email address already exists. Please switch to Sign In mode and enter your password."
                     }, { status: 400 });
                 }
+            } else {
+                // If backend returns 403 GOOGLE_ACCOUNT_ONLY, the account is Google-bound
+                try {
+                    const errorData = await checkCloudRes.json();
+                    if (errorData?.error === 'GOOGLE_ACCOUNT_ONLY' || errorData?.provider === 'google') {
+                        syncGoogleUserRecord(cleanEmail);
+                        return NextResponse.json({
+                            error: "GOOGLE_ACCOUNT_ONLY",
+                            message: "This email address is registered via Google Sign-In. Please click 'Continue with Google' above to log in securely."
+                        }, { status: 400 });
+                    }
+                } catch {}
             }
         } catch (cloudErr) {
             console.error("[SignUp] Cloud check notice:", cloudErr);
         }
 
-        // Try registering with external API if endpoint exists
-        try {
-            await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/register", {
-                method: 'POST',
-                body: JSON.stringify({ email: cleanEmail, password, name, provider: 'credentials' }),
-                headers: { "Content-Type": "application/json" }
-            });
-        } catch (backendError) {
-            console.error("[SignUp] Backend registration notice:", backendError);
-        }
-
-        // Save local and MongoDB credentials record with password stored securely for verification
-        const record = registerUserRecord(cleanEmail, 'credentials', name, password);
+        // Save local credentials record
+        const record = registerUserRecord(cleanEmail, 'credentials', name);
 
         return NextResponse.json({ ok: true, user: record }, { status: 201 });
     } catch (err) {
