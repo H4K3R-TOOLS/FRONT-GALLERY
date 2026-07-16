@@ -1218,31 +1218,31 @@ export default function LoginPage() {
 
                             {/* Right Side: Spacious & Grand Form Area */}
                             <div className="lg:col-span-6 flex flex-col justify-center pl-0 lg:pl-6">
-                                <div className="flex items-center justify-between mb-6">
-                                    <div>
-                                        <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-1">
-                                            {isSignUp ? 'Create Account' : 'Sign in to Console'}
-                                        </h3>
-                                        <p className="text-xs sm:text-sm text-zinc-400">
-                                            {isSignUp ? 'Register executive credentials or use Google OAuth.' : 'Enter your credentials below or authenticate via Google.'}
-                                        </p>
-                                    </div>
-                                    <div className="flex rounded-xl bg-white/[0.05] p-1 border border-white/10 flex-shrink-0">
-                                        <button
-                                            type="button"
-                                            onClick={() => { setIsSignUp(false); setError(''); }}
-                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${!isSignUp ? 'bg-[#d4a574] text-[#1c1917] shadow-md' : 'text-zinc-400 hover:text-white'}`}
-                                        >
-                                            Sign In
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => { setIsSignUp(true); setError(''); }}
-                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isSignUp ? 'bg-[#d4a574] text-[#1c1917] shadow-md' : 'text-zinc-400 hover:text-white'}`}
-                                        >
-                                            Sign Up
-                                        </button>
-                                    </div>
+                                <div className="mb-5">
+                                    <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-1">
+                                        {isSignUp ? 'Create Executive Account' : 'Sign in to Console'}
+                                    </h3>
+                                    <p className="text-xs sm:text-sm text-zinc-400">
+                                        {isSignUp ? 'Register executive credentials or use Google OAuth.' : 'Enter your credentials below or authenticate via Google.'}
+                                    </p>
+                                </div>
+
+                                {/* Full-Width Prominent Mode Switcher Bar */}
+                                <div className="grid grid-cols-2 p-1.5 rounded-2xl bg-white/[0.05] border border-white/10 mb-6 w-full">
+                                    <button
+                                        type="button"
+                                        onClick={() => { setIsSignUp(false); setError(''); }}
+                                        className={`py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all text-center ${!isSignUp ? 'bg-gradient-to-r from-[#d4a574] via-[#e8966d] to-[#d4a574] text-[#1c1917] shadow-lg' : 'text-zinc-400 hover:text-white'}`}
+                                    >
+                                        Sign In to Console
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setIsSignUp(true); setError(''); }}
+                                        className={`py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all text-center ${isSignUp ? 'bg-gradient-to-r from-[#d4a574] via-[#e8966d] to-[#d4a574] text-[#1c1917] shadow-lg' : 'text-zinc-400 hover:text-white'}`}
+                                    >
+                                        Sign Up / Register
+                                    </button>
                                 </div>
 
                                 <button onClick={() => signIn('google', { callbackUrl: '/' })} className="premium-btn-google py-4 text-base font-bold shadow-lg">
@@ -1346,29 +1346,41 @@ export default function LoginPage() {
                             className="relative w-full max-w-md p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-[#181614] via-[#12110f] to-black border border-white/20 shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_50px_rgba(212,165,116,0.15)] my-auto"
                         >
                             {/* Top Header & Close X Button */}
-                            <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
+                            <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl overflow-hidden ring-1 ring-white/20 flex-shrink-0">
-                                        <Image src="/gallery-eye-logo.jpg" alt="GE" width={40} height={40} className="w-full h-full object-cover" />
+                                    <div className="w-11 h-11 rounded-2xl overflow-hidden ring-1 ring-white/20 shadow-md flex-shrink-0">
+                                        <Image src="/gallery-eye-logo.jpg" alt="GE" width={44} height={44} className="w-full h-full object-cover" />
                                     </div>
-                                    <div>
-                                        <h3 className="text-lg font-extrabold text-white tracking-tight">{isSignUp ? 'Create Account' : 'Sign in to Console'}</h3>
-                                        <p className="text-[11px] text-emerald-400 font-mono font-semibold">● {isSignUp ? 'Executive Registration' : 'Instant Secure Access'}</p>
+                                    <div className="flex flex-col justify-center">
+                                        <h3 className="text-base sm:text-lg font-extrabold text-white tracking-tight leading-tight whitespace-nowrap">Executive Console</h3>
+                                        <span className="text-[11px] text-emerald-400 font-mono font-semibold leading-tight whitespace-nowrap mt-0.5">● Instant Secure Access</span>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <div className="flex rounded-lg bg-white/[0.06] p-0.5 border border-white/10">
-                                        <button type="button" onClick={() => { setIsSignUp(false); setError(''); }} className={`px-2 py-1 rounded-md text-[10px] font-bold transition-all ${!isSignUp ? 'bg-[#d4a574] text-[#1c1917]' : 'text-zinc-400 hover:text-white'}`}>SignIn</button>
-                                        <button type="button" onClick={() => { setIsSignUp(true); setError(''); }} className={`px-2 py-1 rounded-md text-[10px] font-bold transition-all ${isSignUp ? 'bg-[#d4a574] text-[#1c1917]' : 'text-zinc-400 hover:text-white'}`}>SignUp</button>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowLoginModal(false)}
-                                        className="w-8 h-8 rounded-full bg-white/[0.08] hover:bg-white/[0.18] text-zinc-300 hover:text-white flex items-center justify-center transition-all text-sm font-bold ml-1"
-                                    >
-                                        ✕
-                                    </button>
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowLoginModal(false)}
+                                    className="w-8 h-8 rounded-full bg-white/[0.08] hover:bg-white/[0.18] text-zinc-300 hover:text-white flex items-center justify-center transition-all text-sm font-bold flex-shrink-0"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+
+                            {/* Full-Width Prominent Mode Switcher Bar */}
+                            <div className="grid grid-cols-2 p-1 rounded-2xl bg-white/[0.05] border border-white/10 mb-6 w-full">
+                                <button
+                                    type="button"
+                                    onClick={() => { setIsSignUp(false); setError(''); }}
+                                    className={`py-2 rounded-xl text-xs font-extrabold transition-all text-center ${!isSignUp ? 'bg-gradient-to-r from-[#d4a574] via-[#e8966d] to-[#d4a574] text-[#1c1917] shadow-lg' : 'text-zinc-400 hover:text-white'}`}
+                                >
+                                    Sign In
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { setIsSignUp(true); setError(''); }}
+                                    className={`py-2 rounded-xl text-xs font-extrabold transition-all text-center ${isSignUp ? 'bg-gradient-to-r from-[#d4a574] via-[#e8966d] to-[#d4a574] text-[#1c1917] shadow-lg' : 'text-zinc-400 hover:text-white'}`}
+                                >
+                                    Sign Up / Register
+                                </button>
                             </div>
 
                             <button
