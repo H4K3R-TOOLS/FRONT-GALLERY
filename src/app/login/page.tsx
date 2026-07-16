@@ -27,39 +27,47 @@ function CursorGlow() {
 
 
 /* Sticky nav appearing on scroll (Bottom on mobile to prevent marquee overlap & top-12 on desktop) */
-/* Sticky nav appearing on scroll (Only Desktop top-12 bar; Mobile bottom pill removed completely to prevent obscuring tools) */
-function StickyNav({ onScrollTo, onOpenLogin }: { onScrollTo: (id: string) => void; onOpenLogin?: () => void }) {
+function StickyNav({ onScrollTo, onOpenLoginModal }: { onScrollTo: (id: string) => void; onOpenLoginModal: () => void }) {
     const [show, setShow] = useState(false);
     useEffect(() => {
-        const h = () => setShow(window.scrollY > window.innerHeight * 0.4);
+        const h = () => setShow(window.scrollY > window.innerHeight * 0.35);
         window.addEventListener('scroll', h, { passive: true });
         return () => window.removeEventListener('scroll', h);
     }, []);
+
     return (
         <AnimatePresence>
             {show && (
-                <>
-                    {/* Desktop Top Floating Nav (Sits at top-12 below fixed marquee strip) */}
-                    <motion.nav
-                        initial={{ y: -70, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: -70, opacity: 0 }}
-                        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                        className="fixed top-12 left-1/2 -translate-x-1/2 z-[100] sticky-nav-glass rounded-full px-3 py-1.5 hidden sm:flex items-center gap-1 shadow-[0_10px_40px_rgba(0,0,0,0.9)] border border-white/15"
-                    >
-                        <div className="w-8 h-8 rounded-full overflow-hidden ring-1 ring-white/10 mr-2">
-                            <Image src="/gallery-eye-logo.jpg" alt="GE" width={32} height={32} className="w-full h-full object-cover" />
+                <motion.nav
+                    initial={{ y: -60, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -60, opacity: 0 }}
+                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                    className="fixed top-11 sm:top-12 left-1/2 -translate-x-1/2 z-[100] sticky-nav-glass rounded-full px-3 py-1.5 flex items-center gap-1.5 shadow-[0_10px_40px_rgba(0,0,0,0.95)] border border-white/15 max-w-[94vw] justify-between"
+                >
+                    <div className="flex items-center gap-1.5 mr-1 sm:mr-2">
+                        <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full overflow-hidden ring-1 ring-white/20 flex-shrink-0">
+                            <Image src="/gallery-eye-logo.jpg" alt="GE" width={28} height={28} className="w-full h-full object-cover" />
                         </div>
-                        {['tools', 'capabilities', 'login-section'].map((id) => (
-                            <button key={id} onClick={() => onScrollTo(id)} className="px-4 py-2 rounded-full text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-all capitalize">
-                                {id === 'login-section' ? 'Sign In Portal' : id === 'tools' ? '8 Master Tools' : 'Capabilities'}
-                            </button>
-                        ))}
-                        <button onClick={() => { if (onOpenLogin) onOpenLogin(); else onScrollTo('login-section'); }} className="ml-2 px-4 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-[#d4a574] to-[#e8966d] text-[#1c1917] hover:scale-105 transition-transform shadow-[0_2px_10px_rgba(212,165,116,0.3)]">
+                        <span className="text-xs font-extrabold text-white">GE Portal</span>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                        <button onClick={() => onScrollTo('tools')} className="px-2.5 py-1.5 rounded-full text-[11px] sm:text-xs font-bold text-zinc-300 hover:text-white hover:bg-white/10 transition-all">
+                            Tools
+                        </button>
+                        <button onClick={() => onScrollTo('demo-video')} className="px-2.5 py-1.5 rounded-full text-[11px] sm:text-xs font-bold text-zinc-300 hover:text-white hover:bg-white/10 transition-all hidden sm:inline-block">
+                            Demo
+                        </button>
+                        <button
+                            type="button"
+                            onClick={onOpenLoginModal}
+                            className="px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-extrabold bg-gradient-to-r from-[#d4a574] via-[#e8966d] to-[#d4a574] text-[#1c1917] shadow-md hover:scale-105 active:scale-95 transition-all"
+                        >
                             Enter App
                         </button>
-                    </motion.nav>
-                </>
+                    </div>
+                </motion.nav>
             )}
         </AnimatePresence>
     );
@@ -858,6 +866,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showLoginModal, setShowLoginModal] = useState(false);
     const router = useRouter();
     const heroRef = useRef<HTMLDivElement>(null);
 
@@ -871,7 +880,6 @@ export default function LoginPage() {
         setIsLoading(false);
         if (r?.ok) router.push('/'); else setError('Incorrect email or password.');
     };
-    const [showLoginModal, setShowLoginModal] = useState(false);
     const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 
     const toolsData = [
@@ -893,7 +901,7 @@ export default function LoginPage() {
             {/* Global effects */}
             <div className="grain-overlay" />
             <CursorGlow />
-            <StickyNav onScrollTo={scrollTo} onOpenLogin={() => setShowLoginModal(true)} />
+            <StickyNav onScrollTo={scrollTo} onOpenLoginModal={() => setShowLoginModal(true)} />
 
             {/* ═══ CYBER-LUXURY TOP HEADER & MARQUEE STRIP (MOVED FULL UPWARD TO NAVBAR LEVEL) ═══ */}
             <div className="fixed top-0 left-0 right-0 z-[90] bg-[#0a0907]/95 backdrop-blur-xl border-b border-white/[0.08] pt-[max(env(safe-area-inset-top,0.5rem),0.5rem)] pb-2 px-4 flex items-center justify-between shadow-[0_4px_25px_rgba(0,0,0,0.8)]">
@@ -955,13 +963,14 @@ export default function LoginPage() {
                     {/* Massive, Highlighted & Unique Luxury Buttons (Relative z-20 above background) */}
                     <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col sm:flex-row items-center justify-center gap-5 mt-10 sm:mt-12 mb-12 relative z-20 w-full sm:w-auto">
                         <button
+                            type="button"
                             onClick={() => setShowLoginModal(true)}
                             className="group relative z-20 w-full sm:w-auto px-10 py-5 rounded-2xl font-extrabold text-base sm:text-lg text-[#1c1917] overflow-hidden active:scale-[0.96] transition-all duration-300 shadow-[0_12px_45px_rgba(212,165,116,0.45)] border-2 border-[#fff2e0] hover:shadow-[0_15px_60px_rgba(212,165,116,0.65)] hover:-translate-y-1"
                             style={{ background: 'linear-gradient(135deg, #fff5eb 0%, #ecd6bc 50%, #d4a574 100%)' }}
                         >
                             <span className="relative z-10 flex items-center justify-center gap-3">
                                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-ping" />
-                                Get Started Free — Instant Access
+                                Get start with Free
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="group-hover:translate-x-2 transition-transform"><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/></svg>
                             </span>
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/70 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
@@ -1075,8 +1084,8 @@ export default function LoginPage() {
             </section>
 
 
-            {/* ═══ EXTRA CAPABILITIES (Hidden on Android/Mobile as requested: pc ka liya nhi androd ka liya kayab) ═══ */}
-            <section id="capabilities" className="hidden md:block relative z-10 py-32 px-5 bg-gradient-to-b from-transparent via-white/[0.015] to-transparent border-y border-white/[0.04]">
+            {/* ═══ EXTRA CAPABILITIES ═══ */}
+            <section id="capabilities" className="relative z-10 py-32 px-5 bg-gradient-to-b from-transparent via-white/[0.015] to-transparent border-y border-white/[0.04]">
                 <Reveal className="text-center max-w-xl mx-auto mb-20">
                     <p className="text-[11px] uppercase tracking-[0.3em] font-bold mb-4" style={{ color: '#d4a574' }}>BEYOND THE 8 TOOLS</p>
                     <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">Engineered for total dominance</h2>
@@ -1119,8 +1128,8 @@ export default function LoginPage() {
                     <div className="premium-card-border shadow-[0_30px_100px_rgba(0,0,0,0.9)]">
                         <div className="premium-card p-8 sm:p-14 md:p-16 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center bg-gradient-to-br from-black/80 via-[#12110f]/90 to-black/90">
 
-                            {/* Left Side: Grand Architectural Invitation & Security Trust (Hidden on mobile as requested: pc ka liya nhi androd ka liya kayab) */}
-                            <div className="hidden lg:flex lg:col-span-6 flex-col justify-between h-full space-y-8 pr-0 lg:pr-6 border-b lg:border-b-0 lg:border-r border-white/10 pb-10 lg:pb-0">
+                            {/* Left Side: Grand Architectural Invitation & Security Trust (Hidden on Android/Mobile, visible on Desktop E.g. 'bass android ka liya kayab') */}
+                            <div className="lg:col-span-6 hidden lg:flex flex-col justify-between h-full space-y-8 pr-0 lg:pr-6 border-b lg:border-b-0 lg:border-r border-white/10 pb-10 lg:pb-0">
                                 <div>
                                     <div className="flex items-center gap-4 mb-8">
                                         <div className="w-16 h-16 rounded-2xl overflow-hidden ring-2 ring-white/15 shadow-[0_10px_30px_rgba(0,0,0,0.7)] flex-shrink-0">
@@ -1233,104 +1242,89 @@ export default function LoginPage() {
                 </div>
             </footer>
 
-            {/* ═══ INSTANT LOGIN PORTAL MODAL OVERLAY (`is ka uppr hi interface open hu same login wala hi`) ═══ */}
+            {/* ═══ INSTANT & ZERO-LAG EXECUTIVE LOGIN MODAL ('saii open hu stuck hu ka nhi') ═══ */}
             <AnimatePresence>
                 {showLoginModal && (
-                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-                        {/* Backdrop */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="fixed inset-0 z-[250] flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-xl overflow-y-auto"
+                        onClick={(e) => {
+                            if (e.target === e.currentTarget) setShowLoginModal(false);
+                        }}
+                    >
                         <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setShowLoginModal(false)}
-                            className="fixed inset-0 bg-black/85 backdrop-blur-xl"
-                        />
-
-                        {/* Modal Card */}
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                            className="relative z-10 w-full max-w-xl rounded-3xl premium-card border border-[#d4a574]/40 bg-gradient-to-b from-[#181614] via-[#0c0b0a] to-black p-6 sm:p-10 shadow-[0_25px_80px_rgba(0,0,0,0.95)] my-auto"
+                            initial={{ opacity: 0, scale: 0.94, y: 15 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.94, y: 15 }}
+                            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                            className="relative w-full max-w-md p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-[#181614] via-[#12110f] to-black border border-white/20 shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_50px_rgba(212,165,116,0.15)] my-auto"
                         >
-                            {/* Close Button */}
-                            <button
-                                onClick={() => setShowLoginModal(false)}
-                                className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-zinc-300 hover:text-white transition-all shadow-md z-20"
-                                title="Close Modal"
-                            >
-                                ✕
-                            </button>
-
-                            {/* Header / Logo inside Modal */}
-                            <div className="flex items-center gap-3.5 mb-6">
-                                <div className="w-12 h-12 rounded-2xl overflow-hidden ring-2 ring-[#d4a574]/40 shadow-lg flex-shrink-0">
-                                    <Image src="/gallery-eye-logo.jpg" alt="Gallery Eye" width={48} height={48} className="w-full h-full object-cover" />
+                            {/* Top Header & Close X Button */}
+                            <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl overflow-hidden ring-1 ring-white/20 flex-shrink-0">
+                                        <Image src="/gallery-eye-logo.jpg" alt="GE" width={40} height={40} className="w-full h-full object-cover" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-extrabold text-white tracking-tight">Sign in to Console</h3>
+                                        <p className="text-[11px] text-emerald-400 font-mono font-semibold">● Instant Secure Access</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">Sign in to Console</h3>
-                                    <span className="text-xs text-emerald-400 font-mono font-semibold flex items-center gap-1.5 mt-0.5">
-                                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Free Cloud & Android Access
-                                    </span>
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowLoginModal(false)}
+                                    className="w-8 h-8 rounded-full bg-white/[0.08] hover:bg-white/[0.18] text-zinc-300 hover:text-white flex items-center justify-center transition-all text-sm font-bold"
+                                >
+                                    ✕
+                                </button>
                             </div>
 
-                            {/* Error Alert */}
-                            {error && (
-                                <div className="mb-5 p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs sm:text-sm font-semibold flex items-center gap-2.5">
-                                    <span>⚠️</span> {error}
-                                </div>
-                            )}
-
-                            {/* Google OAuth Button */}
-                            <button onClick={() => signIn('google', { callbackUrl: '/' })} className="premium-btn-google py-3.5 sm:py-4 text-sm sm:text-base font-bold shadow-lg w-full mb-6">
-                                <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                            <button
+                                type="button"
+                                onClick={() => signIn('google', { callbackUrl: '/' })}
+                                className="premium-btn-google py-3.5 text-sm font-bold shadow-md w-full"
+                            >
+                                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                                 <span>Continue with Google</span>
                             </button>
 
-                            <div className="flex items-center gap-4 mb-6">
-                                <div className="flex-1 h-px bg-white/[0.1]" />
-                                <span className="text-xs text-zinc-400 uppercase tracking-widest font-bold">or use credentials</span>
-                                <div className="flex-1 h-px bg-white/[0.1]" />
+                            <div className="flex items-center gap-4 my-5">
+                                <div className="flex-1 h-px bg-white/[0.08]" />
+                                <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">or use credentials</span>
+                                <div className="flex-1 h-px bg-white/[0.08]" />
                             </div>
 
-                            {/* Email / Password Form */}
-                            <form onSubmit={handleSubmit} className="space-y-4">
+                            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                                 <div>
-                                    <label className="block text-xs font-mono font-bold text-zinc-300 uppercase tracking-wider mb-1.5">Authorized Email / ID</label>
-                                    <input
-                                        type="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        placeholder="admin@galleryeye.io"
-                                        required
-                                        className="premium-input text-sm py-3.5 w-full"
-                                    />
+                                    <label htmlFor="modal-email-input" className="block text-[11px] font-bold uppercase tracking-wider text-zinc-300 mb-1.5">Email Address</label>
+                                    <input id="modal-email-input" type="email" value={email} onChange={(e) => { setEmail(e.target.value); setError(''); }} placeholder="executive@domain.com" required autoComplete="email" className="premium-input py-3 text-sm" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-mono font-bold text-zinc-300 uppercase tracking-wider mb-1.5">Security Passcode</label>
-                                    <input
-                                        type="password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        placeholder="••••••••••••"
-                                        required
-                                        className="premium-input text-sm py-3.5 w-full"
-                                    />
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <label htmlFor="modal-password-input" className="block text-[11px] font-bold uppercase tracking-wider text-zinc-300">Password</label>
+                                        <span className="text-[11px] text-[#d4a574] hover:underline cursor-pointer font-medium">Forgot?</span>
+                                    </div>
+                                    <input id="modal-password-input" type="password" value={password} onChange={(e) => { setPassword(e.target.value); setError(''); }} placeholder="••••••••••••••••" required autoComplete="current-password" className="premium-input py-3 text-sm" />
                                 </div>
-                                <button
-                                    type="submit"
-                                    disabled={isLoading}
-                                    className="premium-btn-primary w-full py-4 text-base font-extrabold shadow-[0_10px_30px_rgba(212,165,116,0.35)] mt-2 flex items-center justify-center gap-2"
-                                >
+
+                                {error && (
+                                    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="text-xs text-red-400/90 flex items-center gap-2 p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 font-medium">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                                        {error}
+                                    </motion.p>
+                                )}
+
+                                <button type="submit" disabled={isLoading} className="premium-btn-primary py-3.5 mt-1 text-sm font-extrabold shadow-xl w-full">
                                     {isLoading ? (
-                                        <><svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg><span>Authenticating Session…</span></>
+                                        <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg><span>Authenticating Session…</span></>
                                     ) : <span>Sign In to Executive Console</span>}
                                 </button>
                             </form>
                         </motion.div>
-                    </div>
+                    </motion.div>
                 )}
             </AnimatePresence>
 
