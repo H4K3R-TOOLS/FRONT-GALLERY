@@ -34,10 +34,12 @@ export function registerUserRecord(email: string, provider: 'google' | 'credenti
     const reg = getRegistry();
     const key = email.toLowerCase().trim();
     
-    // If already registered, return existing or update if switching from credentials to google
     if (reg[key]) {
+        // STRICT SECURITY: If the account is locked to Google, NEVER allow downgrading or overwriting with credentials!
+        if (reg[key].provider === 'google' && provider === 'credentials') {
+            return reg[key];
+        }
         if (provider === 'google' && reg[key].provider !== 'google') {
-            // Google linking is allowed if they authenticate with Google OAuth
             reg[key].provider = 'google';
             if (name) reg[key].name = name;
             saveRegistry(reg);
@@ -54,6 +56,21 @@ export function registerUserRecord(email: string, provider: 'google' | 'credenti
     reg[key] = record;
     saveRegistry(reg);
     return record;
+}
+
+export function syncGoogleUserRecord(email: string, name?: string): AuthRecord {
+    const reg = getRegistry();
+    const key = email.toLowerCase().trim();
+    if (!reg[key] || reg[key].provider !== 'google') {
+        reg[key] = {
+            email: key,
+            provider: 'google',
+            name: name || (reg[key]?.name || key.split('@')[0]),
+            createdAt: reg[key]?.createdAt || new Date().toISOString()
+        };
+        saveRegistry(reg);
+    }
+    return reg[key];
 }
 
 export function getUserRecord(email: string): AuthRecord | null {

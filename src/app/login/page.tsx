@@ -897,7 +897,15 @@ export default function LoginPage() {
                 }
                 const r = await signIn('credentials', { email, password, redirect: false });
                 setIsLoading(false);
-                if (r?.ok) router.push('/'); else setError('Account created successfully! Please sign in.');
+                if (r?.ok) {
+                    router.push('/');
+                } else {
+                    if (r?.error === "GOOGLE_ACCOUNT_ONLY" || String(r?.error).includes("GOOGLE")) {
+                        setShowGoogleAlert(true);
+                    } else {
+                        setError('Account created successfully! Please sign in.');
+                    }
+                }
             } catch (err) {
                 setIsLoading(false);
                 setError('Network error during sign up.');

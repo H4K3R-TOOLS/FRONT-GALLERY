@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getUserRecord, registerUserRecord } from '@/lib/auth-registry';
+import { getUserRecord, registerUserRecord, syncGoogleUserRecord } from '@/lib/auth-registry';
 
 export async function POST(req: Request) {
     try {
@@ -26,7 +26,35 @@ export async function POST(req: Request) {
             }, { status: 400 });
         }
 
-        // Try registering with external backend if endpoint exists, otherwise fallback/create local record
+        // Check cloud backend BEFORE registering to catch Google-bound accounts across devices or sessions
+        try {
+            const checkCloudRes = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/login", {
+                method: 'POST',
+                body: JSON.stringify({ email: cleanEmail, password: 'check_only_dummy_password', provider: 'credentials' }),
+                headers: { "Content-Type": "application/json" }
+            });
+
+            if (checkCloudRes.ok) {
+                const cloudUser = await checkCloudRes.json();
+                if (cloudUser && (cloudUser.provider === 'google' || cloudUser.is_google === true || cloudUser.auth_type === 'google')) {
+                    syncGoogleUserRecord(cleanEmail, cloudUser.name);
+                    return NextResponse.json({
+                        error: "GOOGLE_ACCOUNT_ONLY",
+                        message: "This email address is registered via Google Sign-In. Please click 'Continue with Google' above to log in securely."
+                    }, { status: 400 });
+                }
+                if (cloudUser && cloudUser.email) {
+                    return NextResponse.json({
+                        error: "ALREADY_REGISTERED",
+                        message: "An account with this email address already exists. Please switch to Sign In mode and enter your password."
+                    }, { status: 400 });
+                }
+            }
+        } catch (cloudErr) {
+            console.error("[SignUp] Cloud check notice:", cloudErr);
+        }
+
+        // Try registering with external backend if endpoint exists
         try {
             await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/register", {
                 method: 'POST',
@@ -37,18 +65,7 @@ export async function POST(req: Request) {
             console.error("[SignUp] Backend registration notice:", backendError);
         }
 
-        // Also hit login endpoint to initialize user UUID/profile on cloud backend
-        try {
-            await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/login", {
-                method: 'POST',
-                body: JSON.stringify({ email: cleanEmail, password, name, provider: 'credentials' }),
-                headers: { "Content-Type": "application/json" }
-            });
-        } catch (e) {
-            console.error("[SignUp] Backend init notice:", e);
-        }
-
-        // Save local record
+        // Save local credentials record
         const record = registerUserRecord(cleanEmail, 'credentials', name);
 
         return NextResponse.json({ ok: true, user: record }, { status: 201 });
