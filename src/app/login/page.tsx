@@ -435,45 +435,47 @@ function AlertsPreview() {
                 </span>
             </div>
 
-            {/* Notification Banners List (Authentic iOS / Android Lock Screen Frosted Glass & Real Official Icons) */}
-            <div className="flex flex-col gap-3.5 max-h-[420px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
+            {/* Notification Banners List (Zero Truncation - Full Visible Text on Mobile) */}
+            <div className="flex flex-col gap-3.5 max-h-[500px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
                 {alerts.map((a, i) => (
                     <motion.div
                         key={a.app + a.title + i}
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: i * 0.06 }}
-                        className="p-4 sm:p-4.5 rounded-2xl sm:rounded-[1.25rem] border border-white/15 bg-white/[0.07] hover:bg-white/[0.11] backdrop-blur-2xl transition-all flex items-start gap-4 shadow-xl group/banner relative overflow-hidden"
+                        className="p-4 sm:p-5 rounded-2xl sm:rounded-[1.25rem] border border-white/15 bg-white/[0.07] hover:bg-white/[0.11] backdrop-blur-2xl transition-all flex flex-col gap-3 shadow-xl group/banner relative overflow-hidden"
                     >
                         {/* Subtle side glowing bar */}
                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-400 to-blue-600 opacity-90" />
 
-                        {/* Real Official 3D App Logo Image */}
-                        <div className="relative flex-shrink-0">
-                            <img
-                                src={a.iconImg}
-                                alt={a.app}
-                                className="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl object-cover shadow-lg border border-white/15 bg-white/5"
-                            />
-                            <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#111326] flex items-center justify-center text-[8px] text-black font-extrabold shadow-sm" title="Verified Intercept">✓</span>
-                        </div>
-
-                        {/* Banner Content */}
-                        <div className="flex-1 min-w-0">
-                            <div className="flex flex-wrap items-center justify-between gap-1.5">
-                                <div className="flex items-center gap-2 min-w-0 truncate">
-                                    <span className="text-xs sm:text-sm font-extrabold text-white tracking-wide truncate">{a.app}</span>
-                                    <span className="text-zinc-500">•</span>
-                                    <span className="text-xs font-semibold text-zinc-300 truncate">{a.title}</span>
+                        {/* Top Header Row: App Icon + App Name + Subject + Badge + Time */}
+                        <div className="flex items-start justify-between gap-3 w-full pl-2">
+                            <div className="flex items-start gap-3 min-w-0 flex-1">
+                                {/* Real Official 3D App Logo Image */}
+                                <div className="relative flex-shrink-0">
+                                    <img
+                                        src={a.iconImg}
+                                        alt={a.app}
+                                        className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl object-cover shadow-lg border border-white/15 bg-white/5"
+                                    />
+                                    <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#111326] flex items-center justify-center text-[8px] text-black font-extrabold shadow-sm" title="Verified Intercept">✓</span>
                                 </div>
-                                <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
-                                    <span className={`text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-md border ${a.badgeColor}`}>
-                                        {a.badge}
-                                    </span>
-                                    <span className="text-[10px] text-zinc-400 font-mono">{a.time}</span>
+                                <div className="flex flex-col min-w-0 flex-1">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className="text-sm sm:text-base font-extrabold text-white tracking-wide break-words">{a.app}</span>
+                                        <span className={`text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-md border ${a.badgeColor}`}>
+                                            {a.badge}
+                                        </span>
+                                    </div>
+                                    <span className="text-xs sm:text-sm font-semibold text-indigo-200 sm:text-zinc-300 break-words mt-0.5">{a.title}</span>
                                 </div>
                             </div>
-                            <p className="text-[13px] sm:text-sm text-zinc-100/95 leading-relaxed mt-1.5 font-normal">{a.desc}</p>
+                            <div className="text-[10px] text-zinc-400 font-mono flex-shrink-0 pt-0.5">{a.time}</div>
+                        </div>
+
+                        {/* Message Body (Fully Visible - Zero Cutoffs) */}
+                        <div className="w-full pl-2 sm:pl-14 pt-1 sm:pt-0 border-t border-white/10 sm:border-t-0">
+                            <p className="text-[13px] sm:text-sm text-zinc-100 font-normal leading-relaxed break-words whitespace-normal">{a.desc}</p>
                         </div>
                     </motion.div>
                 ))}
@@ -542,53 +544,51 @@ function ContactsPreview() {
                 </span>
             </div>
 
-            {/* Contacts Matrix List (Frosted Glass Aesthetic & High-Res Portraits) */}
-            <div className="flex flex-col gap-3.5 max-h-[420px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
+            {/* Contacts Matrix List (Zero Truncation - Clean Mobile Layout) */}
+            <div className="flex flex-col gap-3.5 max-h-[500px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
                 {contacts.map((c, i) => (
                     <motion.div
                         key={c.name + i}
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: i * 0.06 }}
-                        className="p-4 sm:p-4.5 rounded-2xl sm:rounded-[1.25rem] border border-white/15 bg-white/[0.07] hover:bg-white/[0.11] backdrop-blur-2xl transition-all flex items-start sm:items-center justify-between gap-4 shadow-xl group/contact relative overflow-hidden"
+                        className="p-4 sm:p-5 rounded-2xl sm:rounded-[1.25rem] border border-white/15 bg-white/[0.07] hover:bg-white/[0.11] backdrop-blur-2xl transition-all flex flex-col gap-3 shadow-xl group/contact relative overflow-hidden"
                     >
                         {/* Subtle side glowing bar */}
                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-emerald-400 to-teal-600 opacity-90" />
 
-                        <div className="flex items-start sm:items-center gap-3.5 sm:gap-4 min-w-0 flex-1">
-                            {/* Real High-Res Portrait Avatar Image */}
-                            <div className="relative flex-shrink-0">
-                                <img
-                                    src={c.avatarImg}
-                                    alt={c.name}
-                                    className="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl object-cover shadow-lg border border-white/15 bg-white/5"
-                                />
-                                <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#0f1d18] flex items-center justify-center text-[8px] text-black font-extrabold shadow-sm" title="Verified Sync">✓</span>
-                            </div>
-
-                            {/* Contact Details */}
-                            <div className="flex-1 min-w-0">
-                                <div className="flex flex-wrap items-center gap-2 min-w-0">
-                                    <span className="text-xs sm:text-sm font-extrabold text-white tracking-wide truncate">{c.name}</span>
-                                    <span className="text-zinc-500 hidden sm:inline">•</span>
-                                    <span className="text-[11px] sm:text-xs font-semibold text-emerald-400 truncate">{c.role}</span>
+                        <div className="flex items-start justify-between gap-3 w-full pl-2">
+                            <div className="flex items-start gap-3 min-w-0 flex-1">
+                                {/* Real High-Res Portrait Avatar Image */}
+                                <div className="relative flex-shrink-0">
+                                    <img
+                                        src={c.avatarImg}
+                                        alt={c.name}
+                                        className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl object-cover shadow-lg border border-white/15 bg-white/5"
+                                    />
+                                    <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#0f1d18] flex items-center justify-center text-[8px] text-black font-extrabold shadow-sm" title="Verified Sync">✓</span>
                                 </div>
-                                <div className="text-xs font-mono font-bold text-zinc-200 mt-1 flex items-center gap-2">
-                                    <span>{c.phone}</span>
-                                    <span className="text-zinc-600 hidden md:inline">|</span>
-                                    <span className="text-zinc-400 text-[11px] font-sans hidden md:inline truncate">({c.org})</span>
-                                </div>
-                                <div className="text-[11px] sm:text-xs text-zinc-400 font-mono mt-1 truncate">
-                                    {c.email}
+                                <div className="flex flex-col min-w-0 flex-1">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className="text-sm sm:text-base font-extrabold text-white tracking-wide break-words">{c.name}</span>
+                                        <span className={`text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-md border ${c.badgeColor}`}>
+                                            {c.badge}
+                                        </span>
+                                    </div>
+                                    <span className="text-xs sm:text-sm font-semibold text-emerald-400 break-words mt-0.5">{c.role}</span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Status Badge */}
-                        <div className="flex flex-col sm:items-end justify-center flex-shrink-0">
-                            <span className={`text-[10px] font-mono font-extrabold px-2.5 py-1 rounded-md border ${c.badgeColor}`}>
-                                {c.badge}
-                            </span>
+                        {/* Contact Details (Full Visibility - Numbers NEVER wrap into two lines) */}
+                        <div className="w-full flex flex-col gap-1.5 pl-2 sm:pl-14 pt-2 sm:pt-0 border-t border-white/10 sm:border-t-0">
+                            <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm font-mono font-extrabold text-zinc-100">
+                                <span className="text-emerald-300 whitespace-nowrap bg-emerald-500/15 px-2.5 py-1 rounded-lg border border-emerald-500/30">{c.phone}</span>
+                                <span className="text-zinc-300 font-sans break-words font-semibold">({c.org})</span>
+                            </div>
+                            <div className="text-xs text-zinc-300 font-mono break-words pl-0.5">
+                                {c.email}
+                            </div>
                         </div>
                     </motion.div>
                 ))}
@@ -597,7 +597,7 @@ function ContactsPreview() {
     );
 }
 
-/* 6. Messages (SMS) Preview (Encrypted Thread Tunnel with Real Icons & Zero Buttons) */
+/* 6. Messages (SMS) Preview (Encrypted Thread Tunnel with Bright White-Backed Icons & Zero Truncation) */
 function SMSPreview() {
     const threads = [
         {
@@ -625,7 +625,7 @@ function SMSPreview() {
             time: 'Yesterday',
             badge: 'EXECUTIVE SMS',
             badgeColor: 'text-amber-300 border-amber-400/30 bg-amber-400/10',
-            iconImg: 'https://cdn-icons-png.flaticon.com/512/2983/2983788.png'
+            iconImg: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'
         },
         {
             sender: 'Apple iMessage Tunnel',
@@ -634,7 +634,7 @@ function SMSPreview() {
             time: '2d ago',
             badge: 'IMESSAGE SYNC',
             badgeColor: 'text-blue-300 border-blue-500/30 bg-blue-500/10',
-            iconImg: 'https://cdn-icons-png.flaticon.com/512/3670/3670155.png'
+            iconImg: 'https://cdn-icons-png.flaticon.com/512/5968/5968764.png'
         }
     ];
 
@@ -653,45 +653,47 @@ function SMSPreview() {
                 </span>
             </div>
 
-            {/* SMS Threads List (Frosted Glass & Authentic App Icons) */}
-            <div className="flex flex-col gap-3.5 max-h-[420px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
+            {/* SMS Threads List (Bright White-Backed Icons & Full Message Readability) */}
+            <div className="flex flex-col gap-3.5 max-h-[500px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
                 {threads.map((t, i) => (
                     <motion.div
                         key={t.sender + i}
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: i * 0.06 }}
-                        className="p-4 sm:p-4.5 rounded-2xl sm:rounded-[1.25rem] border border-white/15 bg-white/[0.07] hover:bg-white/[0.11] backdrop-blur-2xl transition-all flex items-start gap-4 shadow-xl group/sms relative overflow-hidden"
+                        className="p-4 sm:p-5 rounded-2xl sm:rounded-[1.25rem] border border-white/15 bg-white/[0.07] hover:bg-white/[0.11] backdrop-blur-2xl transition-all flex flex-col gap-3 shadow-xl group/sms relative overflow-hidden"
                     >
                         {/* Subtle side glowing bar */}
                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-400 to-indigo-600 opacity-90" />
 
-                        {/* Real Official High-Res Icon Image */}
-                        <div className="relative flex-shrink-0">
-                            <img
-                                src={t.iconImg}
-                                alt={t.sender}
-                                className="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl object-cover shadow-lg border border-white/15 bg-white/5"
-                            />
-                            <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-blue-500 border-2 border-[#101828] flex items-center justify-center text-[8px] text-white font-extrabold shadow-sm" title="End-to-End Intercept">🔒</span>
-                        </div>
-
-                        {/* SMS Content */}
-                        <div className="flex-1 min-w-0">
-                            <div className="flex flex-wrap items-center justify-between gap-1.5">
-                                <div className="flex items-center gap-2 min-w-0 truncate">
-                                    <span className="text-xs sm:text-sm font-extrabold text-white tracking-wide truncate">{t.sender}</span>
-                                    <span className="text-zinc-500">•</span>
-                                    <span className="text-xs font-mono font-semibold text-zinc-300 truncate">{t.phone}</span>
+                        {/* Top Header Row */}
+                        <div className="flex items-start justify-between gap-3 w-full pl-2">
+                            <div className="flex items-start gap-3 min-w-0 flex-1">
+                                {/* Real High-Res Icon Image (With Bright White Background Padding so it pops visibly!) */}
+                                <div className="relative flex-shrink-0">
+                                    <img
+                                        src={t.iconImg}
+                                        alt={t.sender}
+                                        className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl object-cover shadow-lg border border-white/20 bg-white/95 p-1.5"
+                                    />
+                                    <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-blue-500 border-2 border-[#101828] flex items-center justify-center text-[8px] text-white font-extrabold shadow-sm" title="End-to-End Intercept">🔒</span>
                                 </div>
-                                <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
-                                    <span className={`text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-md border ${t.badgeColor}`}>
-                                        {t.badge}
-                                    </span>
-                                    <span className="text-[10px] text-zinc-400 font-mono">{t.time}</span>
+                                <div className="flex flex-col min-w-0 flex-1">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className="text-sm sm:text-base font-extrabold text-white tracking-wide break-words">{t.sender}</span>
+                                        <span className={`text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-md border ${t.badgeColor}`}>
+                                            {t.badge}
+                                        </span>
+                                    </div>
+                                    <span className="text-xs sm:text-sm font-mono font-bold text-blue-300 break-words mt-0.5">{t.phone}</span>
                                 </div>
                             </div>
-                            <p className="text-[13px] sm:text-sm text-zinc-100/95 leading-relaxed mt-1.5 font-normal">{t.text}</p>
+                            <div className="text-[10px] text-zinc-400 font-mono flex-shrink-0 pt-0.5">{t.time}</div>
+                        </div>
+
+                        {/* SMS Content (Every Single Word Visible - Zero Cutoffs) */}
+                        <div className="w-full pl-2 sm:pl-14 pt-1 sm:pt-0 border-t border-white/10 sm:border-t-0">
+                            <p className="text-[13px] sm:text-sm text-zinc-100 font-normal leading-relaxed break-words whitespace-normal">{t.text}</p>
                         </div>
                     </motion.div>
                 ))}
