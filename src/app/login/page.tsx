@@ -111,30 +111,81 @@ function MagneticCard({ children, className = '' }: { children: React.ReactNode;
 
 /* ═══════ BESPOKE TOOL VISUAL PREVIEWS ═══════ */
 
-/* 1. Realistic Gallery Sync Preview */
+/* 1. Realistic & Showstopping Gallery Sync Preview */
 function GalleryPreview() {
     const photos = [
-        { url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500&auto=format&fit=crop&q=80', name: 'Maldives_RAW.dng', meta: '48MP RAW • 12.4 MB', tag: 'Synced' },
-        { url: 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=500&auto=format&fit=crop&q=80', name: 'Cyber_Night.heic', meta: '4K ProRes • 64.2 MB', tag: 'Live Stream' },
-        { url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80', name: 'Portrait_004.jpg', meta: 'f/1.4 • ISO 100 • 8.1 MB', tag: 'Synced' },
-        { url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=500&auto=format&fit=crop&q=80', name: 'Valley_Dawn.raw', meta: '50MP HDR • 24.8 MB', tag: 'Synced' },
+        { url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&auto=format&fit=crop&q=80', name: 'Maldives_RAW.dng', meta: '48MP RAW • 12.4 MB • f/1.78', tag: 'Synced', badge: 'RAW DNG' },
+        { url: 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=600&auto=format&fit=crop&q=80', name: 'Cyber_Night.heic', meta: '4K ProRes 60fps • 64.2 MB', tag: 'Live Stream', badge: 'PRORES 4K' },
+        { url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80', name: 'Portrait_004.jpg', meta: 'ISO 100 • 24mm • f/1.4 • 8.1 MB', tag: 'Synced', badge: 'PORTRAIT' },
+        { url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&auto=format&fit=crop&q=80', name: 'Valley_Dawn.raw', meta: '50MP HDR • GPS Tagged • 24.8 MB', tag: 'Synced', badge: '50MP HDR' },
     ];
+    const [activeTab, setActiveTab] = useState('All Media (4,218)');
     return (
-        <div className="w-full grid grid-cols-2 gap-3 mt-6">
-            {photos.map((p, idx) => (
-                <div key={idx} className="group/photo relative rounded-2xl overflow-hidden border border-white/10 bg-black/40 aspect-[4/3] shadow-[0_10px_25px_rgba(0,0,0,0.6)]">
-                    <Image src={p.url} alt={p.name} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover group-hover/photo:scale-110 transition-transform duration-700" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-90 group-hover/photo:opacity-100 transition-opacity" />
-                    <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/15 flex items-center gap-1.5 text-[10px] font-medium text-emerald-400">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        {p.tag}
+        <div className="w-full rounded-3xl overflow-hidden border border-amber-500/30 bg-gradient-to-b from-[#181411] via-[#0f0c0a] to-black shadow-[0_20px_50px_rgba(0,0,0,0.8)] mt-6 p-4 sm:p-5">
+            {/* Cloud Media Tunnel Header HUD */}
+            <div className="flex flex-wrap items-center justify-between pb-4 mb-4 border-b border-white/10 gap-2">
+                <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-black font-extrabold text-sm shadow-[0_0_15px_rgba(245,158,11,0.4)]">
+                        G
                     </div>
-                    <div className="absolute bottom-2.5 left-2.5 right-2.5">
-                        <div className="text-xs font-bold text-white truncate drop-shadow-md">{p.name}</div>
-                        <div className="text-[10px] text-zinc-300/80 font-mono mt-0.5">{p.meta}</div>
+                    <div>
+                        <div className="text-xs sm:text-sm font-extrabold text-white flex items-center gap-2">
+                            Cloud Media Tunnel <span className="text-[10px] font-mono text-amber-400 px-2 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20">64.8 GB SYNCED</span>
+                        </div>
+                        <div className="text-[10px] font-mono text-zinc-400 mt-0.5 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> E2E Stream Rate: 42.4 MB/s • Zero Lag
+                        </div>
                     </div>
                 </div>
-            ))}
+                <div className="flex items-center gap-1.5">
+                    <button className="px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-bold hover:bg-amber-500/20 transition-all flex items-center gap-1.5 shadow-sm">
+                        <span>⚡ Auto-Sync Active</span>
+                    </button>
+                </div>
+            </div>
+
+            {/* Filter Pill Tabs */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-3 mb-1 scrollbar-none">
+                {['All Media (4,218)', 'RAW Photos (842)', '4K Videos (124)', 'Hidden Vault 🔒'].map((tab) => (
+                    <button key={tab} onClick={() => setActiveTab(tab)}
+                            className={`px-3 py-1 rounded-xl text-[11px] font-bold whitespace-nowrap transition-all ${activeTab === tab ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-md' : 'bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10 border border-white/5'}`}>
+                        {tab}
+                    </button>
+                ))}
+            </div>
+
+            {/* High-Resolution Masonry/Grid View */}
+            <div className="grid grid-cols-2 gap-3 mt-2">
+                {photos.map((p, idx) => (
+                    <div key={idx} className="group/photo relative rounded-2xl overflow-hidden border border-white/15 bg-black/60 aspect-[16/11] shadow-lg transition-all duration-500 hover:border-amber-400/60 hover:shadow-[0_10px_30px_rgba(245,158,11,0.25)]">
+                        <Image src={p.url} alt={p.name} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover group-hover/photo:scale-110 transition-transform duration-700" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent opacity-85 group-hover/photo:opacity-95 transition-opacity" />
+                        
+                        {/* Top Badges */}
+                        <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between">
+                            <span className="px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-md border border-amber-400/30 text-[9px] font-extrabold font-mono text-amber-300 shadow-sm">
+                                {p.badge}
+                            </span>
+                            <div className="px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md border border-white/15 flex items-center gap-1 text-[9px] font-bold text-emerald-400 shadow-sm">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                {p.tag}
+                            </div>
+                        </div>
+
+                        {/* Bottom Metadata & Hover Actions */}
+                        <div className="absolute bottom-2.5 left-2.5 right-2.5">
+                            <div className="text-xs font-extrabold text-white truncate drop-shadow-md group-hover/photo:text-amber-300 transition-colors">{p.name}</div>
+                            <div className="text-[10px] text-zinc-300/90 font-mono mt-0.5">{p.meta}</div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Bottom Status Ribbon */}
+            <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-zinc-400 font-mono">
+                <span>Storage: <strong className="text-amber-400">512 GB</strong> (12.6% Used by Telemetry)</span>
+                <span className="text-emerald-400 font-bold hidden sm:inline">✔ 100% EXIF PRESERVED</span>
+            </div>
         </div>
     );
 }
@@ -420,11 +471,12 @@ export default function LoginPage() {
 
 
             {/* ═══ HERO ═══ */}
-            <section ref={heroRef} className="relative z-10 min-h-[100dvh] flex flex-col items-center justify-start pt-32 sm:pt-36 pb-36 px-5 overflow-hidden">
+            {/* ═══ HERO ═══ */}
+            <section ref={heroRef} className="relative z-10 min-h-[90dvh] flex flex-col items-center justify-start pt-16 sm:pt-20 pb-24 px-5 overflow-hidden">
                 <motion.div style={{ y: heroY, opacity: heroOpacity }} className="flex flex-col items-center text-center max-w-4xl mx-auto">
 
                     {/* Rotating gradient border logo */}
-                    <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }} className="relative mb-8 sm:mb-10">
+                    <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }} className="relative mb-6 sm:mb-8">
                         <div className="relative w-[116px] h-[116px]">
                             <div className="absolute inset-0 rounded-[2.2rem] animate-spin-slow" style={{ background: 'conic-gradient(from 0deg, #d4a574, #e8966d, #b88ae8, #6ea8e8, #6ec4a8, #e8c46e, #d4a574)' }} />
                             <div className="absolute inset-0 rounded-[2.2rem] animate-spin-slow blur-xl opacity-50" style={{ background: 'conic-gradient(from 0deg, #d4a574, #e8966d, #b88ae8, #6ea8e8, #6ec4a8, #e8c46e, #d4a574)' }} />
@@ -482,8 +534,8 @@ export default function LoginPage() {
 
 
 
-            {/* ═══ SHOWSTOPPING LIVE DEMO VIDEO FRAME (REPLACED TEXT HEADING BLOCK AS REQUESTED) ═══ */}
-            <section id="demo-video" className="relative z-10 pt-20 pb-28 sm:pb-36 px-5 border-b border-white/[0.04]">
+            {/* ═══ SHOWSTOPPING LIVE DEMO VIDEO FRAME (BROUGHT CLOSER TO HERO & TOOLS) ═══ */}
+            <section id="demo-video" className="relative z-10 pt-12 pb-12 px-5 border-b border-white/[0.04]">
                 <Reveal className="max-w-5xl mx-auto text-center">
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-widest mb-6 border border-[#d4a574]/40 bg-[#d4a574]/10 text-[#d4a574] shadow-md">
                         <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
@@ -532,17 +584,22 @@ export default function LoginPage() {
             </section>
 
 
-            {/* ═══ ALL 8 BESPOKE SHOWSTOPPING TOOLS (WITH GENEROUS TOP SPACING FROM VIDEO) ═══ */}
-            <section id="tools" className="relative z-10 pt-28 sm:pt-36 pb-32 px-5">
+            {/* ═══ ALL 8 BESPOKE SHOWSTOPPING TOOLS (BROUGHT CLOSER TO DEMO VIDEO) ═══ */}
+            <section id="tools" className="relative z-10 pt-12 pb-32 px-5">
 
 
                 <div className="max-w-6xl mx-auto flex flex-col gap-12">
                     {toolsData.map((tool, idx) => (
                         <Reveal key={tool.id} delay={idx * 0.05}>
                             <MagneticCard>
-                                <div className="card-glow-border rounded-[2.5rem] p-8 sm:p-12 border border-white/[0.06] bg-white/[0.018] hover:bg-white/[0.035] transition-all duration-500 group relative overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
+                                <div className={`rounded-[2.5rem] p-8 sm:p-12 border transition-all duration-500 group relative overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.6)] ${
+                                    tool.id === 'gallery'
+                                        ? 'border-amber-400/60 bg-gradient-to-br from-amber-500/[0.08] via-white/[0.025] to-amber-500/[0.04] shadow-[0_0_60px_rgba(245,158,11,0.2)] ring-1 ring-amber-400/40'
+                                        : 'card-glow-border border-white/[0.06] bg-white/[0.018] hover:bg-white/[0.035]'
+                                }`}>
                                     {/* Ambient glow */}
                                     <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-10 group-hover:opacity-25 transition-opacity duration-700 blur-[90px] pointer-events-none" style={{ background: tool.accent }} />
+
 
                                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
                                         <div className="lg:col-span-5 flex flex-col justify-center">
