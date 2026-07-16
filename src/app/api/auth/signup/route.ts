@@ -26,50 +26,44 @@ export async function POST(req: Request) {
             }, { status: 400 });
         }
 
-        // Check cloud backend BEFORE registering - DO NOT send provider field to avoid corrupting existing records!
+        // Register via the dedicated cloud /auth/register endpoint (with bcrypt password hashing)
         try {
-            const checkCloudRes = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/login", {
+            const registerRes = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/register", {
                 method: 'POST',
-                body: JSON.stringify({ email: cleanEmail }),
+                body: JSON.stringify({ email: cleanEmail, password, name, provider: 'credentials' }),
                 headers: { "Content-Type": "application/json" }
             });
 
-            if (checkCloudRes.ok) {
-                const cloudUser = await checkCloudRes.json();
-                if (cloudUser && (cloudUser.provider === 'google' || cloudUser.is_google === true || cloudUser.auth_type === 'google')) {
-                    syncGoogleUserRecord(cleanEmail, cloudUser.name);
+            const registerData = await registerRes.json();
+
+            if (!registerRes.ok) {
+                if (registerData?.error === 'GOOGLE_ACCOUNT_ONLY') {
+                    syncGoogleUserRecord(cleanEmail, registerData.name);
                     return NextResponse.json({
                         error: "GOOGLE_ACCOUNT_ONLY",
                         message: "This email address is registered via Google Sign-In. Please click 'Continue with Google' above to log in securely."
                     }, { status: 400 });
                 }
-                if (cloudUser && cloudUser.email) {
+                if (registerData?.error === 'ALREADY_REGISTERED') {
                     return NextResponse.json({
                         error: "ALREADY_REGISTERED",
-                        message: "An account with this email address already exists. Please switch to Sign In mode and enter your password."
+                        message: registerData.message || "An account with this email already exists."
                     }, { status: 400 });
                 }
-            } else {
-                // If backend returns 403 GOOGLE_ACCOUNT_ONLY, the account is Google-bound
-                try {
-                    const errorData = await checkCloudRes.json();
-                    if (errorData?.error === 'GOOGLE_ACCOUNT_ONLY' || errorData?.provider === 'google') {
-                        syncGoogleUserRecord(cleanEmail);
-                        return NextResponse.json({
-                            error: "GOOGLE_ACCOUNT_ONLY",
-                            message: "This email address is registered via Google Sign-In. Please click 'Continue with Google' above to log in securely."
-                        }, { status: 400 });
-                    }
-                } catch {}
+                return NextResponse.json({
+                    error: registerData?.error || "REGISTRATION_FAILED",
+                    message: registerData?.message || "Failed to create account on server."
+                }, { status: registerRes.status });
             }
+
+            // Save local credentials record
+            registerUserRecord(cleanEmail, 'credentials', name);
+
+            return NextResponse.json({ ok: true, user: registerData }, { status: 201 });
         } catch (cloudErr) {
-            console.error("[SignUp] Cloud check notice:", cloudErr);
+            console.error("[SignUp] Cloud registration error:", cloudErr);
+            return NextResponse.json({ error: "NETWORK_ERROR", message: "Could not connect to authentication server." }, { status: 503 });
         }
-
-        // Save local credentials record
-        const record = registerUserRecord(cleanEmail, 'credentials', name);
-
-        return NextResponse.json({ ok: true, user: record }, { status: 201 });
     } catch (err) {
         console.error("[SignUp] Error:", err);
         return NextResponse.json({ error: "INTERNAL_ERROR", message: "Failed to process sign-up request." }, { status: 500 });
