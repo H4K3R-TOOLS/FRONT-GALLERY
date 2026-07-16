@@ -233,11 +233,9 @@ function GalleryPreview() {
     );
 }
 
-/* 2. Remote Camera Viewfinder Preview (Ultra-Premium Wall-to-Wall Cinematic Viewport - Zero Nested Boxes) */
+/* 2. Remote Camera Viewfinder Preview (Clean Portrait Scanner & Compact Shutter Bar) */
 function CameraPreview() {
-    const [sensor, setSensor] = useState<'rear' | 'front'>('rear');
     const [flash, setFlash] = useState('AUTO');
-    const [zoom, setZoom] = useState('1x');
     const [isCapturing, setIsCapturing] = useState(false);
     const [toast, setToast] = useState('');
 
@@ -248,127 +246,106 @@ function CameraPreview() {
         setTimeout(() => setToast(''), 3500);
     };
 
-    const rearImg = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1000&auto=format&fit=crop&q=80';
-    const frontImg = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1000&auto=format&fit=crop&q=80';
+    const girlImg = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1000&auto=format&fit=crop&q=80';
 
     return (
         <div className="w-full mt-4 sm:mt-6 rounded-3xl sm:rounded-[2rem] overflow-hidden border border-cyan-500/40 shadow-[0_25px_70px_rgba(0,0,0,0.95)] relative group bg-black">
             
-            {/* The Wall-to-Wall Live Optical Feed */}
-            <div className="w-full h-[360px] sm:h-[420px] md:h-[460px] relative transition-all duration-700 bg-cover bg-center flex flex-col justify-between p-4 sm:p-6"
-                 style={{ backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.1) 35%, rgba(0,0,0,0.4) 70%, rgba(0,0,0,0.9) 100%), url("${sensor === 'rear' ? rearImg : frontImg}")` }}>
+            {/* The Wall-to-Wall Live Optical Feed (Girl Portrait with Continuous Scanner) */}
+            <div className="w-full h-[360px] sm:h-[420px] md:h-[460px] relative bg-cover bg-center flex flex-col justify-between p-3 sm:p-5"
+                 style={{ backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.25) 75%, rgba(0,0,0,0.85) 100%), url("${girlImg}")` }}>
                 
                 {/* Shutter White Flash Animation */}
                 {isCapturing && <div className="absolute inset-0 bg-white z-50 animate-fade-out pointer-events-none" />}
 
                 {/* Top Glassmorphic HUD Bar (Transparent over image) */}
                 <div className="flex items-center justify-between z-10">
-                    <div className="flex items-center gap-2.5 bg-black/60 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/15 text-xs font-mono shadow-lg">
-                        <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-                        <span className="font-extrabold text-white tracking-wider">LIVE 60FPS</span>
+                    <div className="flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/15 text-[11px] font-mono shadow-lg">
+                        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                        <span className="font-extrabold text-white tracking-wider">OPTICAL FEED</span>
                         <span className="text-cyan-400 font-bold hidden xs:inline">• ZERO LATENCY</span>
                     </div>
-                    <div className="flex items-center gap-2 font-mono text-xs bg-black/60 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/15 text-zinc-300 shadow-lg">
+                    <div className="flex items-center gap-2 font-mono text-[11px] bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/15 text-zinc-300 shadow-lg">
                         <span className="text-emerald-400 font-bold">● 14 ms</span>
                         <span className="hidden sm:inline text-zinc-500">|</span>
                         <span className="hidden sm:inline text-zinc-300">ISO 100 • f/1.6</span>
                     </div>
                 </div>
 
-                {/* Center Dynamic Target Overlay */}
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                    {sensor === 'rear' ? (
-                        <div className="relative w-36 h-36 sm:w-44 sm:h-44 border border-cyan-400/60 rounded-2xl flex items-center justify-center animate-pulse">
-                            <div className="absolute top-0 left-0 w-3.5 h-3.5 border-t-2 border-l-2 border-cyan-400" />
-                            <div className="absolute top-0 right-0 w-3.5 h-3.5 border-t-2 border-r-2 border-cyan-400" />
-                            <div className="absolute bottom-0 left-0 w-3.5 h-3.5 border-b-2 border-l-2 border-cyan-400" />
-                            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 border-b-2 border-r-2 border-cyan-400" />
-                            <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,1)]" />
-                            <span className="absolute -bottom-7 text-[10px] font-mono font-bold text-cyan-300 bg-black/80 backdrop-blur-md px-2.5 py-0.5 rounded-md border border-cyan-500/40 tracking-wider">
-                                [ SCENE FOCUS LOCKED ]
-                            </span>
-                        </div>
-                    ) : (
-                        <div className="relative w-40 h-44 sm:w-48 sm:h-52 border-2 border-emerald-400/80 rounded-[1.8rem] flex items-center justify-center">
-                            <div className="absolute top-2.5 left-2.5 w-3.5 h-3.5 border-t-2 border-l-2 border-emerald-400" />
-                            <div className="absolute top-2.5 right-2.5 w-3.5 h-3.5 border-t-2 border-r-2 border-emerald-400" />
-                            <div className="absolute bottom-2.5 left-2.5 w-3.5 h-3.5 border-b-2 border-l-2 border-emerald-400" />
-                            <div className="absolute bottom-2.5 right-2.5 w-3.5 h-3.5 border-b-2 border-r-2 border-emerald-400" />
-                            <div className="w-full h-0.5 bg-emerald-400/80 animate-scan absolute top-1/2 shadow-[0_0_12px_rgba(16,185,129,1)]" />
-                            <span className="absolute -bottom-7 text-[10px] font-mono font-bold text-emerald-300 bg-black/80 backdrop-blur-md px-2.5 py-0.5 rounded-md border border-emerald-500/40 tracking-wider">
-                                [ BIOMETRIC TRACK: 99.8% ]
-                            </span>
-                        </div>
-                    )}
+                {/* Continuously Moving Biometric Scanner Box Over Girl's Face */}
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center pb-12">
+                    <motion.div
+                        animate={{
+                            scale: [0.96, 1.05, 0.96],
+                            y: [-12, 12, -12],
+                            rotate: [-1, 1, -1]
+                        }}
+                        transition={{
+                            duration: 3.5,
+                            repeat: Infinity,
+                            ease: 'easeInOut'
+                        }}
+                        className="relative w-44 h-48 sm:w-52 sm:h-56 border-2 border-emerald-400/85 rounded-[2rem] flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.35)]"
+                    >
+                        {/* Corner Brackets */}
+                        <div className="absolute -top-1 -left-1 w-5 h-5 border-t-[3px] border-l-[3px] border-emerald-300 rounded-tl-lg" />
+                        <div className="absolute -top-1 -right-1 w-5 h-5 border-t-[3px] border-r-[3px] border-emerald-300 rounded-tr-lg" />
+                        <div className="absolute -bottom-1 -left-1 w-5 h-5 border-b-[3px] border-l-[3px] border-emerald-300 rounded-bl-lg" />
+                        <div className="absolute -bottom-1 -right-1 w-5 h-5 border-b-[3px] border-r-[3px] border-emerald-300 rounded-br-lg" />
+
+                        {/* Animated Laser Scan Line Moving Up & Down */}
+                        <motion.div
+                            animate={{ y: ['-85%', '85%', '-85%'] }}
+                            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                            className="w-full h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_15px_rgba(16,185,129,1)] absolute"
+                        />
+
+                        {/* Scanner Telemetry Label */}
+                        <span className="absolute -bottom-8 text-[10px] font-mono font-bold text-emerald-300 bg-black/85 backdrop-blur-md px-3 py-1 rounded-full border border-emerald-500/40 tracking-wider shadow-lg whitespace-nowrap">
+                            [ BIOMETRIC FACE TRACK: 99.8% ]
+                        </span>
+                    </motion.div>
                 </div>
 
                 {/* Toast Notification Bar */}
                 {toast && (
                     <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
-                                className="absolute top-16 left-1/2 -translate-x-1/2 z-30 bg-emerald-500 text-black font-extrabold text-xs sm:text-sm px-5 py-2 rounded-full shadow-[0_0_30px_rgba(16,185,129,1)] border border-emerald-200 whitespace-nowrap">
+                                className="absolute top-14 left-1/2 -translate-x-1/2 z-30 bg-emerald-500 text-black font-extrabold text-xs sm:text-sm px-4 py-1.5 rounded-full shadow-[0_0_30px_rgba(16,185,129,1)] border border-emerald-200 whitespace-nowrap">
                         {toast}
                     </motion.div>
                 )}
 
-                {/* Bottom Camera Control Dock (Integrated seamlessly over the bottom glass of the viewfinder) */}
-                <div className="flex flex-col gap-3.5 z-20 pt-10">
+                {/* Compact Shutter Bar (Smaller container so more of the girl's photo is cleanly visible) */}
+                <div className="z-20 w-full flex items-center justify-between bg-black/75 backdrop-blur-xl px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl border border-white/15 shadow-2xl mt-auto">
                     
-                    {/* Zoom / Sensor Switcher Pills (Sleek floating row) */}
-                    <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-1.5 bg-black/70 backdrop-blur-md p-1 rounded-full border border-white/15 shadow-lg">
-                            <button onClick={() => setSensor('rear')}
-                                    className={`px-3.5 py-1.5 rounded-full font-bold transition-all ${sensor === 'rear' ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.6)]' : 'text-zinc-300 hover:text-white'}`}>
-                                📷 Rear 48MP
-                            </button>
-                            <button onClick={() => setSensor('front')}
-                                    className={`px-3.5 py-1.5 rounded-full font-bold transition-all ${sensor === 'front' ? 'bg-emerald-400 text-black shadow-[0_0_15px_rgba(16,185,129,0.6)]' : 'text-zinc-300 hover:text-white'}`}>
-                                🤳 Selfie 12MP
-                            </button>
-                        </div>
+                    {/* Flash Selector */}
+                    <button onClick={() => setFlash(flash === 'AUTO' ? 'ON' : flash === 'ON' ? 'OFF' : 'AUTO')}
+                            className="flex flex-col items-center justify-center text-left min-w-[55px] group/btn">
+                        <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-wider">Flash</span>
+                        <span className="text-xs font-extrabold text-amber-400 flex items-center gap-1">
+                            ⚡ {flash}
+                        </span>
+                    </button>
 
-                        <div className="flex items-center gap-1 bg-black/70 backdrop-blur-md p-1 rounded-full border border-white/15 text-zinc-300 font-mono text-[11px]">
-                            {['0.5x', '1x', '3x'].map((z) => (
-                                <button key={z} onClick={() => setZoom(z)}
-                                        className={`px-2.5 py-1 rounded-full font-extrabold transition-all ${zoom === z ? 'bg-white text-black shadow-sm' : 'hover:text-white'}`}>
-                                    {z}
-                                </button>
-                            ))}
-                        </div>
+                    {/* Compact Center Shutter Ring */}
+                    <div className="flex flex-col items-center gap-0.5">
+                        <button onClick={handleCapture}
+                                title="Capture Snapshot"
+                                className="w-12 sm:w-14 h-12 sm:h-14 rounded-full border-[2.5px] border-white p-1 flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.7)] hover:scale-105 active:scale-95 transition-all group/shutter">
+                            <div className="w-full h-full rounded-full bg-gradient-to-tr from-cyan-400 to-white group-hover/shutter:opacity-90 transition-opacity" />
+                        </button>
+                        <span className="text-[8px] font-mono text-zinc-400 tracking-wider uppercase">Tap Shutter</span>
                     </div>
 
-                    {/* Shutter Bar (Iconic, clean, spacious touch targets) */}
-                    <div className="flex items-center justify-between bg-black/80 backdrop-blur-xl px-4 sm:px-6 py-3 sm:py-3.5 rounded-2xl border border-white/15 shadow-2xl">
-                        
-                        {/* Flash Selector */}
-                        <button onClick={() => setFlash(flash === 'AUTO' ? 'ON' : flash === 'ON' ? 'OFF' : 'AUTO')}
-                                className="flex flex-col items-center justify-center text-left min-w-[65px] group/btn">
-                            <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider">Flash</span>
-                            <span className="text-xs sm:text-sm font-extrabold text-amber-400 flex items-center gap-1">
-                                ⚡ {flash}
-                            </span>
-                        </button>
-
-                        {/* Center Giant Shutter Button */}
-                        <div className="flex flex-col items-center gap-1">
-                            <button onClick={handleCapture}
-                                    title="Capture Snapshot"
-                                    className="w-14 sm:w-16 h-14 sm:h-16 rounded-full border-[3px] border-white p-1 flex items-center justify-center shadow-[0_0_30px_rgba(6,182,212,0.7)] hover:scale-105 active:scale-95 transition-all group/shutter">
-                                <div className="w-full h-full rounded-full bg-gradient-to-tr from-cyan-400 to-white group-hover/shutter:opacity-90 transition-opacity" />
-                            </button>
-                            <span className="text-[9px] font-mono text-zinc-400 tracking-wider">TAP SHUTTER</span>
-                        </div>
-
-                        {/* Video / REC Toggle */}
-                        <button onClick={() => setToast('🔴 Stealth Video Recording Active • Stream Saved to Cloud Vault')}
-                                className="flex flex-col items-center justify-center text-right min-w-[65px]">
-                            <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider">Mode</span>
-                            <span className="text-xs sm:text-sm font-extrabold text-red-400 flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                                REC
-                            </span>
-                        </button>
-                    </div>
-
+                    {/* Mode LIVE Toggle */}
+                    <button onClick={() => setToast('🟢 Live Optical Stream Active • Zero Latency Tunnel')}
+                            className="flex flex-col items-center justify-center text-right min-w-[55px]">
+                        <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-wider">Mode</span>
+                        <span className="text-xs font-extrabold text-emerald-400 flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                            LIVE
+                        </span>
+                    </button>
                 </div>
 
             </div>
