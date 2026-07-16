@@ -60,6 +60,10 @@ body {
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.05);
   }
+  
+  .perspective-1000 {
+    perspective: 1000px;
+  }
 }
 
 /* Neumorphic specific styles that tailwind might miss */
