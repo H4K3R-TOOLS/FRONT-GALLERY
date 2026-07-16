@@ -233,167 +233,141 @@ function GalleryPreview() {
     );
 }
 
-/* 2. Remote Camera Viewfinder Preview (Complete Mobile & Desktop Ergonomic Redesign) */
+/* 2. Remote Camera Viewfinder Preview (Full-Bleed Edge-to-Edge Cinematic Camera UI) */
 function CameraPreview() {
-    const [sensor, setSensor] = useState<'rear' | 'front'>('rear');
+    const [sensor, setSensor] = useState<'rear' | 'front' | 'ultra' | 'tele'>('rear');
     const [flash, setFlash] = useState('AUTO');
-    const [resolution, setResolution] = useState('1080p 60FPS');
     const [isCapturing, setIsCapturing] = useState(false);
     const [toast, setToast] = useState('');
 
     const handleCapture = () => {
         setIsCapturing(true);
-        setToast('📸 High-Res Snapshot Captured • EXIF Preserved in Vault');
+        setToast('📸 High-Res Snapshot Saved to Tunnel Vault');
         setTimeout(() => setIsCapturing(false), 500);
-        setTimeout(() => setToast(''), 4000);
+        setTimeout(() => setToast(''), 3500);
     };
 
-    const rearImg = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&auto=format&fit=crop&q=80';
-    const frontImg = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80';
+    const images = {
+        rear: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1000&auto=format&fit=crop&q=80',
+        ultra: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1000&auto=format&fit=crop&q=80',
+        tele: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=1000&auto=format&fit=crop&q=80',
+        front: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1000&auto=format&fit=crop&q=80'
+    };
 
     return (
-        <div className="w-full mt-4 sm:mt-6 flex flex-col gap-3 rounded-2xl sm:rounded-3xl border border-cyan-500/35 bg-gradient-to-b from-[#0a141b] via-black to-black p-3 sm:p-5 shadow-[0_20px_45px_rgba(0,0,0,0.9)]">
+        <div className="w-full mt-4 sm:mt-6 rounded-2xl sm:rounded-3xl overflow-hidden relative border border-cyan-500/40 bg-black shadow-[0_20px_50px_rgba(0,0,0,0.95)] aspect-[4/5] sm:aspect-[16/10] flex flex-col justify-between group/cam select-none"
+             style={{ backgroundImage: `url("${images[sensor]}")`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
             
-            {/* Top Bar Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-cyan-500/20 gap-2">
-                <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-black font-extrabold text-base shadow-[0_0_15px_rgba(6,182,212,0.6)] flex-shrink-0">
-                        📷
-                    </div>
-                    <div>
-                        <div className="text-xs sm:text-sm font-extrabold text-white flex items-center gap-2">
-                            Optical Viewfinder Tunnel <span className="text-[10px] font-mono text-cyan-400 px-2 py-0.5 rounded bg-cyan-500/15 border border-cyan-500/30">ZERO LATENCY</span>
-                        </div>
-                        <div className="text-[10px] font-mono text-zinc-400 mt-0.5">Real-time front/rear sensor access • Live WebRTC video stream</div>
-                    </div>
+            {/* Top & Bottom Cinematic Vignette Gradients */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/10 to-transparent pointer-events-none z-0" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none z-0" />
+
+            {/* Shutter White Flash Overlay */}
+            {isCapturing && <div className="absolute inset-0 bg-white z-50 animate-fade-out pointer-events-none" />}
+
+            {/* Top Floating Glass HUD */}
+            <div className="relative z-10 flex flex-wrap items-center justify-between p-3 sm:p-4 gap-2 text-[10px] sm:text-xs font-mono">
+                <div className="flex items-center gap-2.5 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/15 text-white shadow-lg">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_#ef4444]" />
+                    <span className="font-bold tracking-wider text-red-400">REC 00:14:28</span>
+                    <span className="text-zinc-500">•</span>
+                    <span className="text-zinc-300 hidden xs:inline">4K 60FPS</span>
                 </div>
-                <div className="flex items-center gap-1.5 font-mono text-[11px] text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-xl border border-emerald-500/20 w-fit">
+
+                <div className="flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-cyan-500/30 text-cyan-300 shadow-lg font-bold">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                    <span>LINK CONNECTED • 14ms</span>
+                    <span>OPTICAL TUNNEL • 12ms</span>
                 </div>
             </div>
 
-            {/* Viewfinder Screen (Uncluttered, Dedicated Video Feed) */}
-            <div className="w-full h-[220px] sm:h-[290px] rounded-2xl relative overflow-hidden border border-cyan-500/40 shadow-2xl transition-all duration-500 flex flex-col justify-between p-3 sm:p-4"
-                 style={{ backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url("${sensor === 'rear' ? rearImg : frontImg}")`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-                
-                {/* Shutter White Flash Overlay */}
-                {isCapturing && <div className="absolute inset-0 bg-white z-50 animate-fade-out pointer-events-none" />}
-
-                {/* Viewfinder Top Telemetry */}
-                <div className="flex items-center justify-between text-[10px] sm:text-[11px] font-mono bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/15 z-10 text-white shadow-md">
-                    <div className="flex items-center gap-2 font-bold text-red-400">
-                        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                        <span>REC 00:14:28</span>
+            {/* Center Floating Crosshairs & Face Tracking */}
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
+                {sensor === 'front' ? (
+                    <div className="relative w-36 h-44 sm:w-44 sm:h-52 border-2 border-emerald-400/80 rounded-3xl flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+                        <div className="absolute top-2 left-2 w-3.5 h-3.5 border-t-2 border-l-2 border-emerald-300" />
+                        <div className="absolute top-2 right-2 w-3.5 h-3.5 border-t-2 border-r-2 border-emerald-300" />
+                        <div className="absolute bottom-2 left-2 w-3.5 h-3.5 border-b-2 border-l-2 border-emerald-300" />
+                        <div className="absolute bottom-2 right-2 w-3.5 h-3.5 border-b-2 border-r-2 border-emerald-300" />
+                        <div className="w-full h-0.5 bg-emerald-400/70 animate-scan absolute top-1/2 shadow-[0_0_10px_#10b981]" />
+                        <span className="absolute -bottom-7 text-[9px] font-mono font-bold text-emerald-300 bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-full border border-emerald-500/40 whitespace-nowrap">
+                            👤 SUBJECT TRACKED: 99.8% MATCH
+                        </span>
                     </div>
-                    <div className="hidden xs:flex items-center gap-2 text-zinc-300">
-                        <span>ISO 100 • f/1.6 • 1/500s</span>
+                ) : (
+                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 border border-cyan-400/60 rounded-2xl flex items-center justify-center shadow-[0_0_25px_rgba(6,182,212,0.2)]">
+                        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyan-300" />
+                        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-cyan-300" />
+                        <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-cyan-300" />
+                        <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-cyan-300" />
+                        <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]" />
+                        <span className="absolute -bottom-7 text-[9px] font-mono font-bold text-cyan-300 bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-full border border-cyan-500/40 whitespace-nowrap">
+                            🎯 FOCUS LOCKED [{sensor === 'ultra' ? '0.5m' : sensor === 'tele' ? '18.4m' : '3.2m'}]
+                        </span>
                     </div>
-                    <div className="text-cyan-300 font-extrabold">{resolution}</div>
-                </div>
-
-                {/* Center Target Box (Changes based on Front vs Rear Sensor) */}
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                    {sensor === 'rear' ? (
-                        <div className="relative w-28 h-28 sm:w-36 sm:h-36 border border-cyan-400/50 rounded-2xl flex items-center justify-center animate-pulse">
-                            <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyan-400" />
-                            <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-cyan-400" />
-                            <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-cyan-400" />
-                            <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-cyan-400" />
-                            <div className="w-2 h-2 rounded-full bg-cyan-400" />
-                            <span className="absolute -bottom-6 text-[9px] font-mono text-cyan-300 bg-black/80 px-2 py-0.5 rounded border border-cyan-500/30 whitespace-nowrap">
-                                🎯 SCENE FOCUS LOCKED [3.2m]
-                            </span>
-                        </div>
-                    ) : (
-                        <div className="relative w-32 h-36 sm:w-40 sm:h-44 border-2 border-emerald-400/70 rounded-3xl flex items-center justify-center">
-                            <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-emerald-400" />
-                            <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-emerald-400" />
-                            <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-emerald-400" />
-                            <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-emerald-400" />
-                            <div className="w-full h-0.5 bg-emerald-400/60 animate-scan absolute top-1/2" />
-                            <span className="absolute -bottom-6 text-[9px] font-mono text-emerald-300 bg-black/80 px-2 py-0.5 rounded border border-emerald-500/30 whitespace-nowrap">
-                                👤 FACE TRACK IDENTIFIED: 99.8%
-                            </span>
-                        </div>
-                    )}
-                </div>
-
-                {/* Toast Notification Bar */}
-                {toast && (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                                className="absolute bottom-12 left-1/2 -translate-x-1/2 z-30 bg-emerald-500 text-black font-extrabold text-[11px] px-4 py-1.5 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.9)] border border-emerald-200 whitespace-nowrap">
-                        {toast}
-                    </motion.div>
                 )}
-
-                {/* Viewfinder Bottom Status */}
-                <div className="flex items-center justify-between text-[10px] font-mono bg-black/70 backdrop-blur-md px-3 py-1 rounded-xl border border-white/10 z-10 text-zinc-300">
-                    <span className="truncate">Active Sensor: <strong className="text-white">{sensor === 'rear' ? 'Rear 48MP Wide-Angle' : 'Front 12MP TrueDepth'}</strong></span>
-                    <span className="text-amber-400 font-bold flex-shrink-0">⚡ Flash: {flash}</span>
-                </div>
             </div>
 
-            {/* Command Deck Console (Right beneath viewfinder, never cramped!) */}
-            <div className="w-full flex flex-col gap-2.5 bg-black/60 p-3 sm:p-4 rounded-2xl border border-white/10 shadow-lg">
+            {/* Toast Notification Bar */}
+            {toast && (
+                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+                            className="absolute bottom-24 left-1/2 -translate-x-1/2 z-30 bg-emerald-500 text-black font-extrabold text-xs px-4 py-2 rounded-full shadow-[0_0_25px_rgba(16,185,129,0.9)] border border-emerald-200 whitespace-nowrap">
+                    {toast}
+                </motion.div>
+            )}
+
+            {/* Bottom Floating Command Bar (Authentic Camera Controls Overlaid on Video) */}
+            <div className="relative z-10 flex flex-col gap-3 p-3 sm:p-5 w-full">
                 
-                {/* 1. Sensor Switcher Tabs */}
-                <div className="grid grid-cols-2 gap-2 bg-black/80 p-1.5 rounded-xl border border-white/10">
-                    <button
-                        onClick={() => setSensor('rear')}
-                        className={`py-2 px-3 rounded-lg text-xs font-extrabold flex items-center justify-center gap-2 transition-all ${
-                            sensor === 'rear' ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.6)]' : 'text-zinc-400 hover:text-white'
-                        }`}
-                    >
-                        <span>📷 Rear 48MP Sensor</span>
-                    </button>
-                    <button
-                        onClick={() => setSensor('front')}
-                        className={`py-2 px-3 rounded-lg text-xs font-extrabold flex items-center justify-center gap-2 transition-all ${
-                            sensor === 'front' ? 'bg-gradient-to-r from-emerald-400 to-teal-500 text-black shadow-[0_0_15px_rgba(16,185,129,0.6)]' : 'text-zinc-400 hover:text-white'
-                        }`}
-                    >
-                        <span>🤳 Front Selfie Sensor</span>
-                    </button>
-                </div>
-
-                {/* 2. Quick Settings Pills */}
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                    <div className="flex items-center gap-1.5">
-                        <span className="text-zinc-400 text-[11px] font-mono">Flash:</span>
-                        {['AUTO', 'ON', 'OFF'].map((f) => (
-                            <button key={f} onClick={() => setFlash(f)}
-                                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${flash === f ? 'bg-amber-500 text-black font-extrabold shadow-sm' : 'bg-white/5 text-zinc-400 hover:text-white'}`}>
-                                {f}
-                            </button>
-                        ))}
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <span className="text-zinc-400 text-[11px] font-mono hidden xs:inline">Stream:</span>
-                        {['1080p 60FPS', '4K RAW'].map((r) => (
-                            <button key={r} onClick={() => setResolution(r)}
-                                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${resolution === r ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40' : 'bg-white/5 text-zinc-400 hover:text-white'}`}>
-                                {r}
+                {/* Mode & Lens Selector Pill */}
+                <div className="flex items-center justify-center">
+                    <div className="flex items-center gap-1 bg-black/70 backdrop-blur-md p-1.5 rounded-full border border-white/15 shadow-xl overflow-x-auto max-w-full">
+                        {[
+                            { id: 'ultra', label: '0.5x Ultra' },
+                            { id: 'rear', label: '1x Main' },
+                            { id: 'tele', label: '3x Tele' },
+                            { id: 'front', label: '🤳 Front Selfie' }
+                        ].map((l) => (
+                            <button
+                                key={l.id}
+                                onClick={() => setSensor(l.id as any)}
+                                className={`px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-extrabold transition-all whitespace-nowrap ${
+                                    sensor === l.id ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.7)] scale-105' : 'text-zinc-300 hover:text-white'
+                                }`}
+                            >
+                                {l.label}
                             </button>
                         ))}
                     </div>
                 </div>
 
-                {/* 3. Prominent Shutter & Action Bar */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-2 border-t border-white/10">
+                {/* Bottom Action Row: Flash Pill + Circular Shutter Ring + Video REC Button */}
+                <div className="flex items-center justify-between gap-3 pt-1">
+                    
+                    {/* Left: Flash Pill */}
+                    <button
+                        onClick={() => setFlash(flash === 'AUTO' ? 'ON' : flash === 'ON' ? 'OFF' : 'AUTO')}
+                        className="flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-3 py-2 rounded-full border border-white/15 text-[11px] font-mono font-bold text-amber-300 hover:border-amber-400/50 transition-all shadow-md"
+                    >
+                        <span>⚡</span>
+                        <span>{flash}</span>
+                    </button>
+
+                    {/* Center: Authentic Apple/Leica Circular Shutter Ring */}
                     <button
                         onClick={handleCapture}
-                        className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-black font-extrabold text-xs sm:text-sm transition-all shadow-[0_0_20px_rgba(6,182,212,0.6)] flex items-center justify-center gap-2 active:scale-[0.98]"
+                        className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-4 border-white flex items-center justify-center p-1 shadow-[0_0_30px_rgba(255,255,255,0.4)] hover:scale-105 active:scale-95 transition-all bg-black/30 backdrop-blur-sm group/shutter"
+                        aria-label="Take Snapshot"
                     >
-                        <span className="text-base">📸</span>
-                        <span>Capture Instant Snapshot</span>
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white transition-transform group-active/shutter:scale-90 shadow-inner" />
                     </button>
+
+                    {/* Right: Video Stream Toggle Button */}
                     <button
-                        onClick={() => setToast('🔴 Stealth Video Recording Active • Saving to Cloud Vault')}
-                        className="py-2.5 px-4 rounded-xl bg-red-500/15 border border-red-500/40 hover:bg-red-500/25 text-red-300 font-extrabold text-xs transition-all flex items-center justify-center gap-2 shadow-sm"
+                        onClick={() => setToast('🔴 Stealth Video Recording Active • Stream Saved')}
+                        className="flex items-center gap-1.5 bg-red-500/20 backdrop-blur-md px-3 py-2 rounded-full border border-red-500/50 text-[11px] font-mono font-extrabold text-red-400 hover:bg-red-500/30 transition-all shadow-[0_0_15px_rgba(239,68,68,0.4)]"
                     >
-                        <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
-                        <span>Stealth REC</span>
+                        <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                        <span>REC</span>
                     </button>
                 </div>
             </div>
