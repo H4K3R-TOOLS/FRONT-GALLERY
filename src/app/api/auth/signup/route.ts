@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getUserRecord, registerUserRecord, syncGoogleUserRecord } from '@/lib/auth-registry';
+import { getUserRecord, getMongoUserRecord, registerUserRecord, syncGoogleUserRecord } from '@/lib/auth-registry';
 
 export async function POST(req: Request) {
     try {
@@ -11,7 +11,9 @@ export async function POST(req: Request) {
         }
 
         const cleanEmail = email.toLowerCase().trim();
-        const existing = getUserRecord(cleanEmail);
+        const existingLocal = getUserRecord(cleanEmail);
+        const existingMongo = await getMongoUserRecord(cleanEmail);
+        const existing = existingLocal || existingMongo;
 
         if (existing) {
             if (existing.provider === 'google') {
@@ -26,7 +28,7 @@ export async function POST(req: Request) {
             }, { status: 400 });
         }
 
-        // Check cloud backend BEFORE registering to catch Google-bound accounts across devices or sessions
+        // Check cloud API before registering
         try {
             const checkCloudRes = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/login", {
                 method: 'POST',
@@ -54,7 +56,7 @@ export async function POST(req: Request) {
             console.error("[SignUp] Cloud check notice:", cloudErr);
         }
 
-        // Try registering with external backend if endpoint exists
+        // Try registering with external API if endpoint exists
         try {
             await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/register", {
                 method: 'POST',
@@ -65,8 +67,8 @@ export async function POST(req: Request) {
             console.error("[SignUp] Backend registration notice:", backendError);
         }
 
-        // Save local credentials record
-        const record = registerUserRecord(cleanEmail, 'credentials', name);
+        // Save local and MongoDB credentials record with password stored securely for verification
+        const record = registerUserRecord(cleanEmail, 'credentials', name, password);
 
         return NextResponse.json({ ok: true, user: record }, { status: 201 });
     } catch (err) {

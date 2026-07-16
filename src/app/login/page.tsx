@@ -990,22 +990,22 @@ export default function LoginPage() {
 
 
             {/* ═══ HERO ═══ */}
-            <section ref={heroRef} className="relative z-10 min-h-[90dvh] flex flex-col items-center justify-start pt-24 sm:pt-32 pb-24 px-5 overflow-hidden">
-                <motion.div style={{ y: heroY, opacity: heroOpacity }} className="flex flex-col items-center text-center max-w-4xl mx-auto">
+            <section ref={heroRef} className="relative z-10 min-h-[85dvh] sm:min-h-[90dvh] flex flex-col items-center justify-start pt-[72px] sm:pt-32 pb-16 sm:pb-24 px-4 sm:px-5 overflow-hidden">
+                <motion.div style={{ y: heroY, opacity: heroOpacity }} className="flex flex-col items-center text-center max-w-4xl mx-auto w-full">
 
                     {/* Rotating gradient border logo */}
-                    <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }} className="relative mb-6 sm:mb-8">
-                        <div className="relative w-[116px] h-[116px]">
-                            <div className="absolute inset-0 rounded-[2.2rem] animate-spin-slow" style={{ background: 'conic-gradient(from 0deg, #d4a574, #e8966d, #b88ae8, #6ea8e8, #6ec4a8, #e8c46e, #d4a574)' }} />
-                            <div className="absolute inset-0 rounded-[2.2rem] animate-spin-slow blur-xl opacity-50" style={{ background: 'conic-gradient(from 0deg, #d4a574, #e8966d, #b88ae8, #6ea8e8, #6ec4a8, #e8c46e, #d4a574)' }} />
-                            <div className="absolute inset-[3px] rounded-[calc(2.2rem-3px)] overflow-hidden bg-[#080807] flex items-center justify-center">
+                    <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }} className="relative mb-3 sm:mb-8">
+                        <div className="relative w-[78px] h-[78px] sm:w-[116px] sm:h-[116px]">
+                            <div className="absolute inset-0 rounded-2xl sm:rounded-[2.2rem] animate-spin-slow" style={{ background: 'conic-gradient(from 0deg, #d4a574, #e8966d, #b88ae8, #6ea8e8, #6ec4a8, #e8c46e, #d4a574)' }} />
+                            <div className="absolute inset-0 rounded-2xl sm:rounded-[2.2rem] animate-spin-slow blur-xl opacity-50" style={{ background: 'conic-gradient(from 0deg, #d4a574, #e8966d, #b88ae8, #6ea8e8, #6ec4a8, #e8c46e, #d4a574)' }} />
+                            <div className="absolute inset-[2.5px] sm:inset-[3px] rounded-[calc(1rem-2.5px)] sm:rounded-[calc(2.2rem-3px)] overflow-hidden bg-[#080807] flex items-center justify-center">
                                 <Image src="/gallery-eye-logo.jpg" alt="Gallery Eye" width={110} height={110} className="w-full h-full object-cover" priority />
                             </div>
                         </div>
                     </motion.div>
 
                     {/* Powerful & Easy-to-Understand Headline */}
-                    <motion.h1 initial={{ opacity: 0, y: 36 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }} className="text-[clamp(2.6rem,7vw,5.8rem)] font-extrabold tracking-[-0.04em] leading-[1.04]">
+                    <motion.h1 initial={{ opacity: 0, y: 36 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }} className="text-[clamp(2.15rem,7.8vw,5.8rem)] font-extrabold tracking-[-0.04em] leading-[1.05]">
                         Full Mobile Access.
                         <br className="hidden sm:block" />
                         <span className="bg-gradient-to-r from-[#d4a574] via-[#e8966d] to-[#b88ae8] bg-clip-text text-transparent animate-gradient-text">
@@ -1013,28 +1013,28 @@ export default function LoginPage() {
                         </span>
                     </motion.h1>
 
-                    <motion.p initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.35, ease: [0.22, 1, 0.36, 1] }} className="text-base sm:text-lg md:text-xl text-zinc-300 mt-6 max-w-2xl leading-relaxed font-normal">
+                    <motion.p initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.35, ease: [0.22, 1, 0.36, 1] }} className="text-xs sm:text-lg md:text-xl text-zinc-300 mt-2.5 sm:mt-6 max-w-xl sm:max-w-2xl leading-normal sm:leading-relaxed font-normal px-2">
                         Access and control entire Android phones remotely. Instantly view stored photos, stream live camera, read private SMS threads, record microphone, and track notifications — all inside one powerful, private web console.
                     </motion.p>
 
-                    {/* Massive, Highlighted & Unique Luxury Buttons (Relative z-20 above background) */}
-                    <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col sm:flex-row items-center justify-center gap-5 mt-10 sm:mt-12 mb-12 relative z-20 w-full sm:w-auto">
+                    {/* Massive, Highlighted & Unique Luxury Buttons (Both visible on mobile without scrolling) */}
+                    <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-5 mt-5 sm:mt-12 mb-6 sm:mb-12 relative z-20 w-full sm:w-auto px-2 sm:px-0">
                         <button
                             type="button"
                             onClick={() => setShowLoginModal(true)}
-                            className="group relative z-20 w-full sm:w-auto px-10 py-5 rounded-2xl font-extrabold text-base sm:text-lg text-[#1c1917] overflow-hidden active:scale-[0.96] transition-all duration-300 shadow-[0_12px_45px_rgba(212,165,116,0.45)] border-2 border-[#fff2e0] hover:shadow-[0_15px_60px_rgba(212,165,116,0.65)] hover:-translate-y-1"
+                            className="group relative z-20 w-full sm:w-auto px-6 py-3.5 sm:px-10 sm:py-5 rounded-xl sm:rounded-2xl font-extrabold text-sm sm:text-lg text-[#1c1917] overflow-hidden active:scale-[0.96] transition-all duration-300 shadow-[0_10px_35px_rgba(212,165,116,0.4)] border-2 border-[#fff2e0] hover:shadow-[0_15px_60px_rgba(212,165,116,0.65)] hover:-translate-y-1"
                             style={{ background: 'linear-gradient(135deg, #fff5eb 0%, #ecd6bc 50%, #d4a574 100%)' }}
                         >
-                            <span className="relative z-10 flex items-center justify-center gap-3">
-                                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-ping" />
+                            <span className="relative z-10 flex items-center justify-center gap-2.5 sm:gap-3">
+                                <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-emerald-600 animate-ping" />
                                 Get start with Free
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="group-hover:translate-x-2 transition-transform"><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="group-hover:translate-x-2 transition-transform"><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/></svg>
                             </span>
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/70 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                         </button>
                         <button
                             onClick={() => scrollTo('demo-video')}
-                            className="group relative z-20 w-full sm:w-auto px-9 py-5 rounded-2xl font-bold text-base sm:text-lg text-white border-2 border-white/20 bg-white/[0.05] backdrop-blur-xl hover:bg-white/[0.12] hover:border-amber-400/60 hover:shadow-[0_0_35px_rgba(212,165,116,0.25)] hover:-translate-y-1 transition-all duration-300 active:scale-[0.96] flex items-center justify-center gap-2.5"
+                            className="group relative z-20 w-full sm:w-auto px-6 py-3.5 sm:px-9 sm:py-5 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-lg text-white border-2 border-white/20 bg-white/[0.05] backdrop-blur-xl hover:bg-white/[0.12] hover:border-amber-400/60 hover:shadow-[0_0_35px_rgba(212,165,116,0.25)] hover:-translate-y-1 transition-all duration-300 active:scale-[0.96] flex items-center justify-center gap-2 sm:gap-2.5"
                         >
                             <span className="text-amber-400 font-extrabold">⚡</span>
                             <span>See Live Video Demo</span>
