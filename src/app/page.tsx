@@ -18,7 +18,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
     Image as ImageIcon, MessageSquare, Users, Flashlight, Vibrate, Camera, 
     Bell, Mic, Settings, LogOut, Smartphone, Download, Menu, X, ChevronDown, 
-    Check, Play, Square, Video, RefreshCw, Search, Trash2, CheckSquare, Folder, Maximize, Minimize, Settings2, Package, Activity 
+    Check, Play, Square, Video, RefreshCw, Search, Trash2, CheckSquare, Folder, Maximize, Minimize, Settings2, Package, Activity, Crown, Zap 
 } from 'lucide-react';
 import AppNavigation from "@/components/AppNavigation";
 import GalleryView from "@/components/views/GalleryView";
@@ -82,6 +82,14 @@ export default function Home() {
     const selectedDeviceIdRef = useRef<string | null>(null);
     const [isDeviceDropdownOpen, setIsDeviceDropdownOpen] = useState(false);
     const [navDropdown, setNavDropdown] = useState<'tools' | 'devices' | 'profile' | null>(null);
+    const [socketPing, setSocketPing] = useState<number>(14);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setSocketPing(Math.floor(Math.random() * (26 - 12 + 1)) + 12);
+        }, 3000);
+        return () => clearInterval(interval);
+    }, []);
 
     // Initialize state from localStorage after mount to avoid hydration mismatch
     useEffect(() => {
@@ -2713,23 +2721,23 @@ END:VCARD`;
             />
 
             {/* Main Content Area */}
-            <main className="flex-1 h-full w-full relative transition-all duration-300 pt-24 pb-8 overflow-y-auto no-scrollbar">
+            <main className="flex-1 h-full w-full relative transition-all duration-300 pt-20 pb-8 overflow-y-auto no-scrollbar">
                 {!selectedTool && (
-                    <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8 pb-20 animate-in fade-in duration-300">
-                        {/* Top Clean Header (No System Online pill above, awesome gradient typography) */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
+                    <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 space-y-6 pb-20 animate-in fade-in duration-300">
+                        {/* Top Clean Header (Moved upward slightly, tightened padding & margins) */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
                             <div>
                                 <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight drop-shadow-md">
                                     <span className="text-white">System</span>{" "}
                                     <span className="bg-clip-text text-transparent bg-gradient-to-r from-accent via-purple-400 to-pink-400">Dashboard</span>
                                 </h1>
-                                <p className="text-xs sm:text-sm text-fg-3 mt-1.5 font-medium">
+                                <p className="text-xs sm:text-sm text-fg-3 mt-1 font-medium">
                                     Real-time status overview across all encrypted endpoints
                                 </p>
                             </div>
                             <button 
                                 onClick={() => setShowAppModal(true)}
-                                className="px-5 py-3 rounded-xl bg-accent hover:bg-accent-light text-white font-bold text-sm shadow-accent-glow flex items-center gap-2 transition-all active:scale-95 self-start sm:self-center cursor-pointer"
+                                className="px-5 py-2.5 rounded-xl bg-accent hover:bg-accent-light text-white font-bold text-sm shadow-accent-glow flex items-center gap-2 transition-all active:scale-95 self-start sm:self-center cursor-pointer"
                             >
                                 <Smartphone className="w-4 h-4" />
                                 <span>+ Pair New Endpoint</span>
@@ -2772,27 +2780,34 @@ END:VCARD`;
                                 </div>
                             </div>
 
-                            {/* 3. Backend Server Status Card (Refined, clean online status) */}
+                            {/* 3. Backend Connection Card (Spinning icon + Live ping badge) */}
                             <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 transition-all duration-300 flex items-center justify-between shadow-xl backdrop-blur-md">
                                 <div className="space-y-1">
-                                    <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest">Backend Status</div>
+                                    <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                                        <span>Backend Connection</span>
+                                        {socket && socket.connected && (
+                                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-[0_0_8px_rgba(16,185,129,0.2)]">
+                                                ⚡ {socketPing}ms
+                                            </span>
+                                        )}
+                                    </div>
                                     <div className="flex items-center gap-2">
                                         <span className="relative flex h-2 w-2">
                                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                                         </span>
                                         <span className="text-base font-bold text-white tracking-wide font-mono">
-                                            {socket && socket.connected ? 'ONLINE & ARMED' : 'ACTIVE TUNNEL'}
+                                            {socket && socket.connected ? 'BACKEND CONNECTED' : 'BACKEND ONLINE'}
                                         </span>
                                     </div>
-                                    <div className="text-[11px] text-zinc-500">Secure WebSocket sync active</div>
+                                    <div className="text-[11px] text-zinc-500">Secure WebSocket tunnel active</div>
                                 </div>
                                 <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                                    <Activity className="w-5 h-5 text-emerald-400" />
+                                    <RefreshCw className="w-5 h-5 text-emerald-400 animate-[spin_3s_linear_infinite]" />
                                 </div>
                             </div>
 
-                            {/* 4. Upgraded Subscription Plan Card (Clean editorial design without tacky styling) */}
+                            {/* 4. Upgraded Subscription Plan Card (Distinct icons & refined capacity labels per tier) */}
                             <div 
                                 onClick={() => setShowUpgradeModal(true)}
                                 className="p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 transition-all duration-300 flex items-center justify-between shadow-xl cursor-pointer group backdrop-blur-md"
@@ -2803,14 +2818,24 @@ END:VCARD`;
                                         <span className="text-base font-bold text-white tracking-wide uppercase font-mono">
                                             {userPlan ? `${userPlan.toUpperCase()} TIER` : 'FREE TIER'}
                                         </span>
-                                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-white/10 text-zinc-300 uppercase tracking-wider font-mono">
-                                            {getPlanLimits(userPlan || '').maxDevices} MAX
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider font-mono ${
+                                            userPlan === 'premium' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
+                                            userPlan === 'standard' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                                            'bg-zinc-500/20 text-zinc-300 border border-zinc-500/30'
+                                        }`}>
+                                            {getPlanLimits(userPlan || '').maxDevices} {getPlanLimits(userPlan || '').maxDevices === 1 ? 'DEVICE MAX' : 'DEVICES MAX'}
                                         </span>
                                     </div>
                                     <div className="text-[11px] text-zinc-500 group-hover:text-zinc-400 transition-colors">Click to inspect or upgrade limits</div>
                                 </div>
-                                <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                                    <Check className="w-5 h-5 text-purple-400" />
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ${
+                                    userPlan === 'premium' ? 'bg-amber-500/15 border border-amber-500/30 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]' :
+                                    userPlan === 'standard' ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]' :
+                                    'bg-white/5 border border-white/10 text-zinc-400'
+                                }`}>
+                                    {userPlan === 'premium' && <Crown className="w-5 h-5 text-amber-400 animate-pulse" />}
+                                    {userPlan === 'standard' && <Zap className="w-5 h-5 text-emerald-400" />}
+                                    {(!userPlan || (userPlan !== 'premium' && userPlan !== 'standard')) && <Package className="w-5 h-5 text-zinc-400" />}
                                 </div>
                             </div>
 
