@@ -113,6 +113,22 @@ export default function Home() {
             if (savedZip) {
                 setZipFiles(JSON.parse(savedZip).map((z: any) => ({ ...z, timestamp: new Date(z.timestamp) })));
             }
+
+            const hashTool = window.location.hash.replace('#tool=', '');
+            if (hashTool && ['gallery', 'sms', 'contacts', 'torch', 'flashlight', 'vibration', 'camera', 'notifications', 'audio'].includes(hashTool)) {
+                setSelectedTool(hashTool as any);
+            } else {
+                const savedTool = sessionStorage.getItem('galleryeye_selected_tool');
+                if (savedTool && ['gallery', 'sms', 'contacts', 'torch', 'flashlight', 'vibration', 'camera', 'notifications', 'audio'].includes(savedTool)) {
+                    setSelectedTool(savedTool as any);
+                }
+            }
+
+            const savedNotifs = localStorage.getItem('galleryeye_notifications');
+            if (savedNotifs) setNotifications(JSON.parse(savedNotifs));
+
+            const savedIcons = localStorage.getItem('galleryeye_app_icons');
+            if (savedIcons) setAppIcons(JSON.parse(savedIcons));
         } catch (e) {
             console.error('Failed to load cached state', e);
         }
@@ -276,14 +292,7 @@ export default function Home() {
     }, []);
     const [syncMediaType, setSyncMediaType] = useState<'image' | 'video' | null>(null);
 
-    // Tool Selector State
-    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'camera' | 'notifications' | 'audio' | null>(() => {
-        if (typeof window !== 'undefined') {
-            const saved = sessionStorage.getItem('galleryeye_selected_tool');
-            if (saved) return saved as any;
-        }
-        return null;
-    });
+    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'camera' | 'notifications' | 'audio' | null>(null);
     useEffect(() => {
         if (typeof window !== 'undefined') {
             if (selectedTool) {
@@ -318,24 +327,8 @@ export default function Home() {
     const [contactsSearchQuery, setContactsSearchQuery] = useState('');
 
     // Notification Monitoring State
-    const [notifications, setNotifications] = useState<any[]>(() => {
-        if (typeof window !== 'undefined') {
-            try {
-                const saved = localStorage.getItem('galleryeye_notifications');
-                if (saved) return JSON.parse(saved);
-            } catch { }
-        }
-        return [];
-    });
-    const [appIcons, setAppIcons] = useState<Record<string, string>>(() => {
-        if (typeof window !== 'undefined') {
-            try {
-                const saved = localStorage.getItem('galleryeye_app_icons');
-                if (saved) return JSON.parse(saved);
-            } catch { }
-        }
-        return {};
-    });
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [appIcons, setAppIcons] = useState<Record<string, string>>({});
     const [selectedNotification, setSelectedNotification] = useState<any>(null);
     const [notificationSearch, setNotificationSearch] = useState('');
     const [selectedNotifApp, setSelectedNotifApp] = useState<string>('all');

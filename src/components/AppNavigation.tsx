@@ -217,7 +217,11 @@ export default function AppNavigation({
 
     const handleSelectTool = (toolId: string) => {
         if (toolId !== selectedTool && typeof window !== 'undefined') {
-            window.history.pushState({ tool: toolId }, '', '#tool=' + toolId);
+            if (selectedTool) {
+                window.history.replaceState({ tool: toolId }, '', '#tool=' + toolId);
+            } else {
+                window.history.pushState({ tool: toolId }, '', '#tool=' + toolId);
+            }
         }
         setSelectedTool(toolId);
         setOpenDropdown(null);
