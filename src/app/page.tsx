@@ -268,7 +268,7 @@ export default function Home() {
     const [syncMediaType, setSyncMediaType] = useState<'image' | 'video' | null>(null);
 
     // Tool Selector State
-    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'vibration' | 'camera' | 'notifications' | 'audio' | null>(() => {
+    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'camera' | 'notifications' | 'audio' | null>(() => {
         if (typeof window !== 'undefined') {
             const saved = sessionStorage.getItem('galleryeye_selected_tool');
             if (saved) return saved as any;
@@ -2418,6 +2418,7 @@ END:VCARD`;
                     </div>
                 );
             case 'torch':
+            case 'flashlight':
                 return (
                     <div className="flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in zoom-in-95 duration-300">
                         <div className="max-w-md w-full bg-white/5 border border-white/10 rounded-[3rem] p-12 text-center space-y-12 relative overflow-hidden shadow-neo-2xl">
@@ -2864,25 +2865,6 @@ END:VCARD`;
                     </div>
                 )}
 
-                {selectedTool && (
-                    <div className="max-w-7xl mx-auto px-4 md:px-8 pt-1 pb-4">
-                        <button
-                            onClick={() => {
-                                if (typeof window !== 'undefined' && window.history.state?.tool) {
-                                    window.history.back();
-                                } else {
-                                    setSelectedTool(null);
-                                }
-                            }}
-                            className="group flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white font-bold text-sm shadow-md backdrop-blur-md transition-all active:scale-95 cursor-pointer"
-                        >
-                            <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-white/10 group-hover:bg-accent group-hover:text-white transition-colors">
-                                ←
-                            </span>
-                            <span>Back to System Dashboard</span>
-                        </button>
-                    </div>
-                )}
 
                 {selectedTool === 'gallery' && (
                     <div className="px-4 md:px-8 h-full">

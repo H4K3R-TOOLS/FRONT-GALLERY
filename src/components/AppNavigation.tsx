@@ -203,8 +203,6 @@ export default function AppNavigation({
         { id: 'notifications', label: 'Alerts', icon: Bell, color: 'text-indigo-400' },
         { id: 'flashlight', label: 'Flashlight', icon: Flashlight, color: 'text-amber-400' },
         { id: 'vibration', label: 'Vibration', icon: Vibrate, color: 'text-emerald-400' },
-        { id: 'settings', label: 'Device Settings', icon: Settings, color: 'text-sky-400' },
-        { id: 'clipboard', label: 'Clipboard', icon: Check, color: 'text-teal-400' },
         { id: 'contacts', label: 'Contacts', icon: Users, color: 'text-rose-400' },
         { id: 'sms', label: 'SMS & Messages', icon: MessageSquare, color: 'text-blue-400' }
     ];
