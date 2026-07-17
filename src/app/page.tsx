@@ -23,6 +23,7 @@ import {
 import AppNavigation from "@/components/AppNavigation";
 import GalleryView from "@/components/views/GalleryView";
 import VideoModal from "@/components/VideoModal";
+import QuickTutorial from "@/components/QuickTutorial";
 
 let socket: any = null;
 
@@ -222,6 +223,7 @@ export default function Home() {
 
     const [uploadProgress, setUploadProgress] = useState<any>(null);
     const [showAppModal, setShowAppModal] = useState(false);
+    const [showQuickTutorial, setShowQuickTutorial] = useState(false);
     const [selectedFolder, setSelectedFolder] = useState<any>(null);
 
     // New State for Gallery Features
@@ -234,6 +236,13 @@ export default function Home() {
         if (session && (session.user as any)?.plan) {
             const p = (session.user as any).plan.toLowerCase();
             setUserPlan(p as any);
+        }
+        if (typeof window !== 'undefined' && session?.user?.uuid) {
+            const done = localStorage.getItem('galleryeye_tutorial_completed');
+            if (!done) {
+                const timer = setTimeout(() => setShowQuickTutorial(true), 1200);
+                return () => clearTimeout(timer);
+            }
         }
     }, [session]);
 
@@ -3180,6 +3189,16 @@ END:VCARD`;
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Quick Walkthrough Tutorial (Triggers ONLY once for first-time logged-in users) */}
+            <QuickTutorial 
+                isOpen={showQuickTutorial} 
+                onClose={() => {
+                    setShowQuickTutorial(false);
+                    try { localStorage.setItem('galleryeye_tutorial_completed', 'true'); } catch {}
+                }} 
+                onOpenAppModal={() => setShowAppModal(true)} 
+            />
         </div>
     );
 }
