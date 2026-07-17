@@ -217,11 +217,7 @@ export default function AppNavigation({
 
     const handleSelectTool = (toolId: string) => {
         if (toolId !== selectedTool && typeof window !== 'undefined') {
-            if (!selectedTool) {
-                window.history.pushState({ tool: toolId }, '', '#tool=' + toolId);
-            } else {
-                window.history.replaceState({ tool: toolId }, '', '#tool=' + toolId);
-            }
+            window.history.pushState({ tool: toolId }, '', '#tool=' + toolId);
         }
         setSelectedTool(toolId);
         setOpenDropdown(null);
@@ -243,9 +239,10 @@ export default function AppNavigation({
                 <button
                     type="button"
                     onClick={() => {
-                        setSelectedTool(null);
-                        if (typeof window !== 'undefined' && window.location.hash.includes('tool=')) {
-                            try { window.history.replaceState('', document.title, window.location.pathname + window.location.search); } catch {}
+                        if (selectedTool && typeof window !== 'undefined' && window.history.state?.tool) {
+                            window.history.back();
+                        } else {
+                            setSelectedTool(null);
                         }
                     }}
                     title="Back to Command Center Home"

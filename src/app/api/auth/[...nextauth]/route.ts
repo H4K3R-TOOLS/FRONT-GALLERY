@@ -4,7 +4,6 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import { getUserRecord, registerUserRecord, syncGoogleUserRecord, verifyPassword } from "@/lib/auth-registry"
 
 export const authOptions: AuthOptions = {
-    secret: process.env.NEXTAUTH_SECRET || "gallery_eye_default_secret_key_2026_super_secure",
     providers: [
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID || "",
