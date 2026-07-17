@@ -18,10 +18,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
     Image as ImageIcon, MessageSquare, Users, Flashlight, Vibrate, Camera, 
     Bell, Mic, Settings, LogOut, Smartphone, Download, Menu, X, ChevronDown, 
-    Check, Play, Square, Video, RefreshCw, Search, Trash2, CheckSquare, Folder, Maximize, Minimize, Settings2, Package 
+    Check, Play, Square, Video, RefreshCw, Search, Trash2, CheckSquare, Folder, Maximize, Minimize, Settings2, Package, Activity 
 } from 'lucide-react';
 import AppNavigation from "@/components/AppNavigation";
 import GalleryView from "@/components/views/GalleryView";
+import VideoModal from "@/components/VideoModal";
 
 let socket: any = null;
 
@@ -2711,44 +2712,44 @@ END:VCARD`;
             {/* Main Content Area */}
             <main className="flex-1 h-full w-full relative transition-all duration-300 pt-24 pb-8 overflow-y-auto no-scrollbar">
                 {!selectedTool && (
-                    <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 space-y-8 pb-20 animate-in fade-in duration-300">
-                        {/* Top Clean Header */}
+                    <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8 pb-20 animate-in fade-in duration-300">
+                        {/* Top Clean Header (No System Online pill above, awesome gradient typography) */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
                             <div>
-                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-xs mb-3">
-                                    <span className="relative flex h-2 w-2">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                    </span>
-                                    <span className="font-bold tracking-wider">SYSTEM ONLINE</span>
-                                </div>
-                                <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-                                    System Dashboard
+                                <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight drop-shadow-md">
+                                    <span className="text-white">System</span>{" "}
+                                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-accent via-purple-400 to-pink-400">Dashboard</span>
                                 </h1>
+                                <p className="text-xs sm:text-sm text-fg-3 mt-1.5 font-medium">
+                                    Real-time status overview across all encrypted endpoints
+                                </p>
                             </div>
                             <button 
                                 onClick={() => setShowAppModal(true)}
-                                className="px-5 py-2.5 rounded-xl bg-accent hover:bg-accent-light text-white font-bold text-sm shadow-accent-glow flex items-center gap-2 transition-all active:scale-95 self-start sm:self-center cursor-pointer"
+                                className="px-5 py-3 rounded-xl bg-accent hover:bg-accent-light text-white font-bold text-sm shadow-accent-glow flex items-center gap-2 transition-all active:scale-95 self-start sm:self-center cursor-pointer"
                             >
                                 <Smartphone className="w-4 h-4" />
                                 <span>+ Pair New Endpoint</span>
                             </button>
                         </div>
 
-                        {/* Functional Telemetry & Status Cards */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {/* Functional Telemetry & Status Cards Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                            {/* 1. Connected Devices Card */}
                             <div className="p-5 rounded-3xl neo-surface border border-white/5 flex items-center justify-between shadow-lg">
                                 <div>
                                     <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-1">Connected Devices</div>
                                     <div className="text-2xl font-extrabold text-white flex items-center gap-2 font-mono">
                                         {devices.filter(d => d.online).length} <span className="text-xs font-normal text-fg-3">/ {devices.length} Online</span>
                                     </div>
+                                    <div className="text-[11px] font-medium text-fg-3 mt-0.5">Active endpoint connections</div>
                                 </div>
                                 <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
                                     <Smartphone className="w-6 h-6 text-emerald-400" />
                                 </div>
                             </div>
 
+                            {/* 2. Synced Media Card */}
                             <div 
                                 onClick={() => setSelectedTool('gallery')}
                                 className="p-5 rounded-3xl neo-surface border border-white/5 hover:border-white/20 transition-all flex items-center justify-between shadow-lg cursor-pointer group"
@@ -2758,104 +2759,68 @@ END:VCARD`;
                                     <div className="text-2xl font-extrabold text-white font-mono">
                                         {images.length} <span className="text-xs font-normal text-fg-3">Assets</span>
                                     </div>
+                                    <div className="text-[11px] font-medium text-fg-3 mt-0.5">Cloud stored & encrypted</div>
                                 </div>
                                 <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
                                     <Folder className="w-6 h-6 text-cyan-400" />
                                 </div>
                             </div>
 
+                            {/* 3. Backend Server Connected Status Card */}
                             <div className="p-5 rounded-3xl neo-surface border border-white/5 flex items-center justify-between shadow-lg">
                                 <div>
-                                    <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-1">Security Shield</div>
-                                    <div className="text-sm font-extrabold text-amber-400 flex items-center gap-1.5">
-                                        <Check className="w-4 h-4 text-emerald-400" />
-                                        <span>AES-256 E2E Armed</span>
+                                    <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-1">Backend Server</div>
+                                    <div className="text-lg font-extrabold flex items-center gap-2 font-mono">
+                                        {socket && socket.connected ? (
+                                            <>
+                                                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981] animate-pulse" />
+                                                <span className="text-emerald-400">CONNECTED</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981] animate-pulse" />
+                                                <span className="text-emerald-400">ACTIVE & READY</span>
+                                            </>
+                                        )}
                                     </div>
-                                </div>
-                                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                                    <CheckSquare className="w-6 h-6 text-amber-400" />
-                                </div>
-                            </div>
-
-                            <div className="p-5 rounded-3xl neo-surface border border-white/5 flex items-center justify-between shadow-lg">
-                                <div>
-                                    <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-1">Socket Telemetry</div>
-                                    <div className="text-sm font-extrabold text-purple-400 font-mono">
-                                        ⚡ Active Stream
-                                    </div>
-                                </div>
-                                <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
-                                    <RefreshCw className="w-6 h-6 text-purple-400" />
-                                </div>
-                            </div>
-
-                            <div className="p-5 rounded-3xl neo-surface border border-white/5 flex items-center justify-between shadow-lg">
-                                <div>
-                                    <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-1">Subscription Plan</div>
-                                    <div className="text-base font-extrabold text-accent uppercase font-mono flex items-center gap-2">
-                                        <span>{userPlan || 'BASIC'}</span>
-                                        <span className="text-[10px] font-normal text-fg-3 font-sans">({getPlanLimits(userPlan || '').maxDevices} max devices)</span>
-                                    </div>
-                                </div>
-                                <div className="w-12 h-12 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center">
-                                    <Check className="w-6 h-6 text-accent" />
-                                </div>
-                            </div>
-
-                            <div className="p-5 rounded-3xl neo-surface border border-white/5 flex items-center justify-between shadow-lg">
-                                <div>
-                                    <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-1">Command Engine</div>
-                                    <div className="text-sm font-extrabold text-emerald-400 flex items-center gap-1.5">
-                                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                                        <span>WebRTC Ready</span>
-                                    </div>
+                                    <div className="text-[11px] font-medium text-fg-3 mt-0.5">Secure WebSocket tunnel active</div>
                                 </div>
                                 <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                                    <Smartphone className="w-6 h-6 text-emerald-400" />
+                                    <Activity className="w-6 h-6 text-emerald-400" />
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Functional Tool Modules Grid */}
-                        <div>
-                            <div className="flex items-center justify-between mb-4 px-1">
-                                <h2 className="text-lg font-bold text-white tracking-tight">
-                                    Active Functional Modules
-                                </h2>
-                                <span className="text-xs text-fg-3">Select any module to control device</span>
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                {[
-                                    { id: 'gallery', label: 'Media Gallery', icon: ImageIcon, color: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/20', desc: 'Sync & download photos, videos & zips' },
-                                    { id: 'camera', label: 'Live Camera Feed', icon: Camera, color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/20', desc: 'Real-time 1080p remote lens streaming' },
-                                    { id: 'audio', label: 'Microphone Listen', icon: Mic, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20', desc: 'Ambient audio capture & live stream' },
-                                    { id: 'notifications', label: 'Live Alerts & Logs', icon: Bell, color: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', desc: 'Intercept system & app notifications' },
-                                    { id: 'contacts', label: 'Endpoint Contacts', icon: Users, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', desc: 'Retrieve full address book & records' },
-                                    { id: 'sms', label: 'SMS Intercept', icon: MessageSquare, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', desc: 'Monitor incoming & stored messages' },
-                                    { id: 'torch', label: 'Flashlight Beam', icon: Flashlight, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', desc: 'Toggle high-intensity optical beam' },
-                                    { id: 'vibration', label: 'Vibration Control', icon: Vibrate, color: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/20', desc: 'Execute remote haptic signals' }
-                                ].map((t) => (
-                                    <div
-                                        key={t.id}
-                                        onClick={() => setSelectedTool(t.id as any)}
-                                        className="p-5 rounded-3xl neo-surface hover:neo-pressed border border-white/5 hover:border-white/20 transition-all duration-300 group cursor-pointer flex flex-col justify-between min-h-[150px] shadow-lg relative overflow-hidden"
-                                    >
-                                        <div className="flex items-center justify-between mb-3">
-                                            <div className={`w-12 h-12 rounded-2xl ${t.bg} border ${t.border} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                                                <t.icon className={`w-6 h-6 ${t.color}`} />
-                                            </div>
-                                            <span className="text-[10px] font-bold font-mono tracking-wider uppercase px-2 py-1 rounded-md bg-white/5 text-fg-3 group-hover:bg-accent/20 group-hover:text-accent transition-colors">
-                                                ACTIVE
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-white text-base group-hover:text-accent transition-colors mb-1">{t.label}</h3>
-                                            <p className="text-xs text-fg-3 leading-relaxed">{t.desc}</p>
-                                        </div>
+                            {/* 4. Upgraded Subscription Plan Card */}
+                            <div 
+                                onClick={() => setShowUpgradeModal(true)}
+                                className={`p-5 rounded-3xl neo-surface border transition-all flex items-center justify-between shadow-lg cursor-pointer group ${
+                                    userPlan === 'premium' ? 'border-amber-500/30 hover:border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.15)] bg-gradient-to-br from-amber-500/10 via-transparent to-transparent' :
+                                    userPlan === 'standard' ? 'border-emerald-500/30 hover:border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)] bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent' :
+                                    'border-white/5 hover:border-white/20'
+                                }`}
+                            >
+                                <div>
+                                    <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-1 group-hover:text-white transition-colors">Subscription Plan</div>
+                                    <div className="text-lg font-extrabold font-mono flex items-center gap-2">
+                                        {userPlan === 'premium' && <span className="text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]">👑 PREMIUM PLAN</span>}
+                                        {userPlan === 'standard' && <span className="text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">⭐ STANDARD PLAN</span>}
+                                        {(!userPlan || userPlan === 'basic' || (userPlan !== 'premium' && userPlan !== 'standard')) && <span className="text-zinc-300">✨ FREE PLAN</span>}
                                     </div>
-                                ))}
+                                    <div className="text-[11px] font-medium text-fg-3 mt-0.5">
+                                        Max Endpoints: <span className="text-white font-bold">{getPlanLimits(userPlan || '').maxDevices}</span>
+                                    </div>
+                                </div>
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform ${
+                                    userPlan === 'premium' ? 'bg-amber-500/20 border border-amber-500/30 text-amber-400' :
+                                    userPlan === 'standard' ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400' :
+                                    'bg-white/10 border border-white/10 text-white'
+                                }`}>
+                                    <Check className="w-6 h-6" />
+                                </div>
                             </div>
+
+                            {/* 5. Video Tutorial Guide Card */}
+                            <VideoModal videoId="0xQaikNVyn0" variant="card" />
                         </div>
                     </div>
                 )}

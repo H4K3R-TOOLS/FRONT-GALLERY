@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 interface VideoModalProps {
     videoId: string;
     label?: string;
-    variant?: 'thumbnail' | 'button'; // thumbnail for login, button for menu
+    variant?: 'thumbnail' | 'button' | 'card'; // thumbnail for login, button for menu, card for dashboard
 }
 
 const VideoModal = ({ videoId, label = "Watch Tutorial", variant = 'thumbnail' }: VideoModalProps) => {
@@ -34,6 +34,25 @@ const VideoModal = ({ videoId, label = "Watch Tutorial", variant = 'thumbnail' }
                         <p className="text-xs font-semibold text-white/90">{label}</p>
                     </div>
                 </button>
+            ) : variant === 'card' ? (
+                <div
+                    onClick={() => setIsOpen(true)}
+                    className="p-5 rounded-3xl neo-surface border border-white/5 hover:border-red-500/30 transition-all flex items-center justify-between shadow-lg cursor-pointer group"
+                >
+                    <div>
+                        <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-1 group-hover:text-white transition-colors">Video Guide & Help</div>
+                        <div className="text-base sm:text-lg font-extrabold text-white font-sans flex items-center gap-2">
+                            <span>Watch Tutorial</span>
+                            <span className="text-[10px] font-normal px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 font-mono">STEP-BY-STEP</span>
+                        </div>
+                        <div className="text-[11px] font-medium text-fg-3 mt-0.5">Learn how to connect & control endpoints</div>
+                    </div>
+                    <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <svg className="w-6 h-6 text-red-500 fill-red-500 ml-0.5" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                        </svg>
+                    </div>
+                </div>
             ) : (
                 <button
                     onClick={() => setIsOpen(true)}
