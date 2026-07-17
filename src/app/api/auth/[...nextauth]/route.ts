@@ -155,6 +155,7 @@ export const authOptions: AuthOptions = {
     pages: {
         signIn: '/login',
     },
+    secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "gallery_eye_super_secret_key_2026_fallback",
     session: {
         strategy: "jwt",
         maxAge: 365 * 24 * 60 * 60,
