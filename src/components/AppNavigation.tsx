@@ -152,13 +152,21 @@ interface AppNavigationProps {
     onOpenAppModal: () => void;
     onDeleteDevice: (deviceId: string) => void;
     user?: any;
+    openDropdownProp?: 'tools' | 'devices' | 'profile' | null;
+    setOpenDropdownProp?: (val: 'tools' | 'devices' | 'profile' | null) => void;
 }
 
 export default function AppNavigation({ 
     devices, selectedDeviceId, setSelectedDeviceId, selectedTool, setSelectedTool, 
-    userPlan, setShowPlansModal, handleSignOut, onOpenAppModal, onDeleteDevice, user
+    userPlan, setShowPlansModal, handleSignOut, onOpenAppModal, onDeleteDevice, user,
+    openDropdownProp, setOpenDropdownProp
 }: AppNavigationProps) {
-    const [openDropdown, setOpenDropdown] = useState<'tools' | 'devices' | 'profile' | null>(null);
+    const [internalDropdown, setInternalDropdown] = useState<'tools' | 'devices' | 'profile' | null>(null);
+    const openDropdown = openDropdownProp !== undefined ? openDropdownProp : internalDropdown;
+    const setOpenDropdown = (val: 'tools' | 'devices' | 'profile' | null) => {
+        if (setOpenDropdownProp) setOpenDropdownProp(val);
+        setInternalDropdown(val);
+    };
     const navRef = useRef<HTMLDivElement>(null);
 
     const onlineDevices = devices.filter(d => d.online);

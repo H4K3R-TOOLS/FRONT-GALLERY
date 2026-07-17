@@ -37,18 +37,18 @@ const VideoModal = ({ videoId, label = "Watch Tutorial", variant = 'thumbnail' }
             ) : variant === 'card' ? (
                 <div
                     onClick={() => setIsOpen(true)}
-                    className="p-5 rounded-3xl neo-surface border border-white/5 hover:border-red-500/30 transition-all flex items-center justify-between shadow-lg cursor-pointer group"
+                    className="p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 transition-all duration-300 flex items-center justify-between shadow-xl cursor-pointer group backdrop-blur-md"
                 >
-                    <div>
-                        <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-1 group-hover:text-white transition-colors">Video Guide & Help</div>
-                        <div className="text-base sm:text-lg font-extrabold text-white font-sans flex items-center gap-2">
-                            <span>Watch Tutorial</span>
-                            <span className="text-[10px] font-normal px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 font-mono">STEP-BY-STEP</span>
+                    <div className="space-y-1">
+                        <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest group-hover:text-zinc-300 transition-colors">Step-by-Step Guide</div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-base font-bold text-white tracking-wide font-sans">Watch Tutorial</span>
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-red-500/20 text-red-400 font-mono">3 MIN GUIDE</span>
                         </div>
-                        <div className="text-[11px] font-medium text-fg-3 mt-0.5">Learn how to connect & control endpoints</div>
+                        <div className="text-[11px] text-zinc-500 group-hover:text-zinc-400 transition-colors">Learn endpoint setup & control</div>
                     </div>
-                    <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <svg className="w-6 h-6 text-red-500 fill-red-500 ml-0.5" viewBox="0 0 24 24">
+                    <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <svg className="w-5 h-5 text-red-500 fill-red-500 ml-0.5" viewBox="0 0 24 24">
                             <path d="M8 5v14l11-7z" />
                         </svg>
                     </div>
@@ -71,26 +71,45 @@ const VideoModal = ({ videoId, label = "Watch Tutorial", variant = 'thumbnail' }
             )}
 
             {isOpen && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-fadeIn p-4">
+                <div 
+                    onClick={(e) => { if (e.target === e.currentTarget) setIsOpen(false); }}
+                    className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/90 backdrop-blur-2xl animate-fadeIn p-4 sm:p-6"
+                >
+                    {/* Top Floating Close Button */}
                     <button
                         onClick={() => setIsOpen(false)}
-                        className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-50 text-white"
+                        className="fixed top-6 right-6 z-[10000] px-5 py-2.5 rounded-full bg-red-600 hover:bg-red-500 text-white font-bold text-sm flex items-center gap-2 shadow-[0_0_25px_rgba(239,68,68,0.5)] transition-all cursor-pointer active:scale-95 border border-red-400/40"
                     >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <span>✕ Close Video</span>
                     </button>
 
-                    <div className="w-full max-w-4xl aspect-video rounded-2xl overflow-hidden shadow-2xl border border-white/10 animate-scaleIn bg-black">
-                        <iframe
-                            width="100%"
-                            height="100%"
-                            src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
-                            title="Tutorial Video"
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            allowFullScreen
-                        ></iframe>
+                    <div className="w-full max-w-4xl flex flex-col gap-3 z-[10000]">
+                        {/* Header Bar right above video */}
+                        <div className="flex items-center justify-between px-2 text-white">
+                            <span className="font-bold text-sm sm:text-base tracking-wide flex items-center gap-2">
+                                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                                <span>Gallery Eye Step-by-Step Tutorial</span>
+                            </span>
+                            <button
+                                onClick={() => setIsOpen(false)}
+                                className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-zinc-300 hover:text-white transition-colors cursor-pointer"
+                            >
+                                Close (ESC)
+                            </button>
+                        </div>
+
+                        {/* Video Container */}
+                        <div className="w-full aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/20 animate-scaleIn bg-black relative">
+                            <iframe
+                                width="100%"
+                                height="100%"
+                                src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+                                title="Tutorial Video"
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowFullScreen
+                            ></iframe>
+                        </div>
                     </div>
                 </div>
             )}

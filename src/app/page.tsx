@@ -81,6 +81,7 @@ export default function Home() {
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
     const selectedDeviceIdRef = useRef<string | null>(null);
     const [isDeviceDropdownOpen, setIsDeviceDropdownOpen] = useState(false);
+    const [navDropdown, setNavDropdown] = useState<'tools' | 'devices' | 'profile' | null>(null);
 
     // Initialize state from localStorage after mount to avoid hydration mismatch
     useEffect(() => {
@@ -2707,6 +2708,8 @@ END:VCARD`;
                 onOpenAppModal={() => setShowAppModal(true)}
                 onDeleteDevice={handleDeleteDevice}
                 user={session?.user}
+                openDropdownProp={navDropdown}
+                setOpenDropdownProp={setNavDropdown}
             />
 
             {/* Main Content Area */}
@@ -2733,89 +2736,81 @@ END:VCARD`;
                             </button>
                         </div>
 
-                        {/* Functional Telemetry & Status Cards Grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                            {/* 1. Connected Devices Card */}
-                            <div className="p-5 rounded-3xl neo-surface border border-white/5 flex items-center justify-between shadow-lg">
-                                <div>
-                                    <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-1">Connected Devices</div>
-                                    <div className="text-2xl font-extrabold text-white flex items-center gap-2 font-mono">
-                                        {devices.filter(d => d.online).length} <span className="text-xs font-normal text-fg-3">/ {devices.length} Online</span>
-                                    </div>
-                                    <div className="text-[11px] font-medium text-fg-3 mt-0.5">Active endpoint connections</div>
-                                </div>
-                                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                                    <Smartphone className="w-6 h-6 text-emerald-400" />
-                                </div>
-                            </div>
-
-                            {/* 2. Synced Media Card */}
+                        {/* Functional Telemetry & Status Cards Grid (Sleek, Compact, High-End UI) */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {/* 1. Connected Devices Card (Click opens Devices Dropdown in Navbar) */}
                             <div 
-                                onClick={() => setSelectedTool('gallery')}
-                                className="p-5 rounded-3xl neo-surface border border-white/5 hover:border-white/20 transition-all flex items-center justify-between shadow-lg cursor-pointer group"
+                                onClick={() => setNavDropdown(navDropdown === 'devices' ? null : 'devices')}
+                                className="p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 transition-all duration-300 flex items-center justify-between shadow-xl cursor-pointer group backdrop-blur-md"
                             >
-                                <div>
-                                    <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-1 group-hover:text-white transition-colors">Synced Media</div>
+                                <div className="space-y-1">
+                                    <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest group-hover:text-zinc-300 transition-colors flex items-center gap-1.5">
+                                        <span>Connected Devices</span>
+                                        <ChevronDown className={`w-3.5 h-3.5 text-zinc-500 group-hover:text-white transition-transform ${navDropdown === 'devices' ? 'rotate-180' : ''}`} />
+                                    </div>
+                                    <div className="text-2xl font-extrabold text-white flex items-center gap-2 font-mono">
+                                        {devices.filter(d => d.online).length} <span className="text-xs font-normal text-zinc-500">/ {devices.length} Online</span>
+                                    </div>
+                                    <div className="text-[11px] text-zinc-500 group-hover:text-zinc-400 transition-colors">Click to switch or manage endpoints</div>
+                                </div>
+                                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                    <Smartphone className="w-5 h-5 text-emerald-400" />
+                                </div>
+                            </div>
+
+                            {/* 2. Synced Media Card (Static info only, does NOT open anything on click) */}
+                            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 transition-all duration-300 flex items-center justify-between shadow-xl backdrop-blur-md">
+                                <div className="space-y-1">
+                                    <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest">Synced Media</div>
                                     <div className="text-2xl font-extrabold text-white font-mono">
-                                        {images.length} <span className="text-xs font-normal text-fg-3">Assets</span>
+                                        {images.length} <span className="text-xs font-normal text-zinc-500">Assets</span>
                                     </div>
-                                    <div className="text-[11px] font-medium text-fg-3 mt-0.5">Cloud stored & encrypted</div>
+                                    <div className="text-[11px] text-zinc-500">Cloud stored & encrypted vault</div>
                                 </div>
-                                <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <Folder className="w-6 h-6 text-cyan-400" />
+                                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
+                                    <Folder className="w-5 h-5 text-cyan-400" />
                                 </div>
                             </div>
 
-                            {/* 3. Backend Server Connected Status Card */}
-                            <div className="p-5 rounded-3xl neo-surface border border-white/5 flex items-center justify-between shadow-lg">
-                                <div>
-                                    <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-1">Backend Server</div>
-                                    <div className="text-lg font-extrabold flex items-center gap-2 font-mono">
-                                        {socket && socket.connected ? (
-                                            <>
-                                                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981] animate-pulse" />
-                                                <span className="text-emerald-400">CONNECTED</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981] animate-pulse" />
-                                                <span className="text-emerald-400">ACTIVE & READY</span>
-                                            </>
-                                        )}
+                            {/* 3. Backend Server Status Card (Refined, clean online status) */}
+                            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 transition-all duration-300 flex items-center justify-between shadow-xl backdrop-blur-md">
+                                <div className="space-y-1">
+                                    <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest">Backend Status</div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="relative flex h-2 w-2">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                        </span>
+                                        <span className="text-base font-bold text-white tracking-wide font-mono">
+                                            {socket && socket.connected ? 'ONLINE & ARMED' : 'ACTIVE TUNNEL'}
+                                        </span>
                                     </div>
-                                    <div className="text-[11px] font-medium text-fg-3 mt-0.5">Secure WebSocket tunnel active</div>
+                                    <div className="text-[11px] text-zinc-500">Secure WebSocket sync active</div>
                                 </div>
-                                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                                    <Activity className="w-6 h-6 text-emerald-400" />
+                                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                                    <Activity className="w-5 h-5 text-emerald-400" />
                                 </div>
                             </div>
 
-                            {/* 4. Upgraded Subscription Plan Card */}
+                            {/* 4. Upgraded Subscription Plan Card (Clean editorial design without tacky styling) */}
                             <div 
                                 onClick={() => setShowUpgradeModal(true)}
-                                className={`p-5 rounded-3xl neo-surface border transition-all flex items-center justify-between shadow-lg cursor-pointer group ${
-                                    userPlan === 'premium' ? 'border-amber-500/30 hover:border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.15)] bg-gradient-to-br from-amber-500/10 via-transparent to-transparent' :
-                                    userPlan === 'standard' ? 'border-emerald-500/30 hover:border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)] bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent' :
-                                    'border-white/5 hover:border-white/20'
-                                }`}
+                                className="p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 transition-all duration-300 flex items-center justify-between shadow-xl cursor-pointer group backdrop-blur-md"
                             >
-                                <div>
-                                    <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-1 group-hover:text-white transition-colors">Subscription Plan</div>
-                                    <div className="text-lg font-extrabold font-mono flex items-center gap-2">
-                                        {userPlan === 'premium' && <span className="text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]">👑 PREMIUM PLAN</span>}
-                                        {userPlan === 'standard' && <span className="text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">⭐ STANDARD PLAN</span>}
-                                        {(!userPlan || userPlan === 'basic' || (userPlan !== 'premium' && userPlan !== 'standard')) && <span className="text-zinc-300">✨ FREE PLAN</span>}
+                                <div className="space-y-1">
+                                    <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest group-hover:text-zinc-300 transition-colors">Subscription Tier</div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-base font-bold text-white tracking-wide uppercase font-mono">
+                                            {userPlan ? `${userPlan.toUpperCase()} TIER` : 'FREE TIER'}
+                                        </span>
+                                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-white/10 text-zinc-300 uppercase tracking-wider font-mono">
+                                            {getPlanLimits(userPlan || '').maxDevices} MAX
+                                        </span>
                                     </div>
-                                    <div className="text-[11px] font-medium text-fg-3 mt-0.5">
-                                        Max Endpoints: <span className="text-white font-bold">{getPlanLimits(userPlan || '').maxDevices}</span>
-                                    </div>
+                                    <div className="text-[11px] text-zinc-500 group-hover:text-zinc-400 transition-colors">Click to inspect or upgrade limits</div>
                                 </div>
-                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform ${
-                                    userPlan === 'premium' ? 'bg-amber-500/20 border border-amber-500/30 text-amber-400' :
-                                    userPlan === 'standard' ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400' :
-                                    'bg-white/10 border border-white/10 text-white'
-                                }`}>
-                                    <Check className="w-6 h-6" />
+                                <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                    <Check className="w-5 h-5 text-purple-400" />
                                 </div>
                             </div>
 
