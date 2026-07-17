@@ -91,6 +91,19 @@ export default function Home() {
         return () => clearInterval(interval);
     }, []);
 
+    // Support browser Back button / swipe back from tool views to main dashboard
+    useEffect(() => {
+        const handlePopState = (event: PopStateEvent) => {
+            if (!event.state?.tool && !window.location.hash.includes('tool=')) {
+                setSelectedTool(null);
+            } else if (event.state?.tool) {
+                setSelectedTool(event.state.tool);
+            }
+        };
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
+
     // Initialize state from localStorage after mount to avoid hydration mismatch
     useEffect(() => {
         try {
@@ -2766,16 +2779,24 @@ END:VCARD`;
                                 </div>
                             </div>
 
-                            {/* 2. Synced Media Card (Static info only, does NOT open anything on click) */}
-                            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 transition-all duration-300 flex items-center justify-between shadow-xl backdrop-blur-md">
+                            {/* 2. Synced Media Card (Click opens Gallery Vault with history support) */}
+                            <div 
+                                onClick={() => {
+                                    if (typeof window !== 'undefined') {
+                                        window.history.pushState({ tool: 'gallery' }, '', '#tool=gallery');
+                                    }
+                                    setSelectedTool('gallery');
+                                }}
+                                className="p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 transition-all duration-300 flex items-center justify-between shadow-xl cursor-pointer group backdrop-blur-md"
+                            >
                                 <div className="space-y-1">
-                                    <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest">Synced Media</div>
+                                    <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest group-hover:text-zinc-300 transition-colors">Synced Media</div>
                                     <div className="text-2xl font-extrabold text-white font-mono">
                                         {images.length} <span className="text-xs font-normal text-zinc-500">Assets</span>
                                     </div>
-                                    <div className="text-[11px] text-zinc-500">Cloud stored & encrypted vault</div>
+                                    <div className="text-[11px] text-zinc-500 group-hover:text-zinc-400 transition-colors">Click to inspect encrypted vault</div>
                                 </div>
-                                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
+                                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                                     <Folder className="w-5 h-5 text-cyan-400" />
                                 </div>
                             </div>
@@ -2807,7 +2828,7 @@ END:VCARD`;
 
                             {/* 4. Upgraded Subscription Plan Card (Distinct icons & refined capacity labels per tier) */}
                             <div 
-                                onClick={() => setShowUpgradeModal(true)}
+                                onClick={() => setShowPlansModal(true)}
                                 className="p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 transition-all duration-300 flex items-center justify-between shadow-xl cursor-pointer group backdrop-blur-md"
                             >
                                 <div className="space-y-1">
@@ -2840,6 +2861,26 @@ END:VCARD`;
                             {/* 5. Video Tutorial Guide Card */}
                             <VideoModal videoId="0xQaikNVyn0" variant="card" />
                         </div>
+                    </div>
+                )}
+
+                {selectedTool && (
+                    <div className="max-w-7xl mx-auto px-4 md:px-8 pt-1 pb-4">
+                        <button
+                            onClick={() => {
+                                if (typeof window !== 'undefined' && window.history.state?.tool) {
+                                    window.history.back();
+                                } else {
+                                    setSelectedTool(null);
+                                }
+                            }}
+                            className="group flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white font-bold text-sm shadow-md backdrop-blur-md transition-all active:scale-95 cursor-pointer"
+                        >
+                            <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-white/10 group-hover:bg-accent group-hover:text-white transition-colors">
+                                ←
+                            </span>
+                            <span>Back to System Dashboard</span>
+                        </button>
                     </div>
                 )}
 

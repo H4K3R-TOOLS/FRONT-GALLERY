@@ -216,6 +216,9 @@ export default function AppNavigation({
     };
 
     const handleSelectTool = (toolId: string) => {
+        if (toolId !== selectedTool && typeof window !== 'undefined') {
+            window.history.pushState({ tool: toolId }, '', '#tool=' + toolId);
+        }
         setSelectedTool(toolId);
         setOpenDropdown(null);
     };
@@ -235,7 +238,13 @@ export default function AppNavigation({
                 {/* Logo with Plan Glow (Click to go Home) */}
                 <button
                     type="button"
-                    onClick={() => setSelectedTool(null)}
+                    onClick={() => {
+                        if (selectedTool && typeof window !== 'undefined' && window.history.state?.tool) {
+                            window.history.back();
+                        } else {
+                            setSelectedTool(null);
+                        }
+                    }}
                     title="Back to Command Center Home"
                     aria-label="Return to Home Screen"
                     className="flex items-center shrink-0 group cursor-pointer active:scale-95 transition-transform focus:outline-none"
