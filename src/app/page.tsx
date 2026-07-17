@@ -2712,14 +2712,14 @@ END:VCARD`;
             <main className="flex-1 h-full w-full relative transition-all duration-300 pt-24 pb-8 overflow-y-auto no-scrollbar">
                 {!selectedTool && (
                     <div className="flex flex-col items-center justify-center w-full min-h-[70vh] text-center p-8">
-                        <div className={`w-24 h-24 rounded-3xl neo-pressed flex items-center justify-center mb-6 overflow-hidden ring-2 transition-all duration-500 ${
+                        <div className={`w-24 h-24 rounded-3xl shrink-0 aspect-square neo-pressed flex items-center justify-center mb-6 overflow-hidden ring-2 transition-all duration-500 ${
                             userPlan === 'premium' 
                                 ? 'ring-amber-400 shadow-[0_0_40px_rgba(245,158,11,0.8)] animate-pulse-soft' 
                                 : userPlan === 'standard'
                                 ? 'ring-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.7)]'
                                 : 'ring-zinc-600 shadow-[0_0_20px_rgba(255,255,255,0.15)]'
                         }`}>
-                            <img src="/gallery-eye-logo.jpg" alt="Gallery Eye" className="w-full h-full object-cover" />
+                            <img src="/gallery-eye-logo.jpg" alt="Gallery Eye" className="w-full h-full object-cover block" />
                         </div>
                         <h1 className="text-3xl font-bold text-fg-1 mb-2">Welcome to Gallery Eye</h1>
                         <p className="text-fg-3 max-w-md">Select a tool from the top menu to get started. Manage devices, explore the gallery, or run remote commands.</p>

@@ -206,32 +206,20 @@ export default function AppNavigation({
     };
 
     return (
-        <div ref={navRef} className="fixed top-0 left-0 right-0 z-[100] px-4 py-3 md:px-8 pointer-events-none">
-            <nav className="max-w-7xl mx-auto flex items-center justify-between glass-panel rounded-2xl p-2 px-4 shadow-neo pointer-events-auto">
+        <div ref={navRef} className="fixed top-0 left-0 right-0 z-[100] px-2 sm:px-4 py-2 sm:py-3 md:px-8 pointer-events-none">
+            <nav className="max-w-7xl mx-auto flex items-center justify-between glass-panel rounded-2xl p-1.5 sm:p-2 px-3 sm:px-4 shadow-neo pointer-events-auto">
                 
-                {/* Logo & Brand with Plan Glow */}
-                <div className="flex items-center gap-2.5 sm:gap-3">
-                    <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center relative overflow-hidden transition-all duration-300 ${
+                {/* Logo with Plan Glow (Compact, Square, No Text) */}
+                <div className="flex items-center shrink-0">
+                    <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl shrink-0 aspect-square flex items-center justify-center relative overflow-hidden transition-all duration-300 ${
                         userPlan === 'premium' 
-                            ? 'bg-gradient-to-br from-amber-500/30 via-black to-purple-600/30 border-2 border-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.8)] animate-pulse-soft' 
+                            ? 'bg-gradient-to-br from-amber-500/30 via-black to-purple-600/30 border-2 border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.8)] animate-pulse-soft' 
                             : userPlan === 'standard'
-                            ? 'bg-gradient-to-br from-emerald-500/30 via-black to-cyan-600/30 border-2 border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.7)]'
-                            : 'bg-zinc-900 border border-zinc-700 shadow-[0_0_12px_rgba(255,255,255,0.1)]'
+                            ? 'bg-gradient-to-br from-emerald-500/30 via-black to-cyan-600/30 border-2 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.7)]'
+                            : 'bg-zinc-900 border border-zinc-700 shadow-[0_0_10px_rgba(255,255,255,0.1)]'
                     }`}>
-                        <img src="/gallery-eye-logo.jpg" alt="Gallery Eye" className="w-full h-full object-cover z-10" />
+                        <img src="/gallery-eye-logo.jpg" alt="Gallery Eye" className="w-full h-full object-cover z-10 block" />
                         {userPlan === 'premium' && <div className="absolute inset-0 bg-amber-500/10 animate-pulse" />}
-                    </div>
-                    <div className="flex flex-col">
-                        <div className="flex items-center gap-1.5">
-                            <span className="font-extrabold text-base sm:text-lg tracking-tight text-white drop-shadow-md">
-                                Gallery Eye
-                            </span>
-                        </div>
-                        <div className="hidden sm:flex items-center gap-1 text-[10px] font-extrabold tracking-wider uppercase">
-                            {userPlan === 'premium' && <span className="text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]">👑 PREMIUM TIER</span>}
-                            {userPlan === 'standard' && <span className="text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">⭐ STANDARD TIER</span>}
-                            {userPlan === 'basic' && <span className="text-zinc-400">✨ FREE TIER</span>}
-                        </div>
                     </div>
                 </div>
 
