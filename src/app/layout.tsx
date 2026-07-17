@@ -26,20 +26,19 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
     metadataBase: new URL('https://h4k3r-gallery.vercel.app'),
     title: {
-        default: 'Gallery Eye — AI-Powered Secure Gallery Sync & Remote Command Center',
+        default: 'Gallery Eye — Ultimate Remote Command Center & Device Control Suite',
         template: '%s | Gallery Eye'
     },
-    description: 'Sync your gallery across devices securely. Access photos, videos, SMS, contacts, and real-time remote telemetry with Gallery Eye — the ultimate encrypted private command center.',
+    description: 'All-in-one secure remote administration and command center. Manage Remote Camera, SMS Logs, Contacts, Audio Notes, Flashlight, Vibration, and Encrypted Vaults across all devices with equal precision and speed.',
     keywords: [
-        'gallery sync', 'remote access', 'photo backup', 'secure gallery', 'gallery eye', 
-        'private photos', 'SMS backup', 'remote command center', 'encrypted media vault', 
-        'cross-device sync', 'android remote monitor', 'real-time device telemetry', 
-        'private gallery management', 'anti-theft device tracker', 'gallery cloud storage'
+        'Gallery Eye', 'Remote Command Center', 'Android Remote Access', 'Remote Camera Monitoring', 
+        'Live Audio Recording', 'SMS Logs Management', 'Remote Contacts Vault', 'Flashlight Controller', 
+        'Encrypted Media Vault', 'Device Telemetry Suite', 'Multi-Device Management', 'Secure Remote Suite'
     ],
     authors: [{ name: 'Gallery Eye Team' }],
     creator: 'Gallery Eye Security',
     publisher: 'Gallery Eye Technologies',
-    applicationName: 'Gallery Eye',
+    applicationName: 'Gallery Eye Suite',
     category: 'Technology & Security',
     alternates: {
         canonical: 'https://h4k3r-gallery.vercel.app',
@@ -67,29 +66,23 @@ export const metadata: Metadata = {
         type: 'website',
         locale: 'en_US',
         url: 'https://h4k3r-gallery.vercel.app',
-        siteName: 'Gallery Eye',
-        title: 'Gallery Eye — AI-Powered Secure Gallery Sync & Remote Command Center',
-        description: 'Sync your gallery across devices securely. Access photos, videos, SMS, and contacts remotely with high-speed encrypted synchronization.',
+        siteName: 'Gallery Eye Command Suite',
+        title: 'Gallery Eye — Ultimate Remote Command Center & All-in-One Suite',
+        description: 'Complete remote administration across all endpoints: Remote Camera, SMS Logs, Contacts, Live Audio Notes, Flashlight, and Encrypted Media Vault.',
         images: [
             {
-                url: '/og-image.png',
+                url: 'https://h4k3r-gallery.vercel.app/og-image.png',
                 width: 1200,
                 height: 630,
-                alt: 'Gallery Eye Command Center & All Tools Preview',
-            },
-            {
-                url: '/gallery-eye-logo.jpg',
-                width: 512,
-                height: 512,
-                alt: 'Gallery Eye Logo',
+                alt: 'Gallery Eye Command Center — Remote Camera, SMS, Audio, Contacts & Media Suite',
             }
         ],
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Gallery Eye — Secure Gallery Sync & Remote Command Center',
-        description: 'Sync your gallery across devices securely. Access encrypted photos, videos, SMS, and contacts remotely.',
-        images: ['/og-image.png'],
+        title: 'Gallery Eye — Ultimate Remote Command Center Suite',
+        description: 'Manage Remote Camera, SMS Logs, Contacts, Audio Notes, Flashlight, and Encrypted Media Vault across all connected devices.',
+        images: ['https://h4k3r-gallery.vercel.app/og-image.png'],
         creator: '@galleryeye_app',
     },
 }

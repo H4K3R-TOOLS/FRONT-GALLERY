@@ -157,12 +157,11 @@ export default function QuickTutorial({ isOpen, onClose }: QuickTutorialProps) {
 
     return (
         <div className="fixed inset-0 z-[5000] pointer-events-auto select-none overflow-hidden">
-            {/* Darkened Backdrop that blocks touches and clicks outside */}
+            {/* Click Catcher: Blocks all clicks/touches outside while allowing target element inside box-shadow cutout to be 100% sharp and clear */}
             <div 
-                className="absolute inset-0 bg-black/75 backdrop-blur-[3px] transition-opacity duration-300 pointer-events-auto"
+                className={`absolute inset-0 ${targetRect ? 'bg-transparent' : 'bg-black/82'} pointer-events-auto transition-colors duration-300`}
                 onClick={(e) => {
                     e.stopPropagation();
-                    // Prevent closing or touching outside while tutorial is active
                 }}
             />
 
@@ -173,9 +172,10 @@ export default function QuickTutorial({ isOpen, onClose }: QuickTutorialProps) {
                         top: targetRect.top - 6,
                         left: targetRect.left - 6,
                         width: targetRect.width + 12,
-                        height: targetRect.height + 12
+                        height: targetRect.height + 12,
+                        boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.82), 0 0 35px rgba(91, 94, 244, 0.6), inset 0 0 15px rgba(91, 94, 244, 0.3)'
                     }}
-                    className="fixed z-[5001] rounded-2xl border-2 border-accent shadow-[0_0_35px_rgba(91,94,244,0.6)] bg-transparent pointer-events-none transition-all duration-300 animate-pulse"
+                    className="fixed z-[5001] rounded-2xl border-2 border-accent bg-transparent pointer-events-none transition-all duration-300 animate-pulse"
                 />
             )}
 
