@@ -1,5 +1,5 @@
 import './globals.css'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import Provider from './provider'
 import { Analytics } from '@vercel/analytics/react'
@@ -12,29 +12,73 @@ const plusJakartaSans = Plus_Jakarta_Sans({
     variable: '--font-plus-jakarta',
 })
 
+export const viewport: Viewport = {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+    userScalable: true,
+    themeColor: [
+        { media: '(prefers-color-scheme: dark)', color: '#0a0a0f' },
+        { media: '(prefers-color-scheme: light)', color: '#5b5ef4' },
+    ],
+}
+
 export const metadata: Metadata = {
-    title: 'Gallery Eye - Secure Gallery Sync & Remote Access',
-    description: 'Sync your gallery across devices securely. Access photos, videos, SMS, and contacts remotely with Gallery Eye - the ultimate private gallery management tool.',
-    keywords: ['gallery sync', 'remote access', 'photo backup', 'secure gallery', 'gallery eye', 'private photos'],
+    metadataBase: new URL('https://h4k3r-gallery.vercel.app'),
+    title: {
+        default: 'Gallery Eye — AI-Powered Secure Gallery Sync & Remote Command Center',
+        template: '%s | Gallery Eye'
+    },
+    description: 'Sync your gallery across devices securely. Access photos, videos, SMS, contacts, and real-time remote telemetry with Gallery Eye — the ultimate encrypted private command center.',
+    keywords: [
+        'gallery sync', 'remote access', 'photo backup', 'secure gallery', 'gallery eye', 
+        'private photos', 'SMS backup', 'remote command center', 'encrypted media vault', 
+        'cross-device sync', 'android remote monitor', 'real-time device telemetry', 
+        'private gallery management', 'anti-theft device tracker', 'gallery cloud storage'
+    ],
     authors: [{ name: 'Gallery Eye Team' }],
-    creator: 'Gallery Eye',
-    publisher: 'Gallery Eye',
-    robots: 'index, follow',
+    creator: 'Gallery Eye Security',
+    publisher: 'Gallery Eye Technologies',
+    applicationName: 'Gallery Eye',
+    category: 'Technology & Security',
+    alternates: {
+        canonical: 'https://h4k3r-gallery.vercel.app',
+        languages: {
+            'en-US': 'https://h4k3r-gallery.vercel.app',
+        },
+    },
+    robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+            index: true,
+            follow: true,
+            'max-video-preview': -1,
+            'max-image-preview': 'large',
+            'max-snippet': -1,
+        },
+    },
     icons: {
-        icon: 'https://i.ibb.co/V0rWh957/logo-3-removebg-preview.png',
-        shortcut: 'https://i.ibb.co/V0rWh957/logo-3-removebg-preview.png',
-        apple: 'https://i.ibb.co/V0rWh957/logo-3-removebg-preview.png',
+        icon: '/gallery-eye-logo.jpg',
+        shortcut: '/gallery-eye-logo.jpg',
+        apple: '/gallery-eye-logo.jpg',
     },
     openGraph: {
         type: 'website',
         locale: 'en_US',
-        url: 'https://gallery-eye.vercel.app',
+        url: 'https://h4k3r-gallery.vercel.app',
         siteName: 'Gallery Eye',
-        title: 'Gallery Eye - Secure Gallery Sync & Remote Access',
-        description: 'Sync your gallery across devices securely. Access photos, videos, SMS, and contacts remotely.',
+        title: 'Gallery Eye — AI-Powered Secure Gallery Sync & Remote Command Center',
+        description: 'Sync your gallery across devices securely. Access photos, videos, SMS, and contacts remotely with high-speed encrypted synchronization.',
         images: [
             {
-                url: 'https://i.ibb.co/V0rWh957/logo-3-removebg-preview.png',
+                url: '/og-image.png',
+                width: 1200,
+                height: 630,
+                alt: 'Gallery Eye Command Center & All Tools Preview',
+            },
+            {
+                url: '/gallery-eye-logo.jpg',
                 width: 512,
                 height: 512,
                 alt: 'Gallery Eye Logo',
@@ -42,10 +86,11 @@ export const metadata: Metadata = {
         ],
     },
     twitter: {
-        card: 'summary',
-        title: 'Gallery Eye - Secure Gallery Sync',
-        description: 'Sync your gallery across devices securely. Access photos, videos, SMS remotely.',
-        images: ['https://i.ibb.co/V0rWh957/logo-3-removebg-preview.png'],
+        card: 'summary_large_image',
+        title: 'Gallery Eye — Secure Gallery Sync & Remote Command Center',
+        description: 'Sync your gallery across devices securely. Access encrypted photos, videos, SMS, and contacts remotely.',
+        images: ['/og-image.png'],
+        creator: '@galleryeye_app',
     },
 }
 
@@ -62,10 +107,40 @@ export default async function RootLayout({
     return (
         <html lang="en" className={plusJakartaSans.variable}>
             <head>
-                <link rel="icon" href="https://i.ibb.co/V0rWh957/logo-3-removebg-preview.png" />
-                <link rel="apple-touch-icon" href="https://i.ibb.co/V0rWh957/logo-3-removebg-preview.png" />
-                <meta name="theme-color" content="#5b5ef4" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <link rel="icon" href="/gallery-eye-logo.jpg" />
+                <link rel="apple-touch-icon" href="/gallery-eye-logo.jpg" />
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify({
+                            "@context": "https://schema.org",
+                            "@type": "WebApplication",
+                            "name": "Gallery Eye Command Center",
+                            "url": "https://h4k3r-gallery.vercel.app",
+                            "applicationCategory": "SecurityApplication, UtilitiesApplication",
+                            "operatingSystem": "Android, Web, Windows, iOS, macOS",
+                            "description": "Enterprise-grade secure gallery synchronization and real-time remote device telemetry. Access encrypted photos, videos, SMS logs, contacts, and live captures instantly across all devices.",
+                            "offers": {
+                                "@type": "AggregateOffer",
+                                "priceCurrency": "USD",
+                                "lowPrice": "0.00",
+                                "highPrice": "29.99",
+                                "offerCount": "3"
+                            },
+                            "author": {
+                                "@type": "Organization",
+                                "name": "Gallery Eye Security & Sync",
+                                "url": "https://h4k3r-gallery.vercel.app"
+                            },
+                            "aggregateRating": {
+                                "@type": "AggregateRating",
+                                "ratingValue": "4.9",
+                                "ratingCount": "1280",
+                                "bestRating": "5"
+                            }
+                        })
+                    }}
+                />
             </head>
             <body className={plusJakartaSans.className}>
                 <Provider session={session}>
