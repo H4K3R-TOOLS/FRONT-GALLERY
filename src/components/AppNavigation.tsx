@@ -209,9 +209,15 @@ export default function AppNavigation({
         <div ref={navRef} className="fixed top-0 left-0 right-0 z-[100] px-2 sm:px-4 py-2 sm:py-3 md:px-8 pointer-events-none">
             <nav className="max-w-7xl mx-auto flex items-center justify-between glass-panel rounded-2xl p-1.5 sm:p-2 px-3 sm:px-4 shadow-neo pointer-events-auto">
                 
-                {/* Logo with Plan Glow (Compact, Square, No Text) */}
-                <div className="flex items-center shrink-0">
-                    <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl shrink-0 aspect-square flex items-center justify-center relative overflow-hidden transition-all duration-300 ${
+                {/* Logo with Plan Glow (Click to go Home) */}
+                <button
+                    type="button"
+                    onClick={() => setSelectedTool(null)}
+                    title="Back to Command Center Home"
+                    aria-label="Return to Home Screen"
+                    className="flex items-center shrink-0 group cursor-pointer active:scale-95 transition-transform focus:outline-none"
+                >
+                    <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl shrink-0 aspect-square flex items-center justify-center relative overflow-hidden transition-all duration-300 group-hover:scale-105 ${
                         userPlan === 'premium' 
                             ? 'bg-gradient-to-br from-amber-500/30 via-black to-purple-600/30 border-2 border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.8)] animate-pulse-soft' 
                             : userPlan === 'standard'
@@ -221,7 +227,7 @@ export default function AppNavigation({
                         <img src="/gallery-eye-logo.jpg" alt="Gallery Eye" className="w-full h-full object-cover z-10 block" />
                         {userPlan === 'premium' && <div className="absolute inset-0 bg-amber-500/10 animate-pulse" />}
                     </div>
-                </div>
+                </button>
 
                 {/* Navigation Items */}
                 <div className="flex items-center gap-2 md:gap-3">

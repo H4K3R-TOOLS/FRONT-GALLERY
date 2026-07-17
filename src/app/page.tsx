@@ -2711,18 +2711,204 @@ END:VCARD`;
             {/* Main Content Area */}
             <main className="flex-1 h-full w-full relative transition-all duration-300 pt-24 pb-8 overflow-y-auto no-scrollbar">
                 {!selectedTool && (
-                    <div className="flex flex-col items-center justify-center w-full min-h-[70vh] text-center p-8">
-                        <div className={`w-24 h-24 rounded-3xl shrink-0 aspect-square neo-pressed flex items-center justify-center mb-6 overflow-hidden ring-2 transition-all duration-500 ${
-                            userPlan === 'premium' 
-                                ? 'ring-amber-400 shadow-[0_0_40px_rgba(245,158,11,0.8)] animate-pulse-soft' 
-                                : userPlan === 'standard'
-                                ? 'ring-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.7)]'
-                                : 'ring-zinc-600 shadow-[0_0_20px_rgba(255,255,255,0.15)]'
-                        }`}>
-                            <img src="/gallery-eye-logo.jpg" alt="Gallery Eye" className="w-full h-full object-cover block" />
+                    <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 space-y-8 pb-20 animate-in fade-in duration-500">
+                        {/* Top Hero Banner */}
+                        <div className="relative overflow-hidden rounded-[2.5rem] neo-surface border border-white/10 p-6 sm:p-10 shadow-2xl">
+                            {/* Animated Background Glow */}
+                            <div className="absolute -top-32 -right-32 w-96 h-96 bg-accent/15 rounded-full blur-3xl animate-pulse-soft pointer-events-none" />
+                            <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+                            
+                            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                                <div className="flex flex-col items-center md:items-start text-center md:text-left max-w-2xl">
+                                    {/* Live Status Pill */}
+                                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 border border-emerald-500/30 text-emerald-400 font-mono text-xs mb-4 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                                        <span className="relative flex h-2 w-2">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                        </span>
+                                        <span className="font-bold tracking-wider">SYSTEM ONLINE • SECURE SOCKET RELAY ACTIVE</span>
+                                    </div>
+
+                                    <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight mb-4 drop-shadow-lg">
+                                        Gallery Eye <span className="bg-clip-text text-transparent bg-gradient-to-r from-accent via-purple-400 to-pink-400">Pro Command</span>
+                                    </h1>
+                                    
+                                    <p className="text-fg-3 text-sm sm:text-base leading-relaxed mb-6">
+                                        Instantaneous real-time monitoring, encrypted media synchronization, and complete remote diagnostic control across all registered endpoints.
+                                    </p>
+
+                                    {/* Quick Action Buttons */}
+                                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 w-full sm:w-auto">
+                                        <button 
+                                            onClick={() => setSelectedTool('gallery')}
+                                            className="px-6 py-3 rounded-2xl bg-accent hover:bg-accent-light text-white font-bold text-sm shadow-accent-glow flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+                                        >
+                                            <ImageIcon className="w-4 h-4" />
+                                            <span>Explore Gallery</span>
+                                        </button>
+                                        <button 
+                                            onClick={() => setSelectedTool('camera')}
+                                            className="px-6 py-3 rounded-2xl neo-button text-white font-bold text-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+                                        >
+                                            <Camera className="w-4 h-4 text-cyan-400" />
+                                            <span>Live Camera Feed</span>
+                                        </button>
+                                        <button 
+                                            onClick={() => setShowAppModal(true)}
+                                            className="px-6 py-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+                                        >
+                                            <Smartphone className="w-4 h-4 text-emerald-400" />
+                                            <span>Connect Endpoint</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Right Glowing Hero Icon */}
+                                <div className="relative shrink-0 flex items-center justify-center">
+                                    <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-full border border-accent/20 flex items-center justify-center animate-spin-slow absolute pointer-events-none" />
+                                    <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-full border border-purple-500/30 flex items-center justify-center absolute pointer-events-none" />
+                                    <div className={`w-28 h-28 sm:w-32 sm:h-32 rounded-3xl neo-pressed flex items-center justify-center p-3 relative z-10 shadow-2xl ring-2 ${
+                                        userPlan === 'premium' ? 'ring-amber-400 shadow-[0_0_40px_rgba(245,158,11,0.6)] animate-pulse-soft' :
+                                        userPlan === 'standard' ? 'ring-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.5)]' :
+                                        'ring-zinc-600 shadow-[0_0_20px_rgba(255,255,255,0.15)]'
+                                    }`}>
+                                        <img src="/gallery-eye-logo.jpg" alt="Gallery Eye" className="w-full h-full object-cover rounded-2xl block" />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <h1 className="text-3xl font-bold text-fg-1 mb-2">Welcome to Gallery Eye</h1>
-                        <p className="text-fg-3 max-w-md">Select a tool from the top menu to get started. Manage devices, explore the gallery, or run remote commands.</p>
+
+                        {/* Live Telemetry & Quick Stat Cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="p-5 rounded-3xl neo-surface border border-white/5 flex items-center justify-between shadow-lg">
+                                <div>
+                                    <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-1">Connected Devices</div>
+                                    <div className="text-2xl font-extrabold text-white flex items-center gap-2 font-mono">
+                                        {devices.filter(d => d.online).length} <span className="text-xs font-normal text-fg-3">/ {devices.length} Online</span>
+                                    </div>
+                                </div>
+                                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                                    <Smartphone className="w-6 h-6 text-emerald-400 animate-pulse" />
+                                </div>
+                            </div>
+
+                            <div 
+                                onClick={() => setSelectedTool('gallery')}
+                                className="p-5 rounded-3xl neo-surface border border-white/5 hover:border-white/20 transition-all flex items-center justify-between shadow-lg cursor-pointer group"
+                            >
+                                <div>
+                                    <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-1 group-hover:text-white transition-colors">Synced Media</div>
+                                    <div className="text-2xl font-extrabold text-white font-mono">
+                                        {images.length} <span className="text-xs font-normal text-fg-3">Assets</span>
+                                    </div>
+                                </div>
+                                <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <Folder className="w-6 h-6 text-cyan-400" />
+                                </div>
+                            </div>
+
+                            <div className="p-5 rounded-3xl neo-surface border border-white/5 flex items-center justify-between shadow-lg">
+                                <div>
+                                    <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-1">Security Shield</div>
+                                    <div className="text-sm font-extrabold text-amber-400 flex items-center gap-1.5">
+                                        <Check className="w-4 h-4 text-emerald-400" />
+                                        <span>AES-256 E2E Armed</span>
+                                    </div>
+                                </div>
+                                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                                    <CheckSquare className="w-6 h-6 text-amber-400" />
+                                </div>
+                            </div>
+
+                            <div className="p-5 rounded-3xl neo-surface border border-white/5 flex items-center justify-between shadow-lg">
+                                <div>
+                                    <div className="text-xs font-bold text-fg-3 uppercase tracking-wider mb-1">Socket Telemetry</div>
+                                    <div className="text-sm font-extrabold text-purple-400 font-mono">
+                                        ⚡ ~12ms Ultra-Low
+                                    </div>
+                                </div>
+                                <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+                                    <RefreshCw className="w-6 h-6 text-purple-400 animate-spin-slow" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Interactive Command Matrix (Tool Bento Grid) */}
+                        <div>
+                            <div className="flex items-center justify-between mb-4 px-2">
+                                <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                                    <span>Command Center Matrix</span>
+                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-accent/20 text-accent">8 Modules Ready</span>
+                                </h2>
+                                <span className="text-xs text-fg-3 hidden sm:inline">Click any module to launch live connection</span>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                {[
+                                    { id: 'gallery', label: 'Media Gallery', icon: ImageIcon, color: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/20', desc: 'Sync & download photos, videos & zips' },
+                                    { id: 'camera', label: 'Live Camera Feed', icon: Camera, color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/20', desc: 'Real-time 1080p remote lens streaming' },
+                                    { id: 'audio', label: 'Microphone Listen', icon: Mic, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20', desc: 'Ambient audio capture & live stream' },
+                                    { id: 'notifications', label: 'Live Alerts & Logs', icon: Bell, color: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', desc: 'Intercept system & app notifications' },
+                                    { id: 'contacts', label: 'Endpoint Contacts', icon: Users, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', desc: 'Retrieve full address book & records' },
+                                    { id: 'sms', label: 'SMS Intercept', icon: MessageSquare, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', desc: 'Monitor incoming & stored messages' },
+                                    { id: 'torch', label: 'Flashlight Beam', icon: Flashlight, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', desc: 'Toggle high-intensity optical beam' },
+                                    { id: 'vibration', label: 'Vibration Control', icon: Vibrate, color: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/20', desc: 'Execute remote haptic signals' }
+                                ].map((t) => (
+                                    <div
+                                        key={t.id}
+                                        onClick={() => setSelectedTool(t.id as any)}
+                                        className="p-5 rounded-3xl neo-surface hover:neo-pressed border border-white/5 hover:border-white/20 transition-all duration-300 group cursor-pointer flex flex-col justify-between min-h-[160px] shadow-lg relative overflow-hidden"
+                                    >
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className={`w-12 h-12 rounded-2xl ${t.bg} border ${t.border} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                                                <t.icon className={`w-6 h-6 ${t.color}`} />
+                                            </div>
+                                            <span className="text-[10px] font-bold font-mono tracking-wider uppercase px-2 py-1 rounded-md bg-white/5 text-fg-3 group-hover:bg-accent/20 group-hover:text-accent transition-colors">
+                                                ONLINE
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-white text-base group-hover:text-accent transition-colors mb-1">{t.label}</h3>
+                                            <p className="text-xs text-fg-3 leading-relaxed">{t.desc}</p>
+                                        </div>
+                                        <div className="absolute top-0 right-0 -mr-8 -mt-8 w-24 h-24 rounded-full bg-white/5 group-hover:bg-accent/10 blur-xl transition-all pointer-events-none" />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Live Terminal / System Telemetry Log Footer */}
+                        <div className="bg-black/60 border border-white/10 rounded-3xl p-5 font-mono text-xs shadow-xl relative overflow-hidden">
+                            <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-3">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                                    <span className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
+                                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                                    <span className="text-fg-3 font-bold ml-2">GALLERY-EYE://SYSTEM_TELEMETRY.LOG</span>
+                                </div>
+                                <span className="text-emerald-400 font-bold flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                    <span>ENCRYPTED CHANNEL</span>
+                                </span>
+                            </div>
+                            <div className="space-y-1.5 text-zinc-400">
+                                <p className="flex items-center gap-2">
+                                    <span className="text-emerald-400">[{new Date().toLocaleTimeString()}]</span>
+                                    <span className="text-white font-semibold">SYSTEM_READY:</span>
+                                    <span>Surveillance server operational. WebRTC signaling established.</span>
+                                </p>
+                                <p className="flex items-center gap-2">
+                                    <span className="text-cyan-400">[{new Date().toLocaleTimeString()}]</span>
+                                    <span className="text-white font-semibold">ACCOUNT_TIER:</span>
+                                    <span>Active subscription profile verified: <strong className="text-accent uppercase">{userPlan || 'BASIC'}</strong>. All privileges granted.</span>
+                                </p>
+                                <p className="flex items-center gap-2">
+                                    <span className="text-purple-400">[{new Date().toLocaleTimeString()}]</span>
+                                    <span className="text-white font-semibold">ACTIVE_DEVICES:</span>
+                                    <span>{devices.length} registered endpoint(s) tracked. Select a device and command module above to initiate stream.</span>
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 )}
 
