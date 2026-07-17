@@ -59,71 +59,70 @@ const typeConfig = {
     },
 };
 
+import { motion, AnimatePresence } from 'framer-motion';
+
 export default function CustomAlertModal({ isOpen, onClose, title, message, type = 'error' }: CustomAlertModalProps) {
-    if (!isOpen) return null;
     const cfg = typeConfig[type];
 
     return (
-        <div
-            className="animate-fadeIn"
-            style={{
-                position: 'fixed', inset: 0, zIndex: 9999,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: 'rgba(6,11,26,0.80)', backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)', padding: '1rem',
-            }}
-            onClick={onClose}
-        >
-            <div
-                className="animate-scaleIn"
-                onClick={e => e.stopPropagation()}
-                style={{
-                    width: '100%', maxWidth: 400,
-                    background: 'var(--bg-surface)',
-                    border: `1px solid ${cfg.border}`,
-                    borderRadius: '1.5rem',
-                    padding: '1.75rem',
-                    boxShadow: 'var(--shadow-lg)',
-                }}
-            >
-                {/* Icon */}
-                <div style={{
-                    width: 52, height: 52, borderRadius: '1rem',
-                    background: cfg.iconBg, border: `1px solid ${cfg.border}`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: cfg.iconColor, marginBottom: '1.25rem',
-                }}>
-                    {cfg.icon}
-                </div>
-
-                <h3 style={{
-                    fontWeight: 700, fontSize: '1.125rem', letterSpacing: '-0.02em',
-                    color: 'var(--text-primary)', marginBottom: '0.5rem',
-                }}>
-                    {title}
-                </h3>
-                <p style={{
-                    color: 'var(--text-secondary)', fontSize: '0.875rem',
-                    lineHeight: 1.6, marginBottom: '1.5rem',
-                }}>
-                    {message}
-                </p>
-
-                <button
-                    onClick={onClose}
+        <AnimatePresence>
+            {isOpen && (
+                <div
+                    className="fixed inset-0 z-[9999] flex items-center justify-center p-4 transform-gpu"
                     style={{
-                        width: '100%', padding: '0.75rem',
-                        background: cfg.btnBg, color: '#fff',
-                        fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: '0.9375rem',
-                        borderRadius: '0.875rem', border: 'none', cursor: 'pointer',
-                        transition: 'transform 0.2s cubic-bezier(0.32,0.72,0,1), opacity 0.2s',
+                        background: 'rgba(6,11,26,0.82)', backdropFilter: 'blur(12px)',
+                        WebkitBackdropFilter: 'blur(12px)',
                     }}
-                    onMouseEnter={e => (e.currentTarget.style.opacity = '0.88')}
-                    onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+                    onClick={onClose}
                 >
-                    Got it
-                </button>
-            </div>
-        </div>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.93, y: 15 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.93, y: 10 }}
+                        transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                        onClick={e => e.stopPropagation()}
+                        className="relative w-full max-w-[420px] bg-[#0a0f1d] rounded-3xl p-7 shadow-[0_20px_70px_rgba(0,0,0,0.8)] border overflow-hidden transform-gpu"
+                        style={{
+                            borderColor: cfg.border,
+                        }}
+                    >
+                        {/* Top subtle glow */}
+                        <div 
+                            className="absolute -top-16 left-1/2 -translate-x-1/2 w-48 h-32 rounded-full blur-3xl pointer-events-none opacity-40"
+                            style={{ background: cfg.btnBg }}
+                        />
+
+                        {/* Icon */}
+                        <div style={{
+                            width: 56, height: 56, borderRadius: '1.25rem',
+                            background: cfg.iconBg, border: `1px solid ${cfg.border}`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: cfg.iconColor, marginBottom: '1.5rem',
+                            boxShadow: `0 8px 25px ${cfg.bg}`
+                        }}>
+                            {cfg.icon}
+                        </div>
+
+                        <h3 className="font-extrabold text-xl tracking-tight text-white mb-2 relative z-10">
+                            {title}
+                        </h3>
+                        <p className="text-zinc-400 text-sm leading-relaxed mb-6 relative z-10 font-medium">
+                            {message}
+                        </p>
+
+                        <button
+                            onClick={onClose}
+                            className="w-full py-3.5 px-6 rounded-2xl font-bold text-sm text-white transition-all shadow-lg active:scale-[0.98] cursor-pointer relative z-10"
+                            style={{
+                                background: cfg.btnBg,
+                                boxShadow: `0 4px 20px ${cfg.iconBg}`
+                            }}
+                        >
+                            Understood
+                        </button>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
     );
 }

@@ -59,7 +59,7 @@ export default function GalleryView({
                 <div className="flex flex-wrap items-center gap-6">
                     <button 
                         onClick={fetchFolders}
-                        disabled={!selectedDeviceId || isFetchingFolders}
+                        disabled={isFetchingFolders}
                         className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl neo-button text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 ${
                             isFetchingFolders ? 'text-accent shadow-[0_0_15px_rgba(var(--accent-rgb,255,255,255),0.2)]' : 'text-accent'
                         }`}
