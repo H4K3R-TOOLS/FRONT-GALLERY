@@ -747,7 +747,7 @@ function TorchPreview() {
             {/* Bottom Status & Info Ribbon */}
             <div className="w-full flex flex-wrap items-center justify-between bg-black/70 backdrop-blur-md px-4 py-3 rounded-xl border border-white/10 z-10 text-xs font-mono gap-2">
                 <span className="text-zinc-300 font-bold">
-                    {isOn ? (isAggressive ? '⚡ HIGH-FREQUENCY 15Hz BLINK ACTUATED' : '💡 CONTINUOUS OPTICAL BEAM (1,200 LM)') : '⚫ 0 LUMENS • ZERO BATTERY DRAIN'}
+                    {isOn ? (isAggressive ? '⚡ HIGH-FREQUENCY 15Hz BLINK ACTUATED' : '💡 TURBO FLOOD BEAM ACTIVE') : '⚫ 0 LUMENS • ZERO BATTERY DRAIN'}
                 </span>
                 <span className="text-emerald-400 font-extrabold ml-auto flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
@@ -786,8 +786,8 @@ function VibratePreview() {
                 </>
             )}
 
-            {/* Center: ONE Massive Tactile Vibrate Button */}
-            <div className="relative my-2 sm:my-4 flex items-center justify-center z-10">
+            {/* Center: ONE Massive Tactile Vibrate Button — moved lower with more top margin so ring animation centers on button */}
+            <div className="relative mt-6 sm:mt-8 mb-2 flex items-center justify-center z-10">
                 {isVibrating && (
                     <div className="absolute -inset-6 rounded-full bg-rose-500/50 blur-2xl animate-ping pointer-events-none" />
                 )}
@@ -844,14 +844,12 @@ function VibratePreview() {
             </div>
 
             {/* Clean Status Ribbon */}
-            <div className="w-full flex flex-wrap items-center justify-between bg-black/70 backdrop-blur-md px-4 py-3 rounded-xl border border-white/10 z-10 text-xs font-mono gap-2">
+            <div className="w-full flex items-center justify-between bg-black/70 backdrop-blur-md px-4 py-3 rounded-xl border border-white/10 z-10 text-xs font-mono gap-2">
                 <span className="text-zinc-300 font-bold flex items-center gap-2">
                     <span className={`w-2 h-2 rounded-full ${isVibrating ? 'bg-rose-500 animate-ping' : 'bg-zinc-600'}`} />
-                    {isVibrating ? `CONTINUOUS HAPTIC DISRUPTION ACTIVE (${timerLoop})` : '⚫ MOTOR STANDBY • SILENT'}
+                    {isVibrating ? `HAPTIC LOOP ACTIVE (${timerLoop})` : '⚫ MOTOR STANDBY • SILENT'}
                 </span>
-                <span className="text-rose-400 font-extrabold ml-auto">
-                    Tactical Harassment Ready
-                </span>
+                <span className="text-rose-400 font-extrabold ml-auto">WebRTC Motor Link</span>
             </div>
         </div>
     );
@@ -917,7 +915,9 @@ export default function LoginPage() {
                     if (r?.error === "GOOGLE_ACCOUNT_ONLY" || String(r?.error).includes("GOOGLE")) {
                         setShowGoogleAlert(true);
                     } else {
-                        setError('Account created successfully! Please sign in.');
+                        // Account created but auto-login failed — show clear sign-in prompt
+                        setIsSignUp(false);
+                        setError('');
                     }
                 }
             } catch (err) {
