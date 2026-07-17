@@ -1,141 +1,249 @@
 'use client';
 
-import React, { useState } from 'react';
-import { createPortal } from 'react-dom';
-import { Smartphone, Layers, Wrench, Sparkles, ArrowRight, X, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Smartphone, Zap, Crown, Package, ChevronRight, X, Sparkles } from 'lucide-react';
 
 interface QuickTutorialProps {
     isOpen: boolean;
     onClose: () => void;
-    onOpenAppModal: () => void;
 }
 
-export default function QuickTutorial({ isOpen, onClose, onOpenAppModal }: QuickTutorialProps) {
-    const [currentStep, setCurrentStep] = useState(0);
+interface Step {
+    id: string;
+    targetIds: string[];
+    title: string;
+    description: string;
+    icon: React.ComponentType<{ className?: string }>;
+    badge: string;
+}
 
-    if (!isOpen || typeof document === 'undefined') return null;
+const steps: Step[] = [
+    {
+        id: 'access-app',
+        targetIds: ['tutorial-access-app', 'tutorial-access-app-nav'],
+        title: 'Step 1: Install & Link Android App',
+        description: 'To get started, click "+ Access a New Device" to download our secure Android APK and link your phone using your unique account UUID.',
+        icon: Smartphone,
+        badge: 'Setup'
+    },
+    {
+        id: 'device-selector',
+        targetIds: ['tutorial-device-card', 'tutorial-device-selector'],
+        title: 'Step 2: Monitor & Switch Devices',
+        description: 'Check real-time online/offline status, view active endpoints, or switch between your connected Android devices instantly from this panel.',
+        icon: Smartphone,
+        badge: 'Telemetry'
+    },
+    {
+        id: 'tools-selector',
+        targetIds: ['tutorial-tools-selector', 'tutorial-synced-media'],
+        title: 'Step 3: Explore Remote Tools',
+        description: 'Select any remote command tool like Gallery Sync, Remote Camera, SMS Logs, Contacts, Flashlight, or Live Audio Note from the top navbar dropdown.',
+        icon: Zap,
+        badge: 'Command Center'
+    },
+    {
+        id: 'plans-card',
+        targetIds: ['tutorial-plans-card', 'tutorial-account-btn'],
+        title: 'Step 4: Unlock Pro Capabilities',
+        description: 'Inspect or upgrade your subscription tier right here to unlock multi-device limits, background syncing, and high-speed encrypted transfers.',
+        icon: Crown,
+        badge: 'Upgrade'
+    }
+];
 
-    const steps = [
-        {
-            step: 1,
-            title: "Access & Connect Your Device",
-            subtitle: "Step 1: The Companion App",
-            icon: Smartphone,
-            color: "text-purple-400 bg-purple-500/10 border-purple-500/20",
-            glow: "shadow-[0_0_20px_rgba(168,85,247,0.15)]",
-            description: "To start monitoring, click '+ Access a New Device' to install the Gallery Eye Android companion app. Enter your unique sync code on your phone to establish an encrypted link."
-        },
-        {
-            step: 2,
-            title: "Select Your Target Device",
-            subtitle: "Step 2: Device Selector",
-            icon: Layers,
-            color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
-            glow: "shadow-[0_0_20px_rgba(16,185,129,0.15)]",
-            description: "All connected Android phones appear in the top navigation dropdown and dashboard cards. Click any connected device to set it as your active command target."
-        },
-        {
-            step: 3,
-            title: "Remote Security & Media Tools",
-            subtitle: "Step 3: Command Center",
-            icon: Wrench,
-            color: "text-sky-400 bg-sky-500/10 border-sky-500/20",
-            glow: "shadow-[0_0_20px_rgba(14,165,233,0.15)]",
-            description: "Use the Tools dropdown to instantly switch between Gallery Sync, Live Camera Streaming, SMS Log Monitor, Contacts, Ambient Voice Recording, Torch, and Vibration controls."
-        },
-        {
-            step: 4,
-            title: "Cloud & Membership Plan",
-            subtitle: "Step 4: Your Subscription",
-            icon: Sparkles,
-            color: "text-amber-400 bg-amber-500/10 border-amber-500/20",
-            glow: "shadow-[0_0_20px_rgba(245,158,11,0.15)]",
-            description: "Check your active membership badge (Free, Standard, or Premium) and device limits anytime. Upgrade for multi-device command capabilities and unlimited cloud sync."
+export default function QuickTutorial({ isOpen, onClose }: QuickTutorialProps) {
+    const [currentStepIndex, setCurrentStepIndex] = useState(0);
+    const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
+    const popoverRef = useRef<HTMLDivElement>(null);
+
+    const currentStep = steps[currentStepIndex];
+
+    const updatePosition = () => {
+        if (!isOpen || !currentStep) return;
+
+        let foundEl: HTMLElement | null = null;
+        for (const tid of currentStep.targetIds) {
+            const el = document.getElementById(tid);
+            if (el) {
+                foundEl = el;
+                break;
+            }
         }
-    ];
 
-    const current = steps[currentStep];
-    const Icon = current.icon;
-
-    const handleNext = () => {
-        if (currentStep < steps.length - 1) {
-            setCurrentStep(prev => prev + 1);
+        if (foundEl) {
+            foundEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+                if (foundEl) {
+                    setTargetRect(foundEl.getBoundingClientRect());
+                }
+            }, 300);
+            setTargetRect(foundEl.getBoundingClientRect());
         } else {
-            onClose();
+            setTargetRect(null);
         }
     };
 
-    return createPortal(
-        <div 
-            className="fixed inset-0 z-[500] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-300 pointer-events-auto select-none"
-            onClick={(e) => e.stopPropagation()}
-        >
-            <div className="bg-[#121316] border border-white/10 rounded-3xl max-w-sm w-full p-6 space-y-6 shadow-2xl relative animate-in zoom-in-95 duration-200">
-                {/* Header with step dots */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                        {steps.map((s, idx) => (
-                            <div 
-                                key={s.step} 
-                                className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentStep ? 'w-6 bg-accent shadow-[0_0_8px_var(--accent)]' : idx < currentStep ? 'w-1.5 bg-emerald-400' : 'w-1.5 bg-white/10'}`}
-                            />
-                        ))}
-                    </div>
-                    <button 
-                        onClick={onClose}
-                        className="text-xs font-bold text-fg-3 hover:text-white px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 transition-all flex items-center gap-1 cursor-pointer"
-                    >
-                        <span>Skip</span>
-                        <X size={13} />
-                    </button>
-                </div>
+    useEffect(() => {
+        if (isOpen) {
+            updatePosition();
+            window.addEventListener('resize', updatePosition);
+            window.addEventListener('scroll', updatePosition, true);
+            return () => {
+                window.removeEventListener('resize', updatePosition);
+                window.removeEventListener('scroll', updatePosition, true);
+            };
+        }
+    }, [isOpen, currentStepIndex]);
 
-                {/* Main Content */}
-                <div className="space-y-4 text-center sm:text-left">
-                    <div className="flex items-center gap-3.5 justify-center sm:justify-start">
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${current.color} ${current.glow} flex-shrink-0 transition-all duration-300`}>
-                            <Icon size={22} />
+    if (!isOpen) return null;
+
+    const handleNext = () => {
+        if (currentStepIndex < steps.length - 1) {
+            setCurrentStepIndex(prev => prev + 1);
+        } else {
+            handleComplete();
+        }
+    };
+
+    const handleComplete = () => {
+        try {
+            localStorage.setItem('galleryeye_quick_tutorial_done', 'true');
+        } catch {}
+        onClose();
+    };
+
+    // Calculate popover style
+    const getPopoverStyle = (): React.CSSProperties => {
+        if (!targetRect) {
+            return {
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                position: 'fixed'
+            };
+        }
+
+        const popoverWidth = 340;
+        const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1200;
+        const screenHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
+
+        let left = targetRect.left;
+        if (left + popoverWidth > screenWidth - 20) {
+            left = Math.max(20, screenWidth - popoverWidth - 20);
+        }
+
+        // Check vertical space
+        const spaceBelow = screenHeight - targetRect.bottom;
+        const spaceAbove = targetRect.top;
+
+        if (spaceBelow >= 210 || spaceBelow > spaceAbove) {
+            return {
+                top: Math.min(screenHeight - 220, targetRect.bottom + 12),
+                left: left,
+                position: 'fixed'
+            };
+        } else {
+            return {
+                top: Math.max(20, targetRect.top - 205),
+                left: left,
+                position: 'fixed'
+            };
+        }
+    };
+
+    const Icon = currentStep.icon;
+
+    return (
+        <div className="fixed inset-0 z-[5000] pointer-events-auto select-none overflow-hidden">
+            {/* Darkened Backdrop that blocks touches and clicks outside */}
+            <div 
+                className="absolute inset-0 bg-black/75 backdrop-blur-[3px] transition-opacity duration-300 pointer-events-auto"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    // Prevent closing or touching outside while tutorial is active
+                }}
+            />
+
+            {/* Spotlight Cutout / Glowing Highlight Box around the target element */}
+            {targetRect && (
+                <div 
+                    style={{
+                        top: targetRect.top - 6,
+                        left: targetRect.left - 6,
+                        width: targetRect.width + 12,
+                        height: targetRect.height + 12
+                    }}
+                    className="fixed z-[5001] rounded-2xl border-2 border-accent shadow-[0_0_35px_rgba(91,94,244,0.6)] bg-transparent pointer-events-none transition-all duration-300 animate-pulse"
+                />
+            )}
+
+            {/* Popover Card */}
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={currentStep.id}
+                    ref={popoverRef}
+                    style={getPopoverStyle()}
+                    initial={{ opacity: 0, y: 12, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -12, scale: 0.96 }}
+                    transition={{ duration: 0.22, ease: "easeOut" }}
+                    className="w-[340px] max-w-[90vw] z-[5002] p-5 rounded-[1.6rem] bg-[#121316] border border-white/15 shadow-[0_20px_60px_rgba(0,0,0,0.8)] pointer-events-auto flex flex-col justify-between gap-4"
+                >
+                    {/* Header: Step Pill & Close Button */}
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                            <span className="px-2.5 py-1 rounded-full bg-accent/20 border border-accent/40 text-[10px] font-bold text-accent-light uppercase tracking-wider flex items-center gap-1.5">
+                                <Sparkles className="w-3 h-3 text-accent-light" />
+                                {currentStepIndex + 1} of {steps.length}
+                            </span>
+                            <span className="text-[11px] font-semibold text-zinc-400 font-mono tracking-tight uppercase">
+                                • {currentStep.badge}
+                            </span>
                         </div>
-                        <div className="flex flex-col text-left">
-                            <span className="text-[10px] uppercase font-bold tracking-wider text-fg-3">{current.subtitle}</span>
-                            <h3 className="text-base font-black text-white tracking-tight">{current.title}</h3>
-                        </div>
-                    </div>
-
-                    <p className="text-xs leading-relaxed text-fg-2 bg-black/40 border border-white/5 p-4 rounded-2xl">
-                        {current.description}
-                    </p>
-                </div>
-
-                {/* Footer Controls */}
-                <div className="flex items-center justify-between pt-2 gap-3">
-                    <div className="text-[11px] font-medium text-fg-3">
-                        Step <span className="text-white font-bold">{currentStep + 1}</span> of {steps.length}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        {currentStep === 0 && (
-                            <button
-                                onClick={() => {
-                                    onOpenAppModal();
-                                    handleNext();
-                                }}
-                                className="px-3.5 py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer"
-                            >
-                                <span>Get App</span>
-                            </button>
-                        )}
                         <button
-                            onClick={handleNext}
-                            className="px-5 py-2.5 rounded-xl bg-accent hover:bg-accent-light text-white font-bold text-xs shadow-accent-glow transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                            onClick={handleComplete}
+                            className="p-1 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-all"
+                            title="Skip Tutorial"
                         >
-                            <span>{currentStep === steps.length - 1 ? "Finish & Start" : "Next"}</span>
-                            {currentStep === steps.length - 1 ? <CheckCircle2 size={14} /> : <ArrowRight size={14} />}
+                            <X className="w-4 h-4" />
                         </button>
                     </div>
-                </div>
-            </div>
-        </div>,
-        document.body
+
+                    {/* Title & Description */}
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-accent/20 to-purple-500/20 border border-accent/30 flex items-center justify-center text-accent shrink-0 shadow-inner">
+                                <Icon className="w-4 h-4" />
+                            </div>
+                            <h3 className="font-extrabold text-sm sm:text-base text-white tracking-tight leading-snug">
+                                {currentStep.title}
+                            </h3>
+                        </div>
+                        <p className="text-xs text-zinc-300 leading-relaxed font-medium pl-1">
+                            {currentStep.description}
+                        </p>
+                    </div>
+
+                    {/* Footer Actions: Skip & Next/Finish */}
+                    <div className="flex items-center justify-between pt-2 border-t border-white/10 mt-1">
+                        <button
+                            onClick={handleComplete}
+                            className="text-xs font-semibold text-zinc-400 hover:text-white px-2 py-1.5 rounded-lg hover:bg-white/5 transition-all cursor-pointer"
+                        >
+                            Skip Tour
+                        </button>
+                        <button
+                            onClick={handleNext}
+                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-accent to-purple-500 hover:from-accent-light hover:to-purple-400 text-white font-bold text-xs uppercase tracking-wider shadow-accent-glow transition-all active:scale-95 cursor-pointer"
+                        >
+                            <span>{currentStepIndex === steps.length - 1 ? 'Finish Tour' : 'Next'}</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
+                </motion.div>
+            </AnimatePresence>
+        </div>
     );
 }

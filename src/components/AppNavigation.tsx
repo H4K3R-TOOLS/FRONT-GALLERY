@@ -271,6 +271,7 @@ export default function AppNavigation({
                     {/* Tools Dropdown */}
                     <div className="relative">
                         <button 
+                            id="tutorial-tools-selector"
                             onClick={() => toggleDropdown('tools')}
                             className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl transition-all duration-300 ${openDropdown === 'tools' || selectedTool ? 'neo-pressed text-accent' : 'neo-button text-fg-2 hover:text-fg-1'}`}
                         >
@@ -313,6 +314,7 @@ export default function AppNavigation({
                     {/* Devices Dropdown */}
                     <div className="relative">
                         <button 
+                            id="tutorial-device-selector"
                             onClick={() => toggleDropdown('devices')}
                             className={`flex items-center gap-2.5 px-3 md:px-4 py-2 rounded-xl transition-all duration-300 ${openDropdown === 'devices' ? 'neo-pressed text-accent' : 'neo-button text-fg-2 hover:text-fg-1'}`}
                         >
@@ -349,6 +351,7 @@ export default function AppNavigation({
 
                     {/* App Maker Button */}
                     <button 
+                        id="tutorial-access-app-nav"
                         onClick={onOpenAppModal}
                         className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl neo-button text-accent hover:text-accent-hi transition-all"
                     >
@@ -359,6 +362,7 @@ export default function AppNavigation({
                     {/* Profile Dropdown */}
                     <div className="relative">
                         <button 
+                            id="tutorial-account-btn"
                             onClick={() => toggleDropdown('profile')}
                             className={`flex items-center justify-center w-10 h-10 md:w-auto md:px-4 py-2 rounded-xl transition-all duration-300 ${openDropdown === 'profile' ? 'neo-pressed text-accent' : 'neo-button text-fg-2 hover:text-fg-1'}`}
                         >

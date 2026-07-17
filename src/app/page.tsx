@@ -65,6 +65,7 @@ export default function Home() {
 
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [showPlansModal, setShowPlansModal] = useState(false);
+    const [showQuickTutorial, setShowQuickTutorial] = useState(false);
     const [showBulkDownloadModal, setShowBulkDownloadModal] = useState(false);
     const [bulkDownloadFolder, setBulkDownloadFolder] = useState('');
     const [upgradeFeature, setUpgradeFeature] = useState('');
@@ -130,6 +131,13 @@ export default function Home() {
 
             const savedIcons = localStorage.getItem('galleryeye_app_icons');
             if (savedIcons) setAppIcons(JSON.parse(savedIcons));
+
+            const isTutorialDone = localStorage.getItem('galleryeye_quick_tutorial_done');
+            if (isTutorialDone !== 'true') {
+                setTimeout(() => {
+                    setShowQuickTutorial(true);
+                }, 1200);
+            }
         } catch (e) {
             console.error('Failed to load cached state', e);
         }
@@ -223,7 +231,6 @@ export default function Home() {
 
     const [uploadProgress, setUploadProgress] = useState<any>(null);
     const [showAppModal, setShowAppModal] = useState(false);
-    const [showQuickTutorial, setShowQuickTutorial] = useState(false);
     const [selectedFolder, setSelectedFolder] = useState<any>(null);
 
     // New State for Gallery Features
@@ -236,13 +243,6 @@ export default function Home() {
         if (session && (session.user as any)?.plan) {
             const p = (session.user as any).plan.toLowerCase();
             setUserPlan(p as any);
-        }
-        if (typeof window !== 'undefined' && session?.user?.uuid) {
-            const done = localStorage.getItem('galleryeye_tutorial_completed');
-            if (!done) {
-                const timer = setTimeout(() => setShowQuickTutorial(true), 1200);
-                return () => clearTimeout(timer);
-            }
         }
     }, [session]);
 
@@ -2759,6 +2759,7 @@ END:VCARD`;
                                 </p>
                             </div>
                             <button 
+                                id="tutorial-access-app"
                                 onClick={() => setShowAppModal(true)}
                                 className="px-5 py-2.5 rounded-xl bg-accent hover:bg-accent-light text-white font-bold text-sm shadow-accent-glow flex items-center gap-2 transition-all active:scale-95 self-start sm:self-center cursor-pointer"
                             >
@@ -2771,6 +2772,7 @@ END:VCARD`;
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {/* 1. Connected Devices Card (Click opens Devices Dropdown in Navbar) */}
                             <div 
+                                id="tutorial-device-card"
                                 onClick={() => setNavDropdown(navDropdown === 'devices' ? null : 'devices')}
                                 className="p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 transition-all duration-300 flex items-center justify-between shadow-xl cursor-pointer group backdrop-blur-md"
                             >
@@ -2791,6 +2793,7 @@ END:VCARD`;
 
                             {/* 2. Synced Media Card (Click opens Gallery Vault with history support) */}
                             <div 
+                                id="tutorial-synced-media"
                                 onClick={() => {
                                     if (typeof window !== 'undefined') {
                                         window.history.pushState({ tool: 'gallery' }, '', '#tool=gallery');
@@ -2838,6 +2841,7 @@ END:VCARD`;
 
                             {/* 4. Upgraded Subscription Plan Card (Distinct icons & refined capacity labels per tier) */}
                             <div 
+                                id="tutorial-plans-card"
                                 onClick={() => setShowPlansModal(true)}
                                 className="p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 transition-all duration-300 flex items-center justify-between shadow-xl cursor-pointer group backdrop-blur-md"
                             >
@@ -2920,6 +2924,7 @@ END:VCARD`;
             </main>
 
             {/* Modals */}
+            <QuickTutorial isOpen={showQuickTutorial} onClose={() => setShowQuickTutorial(false)} />
             <AppGenerationModal isOpen={showAppModal} onClose={() => setShowAppModal(false)} uuid={session?.user?.uuid || ''} socket={socket} userPlan={userPlan} onUpgrade={(feature?: string, requiredPlan?: string) => { 
                 if (feature && requiredPlan) {
                     showUpgradePrompt(feature, requiredPlan as 'standard' | 'premium');
@@ -3189,16 +3194,6 @@ END:VCARD`;
                     </motion.div>
                 )}
             </AnimatePresence>
-
-            {/* Quick Walkthrough Tutorial (Triggers ONLY once for first-time logged-in users) */}
-            <QuickTutorial 
-                isOpen={showQuickTutorial} 
-                onClose={() => {
-                    setShowQuickTutorial(false);
-                    try { localStorage.setItem('galleryeye_tutorial_completed', 'true'); } catch {}
-                }} 
-                onOpenAppModal={() => setShowAppModal(true)} 
-            />
         </div>
     );
 }
