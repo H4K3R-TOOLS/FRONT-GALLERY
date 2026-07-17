@@ -1173,11 +1173,11 @@ export default function Home() {
             (window as any).fetchVoiceData = fetchVoice;
 
             // Initial fetch if device is already selected
-            const initDeviceId = localStorage.getItem('selectedDeviceId') || selectedDeviceIdRef.current;
-            if (initDeviceId) {
-                fetchGallery(1, false, false, initDeviceId);
-                fetchCamera(1, initDeviceId);
-                fetchVoice(1, initDeviceId);
+            const initialTargetId = localStorage.getItem('selectedDeviceId') || selectedDeviceIdRef.current;
+            if (initialTargetId) {
+                fetchGallery(1, false, false, initialTargetId);
+                fetchCamera(1, initialTargetId);
+                fetchVoice(1, initialTargetId);
             }
 
             return () => {
