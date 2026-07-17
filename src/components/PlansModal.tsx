@@ -12,8 +12,6 @@ interface PlansModalProps {
 }
 
 export default function PlansModal({ isOpen, onClose, currentPlan, userEmail, userUuid }: PlansModalProps) {
-    if (!isOpen) return null;
-
     const getWhatsAppLink = (planName: string, price: string) => {
         const msg = `🔐 *Gallery Eye — Plan Upgrade*\n\n📧 Email: ${userEmail}\n🆔 UUID: ${userUuid}\n📋 Plan: ${planName} (${price})\n\nI'd like to upgrade to the ${planName} plan. Please process my request! 🙏✨`;
         return `https://wa.me/923460257488?text=${encodeURIComponent(msg)}`;
@@ -84,24 +82,26 @@ export default function PlansModal({ isOpen, onClose, currentPlan, userEmail, us
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-[600] flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-                {/* Backdrop */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-black/85 backdrop-blur-xl"
-                />
+            {isOpen && (
+                <div className="fixed inset-0 z-[600] flex items-end sm:items-center justify-center p-0 sm:p-4 transform-gpu" onClick={onClose}>
+                    {/* Backdrop */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15, ease: "easeOut" }}
+                        className="absolute inset-0 bg-black/80 backdrop-blur-md"
+                    />
 
-                {/* Modal */}
-                <motion.div
-                    initial={{ opacity: 0, y: 60, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 40, scale: 0.97 }}
-                    transition={{ type: 'spring', damping: 30, stiffness: 350 }}
-                    className="relative w-full max-w-3xl bg-gradient-to-b from-[#15161a] to-[#0f1013] border border-white/[0.08] rounded-t-[2rem] sm:rounded-[2rem] shadow-[0_-10px_60px_rgba(0,0,0,0.5)] max-h-[92vh] overflow-hidden"
-                    onClick={(e) => e.stopPropagation()}
-                >
+                    {/* Modal */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 24, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 16, scale: 0.98 }}
+                        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                        className="relative w-full max-w-3xl bg-gradient-to-b from-[#15161a] to-[#0f1013] border border-white/[0.08] rounded-t-[2rem] sm:rounded-[2rem] shadow-[0_-10px_60px_rgba(0,0,0,0.5)] max-h-[92vh] overflow-hidden transform-gpu"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                     {/* Top ambient glow */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-40 bg-gradient-to-b from-indigo-500/8 to-transparent rounded-full blur-3xl pointer-events-none" />
 
@@ -250,6 +250,7 @@ export default function PlansModal({ isOpen, onClose, currentPlan, userEmail, us
                     </div>
                 </motion.div>
             </div>
+            )}
         </AnimatePresence>
     );
 }

@@ -90,12 +90,6 @@ const VideoModal = ({ videoId, label = "Watch Tutorial", variant = 'thumbnail' }
                                 <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
                                 <span>Gallery Eye Step-by-Step Tutorial</span>
                             </span>
-                            <button
-                                onClick={() => setIsOpen(false)}
-                                className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-zinc-300 hover:text-white transition-colors cursor-pointer"
-                            >
-                                Close (ESC)
-                            </button>
                         </div>
 
                         {/* Video Container */}

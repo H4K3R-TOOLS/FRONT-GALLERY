@@ -186,7 +186,7 @@ export default function AppNavigation({
     const backdropPortal = openDropdown !== null && typeof window !== 'undefined' 
         ? createPortal(
             <div 
-                className="fixed inset-0 z-[140] pointer-events-auto" 
+                className="fixed inset-0 z-[90] pointer-events-auto cursor-default" 
                 onClick={(e) => {
                     e.stopPropagation();
                     setOpenDropdown(null);
@@ -201,10 +201,12 @@ export default function AppNavigation({
         { id: 'camera', label: 'Camera', icon: Camera, color: 'text-cyan-400' },
         { id: 'audio', label: 'Microphone', icon: Mic, color: 'text-purple-400' },
         { id: 'notifications', label: 'Alerts', icon: Bell, color: 'text-indigo-400' },
-        { id: 'contacts', label: 'Contacts', icon: Users, color: 'text-emerald-400' },
-        { id: 'sms', label: 'Messages', icon: MessageSquare, color: 'text-blue-400' },
-        { id: 'torch', label: 'Flashlight', icon: Flashlight, color: 'text-amber-400' },
-        { id: 'vibration', label: 'Vibrate', icon: Vibrate, color: 'text-rose-400' },
+        { id: 'flashlight', label: 'Flashlight', icon: Flashlight, color: 'text-amber-400' },
+        { id: 'vibration', label: 'Vibration', icon: Vibrate, color: 'text-emerald-400' },
+        { id: 'settings', label: 'Device Settings', icon: Settings, color: 'text-sky-400' },
+        { id: 'clipboard', label: 'Clipboard', icon: Check, color: 'text-teal-400' },
+        { id: 'contacts', label: 'Contacts', icon: Users, color: 'text-rose-400' },
+        { id: 'sms', label: 'SMS & Messages', icon: MessageSquare, color: 'text-blue-400' }
     ];
 
     const currentToolData = tools.find(t => t.id === selectedTool);
@@ -257,12 +259,10 @@ export default function AppNavigation({
                             : 'bg-zinc-900 border border-zinc-700 shadow-[0_0_10px_rgba(255,255,255,0.1)]'
                     }`}>
                         <img src="/gallery-eye-logo.jpg" alt="Gallery Eye" className="w-full h-full object-cover z-10 block" />
-                        {userPlan === 'premium' && <div className="absolute inset-0 bg-amber-500/10 animate-pulse" />}
                     </div>
                 </button>
 
-                {/* Navigation Items */}
-                <div className="flex items-center gap-2 md:gap-3">
+                <div className="flex items-center gap-1.5 sm:gap-4 flex-1 justify-end">
                     
                     {/* Tools Dropdown */}
                     <div className="relative">
@@ -277,35 +277,31 @@ export default function AppNavigation({
 
                         <AnimatePresence>
                             {openDropdown === 'tools' && (
-                                <>
-                                    {/* Backdrop */}
-                                    <div className="fixed inset-0 z-[150]" onClick={() => setOpenDropdown(null)} />
-                                    <motion.div
-                                        variants={dropdownVariants}
-                                        initial="hidden"
-                                        animate="visible"
-                                        exit="exit"
-                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[380px] p-6 neo-surface rounded-[2rem] border border-white/5 z-[200]"
-                                    >
-                                        <div className="text-xs font-bold text-fg-3 uppercase tracking-widest mb-6 px-2">Select Tool</div>
-                                        <div className="grid grid-cols-4 gap-4">
-                                            {tools.map((tool) => (
-                                                <button
-                                                    key={tool.id}
-                                                    onClick={() => handleSelectTool(tool.id)}
-                                                    className="flex flex-col items-center justify-start gap-3 p-2 rounded-2xl hover:bg-white/10 active:scale-95 transition-all group"
-                                                >
-                                                    <div className={`w-16 h-16 rounded-2xl neo-surface flex items-center justify-center border border-white/5 group-hover:shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all ${selectedTool === tool.id ? 'bg-white/10 ring-2 ring-accent shadow-[0_0_15px_rgba(var(--accent),0.3)]' : ''}`}>
-                                                        <div className={`p-3 rounded-xl bg-gradient-to-br from-white/10 to-transparent`}>
-                                                            <tool.icon className={`w-6 h-6 ${tool.color} group-hover:scale-110 transition-transform`} strokeWidth={2} />
-                                                        </div>
+                                <motion.div
+                                    variants={dropdownVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    exit="exit"
+                                    className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[380px] p-6 neo-surface rounded-[2rem] border border-white/5 z-[200] pointer-events-auto cursor-default shadow-2xl"
+                                >
+                                    <div className="text-xs font-bold text-fg-3 uppercase tracking-widest mb-6 px-2">Select Tool</div>
+                                    <div className="grid grid-cols-4 gap-4">
+                                        {tools.map((tool) => (
+                                            <button
+                                                key={tool.id}
+                                                onClick={() => handleSelectTool(tool.id)}
+                                                className="flex flex-col items-center justify-start gap-3 p-2 rounded-2xl hover:bg-white/10 active:scale-95 transition-all group cursor-pointer"
+                                            >
+                                                <div className={`w-16 h-16 rounded-2xl neo-surface flex items-center justify-center border border-white/5 group-hover:shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all ${selectedTool === tool.id ? 'bg-white/10 ring-2 ring-accent shadow-[0_0_15px_rgba(var(--accent),0.3)]' : ''}`}>
+                                                    <div className={`p-3 rounded-xl bg-gradient-to-br from-white/10 to-transparent`}>
+                                                        <tool.icon className={`w-6 h-6 ${tool.color} group-hover:scale-110 transition-transform`} strokeWidth={2} />
                                                     </div>
-                                                    <span className="text-xs font-semibold text-fg-2 group-hover:text-white text-center leading-tight">{tool.label}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </motion.div>
-                                </>
+                                                </div>
+                                                <span className="text-xs font-semibold text-fg-2 group-hover:text-white text-center leading-tight">{tool.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </motion.div>
                             )}
                         </AnimatePresence>
                     </div>
@@ -332,19 +328,15 @@ export default function AppNavigation({
 
                         <AnimatePresence>
                             {openDropdown === 'devices' && (
-                                <>
-                                    {/* Backdrop */}
-                                    <div className="fixed inset-0 z-[150]" onClick={() => setOpenDropdown(null)} />
-                                    <motion.div
-                                        variants={dropdownVariants}
-                                        initial="hidden"
-                                        animate="visible"
-                                        exit="exit"
-                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[360px] p-6 neo-surface rounded-[2rem] border border-white/5 z-[200]"
-                                    >
-                                        <DeviceList devices={devices} selectedDeviceId={selectedDeviceId} setSelectedDeviceId={setSelectedDeviceId} setOpenDropdown={setOpenDropdown} onDeleteDevice={onDeleteDevice} />
-                                    </motion.div>
-                                </>
+                                <motion.div
+                                    variants={dropdownVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    exit="exit"
+                                    className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[360px] p-6 neo-surface rounded-[2rem] border border-white/5 z-[200] pointer-events-auto cursor-default shadow-2xl"
+                                >
+                                    <DeviceList devices={devices} selectedDeviceId={selectedDeviceId} setSelectedDeviceId={setSelectedDeviceId} setOpenDropdown={setOpenDropdown} onDeleteDevice={onDeleteDevice} />
+                                </motion.div>
                             )}
                         </AnimatePresence>
                     </div>
@@ -372,15 +364,13 @@ export default function AppNavigation({
 
                         <AnimatePresence>
                             {openDropdown === 'profile' && (
-                                <>
-                                    <div className="fixed inset-0 z-[150]" onClick={() => setOpenDropdown(null)} />
-                                    <motion.div
-                                        variants={dropdownVariants}
-                                        initial="hidden"
-                                        animate="visible"
-                                        exit="exit"
-                                        className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[280px] p-5 neo-surface rounded-[2rem] border border-white/5 z-[200]"
-                                    >
+                                <motion.div
+                                    variants={dropdownVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    exit="exit"
+                                    className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[280px] p-5 neo-surface rounded-[2rem] border border-white/5 z-[200] pointer-events-auto cursor-default shadow-2xl"
+                                >
                                         <div className="p-4 mb-3 rounded-2xl neo-surface flex flex-col items-center text-center border border-white/10 shadow-lg">
                                             <div className={`w-16 h-16 rounded-full mb-3 flex items-center justify-center overflow-hidden ring-2 ${
                                                 userPlan === 'premium' ? 'ring-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.7)]' :
@@ -432,7 +422,6 @@ export default function AppNavigation({
                                             </button>
                                         </div>
                                     </motion.div>
-                                </>
                             )}
                         </AnimatePresence>
                     </div>
