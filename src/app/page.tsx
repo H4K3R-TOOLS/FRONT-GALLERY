@@ -2740,7 +2740,7 @@ END:VCARD`;
                                 className="px-5 py-2.5 rounded-xl bg-accent hover:bg-accent-light text-white font-bold text-sm shadow-accent-glow flex items-center gap-2 transition-all active:scale-95 self-start sm:self-center cursor-pointer"
                             >
                                 <Smartphone className="w-4 h-4" />
-                                <span>+ Pair New Endpoint</span>
+                                <span>+ Access a New Device</span>
                             </button>
                         </div>
 
@@ -2780,30 +2780,28 @@ END:VCARD`;
                                 </div>
                             </div>
 
-                            {/* 3. Backend Connection Card (Spinning icon + Live ping badge) */}
+                            {/* 3. Backend Connection Card (Spinning icon + Cleanly positioned Cyan ping badge) */}
                             <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 transition-all duration-300 flex items-center justify-between shadow-xl backdrop-blur-md">
                                 <div className="space-y-1">
-                                    <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                                        <span>Backend Connection</span>
-                                        {socket && socket.connected && (
-                                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-[0_0_8px_rgba(16,185,129,0.2)]">
-                                                ⚡ {socketPing}ms
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest">Backend Connection</div>
+                                    <div className="flex items-center gap-2.5">
                                         <span className="relative flex h-2 w-2">
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
                                         </span>
                                         <span className="text-base font-bold text-white tracking-wide font-mono">
                                             {socket && socket.connected ? 'BACKEND CONNECTED' : 'BACKEND ONLINE'}
                                         </span>
+                                        {socket && socket.connected && (
+                                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-white/10 text-cyan-300 border border-cyan-500/30 font-mono tracking-wider shadow-sm">
+                                                ⚡ {socketPing}ms
+                                            </span>
+                                        )}
                                     </div>
                                     <div className="text-[11px] text-zinc-500">Secure WebSocket tunnel active</div>
                                 </div>
-                                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                                    <RefreshCw className="w-5 h-5 text-emerald-400 animate-[spin_3s_linear_infinite]" />
+                                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
+                                    <RefreshCw className="w-5 h-5 text-cyan-400 animate-[spin_3s_linear_infinite]" />
                                 </div>
                             </div>
 

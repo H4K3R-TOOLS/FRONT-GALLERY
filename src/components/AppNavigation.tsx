@@ -175,13 +175,26 @@ export default function AppNavigation({
     // Close dropdowns on click outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (navRef.current && !navRef.current.contains(event.target as Node)) {
+            if (openDropdown !== null && navRef.current && !navRef.current.contains(event.target as Node)) {
                 setOpenDropdown(null);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    }, [openDropdown, openDropdownProp, setOpenDropdownProp]);
+
+    const backdropPortal = openDropdown !== null && typeof window !== 'undefined' 
+        ? createPortal(
+            <div 
+                className="fixed inset-0 z-[140] pointer-events-auto" 
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setOpenDropdown(null);
+                }} 
+            />, 
+            document.body
+        ) 
+        : null;
 
     const tools = [
         { id: 'gallery', label: 'Gallery', icon: ImageIcon, color: 'text-pink-400' },
@@ -214,7 +227,9 @@ export default function AppNavigation({
     };
 
     return (
-        <div ref={navRef} className="fixed top-0 left-0 right-0 z-[100] px-2 sm:px-4 py-2 sm:py-3 md:px-8 pointer-events-none">
+        <>
+            {backdropPortal}
+            <div ref={navRef} className="fixed top-0 left-0 right-0 z-[100] px-2 sm:px-4 py-2 sm:py-3 md:px-8 pointer-events-none">
             <nav className="max-w-7xl mx-auto flex items-center justify-between glass-panel rounded-2xl p-1.5 sm:p-2 px-3 sm:px-4 shadow-neo pointer-events-auto">
                 
                 {/* Logo with Plan Glow (Click to go Home) */}
@@ -416,5 +431,6 @@ export default function AppNavigation({
                 </div>
             </nav>
         </div>
+        </>
     );
 }
