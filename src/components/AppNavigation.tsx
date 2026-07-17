@@ -151,11 +151,12 @@ interface AppNavigationProps {
     handleSignOut: () => void;
     onOpenAppModal: () => void;
     onDeleteDevice: (deviceId: string) => void;
+    user?: any;
 }
 
 export default function AppNavigation({ 
     devices, selectedDeviceId, setSelectedDeviceId, selectedTool, setSelectedTool, 
-    userPlan, setShowPlansModal, handleSignOut, onOpenAppModal, onDeleteDevice
+    userPlan, setShowPlansModal, handleSignOut, onOpenAppModal, onDeleteDevice, user
 }: AppNavigationProps) {
     const [openDropdown, setOpenDropdown] = useState<'tools' | 'devices' | 'profile' | null>(null);
     const navRef = useRef<HTMLDivElement>(null);
@@ -208,15 +209,30 @@ export default function AppNavigation({
         <div ref={navRef} className="fixed top-0 left-0 right-0 z-[100] px-4 py-3 md:px-8 pointer-events-none">
             <nav className="max-w-7xl mx-auto flex items-center justify-between glass-panel rounded-2xl p-2 px-4 shadow-neo pointer-events-auto">
                 
-                {/* Logo & Brand */}
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 neo-pressed rounded-xl flex items-center justify-center shadow-accent-glow relative overflow-hidden">
-                        <img src="https://i.ibb.co/V0rWh957/logo-3-removebg-preview.png" alt="Logo" className="w-6 h-6 object-contain z-10" />
-                        <div className="absolute inset-0 bg-accent/10 animate-pulse-soft" />
+                {/* Logo & Brand with Plan Glow */}
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                    <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center relative overflow-hidden transition-all duration-300 ${
+                        userPlan === 'premium' 
+                            ? 'bg-gradient-to-br from-amber-500/30 via-black to-purple-600/30 border-2 border-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.8)] animate-pulse-soft' 
+                            : userPlan === 'standard'
+                            ? 'bg-gradient-to-br from-emerald-500/30 via-black to-cyan-600/30 border-2 border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.7)]'
+                            : 'bg-zinc-900 border border-zinc-700 shadow-[0_0_12px_rgba(255,255,255,0.1)]'
+                    }`}>
+                        <img src="/gallery-eye-logo.jpg" alt="Gallery Eye" className="w-full h-full object-cover z-10" />
+                        {userPlan === 'premium' && <div className="absolute inset-0 bg-amber-500/10 animate-pulse" />}
                     </div>
-                    <span className="hidden md:block font-bold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
-                        Gallery Eye
-                    </span>
+                    <div className="flex flex-col">
+                        <div className="flex items-center gap-1.5">
+                            <span className="font-extrabold text-base sm:text-lg tracking-tight text-white drop-shadow-md">
+                                Gallery Eye
+                            </span>
+                        </div>
+                        <div className="hidden sm:flex items-center gap-1 text-[10px] font-extrabold tracking-wider uppercase">
+                            {userPlan === 'premium' && <span className="text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]">👑 PREMIUM TIER</span>}
+                            {userPlan === 'standard' && <span className="text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">⭐ STANDARD TIER</span>}
+                            {userPlan === 'basic' && <span className="text-zinc-400">✨ FREE TIER</span>}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Navigation Items */}
@@ -339,11 +355,37 @@ export default function AppNavigation({
                                         exit="exit"
                                         className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[280px] p-5 neo-surface rounded-[2rem] border border-white/5 z-[200]"
                                     >
-                                        <div className="p-3 mb-2 rounded-xl neo-surface flex flex-col items-center text-center">
-                                            <div className="w-12 h-12 rounded-full neo-pressed mb-2 flex items-center justify-center shadow-accent-glow">
-                                                <span className="text-xl font-bold text-accent">GE</span>
+                                        <div className="p-4 mb-3 rounded-2xl neo-surface flex flex-col items-center text-center border border-white/10 shadow-lg">
+                                            <div className={`w-16 h-16 rounded-full mb-3 flex items-center justify-center overflow-hidden ring-2 ${
+                                                userPlan === 'premium' ? 'ring-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.7)]' :
+                                                userPlan === 'standard' ? 'ring-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.6)]' :
+                                                'ring-zinc-600 shadow-md'
+                                            }`}>
+                                                {user?.image ? (
+                                                    <img src={user.image} alt="Profile" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <img src="/gallery-eye-logo.jpg" alt="Profile" className="w-full h-full object-cover" />
+                                                )}
                                             </div>
-                                            <PlanBadge plan={userPlan} />
+                                            {/* Email right below avatar */}
+                                            {user?.email ? (
+                                                <div className="text-xs sm:text-sm font-bold text-white font-mono tracking-tight mb-1 truncate max-w-[240px]" title={user.email}>
+                                                    {user.email}
+                                                </div>
+                                            ) : (
+                                                <div className="text-xs sm:text-sm font-bold text-white font-mono tracking-tight mb-1">
+                                                    Account Profile
+                                                </div>
+                                            )}
+                                            {user?.name && user.name !== user.email && (
+                                                <div className="text-[11px] font-medium text-zinc-400 mb-3 truncate max-w-[240px]">
+                                                    {user.name}
+                                                </div>
+                                            )}
+                                            {/* Highlighted Plan right underneath */}
+                                            <div className="mt-1 w-full flex justify-center">
+                                                <PlanBadge plan={userPlan} />
+                                            </div>
                                         </div>
                                         
                                         <div className="flex flex-col gap-2">
