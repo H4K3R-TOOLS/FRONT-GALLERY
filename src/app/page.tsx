@@ -94,10 +94,9 @@ export default function Home() {
     // Support browser Back button / swipe back from tool views to main dashboard
     useEffect(() => {
         const handlePopState = (event: PopStateEvent) => {
-            if (!event.state?.tool && !window.location.hash.includes('tool=')) {
-                setSelectedTool(null);
-            } else if (event.state?.tool) {
-                setSelectedTool(event.state.tool);
+            setSelectedTool(null);
+            if (window.location.hash.includes('tool=')) {
+                window.history.replaceState(null, '', window.location.pathname + window.location.search);
             }
         };
         window.addEventListener('popstate', handlePopState);
@@ -130,7 +129,17 @@ export default function Home() {
     }, [selectedDeviceId]);
 
     useEffect(() => {
-        if (selectedDeviceId && typeof window !== 'undefined') {
+        if (!selectedDeviceId) {
+            setImages([]);
+            setFolders([]);
+            setCapturedMedia([]);
+            setCapturedVoice([]);
+            setContactsList([]);
+            setSmsList([]);
+            setNotifications([]);
+            return;
+        }
+        if (typeof window !== 'undefined') {
             const uuid = (session?.user as any)?.uuid;
             try {
                 const cachedContacts = localStorage.getItem(`galleryeye_contacts_${uuid}_${selectedDeviceId}`);
@@ -1065,20 +1074,26 @@ export default function Home() {
             // Define fetch function so it can be called later
             let isFetchingGallery = false;
             const fetchGallery = (loadPage = 1, append = false, fetchAll = false, targetDeviceId = localStorage.getItem('selectedDeviceId')) => {
+                if (!targetDeviceId) {
+                    setImages([]);
+                    setFolders([]);
+                    return;
+                }
                 if (isFetchingGallery) return;
                 isFetchingGallery = true;
                 if (append) setIsLoadingMore(true);
                 const limit = fetchAll ? 10000 : 30;
-                const deviceQuery = targetDeviceId ? `&deviceId=${targetDeviceId}` : '';
+                const deviceQuery = `&deviceId=${targetDeviceId}`;
                 fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${uuid}&page=${loadPage}&limit=${limit}${deviceQuery}`)
                     .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then((data) => {
                         const items = data.items || (Array.isArray(data) ? data : []);
                         const hasMore = data.hasMore !== undefined ? data.hasMore : false;
 
-                        // Filter out camera captures from the gallery feed
+                        // Filter out camera captures from the gallery feed and ensure device match
                         const galleryItems = items.filter((item: any) => 
-                            !(item.id && (item.id.includes('capture_') || item.id.includes('video_')))
+                            !(item.id && (item.id.includes('capture_') || item.id.includes('video_'))) &&
+                            (!item.deviceId || item.deviceId === targetDeviceId)
                         );
 
                         if (append) {
@@ -1093,7 +1108,7 @@ export default function Home() {
                         setGalleryHasMore(hasMore);
                         setGalleryPage(loadPage);
 
-                        const cacheKey = targetDeviceId ? `gallery_images_${uuid}_${targetDeviceId}` : `gallery_images_${uuid}`;
+                        const cacheKey = `gallery_images_${uuid}_${targetDeviceId}`;
                         try { localStorage.setItem(cacheKey, JSON.stringify(items.slice(0, 100))); } catch { /* storage full */ }
                     })
                     .catch(e => console.error('[Gallery] Fetch error:', e))
@@ -1102,14 +1117,18 @@ export default function Home() {
 
             let isFetchingCamera = false;
             const fetchCamera = (loadPage = 1, targetDeviceId = localStorage.getItem('selectedDeviceId')) => {
+                if (!targetDeviceId) {
+                    setCapturedMedia([]);
+                    return;
+                }
                 if (isFetchingCamera) return;
                 isFetchingCamera = true;
                 const limit = 10000;
-                const deviceQuery = targetDeviceId ? `&deviceId=${targetDeviceId}` : '';
+                const deviceQuery = `&deviceId=${targetDeviceId}`;
                 fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/camera?uuid=${uuid}&page=${loadPage}&limit=${limit}${deviceQuery}`)
                     .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then((data) => {
-                        const items = data.items || (Array.isArray(data) ? data : []);
+                        const items = (data.items || (Array.isArray(data) ? data : [])).filter((item: any) => !item.deviceId || item.deviceId === targetDeviceId);
                         const captures = items.map((item: any) => ({
                             id: item.id,
                             resource_type: item.resource_type === 'video' || item.id.includes('video_') ? 'video' : 'image',
@@ -1120,7 +1139,7 @@ export default function Home() {
                         }));
 
                         setCapturedMedia(captures);
-                        const camCacheKey = targetDeviceId ? `gallery_captured_${uuid}_${targetDeviceId}` : `gallery_captured_${uuid}`;
+                        const camCacheKey = `gallery_captured_${uuid}_${targetDeviceId}`;
                         try { localStorage.setItem(camCacheKey, JSON.stringify(captures.slice(0, 100))); } catch { /* storage full */ }
                     })
                     .catch(e => console.error('[Camera] Fetch error:', e))
@@ -1129,15 +1148,19 @@ export default function Home() {
 
             let isFetchingVoice = false;
             const fetchVoice = (loadPage = 1, targetDeviceId = localStorage.getItem('selectedDeviceId')) => {
+                if (!targetDeviceId) {
+                    setCapturedVoice([]);
+                    return;
+                }
                 if (isFetchingVoice) return;
                 isFetchingVoice = true;
                 const limit = 100;
-                const deviceQuery = targetDeviceId ? `&deviceId=${targetDeviceId}` : '';
+                const deviceQuery = `&deviceId=${targetDeviceId}`;
 
                 fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/voice?uuid=${uuid}&page=${loadPage}&limit=${limit}${deviceQuery}`)
                     .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then((data) => {
-                        const items = data.items || (Array.isArray(data) ? data : []);
+                        const items = (data.items || (Array.isArray(data) ? data : [])).filter((item: any) => !item.deviceId || item.deviceId === targetDeviceId);
                         setCapturedVoice(items);
                     })
                     .catch(e => console.error('[Voice] Fetch error:', e))
@@ -2190,7 +2213,7 @@ END:VCARD`;
                                         {capturedMedia.length === 0 && (
                                             <div className="w-full flex flex-col items-center justify-center text-white/30 text-center gap-3 p-4 min-h-[200px] bg-white/5 rounded-2xl border border-white/5 border-dashed mt-2">
                                                 <Camera size={40} strokeWidth={1} />
-                                                <p className="text-xs font-medium">No recent captures.<br/>Snap a photo or record a video!</p>
+                                                <p className="text-xs font-medium whitespace-pre-line">{!selectedDeviceId ? 'No device selected.\nSelect a device to view camera captures.' : 'No recent captures.\nSnap a photo or record a video!'}</p>
                                             </div>
                                         )}
                                     </div>
@@ -2335,7 +2358,7 @@ END:VCARD`;
                                 {capturedVoice.length === 0 && (
                                     <div className="w-full flex flex-col items-center justify-center text-white/30 text-center gap-3 p-4 min-h-[200px] bg-white/5 rounded-2xl border border-white/5 border-dashed mt-2">
                                         <Mic size={40} strokeWidth={1} />
-                                        <p className="text-xs font-medium">No voice notes.<br/>Record some ambient audio!</p>
+                                        <p className="text-xs font-medium whitespace-pre-line">{!selectedDeviceId ? 'No device selected.\nSelect a device to view voice notes.' : 'No voice notes.\nRecord some ambient audio!'}</p>
                                     </div>
                                 )}
                                 {capturedVoice.map((audio: any) => (
