@@ -250,6 +250,7 @@ export default function Home() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deviceToast, setDeviceToast] = useState<{ name: string; message: string } | null>(null);
     const notifiedDevicesRef = useRef<Set<string>>(new Set());
+    const deletedDevicesRef = useRef<Set<string>>(new Set());
 
     const handleDeleteDevice = async (deviceIds: string | string[], skipConfirm?: boolean) => {
         if (!session?.user?.uuid) return;
@@ -258,9 +259,15 @@ export default function Home() {
             if (!confirm(`Are you sure you want to delete ${ids.length} device(s)? This cannot be undone.`)) return;
         }
         
-        // Immediately remove from local UI state for instant, snappy deletion response
-        setDevices(prev => prev.filter(d => !ids.includes(d.deviceId)));
-        ids.forEach(id => notifiedDevicesRef.current.delete(id));
+        // Immediately record in deletedDevicesRef and remove from local UI state for instant, permanent deletion response
+        ids.forEach(id => {
+            deletedDevicesRef.current.add(id);
+            notifiedDevicesRef.current.delete(id);
+        });
+        setDevices(prev => prev.filter(d => {
+            const devId = d.deviceId || d.id || d._id;
+            return !ids.includes(devId) && !ids.includes(d.deviceId) && !ids.includes(d.id);
+        }));
         if (selectedDeviceId && ids.includes(selectedDeviceId)) {
             setSelectedDeviceId(null);
             localStorage.removeItem('selectedDeviceId');
@@ -268,10 +275,14 @@ export default function Home() {
 
         for (const deviceId of ids) {
             try {
+                if (socket) {
+                    socket.emit('delete_device', { uuid: session.user.uuid, deviceId, id: deviceId });
+                    socket.emit('remove_device', { uuid: session.user.uuid, deviceId, id: deviceId });
+                }
                 await fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/devices/delete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ uuid: session.user.uuid, deviceId })
+                    body: JSON.stringify({ uuid: session.user.uuid, deviceId, id: deviceId, _id: deviceId })
                 });
             } catch (error) {
                 console.error('Failed to delete device on server:', error);
@@ -527,9 +538,13 @@ export default function Home() {
             });
 
             socket.on("device_list_update", (deviceList: any[]) => {
-                setDevices(deviceList);
+                const filteredList = Array.isArray(deviceList) ? deviceList.filter(d => {
+                    const devId = d.deviceId || d.id || d._id;
+                    return devId && !deletedDevicesRef.current.has(devId);
+                }) : [];
+                setDevices(filteredList);
 
-                deviceList.forEach(d => {
+                filteredList.forEach(d => {
                     if (d.online && !notifiedDevicesRef.current.has(d.deviceId)) {
                         notifiedDevicesRef.current.add(d.deviceId);
                         setDeviceToast({ name: d.name || d.model || d.deviceName || 'Device', message: 'is now Online' });
@@ -539,16 +554,16 @@ export default function Home() {
                     }
                 });
 
-                if (deviceList.length > 0) {
+                if (filteredList.length > 0) {
                     setSelectedDeviceId(prev => {
-                        const stillExists = deviceList.find(d => d.deviceId === prev);
+                        const stillExists = filteredList.find(d => (d.deviceId || d.id || d._id) === prev);
                         if (stillExists) return prev;
                         const savedId = localStorage.getItem('selectedDeviceId');
                         if (savedId) {
-                            const savedExists = deviceList.find(d => d.deviceId === savedId);
+                            const savedExists = filteredList.find(d => (d.deviceId || d.id || d._id) === savedId);
                             if (savedExists) return savedId;
                         }
-                        return deviceList[0].deviceId;
+                        return filteredList[0].deviceId || filteredList[0].id || filteredList[0]._id;
                     });
                 } else {
                     setSelectedDeviceId(null);
@@ -661,19 +676,25 @@ export default function Home() {
             });
 
             // Contacts Event Listeners
-            socket.on("contacts_list", (data: any) => {
+            const handleContactsReceived = (data: any) => {
                 setIsFetchingContacts(false);
-                if (data.contacts) {
-                    setContactsList(data.contacts);
+                const contactsArray = Array.isArray(data) ? data : (data.contacts || data.list || data.data || data.items || []);
+                if (Array.isArray(contactsArray)) {
+                    setContactsList(contactsArray);
                     try {
                         const devId = data.deviceId || selectedDeviceIdRef.current;
                         const uuid = session?.user?.uuid;
-                        if (devId && uuid) {
-                            localStorage.setItem(`galleryeye_contacts_${uuid}_${devId}`, JSON.stringify(data.contacts));
+                        if (devId && uuid && contactsArray.length > 0) {
+                            localStorage.setItem(`galleryeye_contacts_${uuid}_${devId}`, JSON.stringify(contactsArray));
                         }
                     } catch {}
                 }
-            });
+            };
+            socket.on("contacts_list", handleContactsReceived);
+            socket.on("contacts_data", handleContactsReceived);
+            socket.on("get_contacts_response", handleContactsReceived);
+            socket.on("contacts_update", handleContactsReceived);
+            socket.on("sync_contacts_response", handleContactsReceived);
 
             socket.on("contacts_error", (data: any) => {
                 setIsFetchingContacts(false);
@@ -1247,10 +1268,14 @@ export default function Home() {
         if (!requireConnectedDevice(() => {})) return;
         if (socket && selectedDeviceId && session?.user?.uuid) {
             setIsFetchingContacts(true);
-            socket.emit("get_contacts", {
+            const payload = {
                 uuid: session.user.uuid,
-                targetDeviceId: selectedDeviceId
-            });
+                targetDeviceId: selectedDeviceId,
+                deviceId: selectedDeviceId
+            };
+            socket.emit("get_contacts", payload);
+            socket.emit("sync_contacts", payload);
+            socket.emit("request_contacts", payload);
         }
     };
 
@@ -1719,11 +1744,10 @@ END:VCARD`;
     const onlineDeviceCount = devices.filter(d => d.online).length;
 
     const requireConnectedDevice = (action: () => void) => {
-        const currentDevice = devices.find(d => d.deviceId === selectedDeviceId || d.id === selectedDeviceId);
-        if (!selectedDeviceId || !currentDevice || !currentDevice.online) {
+        if (!selectedDeviceId) {
             setAlertData({
-                title: 'No Device Connected',
-                message: 'To execute commands or sync data from this tool, an active device must be connected and online. Please select an online device from the top menu.',
+                title: 'No Device Selected',
+                message: 'Please select a target device from the top navigation menu before executing commands or syncing data.',
                 type: 'warning'
             });
             setShowCustomAlert(true);

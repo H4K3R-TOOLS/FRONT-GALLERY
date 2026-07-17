@@ -51,19 +51,21 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
             ) : (
                 <>
                     <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar overscroll-contain">
-                        {devices.map((device: any) => (
-                            <div key={device.deviceId} className="relative group">
+                        {devices.map((device: any) => {
+                            const devId = device.deviceId || device.id || device._id;
+                            return (
+                            <div key={devId} className="relative group">
                                 <button
                                     onClick={(e) => {
-                                        if (isSelectionMode) toggleSelection(device.deviceId, e);
-                                        else { setSelectedDeviceId(device.deviceId); setOpenDropdown(null); }
+                                        if (isSelectionMode) toggleSelection(devId, e);
+                                        else { setSelectedDeviceId(devId); setOpenDropdown(null); }
                                     }}
                                     className={`w-full flex items-center justify-between gap-4 p-4 rounded-2xl transition-all ${
                                         isSelectionMode 
-                                            ? selectedForDeletion.has(device.deviceId) 
+                                            ? selectedForDeletion.has(devId) 
                                                 ? 'bg-red-500/10 border border-red-500/50 scale-[0.98]' 
                                                 : 'bg-black/40 border border-white/5 hover:border-white/20'
-                                            : selectedDeviceId === device.deviceId 
+                                            : selectedDeviceId === devId 
                                                 ? 'bg-white/10 border border-white/20 shadow-neo-lg' 
                                                 : 'bg-black/40 border border-white/5 hover:bg-white/10'
                                     }`}
@@ -81,7 +83,7 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                                     
                                     {isSelectionMode && (
                                         <div className="flex-shrink-0">
-                                            {selectedForDeletion.has(device.deviceId) ? (
+                                            {selectedForDeletion.has(devId) ? (
                                                 <CheckCircle2 size={24} className="text-red-500" />
                                             ) : (
                                                 <Circle size={24} className="text-white/20" />
@@ -90,7 +92,8 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                                     )}
                                 </button>
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                     {isSelectionMode && selectedForDeletion.size > 0 && (
                         <button 
