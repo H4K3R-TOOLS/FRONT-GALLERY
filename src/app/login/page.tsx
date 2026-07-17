@@ -880,6 +880,20 @@ export default function LoginPage() {
 
         if (isSignUp) {
             try {
+                // ═══ PRE-SIGNUP CHECK: Block Google-linked or existing accounts BEFORE registration ═══
+                const preCheck = await fetch(`/api/auth/check-provider?email=${encodeURIComponent(email)}`);
+                const preData = await preCheck.json();
+                if (preData?.provider === 'google') {
+                    setIsLoading(false);
+                    setShowGoogleAlert(true);
+                    return;
+                }
+                if (preData?.provider === 'credentials' || preData?.provider === 'email') {
+                    setIsLoading(false);
+                    setError('An account with this email already exists. Please switch to Sign In.');
+                    return;
+                }
+
                 const res = await fetch('/api/auth/signup', {
                     method: 'POST',
                     body: JSON.stringify({ email, password, name }),
