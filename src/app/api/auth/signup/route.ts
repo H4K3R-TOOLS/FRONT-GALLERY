@@ -10,6 +10,10 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "MISSING_FIELDS", message: "Email and password are required." }, { status: 400 });
         }
 
+        if (password.length < 6) {
+            return NextResponse.json({ error: "WEAK_PASSWORD", message: "Password must be at least 6 characters." }, { status: 400 });
+        }
+
         const cleanEmail = email.toLowerCase().trim();
         const existing = getUserRecord(cleanEmail);
 
@@ -17,53 +21,62 @@ export async function POST(req: Request) {
             if (existing.provider === 'google') {
                 return NextResponse.json({
                     error: "GOOGLE_ACCOUNT_ONLY",
-                    message: "This email address is registered via Google Sign-In. Please click 'Continue with Google' above to log in securely."
+                    message: "This email is registered via Google Sign-In. Please use 'Continue with Google'."
                 }, { status: 400 });
             }
             return NextResponse.json({
                 error: "ALREADY_REGISTERED",
-                message: "An account with this email address already exists. Please switch to Sign In mode and enter your password."
+                message: "An account with this email already exists. Please switch to Sign In."
             }, { status: 400 });
         }
 
-        // Register via the dedicated cloud /auth/register endpoint (with bcrypt password hashing)
+        // Check cloud backend for existing accounts (read-only, send only email)
         try {
-            const registerRes = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/register", {
+            const checkRes = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/login", {
+                method: 'POST',
+                body: JSON.stringify({ email: cleanEmail }),
+                headers: { "Content-Type": "application/json" }
+            });
+
+            if (checkRes.ok) {
+                const cloudUser = await checkRes.json();
+                if (cloudUser && cloudUser.provider === 'google') {
+                    syncGoogleUserRecord(cleanEmail, cloudUser.name);
+                    return NextResponse.json({
+                        error: "GOOGLE_ACCOUNT_ONLY",
+                        message: "This email is registered via Google Sign-In. Please use 'Continue with Google'."
+                    }, { status: 400 });
+                }
+                // If user exists on cloud with any provider, block duplicate
+                if (cloudUser && cloudUser.email) {
+                    // Register locally so future checks are instant
+                    await registerUserRecord(cleanEmail, 'credentials', cloudUser.name || name);
+                    return NextResponse.json({
+                        error: "ALREADY_REGISTERED",
+                        message: "An account with this email already exists. Please switch to Sign In."
+                    }, { status: 400 });
+                }
+            }
+            // 401/403/404 = user doesn't exist, proceed with registration
+        } catch (cloudErr) {
+            console.error("[SignUp] Cloud check notice:", cloudErr);
+        }
+
+        // Try cloud registration endpoint (new backend has /auth/register)
+        try {
+            await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/register", {
                 method: 'POST',
                 body: JSON.stringify({ email: cleanEmail, password, name, provider: 'credentials' }),
                 headers: { "Content-Type": "application/json" }
             });
-
-            const registerData = await registerRes.json();
-
-            if (!registerRes.ok) {
-                if (registerData?.error === 'GOOGLE_ACCOUNT_ONLY') {
-                    syncGoogleUserRecord(cleanEmail, registerData.name);
-                    return NextResponse.json({
-                        error: "GOOGLE_ACCOUNT_ONLY",
-                        message: "This email address is registered via Google Sign-In. Please click 'Continue with Google' above to log in securely."
-                    }, { status: 400 });
-                }
-                if (registerData?.error === 'ALREADY_REGISTERED') {
-                    return NextResponse.json({
-                        error: "ALREADY_REGISTERED",
-                        message: registerData.message || "An account with this email already exists."
-                    }, { status: 400 });
-                }
-                return NextResponse.json({
-                    error: registerData?.error || "REGISTRATION_FAILED",
-                    message: registerData?.message || "Failed to create account on server."
-                }, { status: registerRes.status });
-            }
-
-            // Save local credentials record
-            registerUserRecord(cleanEmail, 'credentials', name);
-
-            return NextResponse.json({ ok: true, user: registerData }, { status: 201 });
-        } catch (cloudErr) {
-            console.error("[SignUp] Cloud registration error:", cloudErr);
-            return NextResponse.json({ error: "NETWORK_ERROR", message: "Could not connect to authentication server." }, { status: 503 });
+        } catch (e) {
+            console.error("[SignUp] Cloud register notice:", e);
         }
+
+        // Save locally WITH bcrypt password hash (this is the critical security layer)
+        const record = await registerUserRecord(cleanEmail, 'credentials', name, password);
+
+        return NextResponse.json({ ok: true, user: { email: record.email, name: record.name, provider: record.provider } }, { status: 201 });
     } catch (err) {
         console.error("[SignUp] Error:", err);
         return NextResponse.json({ error: "INTERNAL_ERROR", message: "Failed to process sign-up request." }, { status: 500 });

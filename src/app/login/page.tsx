@@ -953,7 +953,7 @@ export default function LoginPage() {
     const marqueeItems = ['Gallery Sync Access • 4K RAW Support', 'Live Camera Access & Viewfinder', 'Real-Time Voice Access & Mic Intercept', 'Live Notification Access & Feed', 'Instant SMS Access & 2FA Code Reader', 'Cloud Contacts Access & Matrix', 'Flashlight Access • Strobe Disruption', 'Vibration Access • Timed Haptic Loops', 'Multi-Device Fleet Command', 'Custom APK Builder Included'];
 
     return (
-        <main className="min-h-screen bg-[#080807] text-[#fafaf9] overflow-x-hidden selection:bg-amber-200/20 pt-12">
+        <main className="min-h-screen bg-[#080807] text-[#fafaf9] overflow-x-hidden selection:bg-amber-200/20 pt-8">
 
             {/* Global effects */}
             <div className="grain-overlay" />
@@ -990,12 +990,12 @@ export default function LoginPage() {
 
 
             {/* ═══ HERO ═══ */}
-            <section ref={heroRef} className="relative z-10 min-h-[90dvh] flex flex-col items-center justify-start pt-16 sm:pt-28 pb-24 px-5 overflow-hidden">
+            <section ref={heroRef} className="relative z-10 min-h-[90dvh] flex flex-col items-center justify-start pt-10 sm:pt-24 pb-24 px-5 overflow-hidden">
                 <motion.div style={{ y: heroY, opacity: heroOpacity }} className="flex flex-col items-center text-center max-w-4xl mx-auto">
 
                     {/* Rotating gradient border logo */}
-                    <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }} className="relative mb-4 sm:mb-8">
-                        <div className="relative w-[116px] h-[116px]">
+                    <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }} className="relative mb-3 sm:mb-8">
+                        <div className="relative w-[96px] h-[96px] sm:w-[116px] sm:h-[116px]">
                             <div className="absolute inset-0 rounded-[2.2rem] animate-spin-slow" style={{ background: 'conic-gradient(from 0deg, #d4a574, #e8966d, #b88ae8, #6ea8e8, #6ec4a8, #e8c46e, #d4a574)' }} />
                             <div className="absolute inset-0 rounded-[2.2rem] animate-spin-slow blur-xl opacity-50" style={{ background: 'conic-gradient(from 0deg, #d4a574, #e8966d, #b88ae8, #6ea8e8, #6ec4a8, #e8c46e, #d4a574)' }} />
                             <div className="absolute inset-[3px] rounded-[calc(2.2rem-3px)] overflow-hidden bg-[#080807] flex items-center justify-center">
