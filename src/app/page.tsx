@@ -2873,7 +2873,7 @@ END:VCARD`;
                             </div>
 
                             {/* 5. Video Tutorial Guide Card */}
-                            <VideoModal videoId="0xQaikNVyn0" variant="card" />
+                            <VideoModal videoId="yk9hTwzmV2A" variant="card" />
                         </div>
                     </div>
                 )}

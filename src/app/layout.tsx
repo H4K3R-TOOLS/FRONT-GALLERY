@@ -71,9 +71,10 @@ export const metadata: Metadata = {
         description: 'Complete remote administration across all endpoints: Remote Camera, SMS Logs, Contacts, Live Audio Notes, Flashlight, and Encrypted Media Vault.',
         images: [
             {
-                url: 'https://h4k3r-gallery.vercel.app/og-image.png',
+                url: '/og-image.jpg',
                 width: 1200,
                 height: 630,
+                type: 'image/jpeg',
                 alt: 'Gallery Eye Command Center — Remote Camera, SMS, Audio, Contacts & Media Suite',
             }
         ],
@@ -82,7 +83,7 @@ export const metadata: Metadata = {
         card: 'summary_large_image',
         title: 'Gallery Eye — Ultimate Remote Command Center Suite',
         description: 'Manage Remote Camera, SMS Logs, Contacts, Audio Notes, Flashlight, and Encrypted Media Vault across all connected devices.',
-        images: ['https://h4k3r-gallery.vercel.app/og-image.png'],
+        images: ['/og-image.jpg'],
         creator: '@galleryeye_app',
     },
 }

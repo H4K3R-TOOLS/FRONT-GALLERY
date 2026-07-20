@@ -1085,7 +1085,7 @@ export default function LoginPage() {
                             <iframe
                                 width="100%"
                                 height="100%"
-                                src="https://www.youtube.com/embed/0xQaikNVyn0?rel=0&modestbranding=1"
+                                src="https://www.youtube.com/embed/yk9hTwzmV2A?rel=0&modestbranding=1"
                                 title="Gallery Eye System Demo"
                                 frameBorder="0"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

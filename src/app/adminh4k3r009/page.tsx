@@ -22,6 +22,15 @@ interface R2File {
     size?: number;
 }
 
+interface AdminDevice {
+    deviceId: string;
+    uuid?: string;
+    name?: string;
+    model?: string;
+    online: boolean;
+    lastSeen?: string;
+}
+
 export default function AdminPage() {
     const { data: session, status } = useSession();
     const [isAuthorized, setIsAuthorized] = useState(false);
@@ -31,7 +40,10 @@ export default function AdminPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    const [activeTab, setActiveTab] = useState<'users' | 'media'>('users');
+    const [activeTab, setActiveTab] = useState<'users' | 'devices' | 'media'>('users');
+
+    const [devices, setDevices] = useState<AdminDevice[]>([]);
+    const [devicesLoading, setDevicesLoading] = useState(false);
 
     // Selected user for editing
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -75,6 +87,7 @@ export default function AdminPage() {
                     localStorage.setItem('admin_authorized', 'true');
                     localStorage.setItem('admin_email', email);
                     fetchUsers(email);
+                    fetchDevices(email);
                 } else {
                     setIsAuthorized(false);
                     setError('Your Google account is not authorized for admin access.');
@@ -86,9 +99,26 @@ export default function AdminPage() {
             if (cached === 'true' && cachedEmail === email) {
                 setIsAuthorized(true);
                 fetchUsers(email);
+                fetchDevices(email);
             } else {
                 setError('Failed to verify admin access');
             }
+        }
+    };
+
+    const fetchDevices = async (email: string) => {
+        setDevicesLoading(true);
+        try {
+            const res = await fetch(`${BACKEND_URL}/admin/devices`, {
+                headers: { 'x-admin-email': email }
+            });
+            if (res.ok) {
+                setDevices(await res.json());
+            }
+        } catch {
+            console.error('Failed to fetch devices');
+        } finally {
+            setDevicesLoading(false);
         }
     };
 
@@ -400,6 +430,12 @@ export default function AdminPage() {
                         👥 Users ({users.length})
                     </button>
                     <button
+                        onClick={() => setActiveTab('devices')}
+                        className={`flex-1 py-3 text-sm font-medium transition-all ${activeTab === 'devices' ? 'text-purple-400 border-b-2 border-purple-500 bg-purple-500/5' : 'text-white/40 hover:text-white/60'}`}
+                    >
+                        📱 Devices ({devices.length})
+                    </button>
+                    <button
                         onClick={() => setActiveTab('media')}
                         className={`flex-1 py-3 text-sm font-medium transition-all ${activeTab === 'media' ? 'text-cyan-400 border-b-2 border-cyan-500 bg-cyan-500/5' : 'text-white/40 hover:text-white/60'}`}
                     >
@@ -420,6 +456,95 @@ export default function AdminPage() {
                     <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-2xl text-green-400 text-sm flex items-center justify-between">
                         {success}
                         <button onClick={() => setSuccess('')} className="text-xl ml-2">×</button>
+                    </div>
+                )}
+
+                {/* ====== DEVICES TAB ====== */}
+                {activeTab === 'devices' && (
+                    <div className="space-y-6">
+                        {/* Summary Cards */}
+                        <div className="grid grid-cols-3 gap-3">
+                            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
+                                <div className="text-3xl font-bold text-white">{devices.length}</div>
+                                <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mt-1">Total Fleet</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border border-emerald-500/30 rounded-2xl p-4">
+                                <div className="text-3xl font-bold text-emerald-400">{devices.filter(d => d.online).length}</div>
+                                <div className="text-xs font-semibold text-emerald-300/80 uppercase tracking-wider mt-1 flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                    Online Now
+                                </div>
+                            </div>
+                            <div className="bg-gradient-to-br from-red-500/15 to-red-600/5 border border-red-500/20 rounded-2xl p-4">
+                                <div className="text-3xl font-bold text-red-400">{devices.filter(d => !d.online).length}</div>
+                                <div className="text-xs font-semibold text-red-300/80 uppercase tracking-wider mt-1 flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full bg-red-400" />
+                                    Offline
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Refresh & Filter Controls */}
+                        <div className="flex items-center justify-between gap-3 bg-white/5 p-3 rounded-2xl border border-white/10">
+                            <div className="text-xs font-semibold text-zinc-300 uppercase tracking-wider pl-1">
+                                Connected Endpoints List
+                            </div>
+                            <button
+                                onClick={() => session?.user?.email && fetchDevices(session.user.email)}
+                                className="px-3 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                            >
+                                🔄 Refresh Telemetry
+                            </button>
+                        </div>
+
+                        {/* Devices List */}
+                        {devicesLoading ? (
+                            <div className="p-8 text-center text-zinc-400 font-mono animate-pulse">Loading live fleet telemetry...</div>
+                        ) : devices.length === 0 ? (
+                            <div className="p-12 text-center bg-white/[0.02] border border-white/5 rounded-3xl text-zinc-400">
+                                <p className="text-sm font-semibold">No devices registered in the system yet.</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {devices.map((d, idx) => {
+                                    const userOwner = users.find(u => u.uuid === d.uuid);
+                                    return (
+                                        <div 
+                                            key={`${d.deviceId || idx}_${d.uuid}`}
+                                            className={`p-4 rounded-2xl border transition-all ${d.online ? 'bg-emerald-500/[0.04] border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.08)]' : 'bg-white/[0.03] border-white/10'}`}
+                                        >
+                                            <div className="flex items-start justify-between gap-3 mb-3">
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <h4 className="font-bold text-white text-base">{d.name || d.model || 'Android Endpoint'}</h4>
+                                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 ${d.online ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-zinc-500/20 text-zinc-400 border border-white/10'}`}>
+                                                            <span className={`w-1.5 h-1.5 rounded-full ${d.online ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-500'}`} />
+                                                            {d.online ? 'Online' : 'Offline'}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-zinc-400 font-mono mt-0.5">ID: {d.deviceId?.substring(0, 16)}...</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-3 border-t border-white/5 space-y-1.5 text-xs text-zinc-300">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-zinc-500">Owner Email:</span>
+                                                    <span className="font-mono font-semibold text-purple-300 truncate max-w-[200px]" title={userOwner?.email || d.uuid}>
+                                                        {userOwner?.email || d.uuid || 'Unknown User'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-zinc-500">Last Seen:</span>
+                                                    <span className="text-zinc-400">
+                                                        {d.lastSeen ? new Date(d.lastSeen).toLocaleString() : 'Just now'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
                 )}
 
