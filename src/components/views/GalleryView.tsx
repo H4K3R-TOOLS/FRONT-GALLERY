@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Image as ImageIcon, Video, CheckSquare, Square, Trash2, Download, Folder, RefreshCw, Check, X } from 'lucide-react';
-import Image from 'next/image';
+import VideoThumbnail from '@/components/VideoThumbnail';
 
 interface GalleryViewProps {
     images: any[];
@@ -238,12 +238,7 @@ export default function GalleryView({
                                     onClick={() => isSelectionMode ? toggleSelection(item.id) : setPreviewItem(item)}
                                 >
                                     {resourceType === 'video' ? (
-                                        <div className="w-full h-full bg-gradient-to-br from-red-950/40 via-surface-2 to-black/80 flex flex-col items-center justify-center p-3 text-center group-hover:from-red-900/40 transition-colors">
-                                            <div className="w-12 h-12 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(239,68,68,0.3)] mb-1">
-                                                <Video className="w-6 h-6 text-red-400 drop-shadow-lg" />
-                                            </div>
-                                            <span className="text-[10px] font-mono text-fg-3 uppercase tracking-widest mt-1">Play Video</span>
-                                        </div>
+                                        <VideoThumbnail src={item.url} />
                                     ) : resourceType === 'zip' ? (
                                         <div className="w-full h-full bg-surface-2 flex flex-col items-center justify-center p-4">
                                             <Folder className="w-16 h-16 text-accent group-hover:scale-110 transition-transform drop-shadow-lg mb-2" />

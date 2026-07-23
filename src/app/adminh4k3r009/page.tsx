@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSession, signIn, signOut } from "next-auth/react";
+import VideoThumbnail from '@/components/VideoThumbnail';
 
 interface User {
     email: string;
@@ -913,12 +914,7 @@ export default function AdminPage() {
                                             {/* Content — OPTIMIZED (No heavy HTML5 video elements instantiated in grid view) */}
                                             <div onClick={() => setMediaPreview(file)} className="aspect-square bg-gradient-to-br from-[#12141d] to-[#090b10] relative overflow-hidden">
                                                 {file.resource_type === 'video' ? (
-                                                    <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-gradient-to-b from-red-950/20 to-black/60 group-hover:from-red-950/40 transition-colors">
-                                                        <div className="w-11 h-11 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(239,68,68,0.2)] mb-1">
-                                                            <svg className="w-6 h-6 ml-0.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                                                        </div>
-                                                        <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest mt-1">Click to Play</span>
-                                                    </div>
+                                                    <VideoThumbnail src={file.url} />
                                                 ) : (
                                                     <img
                                                         src={file.url}
