@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { 
     MessageSquare, Users, Flashlight, Vibrate, 
     Camera, Bell, Mic, Smartphone, Settings, 
@@ -359,9 +359,9 @@ export default function AppNavigation({
 
     const selectedDevice = devices.find(d => (d.deviceId || d.id || d._id) === selectedDeviceId);
 
-    const dropdownVariants = {
+    const dropdownVariants: Variants = {
         hidden: { opacity: 0, y: 15, scale: 0.95 },
-        visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.2, ease: "easeOut" } },
+        visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.2 } },
         exit: { opacity: 0, y: 10, scale: 0.95, transition: { duration: 0.15 } }
     };
 
