@@ -2177,9 +2177,14 @@ END:VCARD`;
                                                                 <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">{img.resource_type === 'video' ? 'Uploading' : 'Saving'}</span>
                                                             </div>
                                                         ) : img.resource_type === 'video' ? (
-                                                            <video src={img.url} className="w-full h-full object-cover pointer-events-none" />
+                                                            <div className="w-full h-full bg-gradient-to-br from-pink-950/40 via-black to-black/80 flex flex-col items-center justify-center p-2 text-center">
+                                                                <div className="w-10 h-10 rounded-full bg-pink-500/20 border border-pink-500/40 flex items-center justify-center text-pink-400 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(236,72,153,0.3)] mb-1">
+                                                                    <Video size={18} />
+                                                                </div>
+                                                                <span className="text-[9px] font-mono text-pink-300/80 uppercase tracking-widest">Video</span>
+                                                            </div>
                                                         ) : (
-                                                            <img src={img.url} alt="Recent" className="w-full h-full object-cover pointer-events-none" />
+                                                            <img src={img.url} alt="Recent" className="w-full h-full object-cover pointer-events-none" loading="lazy" decoding="async" />
                                                         )}
                                                         
                                                         {/* Selection Indicator */}
