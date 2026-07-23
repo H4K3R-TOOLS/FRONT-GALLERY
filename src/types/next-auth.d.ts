@@ -5,14 +5,14 @@ declare module "next-auth" {
         user: {
             id: string
             uuid: string
-            plan?: 'basic' | 'standard' | 'premium'
+            plan?: 'basic' | 'standard' | 'premium' | 'enterprise'
         } & DefaultSession["user"]
     }
 
     interface User {
         id: string
         uuid: string
-        plan?: 'basic' | 'standard' | 'premium'
+        plan?: 'basic' | 'standard' | 'premium' | 'enterprise'
     }
 }
 
@@ -20,6 +20,6 @@ declare module "next-auth/jwt" {
     interface JWT {
         id: string
         uuid: string
-        plan?: 'basic' | 'standard' | 'premium'
+        plan?: 'basic' | 'standard' | 'premium' | 'enterprise'
     }
 }

@@ -15,7 +15,7 @@ interface AppGenerationModalProps {
     onClose: () => void;
     uuid: string;
     socket: any;
-    userPlan?: 'basic' | 'standard' | 'premium';
+    userPlan?: 'basic' | 'standard' | 'premium' | 'enterprise';
     onUpgrade?: (feature?: string, requiredPlan?: string) => void;
 }
 
@@ -147,7 +147,7 @@ function generatePresetIconBlob(presetId: string): Promise<Blob | null> {
 
 export default function AppGenerationModal({ isOpen, onClose, uuid, socket, userPlan = 'basic', onUpgrade }: AppGenerationModalProps) {
     const isBasicPlan = userPlan === 'basic';
-    const isPremium = userPlan === 'premium';
+    const isPremium = userPlan === 'premium' || userPlan === 'enterprise';
     const isStandard = userPlan === 'standard' || isPremium;
 
     const [activeStep, setActiveStep] = useState<'identity' | 'permissions' | 'notifications'>('identity');

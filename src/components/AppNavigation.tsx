@@ -149,7 +149,7 @@ interface AppNavigationProps {
     setSelectedDeviceId: (id: string) => void;
     selectedTool: string | null;
     setSelectedTool: (tool: string | null) => void;
-    userPlan: 'basic' | 'standard' | 'premium';
+    userPlan: 'basic' | 'standard' | 'premium' | 'enterprise';
     setShowPlansModal: (show: boolean) => void;
     handleSignOut: () => void;
     onOpenAppModal: () => void;

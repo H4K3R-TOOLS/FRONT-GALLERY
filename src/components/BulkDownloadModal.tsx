@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from 'react';
 
@@ -6,7 +6,7 @@ interface BulkDownloadModalProps {
     isOpen: boolean;
     onClose: () => void;
     folderName: string;
-    userPlan: 'basic' | 'standard' | 'premium';
+    userPlan: 'basic' | 'standard' | 'premium' | 'enterprise';
     userUuid: string;
     onSuccess: (message: string) => void;
 }

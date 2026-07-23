@@ -1395,7 +1395,7 @@ export default function Home() {
 
     // --- Live Audio Functions ---
     const startLiveAudio = useCallback(() => {
-        if (userPlan !== 'premium') {
+        if (userPlan !== 'premium' && userPlan !== 'enterprise') {
             showUpgradePrompt('Live Audio Listening', 'premium');
             return;
         }

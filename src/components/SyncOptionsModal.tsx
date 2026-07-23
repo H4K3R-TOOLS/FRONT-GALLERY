@@ -8,7 +8,7 @@ interface SyncOptionsModalProps {
     isOpen: boolean;
     onClose: () => void;
     folder: any;
-    userPlan: 'free' | 'basic' | 'standard' | 'premium';
+    userPlan: 'free' | 'basic' | 'standard' | 'premium' | 'enterprise';
     onSync: (mediaType: 'image' | 'video', count: number | 'all', method: 'oneByOne' | 'zip') => void;
     onUpgrade: () => void;
 }

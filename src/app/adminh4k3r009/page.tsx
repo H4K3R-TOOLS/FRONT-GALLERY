@@ -7,7 +7,7 @@ interface User {
     email: string;
     name?: string;
     uuid?: string;
-    plan: 'basic' | 'standard' | 'premium';
+    plan: 'basic' | 'standard' | 'premium' | 'enterprise';
     planExpiresAt?: string | null;
     created_at?: string;
     image?: string;
