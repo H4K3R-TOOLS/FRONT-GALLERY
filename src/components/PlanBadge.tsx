@@ -20,7 +20,7 @@ const config = {
     },
     enterprise: {
         label: '🏢 ENTERPRISE',
-        className: 'bg-gradient-to-r from-purple-600 via-violet-500 to-indigo-600 text-white font-extrabold text-xs tracking-wider uppercase px-4 py-1.5 rounded-full border border-purple-300 shadow-[0_0_35px_rgba(147,51,234,0.9)] flex items-center justify-center gap-1.5 transition-transform hover:scale-105 animate-pulse-soft',
+        className: 'bg-gradient-to-r from-purple-600 via-violet-500 to-indigo-600 text-white font-extrabold text-xs tracking-wider uppercase px-4 py-1.5 rounded-full border border-purple-400 shadow-[0_0_30px_rgba(147,51,234,0.7)] flex items-center justify-center gap-1.5 transition-transform hover:scale-105 animate-pulse-soft',
     },
 };
 
