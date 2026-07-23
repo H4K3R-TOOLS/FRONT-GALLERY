@@ -63,6 +63,7 @@ export default function Home() {
     const [planLimits, setPlanLimits] = useState<PlanLimits>(
         getPlanLimits('basic')
     );
+    const planFetchedFromApiRef = useRef(false);
 
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [showPlansModal, setShowPlansModal] = useState(false);
@@ -190,6 +191,7 @@ export default function Home() {
                 setImages([]);
                 setFolders([]);
                 setCapturedMedia([]);
+                setCapturedVoice([]);
             }
 
             if ((window as any).fetchGalleryData) {
@@ -197,6 +199,9 @@ export default function Home() {
             }
             if ((window as any).fetchCameraData) {
                 (window as any).fetchCameraData(1, selectedDeviceId);
+            }
+            if ((window as any).fetchVoiceData) {
+                (window as any).fetchVoiceData(1, selectedDeviceId);
             }
 
             if (uuid) {
@@ -239,9 +244,9 @@ export default function Home() {
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const isSyncCanceledRef = useRef(false);
     
-    // Sync session plan if available
+    // Sync session plan if available — but ONLY as initial fallback before API fetch completes
     useEffect(() => {
-        if (session && (session.user as any)?.plan) {
+        if (session && (session.user as any)?.plan && !planFetchedFromApiRef.current) {
             const p = (session.user as any).plan.toLowerCase();
             setUserPlan(p as any);
         }
@@ -471,6 +476,7 @@ export default function Home() {
                 .then(data => {
                     if (data.plan) {
                         const plan = data.plan.toLowerCase();
+                        planFetchedFromApiRef.current = true;
                         setUserPlan(plan as any);
                         // Use backend limits if provided, otherwise compute from plan
                         if (data.limits && typeof data.limits.sms !== 'undefined') {
