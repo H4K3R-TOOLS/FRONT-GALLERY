@@ -1,6 +1,6 @@
 'use client';
 
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -839,6 +839,7 @@ function VibratePreview() {
 /* ═══════ MAIN PAGE COMPONENT ═══════ */
 
 export default function LoginPage() {
+    const { data: session, status: authStatus } = useSession();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
@@ -849,6 +850,13 @@ export default function LoginPage() {
     const [showGoogleAlert, setShowGoogleAlert] = useState(false);
     const router = useRouter();
     const heroRef = useRef<HTMLDivElement>(null);
+
+    // If user is already authenticated, redirect to dashboard immediately
+    useEffect(() => {
+        if (authStatus === 'authenticated' && session) {
+            router.replace('/');
+        }
+    }, [authStatus, session, router]);
 
     const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
     const heroY = useTransform(scrollYProgress, [0, 1], [0, 140]);
