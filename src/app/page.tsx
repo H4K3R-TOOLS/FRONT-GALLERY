@@ -2750,9 +2750,13 @@ END:VCARD`;
                 handleSignOut={handleSignOut}
                 onOpenAppModal={() => setShowAppModal(true)}
                 onDeleteDevice={handleDeleteDevice}
-                user={session?.user}
                 openDropdownProp={navDropdown}
                 setOpenDropdownProp={setNavDropdown}
+                socket={socket}
+                isCheckingPermissions={isCheckingPermissions}
+                devicePermissions={devicePermissions}
+                setIsCheckingPermissions={setIsCheckingPermissions}
+                setDevicePermissions={setDevicePermissions}
             />
 
             {/* Main Content Area */}

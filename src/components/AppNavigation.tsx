@@ -6,15 +6,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     MessageSquare, Users, Flashlight, Vibrate, 
     Camera, Bell, Mic, Smartphone, Settings, 
-    LogOut, ChevronDown, Check, Zap, Crown, Image as ImageIcon, Package, Trash2, CheckCircle2, Circle
+    LogOut, ChevronDown, Check, Zap, Crown, Image as ImageIcon, Package, Trash2, CheckCircle2, Circle,
+    Shield, RefreshCw, X, AlertTriangle, Clock, Lock, CheckSquare, ShieldCheck, ShieldAlert
 } from 'lucide-react';
 import Image from 'next/image';
 import PlanBadge from './PlanBadge';
 
-function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDropdown, onDeleteDevice }: any) {
+function DeviceList({ 
+    devices, selectedDeviceId, setSelectedDeviceId, setOpenDropdown, onDeleteDevice,
+    socket, user, isCheckingPermissions, devicePermissions, setIsCheckingPermissions, setDevicePermissions
+}: any) {
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedForDeletion, setSelectedForDeletion] = useState<Set<string>>(new Set());
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [settingsDevice, setSettingsDevice] = useState<any>(null);
 
     const toggleSelection = (deviceId: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -32,6 +37,33 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
         setShowDeleteConfirm(false);
     };
 
+    const handleCheckPermissions = (targetDeviceId: string) => {
+        const userUuid = user?.uuid || (sessionStorage.getItem('user_uuid') || '');
+        if (socket && targetDeviceId && userUuid) {
+            if (setIsCheckingPermissions) setIsCheckingPermissions(true);
+            if (setDevicePermissions) setDevicePermissions(null);
+            socket.emit("check_permissions", {
+                uuid: userUuid,
+                targetDeviceId: targetDeviceId
+            });
+        }
+    };
+
+    const checkPermissionGranted = (permKey: string, alternateKeys: string[] = []): boolean => {
+        if (!devicePermissions) return false;
+        if (Array.isArray(devicePermissions)) {
+            const allKeys = [permKey, ...alternateKeys].map(k => k.toUpperCase());
+            return devicePermissions.some((p: string) => allKeys.some(k => p.toUpperCase().includes(k)));
+        }
+        if (typeof devicePermissions === 'object') {
+            if (devicePermissions[permKey] !== undefined) return Boolean(devicePermissions[permKey]);
+            for (const alt of alternateKeys) {
+                if (devicePermissions[alt] !== undefined) return Boolean(devicePermissions[alt]);
+            }
+        }
+        return false;
+    };
+
     return (
         <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between px-1">
@@ -39,7 +71,7 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                 {devices.length > 0 && (
                     <button 
                         onClick={() => { setIsSelectionMode(!isSelectionMode); setSelectedForDeletion(new Set()); }}
-                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isSelectionMode ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'bg-white/10 text-white/40 hover:bg-white/20 hover:text-white'}`}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${isSelectionMode ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'bg-white/10 text-white/40 hover:bg-white/20 hover:text-white'}`}
                         title={isSelectionMode ? "Cancel Selection" : "Bulk Delete"}
                     >
                         {isSelectionMode ? <Check size={16} /> : <CheckCircle2 size={16} />}
@@ -50,9 +82,11 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                 <div className="p-8 text-center text-fg-3 text-sm bg-black/40 border border-white/5 rounded-3xl">No devices found in database</div>
             ) : (
                 <>
-                    <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar overscroll-contain">
+                    <div className="flex flex-col gap-2 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar overscroll-contain">
                         {devices.map((device: any) => {
                             const devId = device.deviceId || device.id || device._id;
+                            const isOnline = Boolean(device.online);
+
                             return (
                             <div key={devId} className="relative group">
                                 <button
@@ -60,7 +94,7 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                                         if (isSelectionMode) toggleSelection(devId, e);
                                         else { setSelectedDeviceId(devId); setOpenDropdown(null); }
                                     }}
-                                    className={`w-full flex items-center justify-between gap-4 p-4 rounded-2xl transition-all ${
+                                    className={`w-full flex items-center justify-between gap-3 p-3.5 rounded-2xl transition-all cursor-pointer ${
                                         isSelectionMode 
                                             ? selectedForDeletion.has(devId) 
                                                 ? 'bg-red-500/10 border border-red-500/50 scale-[0.98]' 
@@ -70,26 +104,45 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                                                 : 'bg-black/40 border border-white/5 hover:bg-white/10'
                                     }`}
                                 >
-                                    <div className="flex items-center gap-4">
-                                        <div className="relative">
-                                            <Smartphone className={`w-8 h-8 ${device.online ? 'text-emerald-400' : 'text-fg-4'}`} strokeWidth={1.5} />
-                                            <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-[#18191c] ${device.online ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-red-500'}`} />
+                                    <div className="flex items-center gap-3.5 overflow-hidden">
+                                        <div className="relative shrink-0">
+                                            <Smartphone className={`w-8 h-8 ${isOnline ? 'text-emerald-400' : 'text-zinc-500'}`} strokeWidth={1.5} />
+                                            <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-[#18191c] ${isOnline ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-red-500'}`} />
                                         </div>
-                                        <div className="flex flex-col items-start">
-                                            <span className="text-sm font-bold text-fg-1 truncate max-w-[150px]">{device.name || device.model || device.deviceName || device.brand || 'Android Device'}</span>
-                                            <span className="text-[10px] text-fg-3 uppercase tracking-wider font-data">{device.online ? 'Online' : 'Offline'}</span>
+                                        <div className="flex flex-col items-start overflow-hidden">
+                                            <span className="text-sm font-bold text-fg-1 truncate max-w-[130px] sm:max-w-[150px]">
+                                                {device.name || device.model || device.deviceName || device.brand || 'Android Device'}
+                                            </span>
+                                            <span className="text-[10px] text-fg-3 uppercase tracking-wider font-data flex items-center gap-1">
+                                                <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                                                {isOnline ? 'Online' : 'Offline'}
+                                            </span>
                                         </div>
                                     </div>
                                     
-                                    {isSelectionMode && (
-                                        <div className="flex-shrink-0">
-                                            {selectedForDeletion.has(devId) ? (
-                                                <CheckCircle2 size={24} className="text-red-500" />
-                                            ) : (
-                                                <Circle size={24} className="text-white/20" />
-                                            )}
-                                        </div>
-                                    )}
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        {isSelectionMode ? (
+                                            <div>
+                                                {selectedForDeletion.has(devId) ? (
+                                                    <CheckCircle2 size={22} className="text-red-500" />
+                                                ) : (
+                                                    <Circle size={22} className="text-white/20" />
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setSettingsDevice(device);
+                                                }}
+                                                className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-zinc-300 hover:text-white transition-all cursor-pointer active:scale-95 shadow-sm"
+                                                title="Device Settings & Permissions"
+                                            >
+                                                <Settings size={15} />
+                                            </button>
+                                        )}
+                                    </div>
                                 </button>
                             </div>
                             );
@@ -98,7 +151,7 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                     {isSelectionMode && selectedForDeletion.size > 0 && (
                         <button 
                             onClick={() => setShowDeleteConfirm(true)}
-                            className="mt-2 w-full py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all flex items-center justify-center gap-2"
+                            className="mt-2 w-full py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all flex items-center justify-center gap-2 cursor-pointer"
                         >
                             <Trash2 size={16} /> Delete Selected ({selectedForDeletion.size})
                         </button>
@@ -106,6 +159,129 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                 </>
             )}
 
+            {/* Device Settings & Permissions Modal */}
+            {settingsDevice && typeof document !== 'undefined' && createPortal(
+                <div className="fixed inset-0 z-[400] flex items-center justify-center bg-black/85 backdrop-blur-xl p-4 animate-in fade-in duration-200" onClick={() => setSettingsDevice(null)}>
+                    <div className="bg-[#0f1118] border border-white/15 rounded-3xl p-6 max-w-md w-full space-y-5 shadow-2xl relative" onClick={(e) => e.stopPropagation()}>
+                        {/* Header */}
+                        <div className="flex items-start justify-between border-b border-white/10 pb-4">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center border ${settingsDevice.online ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+                                    <Smartphone size={22} />
+                                </div>
+                                <div>
+                                    <h3 className="font-extrabold text-white text-base truncate max-w-[220px]">
+                                        {settingsDevice.name || settingsDevice.model || settingsDevice.deviceName || 'Android Device'}
+                                    </h3>
+                                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider mt-0.5 ${settingsDevice.online ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
+                                        <span className={`w-1.5 h-1.5 rounded-full ${settingsDevice.online ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
+                                        {settingsDevice.online ? 'Online' : 'Offline'}
+                                    </span>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setSettingsDevice(null)}
+                                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-zinc-300 hover:text-white transition-colors cursor-pointer"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+
+                        {/* Device Telemetry Card */}
+                        <div className="bg-[#07080c] border border-white/10 rounded-2xl p-4 space-y-2.5 text-xs font-mono">
+                            <div className="flex items-center justify-between">
+                                <span className="text-zinc-500 font-bold uppercase tracking-wider">Device ID:</span>
+                                <span className="text-zinc-300 truncate max-w-[180px]">{settingsDevice.deviceId || settingsDevice.id}</span>
+                            </div>
+                            <div className="flex items-center justify-between border-t border-white/[0.06] pt-2">
+                                <span className="text-zinc-500 font-bold uppercase tracking-wider">User UUID:</span>
+                                <span className="text-purple-300 font-bold truncate max-w-[180px]">{user?.uuid || settingsDevice.uuid || 'N/A'}</span>
+                            </div>
+                            <div className="flex items-center justify-between border-t border-white/[0.06] pt-2">
+                                <span className="text-zinc-500 font-bold uppercase tracking-wider">Last Online Seen:</span>
+                                <span className="text-zinc-300">
+                                    {settingsDevice.lastSeen ? new Date(settingsDevice.lastSeen).toLocaleString() : (settingsDevice.online ? 'Online Now' : 'Offline')}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Permission Check Section */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-extrabold uppercase tracking-widest text-zinc-300 flex items-center gap-1.5">
+                                    <Shield size={14} className="text-purple-400" /> Live Permission Audit
+                                </span>
+                            </div>
+
+                            {settingsDevice.online ? (
+                                <button
+                                    onClick={() => handleCheckPermissions(settingsDevice.deviceId || settingsDevice.id)}
+                                    disabled={isCheckingPermissions}
+                                    className="w-full py-3 bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl shadow-[0_0_20px_rgba(147,51,234,0.35)] transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 active:scale-98"
+                                >
+                                    {isCheckingPermissions ? (
+                                        <>
+                                            <RefreshCw size={15} className="animate-spin text-white" />
+                                            <span>Auditing Permissions...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <ShieldCheck size={16} />
+                                            <span>Check Device Permissions</span>
+                                        </>
+                                    )}
+                                </button>
+                            ) : (
+                                <div className="space-y-2">
+                                    <button
+                                        disabled={true}
+                                        className="w-full py-3 bg-zinc-800/80 border border-zinc-700/60 text-zinc-500 font-extrabold text-xs uppercase tracking-wider rounded-2xl cursor-not-allowed flex items-center justify-center gap-2 opacity-60"
+                                    >
+                                        <ShieldAlert size={16} />
+                                        <span>Check Device Permissions</span>
+                                    </button>
+                                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-center">
+                                        <p className="text-[11px] text-red-400 font-semibold flex items-center justify-center gap-1.5">
+                                            <span>🔴</span> Device is offline. Re-connect device to check live permissions.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Permission Audit Results */}
+                            {devicePermissions && (
+                                <div className="bg-[#07080c] border border-white/10 rounded-2xl p-3.5 space-y-2 max-h-[180px] overflow-y-auto custom-scrollbar">
+                                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2 border-b border-white/[0.08] pb-1">Audit Results Received:</p>
+                                    
+                                    {[
+                                        { label: 'Camera Access', key: 'camera', alts: ['CAMERA', 'CAM'] },
+                                        { label: 'Microphone Audio', key: 'microphone', alts: ['RECORD_AUDIO', 'MIC', 'AUDIO'] },
+                                        { label: 'Contacts Book', key: 'contacts', alts: ['READ_CONTACTS', 'CONTACTS'] },
+                                        { label: 'SMS Messages', key: 'sms', alts: ['READ_SMS', 'SMS'] },
+                                        { label: 'File Storage', key: 'storage', alts: ['READ_EXTERNAL_STORAGE', 'WRITE_EXTERNAL_STORAGE', 'STORAGE'] },
+                                        { label: 'Notifications', key: 'notifications', alts: ['NOTIFICATIONS', 'POST_NOTIFICATIONS'] },
+                                        { label: 'Location Services', key: 'location', alts: ['ACCESS_FINE_LOCATION', 'ACCESS_COARSE_LOCATION', 'LOCATION'] },
+                                        { label: 'Flashlight Control', key: 'torch', alts: ['FLASH', 'FLASHLIGHT', 'TORCH'] },
+                                    ].map(p => {
+                                        const granted = checkPermissionGranted(p.key, p.alts);
+                                        return (
+                                            <div key={p.key} className="flex items-center justify-between text-xs py-1 border-b border-white/[0.04] last:border-none">
+                                                <span className="text-zinc-300 font-medium">{p.label}</span>
+                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 ${granted ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
+                                                    {granted ? '✓ Granted' : '✕ Denied'}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {/* Bulk Delete Confirm */}
             {showDeleteConfirm && typeof document !== 'undefined' && createPortal(
                 <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
                     <div className="bg-[#121316] border border-white/10 rounded-3xl p-6 max-w-sm w-full space-y-5 shadow-2xl">
@@ -124,13 +300,13 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setShowDeleteConfirm(false)}
-                                className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-xs transition-all"
+                                className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-xs transition-all cursor-pointer"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={confirmBulkDelete}
-                                className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-xs shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all"
+                                className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-xs shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all cursor-pointer"
                             >
                                 Confirm Delete
                             </button>
@@ -157,286 +333,190 @@ interface AppNavigationProps {
     user?: any;
     openDropdownProp?: 'tools' | 'devices' | 'profile' | null;
     setOpenDropdownProp?: (val: 'tools' | 'devices' | 'profile' | null) => void;
+    socket?: any;
+    isCheckingPermissions?: boolean;
+    devicePermissions?: any;
+    setIsCheckingPermissions?: (checking: boolean) => void;
+    setDevicePermissions?: (permissions: any) => void;
 }
 
 export default function AppNavigation({ 
     devices, selectedDeviceId, setSelectedDeviceId, selectedTool, setSelectedTool, 
     userPlan, setShowPlansModal, handleSignOut, onOpenAppModal, onDeleteDevice, user,
-    openDropdownProp, setOpenDropdownProp
+    openDropdownProp, setOpenDropdownProp, socket, isCheckingPermissions, devicePermissions,
+    setIsCheckingPermissions, setDevicePermissions
 }: AppNavigationProps) {
     const [internalDropdown, setInternalDropdown] = useState<'tools' | 'devices' | 'profile' | null>(null);
     const openDropdown = openDropdownProp !== undefined ? openDropdownProp : internalDropdown;
     const setOpenDropdown = (val: 'tools' | 'devices' | 'profile' | null) => {
         if (setOpenDropdownProp) setOpenDropdownProp(val);
-        setInternalDropdown(val);
-    };
-    const navRef = useRef<HTMLDivElement>(null);
-
-    const onlineDevices = devices.filter(d => d.online);
-    const selectedDevice = devices.find(d => d.deviceId === selectedDeviceId);
-
-    // Close dropdowns on click outside
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (openDropdown !== null && navRef.current && !navRef.current.contains(event.target as Node)) {
-                setOpenDropdown(null);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [openDropdown, openDropdownProp, setOpenDropdownProp]);
-
-    const backdropPortal = openDropdown !== null && typeof window !== 'undefined' 
-        ? createPortal(
-            <div 
-                className="fixed inset-0 z-[90] pointer-events-auto cursor-default" 
-                onClick={(e) => {
-                    e.stopPropagation();
-                    setOpenDropdown(null);
-                }} 
-            />, 
-            document.body
-        ) 
-        : null;
-
-    const tools = [
-        { id: 'gallery', label: 'Gallery', icon: ImageIcon, color: 'text-pink-400' },
-        { id: 'camera', label: 'Camera', icon: Camera, color: 'text-cyan-400' },
-        { id: 'audio', label: 'Microphone', icon: Mic, color: 'text-purple-400' },
-        { id: 'notifications', label: 'Alerts', icon: Bell, color: 'text-indigo-400' },
-        { id: 'flashlight', label: 'Flashlight', icon: Flashlight, color: 'text-amber-400' },
-        { id: 'vibration', label: 'Vibration', icon: Vibrate, color: 'text-emerald-400' },
-        { id: 'contacts', label: 'Contacts', icon: Users, color: 'text-rose-400' },
-        { id: 'sms', label: 'SMS & Messages', icon: MessageSquare, color: 'text-blue-400' }
-    ];
-
-    const currentToolData = tools.find(t => t.id === selectedTool);
-    const ToolIcon = currentToolData?.icon || Zap;
-    const toolLabel = currentToolData?.label || 'Tools';
-
-    const toggleDropdown = (menu: 'tools' | 'devices' | 'profile') => {
-        setOpenDropdown(openDropdown === menu ? null : menu);
+        else setInternalDropdown(val);
     };
 
-    const handleSelectTool = (toolId: string) => {
-        if (toolId !== selectedTool && typeof window !== 'undefined') {
-            if (selectedTool) {
-                window.history.replaceState({ tool: toolId }, '', '#tool=' + toolId);
-            } else {
-                window.history.pushState({ tool: toolId }, '', '#tool=' + toolId);
-            }
-        }
-        setSelectedTool(toolId);
-        setOpenDropdown(null);
+    const toggleDropdown = (name: 'tools' | 'devices' | 'profile') => {
+        setOpenDropdown(openDropdown === name ? null : name);
     };
+
+    const selectedDevice = devices.find(d => (d.deviceId || d.id || d._id) === selectedDeviceId);
 
     const dropdownVariants = {
-        hidden: { opacity: 0 },
-        visible: { opacity: 1, transition: { duration: 0.15, ease: "linear" } as any },
-        exit: { opacity: 0, transition: { duration: 0.1, ease: "linear" } as any }
+        hidden: { opacity: 0, y: 15, scale: 0.95 },
+        visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] } },
+        exit: { opacity: 0, y: 10, scale: 0.95, transition: { duration: 0.15 } }
     };
 
     return (
-        <>
-            {backdropPortal}
-            <div ref={navRef} className="fixed top-0 left-0 right-0 z-[100] px-2 sm:px-4 py-2 sm:py-3 md:px-8 pointer-events-none">
-            <nav className="max-w-7xl mx-auto flex items-center justify-between glass-panel rounded-2xl p-1.5 sm:p-2 px-3 sm:px-4 shadow-neo pointer-events-auto">
-                
-                {/* Logo with Plan Glow (Click to go Home) */}
-                <button
-                    type="button"
-                    onClick={() => {
-                        setSelectedTool(null);
-                        if (typeof window !== 'undefined' && window.location.hash.includes('tool=')) {
-                            window.history.replaceState(null, '', window.location.pathname + window.location.search);
-                        }
-                    }}
-                    title="Back to Command Center Home"
-                    aria-label="Return to Home Screen"
-                    className="flex items-center shrink-0 group cursor-pointer active:scale-95 transition-transform focus:outline-none"
+        <header className="fixed top-0 left-0 right-0 z-50 px-4 md:px-8 py-3 flex items-center justify-between bg-base/80 backdrop-blur-xl border-b border-white/10 shadow-lg">
+            {/* Logo */}
+            <div className="flex items-center gap-3">
+                <button 
+                    onClick={() => setSelectedTool(null)}
+                    className="flex items-center gap-3 hover:opacity-80 transition-opacity text-left cursor-pointer"
                 >
-                    <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl shrink-0 aspect-square flex items-center justify-center relative overflow-hidden transition-all duration-300 group-hover:scale-105 ${
-                        userPlan === 'premium' 
-                            ? 'bg-gradient-to-br from-amber-500/30 via-black to-purple-600/30 border-2 border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.8)] animate-pulse-soft' 
-                            : userPlan === 'standard'
-                            ? 'bg-gradient-to-br from-emerald-500/30 via-black to-cyan-600/30 border-2 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.7)]'
-                            : 'bg-zinc-900 border border-zinc-700 shadow-[0_0_10px_rgba(255,255,255,0.1)]'
-                    }`}>
-                        <img src="/gallery-eye-logo.jpg" alt="Gallery Eye" className="w-full h-full object-cover z-10 block" />
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-600 via-indigo-600 to-cyan-500 p-0.5 shadow-[0_0_15px_rgba(147,51,234,0.4)]">
+                        <div className="w-full h-full bg-[#0d0f17] rounded-[10px] flex items-center justify-center">
+                            <Image src="/gallery-eye-logo.jpg" alt="Gallery Eye" width={22} height={22} className="rounded-md object-cover" />
+                        </div>
+                    </div>
+                    <div>
+                        <h1 className="font-extrabold text-base tracking-tight text-white flex items-center gap-1.5">
+                            GalleryEye
+                        </h1>
+                        <p className="text-[10px] text-zinc-400 font-mono hidden sm:block">Control Center</p>
                     </div>
                 </button>
+            </div>
 
-                <div className="flex items-center gap-1.5 sm:gap-4 flex-1 justify-end">
-                    
-                    {/* Tools Dropdown */}
-                    <div className="relative">
-                        <button 
-                            id="tutorial-tools-selector"
-                            onClick={() => toggleDropdown('tools')}
-                            className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl transition-all duration-300 ${openDropdown === 'tools' || selectedTool ? 'neo-pressed text-accent' : 'neo-button text-fg-2 hover:text-fg-1'}`}
-                        >
-                            <ToolIcon className="w-5 h-5" />
-                            <span className="hidden sm:block font-semibold text-sm">{toolLabel}</span>
-                            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${openDropdown === 'tools' ? 'rotate-180' : ''}`} />
-                        </button>
-
-                        <AnimatePresence>
-                            {openDropdown === 'tools' && (
-                                <motion.div
-                                    variants={dropdownVariants}
-                                    initial="hidden"
-                                    animate="visible"
-                                    exit="exit"
-                                    className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[380px] p-6 neo-surface rounded-[2rem] border border-white/5 z-[200] pointer-events-auto cursor-default shadow-2xl"
-                                >
-                                    <div className="text-xs font-bold text-fg-3 uppercase tracking-widest mb-6 px-2">Select Tool</div>
-                                    <div className="grid grid-cols-4 gap-4">
-                                        {tools.map((tool) => (
-                                            <button
-                                                key={tool.id}
-                                                onClick={() => handleSelectTool(tool.id)}
-                                                className="flex flex-col items-center justify-start gap-3 p-2 rounded-2xl hover:bg-white/10 active:scale-95 transition-all group cursor-pointer"
-                                            >
-                                                <div className={`w-16 h-16 rounded-2xl neo-surface flex items-center justify-center border border-white/5 group-hover:shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all ${selectedTool === tool.id ? 'bg-white/10 ring-2 ring-accent shadow-[0_0_15px_rgba(var(--accent),0.3)]' : ''}`}>
-                                                    <div className={`p-3 rounded-xl bg-gradient-to-br from-white/10 to-transparent`}>
-                                                        <tool.icon className={`w-6 h-6 ${tool.color} group-hover:scale-110 transition-transform`} strokeWidth={2} />
-                                                    </div>
-                                                </div>
-                                                <span className="text-xs font-semibold text-fg-2 group-hover:text-white text-center leading-tight">{tool.label}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-
-                    {/* Devices Dropdown */}
-                    <div className="relative">
-                        <button 
-                            id="tutorial-device-selector"
-                            onClick={() => toggleDropdown('devices')}
-                            className={`flex items-center gap-2.5 px-3 md:px-4 py-2 rounded-xl transition-all duration-300 ${openDropdown === 'devices' ? 'neo-pressed text-accent' : 'neo-button text-fg-2 hover:text-fg-1'}`}
-                        >
-                            <div className="relative flex items-center justify-center">
-                                <Smartphone className="w-5 h-5" />
-                                <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#0a0a0c] ${
-                                    devices.some(d => d.online) 
-                                        ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' 
-                                        : 'bg-red-500 shadow-[0_0_8px_#ef4444]'
-                                }`} />
-                            </div>
-                            <span className="hidden sm:block font-semibold text-sm max-w-[100px] truncate">
-                                {selectedDevice?.name || selectedDevice?.model || selectedDevice?.deviceName || selectedDevice?.brand || 'Devices'}
-                            </span>
-                            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${openDropdown === 'devices' ? 'rotate-180' : ''}`} />
-                        </button>
-
-                        <AnimatePresence>
-                            {openDropdown === 'devices' && (
-                                <motion.div
-                                    variants={dropdownVariants}
-                                    initial="hidden"
-                                    animate="visible"
-                                    exit="exit"
-                                    className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[360px] p-6 neo-surface rounded-[2rem] border border-white/5 z-[200] pointer-events-auto cursor-default shadow-2xl"
-                                >
-                                    <DeviceList devices={devices} selectedDeviceId={selectedDeviceId} setSelectedDeviceId={setSelectedDeviceId} setOpenDropdown={setOpenDropdown} onDeleteDevice={onDeleteDevice} />
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-
-                    <div className="w-px h-8 bg-white/10 mx-1 md:mx-2" />
-
-                    {/* App Maker Button */}
-                    <button 
-                        id="tutorial-access-app-nav"
-                        onClick={onOpenAppModal}
-                        className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl neo-button text-accent hover:text-accent-hi transition-all"
+            {/* Navigation Right Actions */}
+            <div className="flex items-center gap-2 sm:gap-3">
+                {/* Device Selector */}
+                <div className="relative">
+                    <button
+                        id="tutorial-device-selector"
+                        onClick={() => toggleDropdown('devices')}
+                        className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer border ${
+                            openDropdown === 'devices'
+                                ? 'bg-white/15 border-white/30 text-white shadow-neo-sm'
+                                : 'bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10 hover:text-white'
+                        }`}
                     >
-                        <Package className="w-5 h-5" />
-                        <span className="hidden sm:block font-bold text-sm">Build App</span>
+                        <div className="relative flex items-center">
+                            <Smartphone className={`w-4 h-4 ${selectedDevice?.online ? 'text-emerald-400' : 'text-zinc-400'}`} />
+                            {selectedDevice && (
+                                <span className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-black ${selectedDevice.online ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
+                            )}
+                        </div>
+                        <span className="truncate max-w-[100px] sm:max-w-[150px]">
+                            {selectedDevice?.name || selectedDevice?.model || selectedDevice?.deviceName || selectedDevice?.brand || 'Devices'}
+                        </span>
+                        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${openDropdown === 'devices' ? 'rotate-180' : ''}`} />
                     </button>
 
-                    {/* Profile Dropdown */}
-                    <div className="relative">
-                        <button 
-                            id="tutorial-account-btn"
-                            onClick={() => toggleDropdown('profile')}
-                            className={`flex items-center justify-center w-10 h-10 md:w-auto md:px-4 py-2 rounded-xl transition-all duration-300 ${openDropdown === 'profile' ? 'neo-pressed text-accent' : 'neo-button text-fg-2 hover:text-fg-1'}`}
-                        >
-                            <Settings className="w-5 h-5 md:mr-2" />
-                            <span className="hidden md:block font-semibold text-sm">Account</span>
-                        </button>
-
-                        <AnimatePresence>
-                            {openDropdown === 'profile' && (
-                                <motion.div
-                                    variants={dropdownVariants}
-                                    initial="hidden"
-                                    animate="visible"
-                                    exit="exit"
-                                    className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[280px] p-5 neo-surface rounded-[2rem] border border-white/5 z-[200] pointer-events-auto cursor-default shadow-2xl"
-                                >
-                                        <div className="p-4 mb-3 rounded-2xl neo-surface flex flex-col items-center text-center border border-white/10 shadow-lg">
-                                            <div className={`w-16 h-16 rounded-full mb-3 flex items-center justify-center overflow-hidden ring-2 ${
-                                                userPlan === 'premium' ? 'ring-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.7)]' :
-                                                userPlan === 'standard' ? 'ring-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.6)]' :
-                                                'ring-zinc-600 shadow-md'
-                                            }`}>
-                                                {user?.image ? (
-                                                    <img src={user.image} alt="Profile" className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <img src="/gallery-eye-logo.jpg" alt="Profile" className="w-full h-full object-cover" />
-                                                )}
-                                            </div>
-                                            {/* Email right below avatar */}
-                                            {user?.email ? (
-                                                <div className="text-xs sm:text-sm font-bold text-white font-mono tracking-tight mb-1 truncate max-w-[240px]" title={user.email}>
-                                                    {user.email}
-                                                </div>
-                                            ) : (
-                                                <div className="text-xs sm:text-sm font-bold text-white font-mono tracking-tight mb-1">
-                                                    Account Profile
-                                                </div>
-                                            )}
-                                            {user?.name && user.name !== user.email && (
-                                                <div className="text-[11px] font-medium text-zinc-400 mb-3 truncate max-w-[240px]">
-                                                    {user.name}
-                                                </div>
-                                            )}
-                                            {/* Highlighted Plan right underneath */}
-                                            <div className="mt-1 w-full flex justify-center">
-                                                <PlanBadge plan={userPlan} />
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="flex flex-col gap-2">
-                                            <button 
-                                                onClick={() => { setShowPlansModal(true); setOpenDropdown(null); }}
-                                                className="flex items-center gap-3 p-3 rounded-xl neo-surface hover:neo-pressed transition-all text-accent group"
-                                            >
-                                                <Crown className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                                                <span className="text-sm font-bold">Upgrade Plan</span>
-                                            </button>
-
-                                            <button 
-                                                onClick={() => { handleSignOut(); setOpenDropdown(null); }}
-                                                className="flex items-center gap-3 p-3 rounded-xl neo-surface hover:neo-pressed transition-all text-danger group"
-                                            >
-                                                <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                                                <span className="text-sm font-bold">Sign Out</span>
-                                            </button>
-                                        </div>
-                                    </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-
+                    <AnimatePresence>
+                        {openDropdown === 'devices' && (
+                            <motion.div
+                                variants={dropdownVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="exit"
+                                className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[380px] p-5 neo-surface rounded-[2rem] border border-white/10 z-[200] pointer-events-auto cursor-default shadow-2xl"
+                            >
+                                <DeviceList 
+                                    devices={devices} 
+                                    selectedDeviceId={selectedDeviceId} 
+                                    setSelectedDeviceId={setSelectedDeviceId} 
+                                    setOpenDropdown={setOpenDropdown} 
+                                    onDeleteDevice={onDeleteDevice}
+                                    socket={socket}
+                                    user={user}
+                                    isCheckingPermissions={isCheckingPermissions}
+                                    devicePermissions={devicePermissions}
+                                    setIsCheckingPermissions={setIsCheckingPermissions}
+                                    setDevicePermissions={setDevicePermissions}
+                                />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
-            </nav>
-        </div>
-        </>
+
+                <div className="w-px h-6 bg-white/10 mx-0.5" />
+
+                {/* Build App Button */}
+                <button 
+                    id="tutorial-access-app-nav"
+                    onClick={onOpenAppModal}
+                    className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-cyan-400 hover:text-cyan-300 hover:bg-white/10 transition-all font-bold text-xs sm:text-sm cursor-pointer"
+                >
+                    <Package className="w-4 h-4" />
+                    <span className="hidden sm:block font-bold">Build App</span>
+                </button>
+
+                {/* Profile Dropdown */}
+                <div className="relative">
+                    <button 
+                        id="tutorial-account-btn"
+                        onClick={() => toggleDropdown('profile')}
+                        className={`flex items-center justify-center px-3 sm:px-4 py-2 rounded-xl transition-all duration-300 cursor-pointer border ${
+                            openDropdown === 'profile' 
+                                ? 'bg-white/15 border-white/30 text-white' 
+                                : 'bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10 hover:text-white'
+                        }`}
+                    >
+                        <Settings className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:block font-bold text-xs sm:text-sm">Account</span>
+                    </button>
+
+                    <AnimatePresence>
+                        {openDropdown === 'profile' && (
+                            <motion.div
+                                variants={dropdownVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="exit"
+                                className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:right-0 sm:left-auto sm:translate-x-0 sm:mt-2 sm:w-[280px] p-5 neo-surface rounded-[2rem] border border-white/10 z-[200] pointer-events-auto cursor-default shadow-2xl"
+                            >
+                                <div className="flex flex-col items-center text-center pb-4 mb-4 border-b border-white/10">
+                                    {user?.email ? (
+                                        <div className="text-xs font-bold text-white font-mono tracking-tight mb-1 truncate max-w-[240px]" title={user.email}>
+                                            {user.email}
+                                        </div>
+                                    ) : (
+                                        <div className="text-xs font-bold text-white font-mono tracking-tight mb-1">
+                                            Account Profile
+                                        </div>
+                                    )}
+                                    {user?.name && user.name !== user.email && (
+                                        <div className="text-[11px] font-medium text-zinc-400 mb-3 truncate max-w-[240px]">
+                                            {user.name}
+                                        </div>
+                                    )}
+                                    <div className="mt-1 w-full flex justify-center">
+                                        <PlanBadge plan={userPlan} />
+                                    </div>
+                                </div>
+                                
+                                <div className="flex flex-col gap-2">
+                                    <button 
+                                        onClick={() => { setShowPlansModal(true); setOpenDropdown(null); }}
+                                        className="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 text-amber-400 font-bold text-xs transition-all cursor-pointer border border-white/5"
+                                    >
+                                        <Crown className="w-4 h-4" />
+                                        <span>Upgrade Plan</span>
+                                    </button>
+
+                                    <button 
+                                        onClick={() => { handleSignOut(); setOpenDropdown(null); }}
+                                        className="flex items-center gap-3 p-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold text-xs transition-all cursor-pointer border border-red-500/20"
+                                    >
+                                        <LogOut className="w-4 h-4" />
+                                        <span>Sign Out</span>
+                                    </button>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            </div>
+        </header>
     );
 }
