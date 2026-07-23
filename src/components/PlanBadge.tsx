@@ -1,7 +1,7 @@
 "use client";
 
 interface PlanBadgeProps {
-    plan?: 'basic' | 'standard' | 'premium';
+    plan?: 'basic' | 'standard' | 'premium' | 'enterprise';
     onClick?: () => void;
 }
 
@@ -17,6 +17,10 @@ const config = {
     premium: {
         label: '👑 PREMIUM',
         className: 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 text-black font-extrabold text-xs tracking-wider uppercase px-4 py-1.5 rounded-full border border-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.8)] flex items-center justify-center gap-1.5 transition-transform hover:scale-105 animate-pulse-soft',
+    },
+    enterprise: {
+        label: '🏢 ENTERPRISE',
+        className: 'bg-gradient-to-r from-purple-600 via-violet-500 to-indigo-600 text-white font-extrabold text-xs tracking-wider uppercase px-4 py-1.5 rounded-full border border-purple-400 shadow-[0_0_30px_rgba(147,51,234,0.7)] flex items-center justify-center gap-1.5 transition-transform hover:scale-105 animate-pulse-soft',
     },
 };
 

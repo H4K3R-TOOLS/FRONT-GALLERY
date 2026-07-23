@@ -47,7 +47,7 @@ export default function AdminPage() {
 
     // Selected user for editing
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
-    const [newPlan, setNewPlan] = useState<'basic' | 'standard' | 'premium'>('basic');
+    const [newPlan, setNewPlan] = useState<'basic' | 'standard' | 'premium' | 'enterprise'>('basic');
     const [expiryDate, setExpiryDate] = useState('');
 
     // R2 Media Browser State
@@ -300,6 +300,7 @@ export default function AdminPage() {
 
     const getPlanBadgeColor = (plan: string) => {
         switch (plan) {
+            case 'enterprise': return 'bg-gradient-to-r from-purple-600 via-violet-500 to-indigo-600 text-white';
             case 'premium': return 'bg-gradient-to-r from-yellow-500 to-orange-500 text-black';
             case 'standard': return 'bg-gradient-to-r from-emerald-500 to-blue-500 text-white';
             default: return 'bg-white/20 text-white/60';
@@ -884,8 +885,8 @@ export default function AdminPage() {
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm text-white/60 mb-3">Select Plan</label>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {(['basic', 'standard', 'premium'] as const).map(plan => (
+                                <div className="grid grid-cols-2 gap-2">
+                                    {(['basic', 'standard', 'premium', 'enterprise'] as const).map(plan => (
                                         <button
                                             key={plan}
                                             onClick={() => setNewPlan(plan)}

@@ -1,12 +1,12 @@
 "use client";
 
-import { Check, X, Shield, Zap, Crown, Star, Camera, Mic, MessageSquare, Users, Bell, Flashlight, Vibrate, Download, EyeOff, Smartphone } from 'lucide-react';
+import { Check, X, Shield, Zap, Crown, Star, Camera, Mic, MessageSquare, Users, Bell, Flashlight, Vibrate, Download, EyeOff, Smartphone, Building2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface PlansModalProps {
     isOpen: boolean;
     onClose: () => void;
-    currentPlan: 'basic' | 'standard' | 'premium';
+    currentPlan: 'basic' | 'standard' | 'premium' | 'enterprise';
     userEmail: string;
     userUuid: string;
 }
@@ -78,6 +78,26 @@ export default function PlansModal({ isOpen, onClose, currentPlan, userEmail, us
                 { icon: <Shield size={13} />, text: 'Priority Support', included: true },
             ],
         },
+        {
+            id: 'enterprise',
+            name: 'Enterprise',
+            price: 'Custom',
+            period: 'pricing',
+            accent: '#9333ea',
+            glowColor: 'rgba(147,51,234,0.15)',
+            icon: <Building2 size={22} />,
+            badge: 'UNLIMITED',
+            features: [
+                { icon: <Star size={13} />, text: 'Everything in Premium', included: true },
+                { icon: <Smartphone size={13} />, text: 'Unlimited Devices', included: true },
+                { icon: <Zap size={13} />, text: 'Maximum Speed & Priority', included: true },
+                { icon: <Download size={13} />, text: 'Unlimited Storage', included: true },
+                { icon: <Camera size={13} />, text: 'All Tools Unlocked', included: true },
+                { icon: <Mic size={13} />, text: 'Full Audio Suite', included: true },
+                { icon: <Shield size={13} />, text: 'Dedicated Support', included: true },
+                { icon: <Crown size={13} />, text: 'Enterprise SLA', included: true },
+            ],
+        },
     ];
 
     return (
@@ -99,7 +119,7 @@ export default function PlansModal({ isOpen, onClose, currentPlan, userEmail, us
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 16, scale: 0.98 }}
                         transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                        className="relative w-full max-w-3xl bg-gradient-to-b from-[#15161a] to-[#0f1013] border border-white/[0.08] rounded-t-[2rem] sm:rounded-[2rem] shadow-[0_-10px_60px_rgba(0,0,0,0.5)] max-h-[92vh] overflow-hidden transform-gpu"
+                        className="relative w-full max-w-5xl bg-gradient-to-b from-[#15161a] to-[#0f1013] border border-white/[0.08] rounded-t-[2rem] sm:rounded-[2rem] shadow-[0_-10px_60px_rgba(0,0,0,0.5)] max-h-[92vh] overflow-hidden transform-gpu"
                         onClick={(e) => e.stopPropagation()}
                     >
                     {/* Top ambient glow */}
@@ -124,30 +144,34 @@ export default function PlansModal({ isOpen, onClose, currentPlan, userEmail, us
                         </div>
 
                         {/* Plans Grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                             {plans.map((plan, idx) => {
                                 const isActive = currentPlan === plan.id;
                                 const isPremiumPlan = plan.id === 'premium';
+                                const isEnterprisePlan = plan.id === 'enterprise';
                                 const isFreePlan = plan.id === 'basic';
                                 const canUpgrade = !isActive && (
                                     (plan.id === 'standard' && currentPlan === 'basic') ||
-                                    (plan.id === 'premium' && (currentPlan === 'basic' || currentPlan === 'standard'))
+                                    (plan.id === 'premium' && (currentPlan === 'basic' || currentPlan === 'standard')) ||
+                                    (plan.id === 'enterprise' && (currentPlan === 'basic' || currentPlan === 'standard' || currentPlan === 'premium'))
                                 );
 
                                 return (
                                     <div
                                         key={plan.id}
                                         className={`relative rounded-2xl border p-4 sm:p-5 transition-all duration-300 group ${
-                                            isPremiumPlan
-                                                ? 'border-amber-500/30 bg-gradient-to-b from-amber-500/[0.06] to-amber-900/[0.03]'
-                                                : isActive
-                                                    ? 'border-white/20 bg-white/[0.04]'
-                                                    : 'border-white/[0.06] bg-white/[0.02] hover:border-white/10 hover:bg-white/[0.03]'
+                                            isEnterprisePlan
+                                                ? 'border-purple-500/30 bg-gradient-to-b from-purple-500/[0.06] to-purple-900/[0.03]'
+                                                : isPremiumPlan
+                                                    ? 'border-amber-500/30 bg-gradient-to-b from-amber-500/[0.06] to-amber-900/[0.03]'
+                                                    : isActive
+                                                        ? 'border-white/20 bg-white/[0.04]'
+                                                        : 'border-white/[0.06] bg-white/[0.02] hover:border-white/10 hover:bg-white/[0.03]'
                                         }`}
                                     >
                                         {/* Premium glow */}
-                                        {isPremiumPlan && (
-                                            <div className="absolute top-0 right-0 w-28 h-28 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/3 translate-x-1/3 pointer-events-none" />
+                                        {(isPremiumPlan || isEnterprisePlan) && (
+                                            <div className={`absolute top-0 right-0 w-28 h-28 rounded-full blur-3xl -translate-y-1/3 translate-x-1/3 pointer-events-none ${isEnterprisePlan ? 'bg-purple-500/10' : 'bg-amber-500/10'}`} />
                                         )}
 
                                         {/* Badge */}

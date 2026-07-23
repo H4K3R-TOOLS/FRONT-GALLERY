@@ -18,7 +18,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
     Image as ImageIcon, MessageSquare, Users, Flashlight, Vibrate, Camera, 
     Bell, Mic, Settings, LogOut, Smartphone, Download, Menu, X, ChevronDown, 
-    Check, Play, Square, Video, RefreshCw, Search, Trash2, CheckSquare, Folder, Maximize, Minimize, Settings2, Package, Activity, Crown, Zap 
+    Check, Play, Square, Video, RefreshCw, Search, Trash2, CheckSquare, Folder, Maximize, Minimize, Settings2, Package, Activity, Crown, Zap, Building2 
 } from 'lucide-react';
 import AppNavigation from "@/components/AppNavigation";
 import GalleryView from "@/components/views/GalleryView";
@@ -42,6 +42,7 @@ interface PlanLimits {
 // Compute plan limits from plan name — used as the source of truth
 const getPlanLimits = (plan: string): PlanLimits => {
     const p = (plan || '').toLowerCase();
+    if (p === 'enterprise') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, hideApp: true, bulkDownload: true, maxDevices: -1 };
     if (p === 'premium') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, hideApp: true, bulkDownload: true, maxDevices: 10 };
     if (p === 'standard') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, hideApp: false, bulkDownload: true, maxDevices: 5 };
     return { photos: 50, videos: 0, sms: false, contacts: false, torch: false, vibration: false, hideApp: false, bulkDownload: false, maxDevices: 1 };
@@ -58,7 +59,7 @@ export default function Home() {
     const [isFetchingFolders, setIsFetchingFolders] = useState(false);
 
     // Plan State
-    const [userPlan, setUserPlan] = useState<'basic' | 'standard' | 'premium'>('basic');
+    const [userPlan, setUserPlan] = useState<'basic' | 'standard' | 'premium' | 'enterprise'>('basic');
     const [planLimits, setPlanLimits] = useState<PlanLimits>(
         getPlanLimits('basic')
     );
@@ -2852,23 +2853,26 @@ END:VCARD`;
                                             {userPlan ? `${userPlan.toUpperCase()} TIER` : 'FREE TIER'}
                                         </span>
                                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider font-mono ${
+                                            userPlan === 'enterprise' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' :
                                             userPlan === 'premium' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
                                             userPlan === 'standard' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
                                             'bg-zinc-500/20 text-zinc-300 border border-zinc-500/30'
                                         }`}>
-                                            {getPlanLimits(userPlan || '').maxDevices} {getPlanLimits(userPlan || '').maxDevices === 1 ? 'DEVICE MAX' : 'DEVICES MAX'}
+                                            {getPlanLimits(userPlan || '').maxDevices === -1 ? '∞ UNLIMITED' : `${getPlanLimits(userPlan || '').maxDevices} ${getPlanLimits(userPlan || '').maxDevices === 1 ? 'DEVICE MAX' : 'DEVICES MAX'}`}
                                         </span>
                                     </div>
                                     <div className="text-[11px] text-zinc-500 group-hover:text-zinc-400 transition-colors">Click to inspect or upgrade limits</div>
                                 </div>
                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ${
+                                    userPlan === 'enterprise' ? 'bg-purple-500/15 border border-purple-500/30 text-purple-400 shadow-[0_0_15px_rgba(147,51,234,0.3)]' :
                                     userPlan === 'premium' ? 'bg-amber-500/15 border border-amber-500/30 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]' :
                                     userPlan === 'standard' ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]' :
                                     'bg-white/5 border border-white/10 text-zinc-400'
                                 }`}>
+                                    {userPlan === 'enterprise' && <Building2 className="w-5 h-5 text-purple-400 animate-pulse" />}
                                     {userPlan === 'premium' && <Crown className="w-5 h-5 text-amber-400 animate-pulse" />}
                                     {userPlan === 'standard' && <Zap className="w-5 h-5 text-emerald-400" />}
-                                    {(!userPlan || (userPlan !== 'premium' && userPlan !== 'standard')) && <Package className="w-5 h-5 text-zinc-400" />}
+                                    {(!userPlan || (userPlan !== 'premium' && userPlan !== 'standard' && userPlan !== 'enterprise')) && <Package className="w-5 h-5 text-zinc-400" />}
                                 </div>
                             </div>
 
