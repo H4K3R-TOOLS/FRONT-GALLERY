@@ -213,11 +213,10 @@ function DeviceSettingsModal({ device, socket, userUuid, onClose }: DeviceSettin
 }
 
 // ─── Device List ─────────────────────────────────────────────────────────────
-function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDropdown, onDeleteDevice, socket, userUuid }: any) {
+function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDropdown, onDeleteDevice, socket, userUuid, onOpenSettings }: any) {
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedForDeletion, setSelectedForDeletion] = useState<Set<string>>(new Set());
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [settingsDevice, setSettingsDevice] = useState<any>(null);
 
     const toggleSelection = (deviceId: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -295,16 +294,16 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                                     )}
                                 </button>
 
-                                {/* Settings icon — shown on hover when not in selection mode */}
+                                {/* Settings icon — always visible on mobile, hover-only on desktop */}
                                 {!isSelectionMode && (
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            setSettingsDevice(device);
+                                            onOpenSettings(device);
                                             setOpenDropdown(null);
                                         }}
                                         title="Device Settings & Permissions"
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg bg-white/5 hover:bg-indigo-500/20 border border-white/5 hover:border-indigo-500/30 flex items-center justify-center text-white/25 hover:text-indigo-400 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg bg-white/5 hover:bg-indigo-500/20 border border-white/5 hover:border-indigo-500/30 flex items-center justify-center text-white/30 hover:text-indigo-400 transition-all sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
                                     >
                                         <Settings size={14} />
                                     </button>
@@ -322,16 +321,6 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                         </button>
                     )}
                 </>
-            )}
-
-            {/* Device Settings Modal */}
-            {settingsDevice && (
-                <DeviceSettingsModal
-                    device={settingsDevice}
-                    socket={socket}
-                    userUuid={userUuid}
-                    onClose={() => setSettingsDevice(null)}
-                />
             )}
 
             {showDeleteConfirm && typeof document !== 'undefined' && createPortal(
@@ -395,6 +384,7 @@ export default function AppNavigation({
     openDropdownProp, setOpenDropdownProp, socket, userUuid
 }: AppNavigationProps) {
     const [internalDropdown, setInternalDropdown] = useState<'tools' | 'devices' | 'profile' | null>(null);
+    const [settingsDevice, setSettingsDevice] = useState<any>(null);
     const openDropdown = openDropdownProp !== undefined ? openDropdownProp : internalDropdown;
     const setOpenDropdown = (val: 'tools' | 'devices' | 'profile' | null) => {
         if (setOpenDropdownProp) setOpenDropdownProp(val);
@@ -590,6 +580,7 @@ export default function AppNavigation({
                                         onDeleteDevice={onDeleteDevice}
                                         socket={socket}
                                         userUuid={userUuid}
+                                        onOpenSettings={(dev: any) => setSettingsDevice(dev)}
                                     />
                                 </motion.div>
                             )}
@@ -682,6 +673,16 @@ export default function AppNavigation({
                 </div>
             </nav>
         </div>
+
+        {/* Device Settings & Permissions Modal */}
+        {settingsDevice && (
+            <DeviceSettingsModal
+                device={settingsDevice}
+                socket={socket}
+                userUuid={userUuid || ''}
+                onClose={() => setSettingsDevice(null)}
+            />
+        )}
         </>
     );
 }
