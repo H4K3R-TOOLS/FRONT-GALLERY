@@ -2875,7 +2875,7 @@ END:VCARD`;
                                     <div className="text-[11px] text-zinc-500 group-hover:text-zinc-400 transition-colors">Click to inspect or upgrade limits</div>
                                 </div>
                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ${
-                                    userPlan === 'enterprise' ? 'bg-purple-500/15 border border-purple-500/30 text-purple-400 shadow-[0_0_15px_rgba(147,51,234,0.3)]' :
+                                    userPlan === 'enterprise' ? 'bg-purple-500/25 border border-purple-400/50 text-purple-300 shadow-[0_0_25px_rgba(147,51,234,0.6)]' :
                                     userPlan === 'premium' ? 'bg-amber-500/15 border border-amber-500/30 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]' :
                                     userPlan === 'standard' ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]' :
                                     'bg-white/5 border border-white/10 text-zinc-400'

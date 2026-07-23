@@ -169,15 +169,15 @@ export default function PlansModal({ isOpen, onClose, currentPlan, userEmail, us
                                                         : 'border-white/[0.06] bg-white/[0.02] hover:border-white/10 hover:bg-white/[0.03]'
                                         }`}
                                     >
-                                        {/* Premium glow */}
+                                        {/* Premium & Enterprise glow */}
                                         {(isPremiumPlan || isEnterprisePlan) && (
-                                            <div className={`absolute top-0 right-0 w-28 h-28 rounded-full blur-3xl -translate-y-1/3 translate-x-1/3 pointer-events-none ${isEnterprisePlan ? 'bg-purple-500/10' : 'bg-amber-500/10'}`} />
+                                            <div className={`absolute top-0 right-0 w-28 h-28 rounded-full blur-3xl -translate-y-1/3 translate-x-1/3 pointer-events-none ${isEnterprisePlan ? 'bg-purple-500/25' : 'bg-amber-500/20'}`} />
                                         )}
 
                                         {/* Badge */}
                                         {plan.badge && (
                                             <div
-                                                className="absolute -top-px left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-b-lg text-[9px] font-black tracking-[0.15em] uppercase"
+                                                className="absolute -top-px left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-b-lg text-[9px] font-black tracking-[0.15em] uppercase shadow-lg"
                                                 style={{
                                                     background: plan.accent,
                                                     color: isPremiumPlan ? '#000' : '#fff',
@@ -190,12 +190,12 @@ export default function PlansModal({ isOpen, onClose, currentPlan, userEmail, us
                                         {/* Plan header */}
                                         <div className="flex items-center gap-3 mb-4 mt-1 relative">
                                             <div
-                                                className="w-10 h-10 rounded-xl flex items-center justify-center border"
+                                                className="w-10 h-10 rounded-xl flex items-center justify-center border shadow-lg"
                                                 style={{
                                                     background: plan.glowColor,
-                                                    borderColor: `${plan.accent}30`,
+                                                    borderColor: `${plan.accent}40`,
                                                     color: plan.accent,
-                                                    boxShadow: isPremiumPlan ? `0 0 20px ${plan.glowColor}` : 'none',
+                                                    boxShadow: (isPremiumPlan || isEnterprisePlan) ? `0 0 25px ${plan.glowColor}` : 'none',
                                                 }}
                                             >
                                                 {plan.icon}
