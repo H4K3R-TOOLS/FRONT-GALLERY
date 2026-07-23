@@ -57,12 +57,28 @@ export default function AdminPage() {
     const [mediaPreview, setMediaPreview] = useState<R2File | null>(null);
     const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
     const [deleteConfirm, setDeleteConfirm] = useState(false);
-    const [mediaFilter, setMediaFilter] = useState<'all' | 'image' | 'video'>('all');
-    const [visibleCount, setVisibleCount] = useState(50);
+    const [mediaFilter, setMediaFilter] = useState<'all' | 'image' | 'video' | 'enterprise'>('all');
+    const [visibleCount, setVisibleCount] = useState(36);
 
     const BACKEND_URL = 'https://p01--gallery-eye--9zr85m7yb6s4.code.run';
     const R2_CACHE_KEY = 'admin_r2_files_cache';
     const R2_CACHE_TS_KEY = 'admin_r2_cache_ts';
+
+    // Helper: Map R2 File Key to Owner User
+    const getFileOwner = useCallback((fileId: string): User | undefined => {
+        const parts = fileId.split('/');
+        if (parts.length >= 2) {
+            const uuid = parts[1];
+            return users.find(u => u.uuid === uuid);
+        }
+        return undefined;
+    }, [users]);
+
+    // Helper: Check if R2 File belongs to an Enterprise User
+    const isEnterpriseAsset = useCallback((fileId: string): boolean => {
+        const owner = getFileOwner(fileId);
+        return owner?.plan === 'enterprise';
+    }, [getFileOwner]);
 
     // Check if session email matches admin email
     useEffect(() => {
@@ -215,7 +231,7 @@ export default function AdminPage() {
             if (res.ok) {
                 const data = await res.json();
                 setR2Files(data);
-                setVisibleCount(50);
+                setVisibleCount(36);
                 // Cache to localStorage
                 try {
                     localStorage.setItem(R2_CACHE_KEY, JSON.stringify(data));
@@ -231,14 +247,28 @@ export default function AdminPage() {
 
     const deleteR2Files = async (fileIds: string[]) => {
         if (!session?.user?.email || fileIds.length === 0) return;
+
+        // Check for Enterprise protection
+        const enterpriseCount = fileIds.filter(id => isEnterpriseAsset(id)).length;
+        const deletableIds = fileIds.filter(id => !isEnterpriseAsset(id));
+
+        if (deletableIds.length === 0) {
+            setError('🔒 Enterprise user data is protected and cannot be deleted by Admin.');
+            setDeleteConfirm(false);
+            return;
+        }
+
+        if (enterpriseCount > 0) {
+            setError(`⚠️ ${enterpriseCount} Enterprise file(s) are protected and were skipped.`);
+        }
+
         setR2Loading(true);
-        setError('');
         try {
             const CHUNK_SIZE = 500;
             let totalDeleted = 0;
             
-            for (let i = 0; i < fileIds.length; i += CHUNK_SIZE) {
-                const chunk = fileIds.slice(i, i + CHUNK_SIZE);
+            for (let i = 0; i < deletableIds.length; i += CHUNK_SIZE) {
+                const chunk = deletableIds.slice(i, i + CHUNK_SIZE);
                 const res = await fetch(`${BACKEND_URL}/admin/r2-delete`, {
                     method: 'POST',
                     headers: {
@@ -260,16 +290,20 @@ export default function AdminPage() {
             }
             
             setSelectedFiles(new Set());
-            setSuccess(`Deleted ${totalDeleted} file(s)`);
+            setSuccess(`Deleted ${totalDeleted} file(s)` + (enterpriseCount > 0 ? ` (${enterpriseCount} Enterprise file(s) protected)` : ''));
             setDeleteConfirm(false);
         } catch {
-            setError('Delete failed during bulk operation');
+            setError('Delete failed during operation');
         } finally {
             setR2Loading(false);
         }
     };
 
     const toggleFileSelect = (id: string) => {
+        if (isEnterpriseAsset(id)) {
+            setError('🔒 Enterprise data is protected from admin selection & deletion.');
+            return;
+        }
         setSelectedFiles(prev => {
             const next = new Set(prev);
             if (next.has(id)) next.delete(id);
@@ -279,10 +313,11 @@ export default function AdminPage() {
     };
 
     const selectAll = () => {
-        if (selectedFiles.size === displayedFiles.length) {
+        const deletableFiles = displayedFiles.filter(f => !isEnterpriseAsset(f.id));
+        if (selectedFiles.size === deletableFiles.length) {
             setSelectedFiles(new Set());
         } else {
-            setSelectedFiles(new Set(displayedFiles.map(f => f.id)));
+            setSelectedFiles(new Set(deletableFiles.map(f => f.id)));
         }
     };
 
@@ -331,10 +366,16 @@ export default function AdminPage() {
     const displayUsers = searchResults.length > 0 ? searchResults : users;
 
     // Filtered files based on media type filter
-    const displayedFiles = mediaFilter === 'all' ? r2Files : r2Files.filter(f => f.resource_type === mediaFilter);
+    const displayedFiles = mediaFilter === 'all' 
+        ? r2Files 
+        : mediaFilter === 'enterprise'
+            ? r2Files.filter(f => isEnterpriseAsset(f.id))
+            : r2Files.filter(f => f.resource_type === mediaFilter);
+            
     const currentlyVisibleFiles = displayedFiles.slice(0, visibleCount);
     const imageCount = r2Files.filter(f => f.resource_type === 'image').length;
     const videoCount = r2Files.filter(f => f.resource_type === 'video').length;
+    const enterpriseMediaCount = r2Files.filter(f => isEnterpriseAsset(f.id)).length;
 
     // Loading state
     if (status === 'loading') {
@@ -566,13 +607,16 @@ export default function AdminPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {devices.map((d, idx) => {
                                     const userOwner = users.find(u => u.uuid === d.uuid);
+                                    const isEnterpriseOwner = userOwner?.plan === 'enterprise';
                                     return (
                                         <div 
                                             key={`${d.deviceId || idx}_${d.uuid}`}
                                             className={`p-4 sm:p-5 rounded-2xl border transition-all duration-200 ${
-                                                d.online 
-                                                    ? 'bg-gradient-to-b from-emerald-500/[0.06] to-emerald-950/[0.02] border-emerald-500/30 shadow-[0_0_25px_rgba(16,185,129,0.1)]' 
-                                                    : 'bg-[#0e1017] border-white/[0.08] hover:border-white/15'
+                                                isEnterpriseOwner
+                                                    ? 'bg-gradient-to-b from-purple-600/[0.08] to-purple-950/[0.02] border-purple-500/40 shadow-[0_0_20px_rgba(147,51,234,0.15)]'
+                                                    : d.online 
+                                                        ? 'bg-gradient-to-b from-emerald-500/[0.06] to-emerald-950/[0.02] border-emerald-500/30 shadow-[0_0_25px_rgba(16,185,129,0.1)]' 
+                                                        : 'bg-[#0e1017] border-white/[0.08] hover:border-white/15'
                                             }`}
                                         >
                                             <div className="flex items-start justify-between gap-3 mb-3.5">
@@ -582,12 +626,19 @@ export default function AdminPage() {
                                                     </div>
                                                     <p className="text-[11px] text-zinc-400 font-mono mt-0.5 truncate">ID: {d.deviceId?.substring(0, 20)}...</p>
                                                 </div>
-                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1.5 shrink-0 ${
-                                                    d.online ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'bg-zinc-800/80 text-zinc-400 border border-zinc-700/60'
-                                                }`}>
-                                                    <span className={`w-1.5 h-1.5 rounded-full ${d.online ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-500'}`} />
-                                                    {d.online ? 'Online' : 'Offline'}
-                                                </span>
+                                                <div className="flex flex-col items-end gap-1">
+                                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1.5 shrink-0 ${
+                                                        d.online ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'bg-zinc-800/80 text-zinc-400 border border-zinc-700/60'
+                                                    }`}>
+                                                        <span className={`w-1.5 h-1.5 rounded-full ${d.online ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-500'}`} />
+                                                        {d.online ? 'Online' : 'Offline'}
+                                                    </span>
+                                                    {isEnterpriseOwner && (
+                                                        <span className="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-400/30 text-[9px] font-black uppercase">
+                                                            🏢 Enterprise
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
 
                                             <div className="pt-3 border-t border-white/[0.06] space-y-2 text-xs">
@@ -616,22 +667,26 @@ export default function AdminPage() {
                 {activeTab === 'users' && (
                     <>
                         {/* Stats Grid */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                             <div className="bg-[#0e1017] border border-white/[0.08] rounded-2xl p-4">
                                 <div className="text-2xl sm:text-3xl font-black text-white">{users.length}</div>
-                                <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider mt-0.5">Total Users</div>
+                                <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider mt-0.5">Total</div>
                             </div>
                             <div className="bg-[#0e1017] border border-white/[0.08] rounded-2xl p-4">
                                 <div className="text-2xl sm:text-3xl font-black text-zinc-400">{users.filter(u => u.plan === 'basic').length}</div>
-                                <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider mt-0.5">Basic</div>
+                                <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider mt-0.5">Basic</div>
                             </div>
                             <div className="bg-gradient-to-br from-emerald-500/15 via-teal-500/5 to-transparent border border-emerald-500/30 rounded-2xl p-4">
                                 <div className="text-2xl sm:text-3xl font-black text-emerald-400">{users.filter(u => u.plan === 'standard').length}</div>
-                                <div className="text-xs font-bold text-emerald-300/80 uppercase tracking-wider mt-0.5">Standard</div>
+                                <div className="text-[11px] font-bold text-emerald-300/80 uppercase tracking-wider mt-0.5">Standard</div>
                             </div>
                             <div className="bg-gradient-to-br from-amber-500/15 via-yellow-500/5 to-transparent border border-amber-500/30 rounded-2xl p-4">
-                                <div className="text-2xl sm:text-3xl font-black text-amber-400">{users.filter(u => u.plan === 'premium' || u.plan === 'enterprise').length}</div>
-                                <div className="text-xs font-bold text-amber-300/80 uppercase tracking-wider mt-0.5">Premium / Ent</div>
+                                <div className="text-2xl sm:text-3xl font-black text-amber-400">{users.filter(u => u.plan === 'premium').length}</div>
+                                <div className="text-[11px] font-bold text-amber-300/80 uppercase tracking-wider mt-0.5">Premium</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-purple-500/20 via-violet-500/10 to-transparent border border-purple-500/40 rounded-2xl p-4 col-span-2 sm:col-span-1 shadow-[0_0_15px_rgba(147,51,234,0.15)]">
+                                <div className="text-2xl sm:text-3xl font-black text-purple-300">{users.filter(u => u.plan === 'enterprise').length}</div>
+                                <div className="text-[11px] font-bold text-purple-300/90 uppercase tracking-wider mt-0.5">🏢 Enterprise</div>
                             </div>
                         </div>
 
@@ -656,7 +711,12 @@ export default function AdminPage() {
                         {/* User Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {displayUsers.map((user, idx) => (
-                                <div key={idx} className="bg-[#0e1017] border border-white/[0.08] rounded-2xl p-5 hover:border-white/20 transition-all duration-200 flex flex-col justify-between shadow-lg">
+                                <div 
+                                    key={idx} 
+                                    className={`bg-[#0e1017] border rounded-2xl p-5 hover:border-white/20 transition-all duration-200 flex flex-col justify-between shadow-lg ${
+                                        user.plan === 'enterprise' ? 'border-purple-500/40 shadow-[0_0_20px_rgba(147,51,234,0.15)]' : 'border-white/[0.08]'
+                                    }`}
+                                >
                                     <div>
                                         <div className="flex items-start justify-between gap-3 mb-4">
                                             <div className="flex items-center gap-3.5">
@@ -710,10 +770,10 @@ export default function AdminPage() {
                 {activeTab === 'media' && (
                     <>
                         {/* Stats Row */}
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <div className="bg-[#0e1017] border border-white/[0.08] rounded-2xl p-4 text-center">
                                 <div className="text-2xl font-black text-white">{r2Files.length}</div>
-                                <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">Total Media</div>
+                                <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">Total Assets</div>
                             </div>
                             <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 text-center">
                                 <div className="text-2xl font-black text-emerald-400">{imageCount}</div>
@@ -722,6 +782,10 @@ export default function AdminPage() {
                             <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 text-center">
                                 <div className="text-2xl font-black text-red-400">{videoCount}</div>
                                 <div className="text-[11px] font-bold text-red-400/80 uppercase tracking-widest mt-0.5">🎬 Videos</div>
+                            </div>
+                            <div className="bg-purple-500/15 border border-purple-500/30 rounded-2xl p-4 text-center col-span-2 sm:col-span-1 shadow-[0_0_15px_rgba(147,51,234,0.15)]">
+                                <div className="text-2xl font-black text-purple-300">{enterpriseMediaCount}</div>
+                                <div className="text-[11px] font-bold text-purple-300 uppercase tracking-widest mt-0.5">🔒 Enterprise (Protected)</div>
                             </div>
                         </div>
 
@@ -744,32 +808,38 @@ export default function AdminPage() {
                         </div>
 
                         {/* Media Type Filter */}
-                        <div className="flex gap-2">
-                            {(['all', 'image', 'video'] as const).map(filter => (
+                        <div className="flex gap-2 flex-wrap">
+                            {(['all', 'image', 'video', 'enterprise'] as const).map(filter => (
                                 <button
                                     key={filter}
-                                    onClick={() => { setMediaFilter(filter); setVisibleCount(50); }}
+                                    onClick={() => { setMediaFilter(filter); setVisibleCount(36); }}
                                     className={`px-4 py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
                                         mediaFilter === filter
-                                            ? filter === 'video' ? 'bg-red-500/20 text-red-400 border border-red-500/40 shadow-[0_0_12px_rgba(239,68,68,0.2)]'
-                                                : filter === 'image' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.2)]'
-                                                    : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-[0_0_12px_rgba(6,182,212,0.2)]'
+                                            ? filter === 'enterprise' ? 'bg-purple-500/30 text-purple-200 border border-purple-500/60 shadow-[0_0_15px_rgba(147,51,234,0.3)]'
+                                                : filter === 'video' ? 'bg-red-500/20 text-red-400 border border-red-500/40 shadow-[0_0_12px_rgba(239,68,68,0.2)]'
+                                                    : filter === 'image' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.2)]'
+                                                        : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-[0_0_12px_rgba(6,182,212,0.2)]'
                                             : 'bg-[#0e1017] text-zinc-400 border border-white/[0.06] hover:bg-white/[0.06]'
                                     }`}
                                 >
-                                    {filter === 'all' ? `All (${r2Files.length})` : filter === 'image' ? `📷 Images (${imageCount})` : `🎬 Videos (${videoCount})`}
+                                    {filter === 'all' ? `All (${r2Files.length})` 
+                                        : filter === 'image' ? `📷 Images (${imageCount})` 
+                                        : filter === 'video' ? `🎬 Videos (${videoCount})`
+                                        : `🏢 Enterprise (${enterpriseMediaCount})`}
                                 </button>
                             ))}
                         </div>
 
                         {/* Bulk Actions */}
                         {displayedFiles.length > 0 && (
-                            <div className="flex items-center justify-between bg-[#0d0f16] border border-white/[0.08] rounded-2xl p-3.5">
+                            <div className="flex items-center justify-between bg-[#0d0f16] border border-white/[0.08] rounded-2xl p-3.5 flex-wrap gap-2">
                                 <button
                                     onClick={selectAll}
                                     className="text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors cursor-pointer"
                                 >
-                                    {selectedFiles.size === displayedFiles.length ? '✓ Deselect All' : `⭐ Select All (${displayedFiles.length})`}
+                                    {selectedFiles.size === displayedFiles.filter(f => !isEnterpriseAsset(f.id)).length && selectedFiles.size > 0 
+                                        ? '✓ Deselect All' 
+                                        : `⭐ Select All Non-Enterprise (${displayedFiles.filter(f => !isEnterpriseAsset(f.id)).length})`}
                                 </button>
                                 {selectedFiles.size > 0 && (
                                     <button
@@ -782,7 +852,7 @@ export default function AdminPage() {
                             </div>
                         )}
 
-                        {/* Media Grid */}
+                        {/* Media Grid — ULTRA OPTIMIZED (No video element loading in grid to prevent browser lag/crashes) */}
                         {r2Loading && r2Files.length === 0 ? (
                             <div className="text-center py-20 bg-[#0d0f16] border border-white/[0.06] rounded-3xl">
                                 <div className="w-12 h-12 border-4 border-cyan-500/20 border-t-cyan-400 rounded-full animate-spin mx-auto mb-3" />
@@ -794,76 +864,93 @@ export default function AdminPage() {
                                 <p className="text-sm font-semibold">No media assets found</p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                                {currentlyVisibleFiles.map((file) => (
-                                    <div
-                                        key={file.id}
-                                        className={`relative group rounded-2xl overflow-hidden border-2 transition-all duration-200 cursor-pointer bg-[#0d0f16] ${
-                                            selectedFiles.has(file.id) ? 'border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.4)] scale-[0.98]' : 'border-white/[0.08] hover:border-white/30'
-                                        }`}
-                                    >
-                                        {/* Select checkbox */}
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); toggleFileSelect(file.id); }}
-                                            className={`absolute top-2 left-2 z-10 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black transition-all cursor-pointer ${
-                                                selectedFiles.has(file.id) ? 'bg-cyan-500 text-zinc-950 shadow-md' : 'bg-black/70 text-white/60 opacity-80 sm:opacity-0 group-hover:opacity-100 border border-white/20'
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                                {currentlyVisibleFiles.map((file) => {
+                                    const isEnterprise = isEnterpriseAsset(file.id);
+                                    const isSelected = selectedFiles.has(file.id);
+                                    const owner = getFileOwner(file.id);
+
+                                    return (
+                                        <div
+                                            key={file.id}
+                                            className={`relative group rounded-2xl overflow-hidden border-2 transition-all duration-200 cursor-pointer bg-[#0d0f16] ${
+                                                isEnterprise 
+                                                    ? 'border-purple-500/40 shadow-[0_0_15px_rgba(147,51,234,0.15)]'
+                                                    : isSelected ? 'border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.4)] scale-[0.98]' : 'border-white/[0.08] hover:border-white/30'
                                             }`}
                                         >
-                                            {selectedFiles.has(file.id) ? '✓' : ''}
-                                        </button>
-
-                                        {/* Type badge */}
-                                        <div className={`absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md text-[10px] font-black ${file.resource_type === 'video' ? 'bg-red-500/90 text-white' : 'bg-emerald-500/90 text-white'}`}>
-                                            {file.resource_type === 'video' ? '🎬 VID' : '📷 IMG'}
-                                        </div>
-
-                                        {/* Content */}
-                                        <div onClick={() => setMediaPreview(file)} className="aspect-square bg-black/40 relative">
-                                            {file.resource_type === 'video' ? (
-                                                <div className="relative w-full h-full">
-                                                    <video
-                                                        src={file.url}
-                                                        className="w-full h-full object-cover"
-                                                        muted
-                                                        preload="metadata"
-                                                        playsInline
-                                                        onLoadedMetadata={(e) => {
-                                                            (e.target as HTMLVideoElement).currentTime = 1;
-                                                        }}
-                                                    />
-                                                    {/* Play overlay */}
-                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/10 transition-colors">
-                                                        <div className="w-10 h-10 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform">
-                                                            <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                                                        </div>
-                                                    </div>
+                                            {/* Select checkbox or Enterprise Lock */}
+                                            {isEnterprise ? (
+                                                <div 
+                                                    title="🔒 Protected Enterprise Asset — Admin Deletion Restricted"
+                                                    className="absolute top-2 left-2 z-10 w-7 h-7 rounded-lg bg-purple-950/90 text-purple-300 border border-purple-500/50 flex items-center justify-center text-xs font-black shadow-md"
+                                                >
+                                                    🔒
                                                 </div>
                                             ) : (
-                                                <img
-                                                    src={file.url}
-                                                    alt=""
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                                    loading="lazy"
-                                                />
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); toggleFileSelect(file.id); }}
+                                                    className={`absolute top-2 left-2 z-10 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black transition-all cursor-pointer ${
+                                                        isSelected ? 'bg-cyan-500 text-zinc-950 shadow-md' : 'bg-black/70 text-white/60 opacity-80 sm:opacity-0 group-hover:opacity-100 border border-white/20'
+                                                    }`}
+                                                >
+                                                    {isSelected ? '✓' : ''}
+                                                </button>
                                             )}
-                                        </div>
 
-                                        {/* Date + Size */}
-                                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-2">
-                                            <p className="text-[10px] text-zinc-300 font-mono truncate">
-                                                {new Date(file.created_at).toLocaleDateString()}
-                                                {file.size ? ` • ${formatFileSize(file.size)}` : ''}
-                                            </p>
+                                            {/* Type badge */}
+                                            <div className="absolute top-2 right-2 z-10 flex flex-col items-end gap-1">
+                                                <span className={`px-2 py-0.5 rounded-md text-[10px] font-black ${file.resource_type === 'video' ? 'bg-red-500/90 text-white' : 'bg-emerald-500/90 text-white'}`}>
+                                                    {file.resource_type === 'video' ? '🎬 VID' : '📷 IMG'}
+                                                </span>
+                                                {isEnterprise && (
+                                                    <span className="px-1.5 py-0.5 rounded bg-purple-500/90 text-white text-[9px] font-black uppercase tracking-wider shadow-sm">
+                                                        ENT
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Content — OPTIMIZED (No heavy HTML5 video elements instantiated in grid view) */}
+                                            <div onClick={() => setMediaPreview(file)} className="aspect-square bg-gradient-to-br from-[#12141d] to-[#090b10] relative overflow-hidden">
+                                                {file.resource_type === 'video' ? (
+                                                    <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-gradient-to-b from-red-950/20 to-black/60 group-hover:from-red-950/40 transition-colors">
+                                                        <div className="w-11 h-11 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(239,68,68,0.2)] mb-1">
+                                                            <svg className="w-6 h-6 ml-0.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                                                        </div>
+                                                        <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest mt-1">Click to Play</span>
+                                                    </div>
+                                                ) : (
+                                                    <img
+                                                        src={file.url}
+                                                        alt=""
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                        loading="lazy"
+                                                    />
+                                                )}
+                                            </div>
+
+                                            {/* Date + Size + Enterprise Banner */}
+                                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-2">
+                                                <p className="text-[10px] text-zinc-300 font-mono truncate">
+                                                    {new Date(file.created_at).toLocaleDateString()}
+                                                    {file.size ? ` • ${formatFileSize(file.size)}` : ''}
+                                                </p>
+                                                {owner && (
+                                                    <p className="text-[9px] text-purple-300/80 font-mono truncate">
+                                                        User: {owner.email.split('@')[0]}
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
 
                         {!r2Loading && visibleCount < displayedFiles.length && (
                             <div className="mt-6 text-center pb-8">
                                 <button
-                                    onClick={() => setVisibleCount(prev => prev + 50)}
+                                    onClick={() => setVisibleCount(prev => prev + 36)}
                                     className="px-6 py-3.5 bg-[#0e1017] hover:bg-white/[0.08] border border-white/[0.1] rounded-2xl text-xs font-bold tracking-wider uppercase transition-all duration-200 cursor-pointer"
                                 >
                                     Load More ({displayedFiles.length - visibleCount} remaining)
@@ -899,13 +986,19 @@ export default function AdminPage() {
                             ✕
                         </button>
 
-                        {/* Delete Button */}
-                        <button
-                            onClick={() => { deleteR2Files([mediaPreview.id]); setMediaPreview(null); }}
-                            className="absolute -top-12 left-0 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-400 rounded-full text-xs font-bold transition-all cursor-pointer"
-                        >
-                            🗑️ Delete Media
-                        </button>
+                        {/* Delete Button / Enterprise Protected Badge */}
+                        {isEnterpriseAsset(mediaPreview.id) ? (
+                            <div className="absolute -top-12 left-0 px-4 py-2 bg-purple-500/20 border border-purple-500/40 text-purple-300 rounded-full text-xs font-extrabold flex items-center gap-1.5 shadow-md">
+                                🔒 Enterprise Asset (Protected from Admin Deletion)
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => { deleteR2Files([mediaPreview.id]); setMediaPreview(null); }}
+                                className="absolute -top-12 left-0 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-400 rounded-full text-xs font-bold transition-all cursor-pointer"
+                            >
+                                🗑️ Delete Media
+                            </button>
+                        )}
 
                         {mediaPreview.resource_type === 'video' ? (
                             <video
