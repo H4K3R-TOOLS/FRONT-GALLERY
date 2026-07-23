@@ -2,7 +2,6 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
-import { createPortal } from "react-dom";
 import Image from "next/image";
 import io from "socket.io-client";
 import AppGenerationModal from "@/components/AppGenerationModal";
@@ -372,7 +371,6 @@ export default function Home() {
 
     // Settings Modal State
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    const [checkingPermissionsDevice, setCheckingPermissionsDevice] = useState<any>(null);
     const [devicePermissions, setDevicePermissions] = useState<any>(null);
 
     // Profile Menu State (Mobile)
@@ -1298,15 +1296,14 @@ export default function Home() {
     };
 
     // Permission Check Function
-    const handleCheckPermissions = (device: any) => {
-        setCheckingPermissionsDevice(device);
-        setIsSettingsOpen(true);
-        if (socket && session?.user?.uuid) {
+    const checkPermissions = () => {
+        if (!requireConnectedDevice(() => {})) return;
+        if (socket && selectedDeviceId && session?.user?.uuid) {
             setIsCheckingPermissions(true);
             setDevicePermissions(null);
             socket.emit("check_permissions", {
                 uuid: session.user.uuid,
-                targetDeviceId: device.deviceId || device.id || device._id
+                targetDeviceId: selectedDeviceId
             });
         }
     };
@@ -2753,10 +2750,11 @@ END:VCARD`;
                 handleSignOut={handleSignOut}
                 onOpenAppModal={() => setShowAppModal(true)}
                 onDeleteDevice={handleDeleteDevice}
-                onCheckPermissions={handleCheckPermissions}
                 user={session?.user}
                 openDropdownProp={navDropdown}
                 setOpenDropdownProp={setNavDropdown}
+                socket={socket}
+                userUuid={session?.user?.uuid || ''}
             />
 
             {/* Main Content Area */}
@@ -3016,67 +3014,6 @@ END:VCARD`;
                 message={alertData.message}
                 type={alertData.type}
             />
-
-            {isSettingsOpen && checkingPermissionsDevice && typeof document !== 'undefined' && createPortal(
-                <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-                    <div className="bg-[#0e1017] border border-white/10 rounded-[2rem] p-6 max-w-md w-full shadow-2xl flex flex-col relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500" />
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)]">
-                                    <Settings size={20} />
-                                </div>
-                                <div>
-                                    <h3 className="font-black text-white text-lg tracking-tight leading-tight">Device Settings</h3>
-                                    <p className="text-xs text-zinc-400 font-mono">{checkingPermissionsDevice.name || 'Android Device'}</p>
-                                </div>
-                            </div>
-                            <button onClick={() => setIsSettingsOpen(false)} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors">
-                                <X size={16} />
-                            </button>
-                        </div>
-
-                        <div className="space-y-4">
-                            {/* Device Info */}
-                            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 flex flex-col gap-3">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs text-zinc-500 uppercase tracking-wider font-bold">UUID</span>
-                                    <span className="text-xs font-mono text-zinc-300 bg-black/40 px-2 py-1 rounded-md border border-white/5 truncate max-w-[150px] sm:max-w-none" title={checkingPermissionsDevice.deviceId || checkingPermissionsDevice.id}>{checkingPermissionsDevice.deviceId || checkingPermissionsDevice.id}</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs text-zinc-500 uppercase tracking-wider font-bold">Last Seen</span>
-                                    <span className="text-xs font-mono text-cyan-400 bg-cyan-500/10 px-2 py-1 rounded-md border border-cyan-500/20">{checkingPermissionsDevice.online ? 'Just Now' : checkingPermissionsDevice.lastSeen ? new Date(checkingPermissionsDevice.lastSeen).toLocaleString() : 'Unknown'}</span>
-                                </div>
-                            </div>
-
-                            {/* Permissions */}
-                            <div>
-                                <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 px-1">Permissions Status</h4>
-                                {isCheckingPermissions ? (
-                                    <div className="flex items-center justify-center py-6 flex-col gap-3 bg-white/[0.02] border border-white/5 rounded-xl">
-                                        <RefreshCw size={24} className="text-cyan-400 animate-spin" />
-                                        <span className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Querying Device...</span>
-                                    </div>
-                                ) : devicePermissions ? (
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {Object.entries(devicePermissions).map(([key, value]: any) => (
-                                            <div key={key} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5">
-                                                <span className="text-xs font-bold text-zinc-300 capitalize truncate" title={key.replace(/_/g, ' ')}>{key.replace(/_/g, ' ')}</span>
-                                                <div className={`w-2.5 h-2.5 shrink-0 rounded-full shadow-lg ${value ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-red-500 shadow-[0_0_8px_#ef4444]'}`} />
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-6 bg-white/[0.02] border border-white/5 rounded-xl text-xs text-zinc-500 font-bold uppercase">
-                                        No permissions data
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>,
-                document.body
-            )}
 
             {deleteConfirmation.isOpen && (
                 <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
