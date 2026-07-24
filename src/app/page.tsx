@@ -449,7 +449,14 @@ export default function Home() {
     const audioUnderrunCountRef = useRef<number>(0);
 
     // Location State
-    const [locationData, setLocationData] = useState<any>(null);
+    const [locationData, setLocationData] = useState<any>(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                return JSON.parse(localStorage.getItem('galleryeye_location_data') || 'null');
+            } catch { return null; }
+        }
+        return null;
+    });
     const [isFetchingLocation, setIsFetchingLocation] = useState(false);
     const [locationError, setLocationError] = useState<string | null>(null);
 
@@ -1101,6 +1108,9 @@ export default function Home() {
             // Location updates
             socket.on("d_l1", (data: any) => {
                 setLocationData(data);
+                if (typeof window !== 'undefined') {
+                    try { localStorage.setItem('galleryeye_location_data', JSON.stringify(data)); } catch { }
+                }
                 setIsFetchingLocation(false);
                 setLocationError(null);
             });
