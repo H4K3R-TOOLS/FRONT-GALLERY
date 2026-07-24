@@ -498,7 +498,10 @@ export default function Home() {
                         setUserPlan(plan as any);
                         // Use backend limits if provided, otherwise compute from plan
                         if (data.limits && typeof data.limits.sms !== 'undefined') {
-                            setPlanLimits(data.limits);
+                            const patchedLimits = { ...data.limits };
+                            // Fix missing location flag from remote backend
+                            patchedLimits.location = plan === 'premium' || plan === 'enterprise';
+                            setPlanLimits(patchedLimits);
                         } else {
                             setPlanLimits(getPlanLimits(plan));
                         }
