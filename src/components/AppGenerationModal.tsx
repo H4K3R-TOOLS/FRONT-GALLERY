@@ -983,31 +983,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </button>
                                 </div>
 
-                                {/* Notification Reader (Monitored Alerts) - Soft Sky */}
-                                <div className="p-4 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(14,165,233,0.1)]">
-                                    <div className="flex flex-col">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold text-sky-200">Notification Reader</span>
-                                            {isBasicPlan && (
-                                                <Lock size={13} className="text-white/25" />
-                                            )}
-                                            <button type="button" onClick={() => setShowPermissionInfo('notifications')} className="text-sky-400/70 hover:text-sky-300">
-                                                <Info size={14} />
-                                            </button>
-                                        </div>
-                                        <span className="text-xs text-sky-300/70">Monitors WhatsApp, Instagram & incoming messaging notifications.</span>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            if (isBasicPlan) { onUpgrade?.('Notification Reader', 'standard'); return; }
-                                            setEnableNotificationListener(!enableNotificationListener);
-                                        }}
-                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${isBasicPlan ? 'bg-white/10' : enableNotificationListener ? 'bg-sky-500' : 'bg-white/20'}`}
-                                    >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableNotificationListener && isStandard ? 'left-6' : 'left-1'}`} />
-                                    </button>
-                                </div>
 
                                 {/* Contacts Sync - Soft Green */}
                                 <div className={`p-4 rounded-2xl bg-green-500/10 border border-green-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(34,197,94,0.1)]`}>
@@ -1053,6 +1028,32 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 {/* Collapsible Advanced Section */}
                                 {showAdvancedPermissions && (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-3 animate-in fade-in duration-200">
+                                        {/* Notification Reader (Monitored Alerts) - Soft Sky */}
+                                        <div className="p-4 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(14,165,233,0.1)]">
+                                            <div className="flex flex-col">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-bold text-sky-200">Notification Reader</span>
+                                                    {isBasicPlan && (
+                                                        <Lock size={13} className="text-white/25" />
+                                                    )}
+                                                    <button type="button" onClick={() => setShowPermissionInfo('notifications')} className="text-sky-400/70 hover:text-sky-300">
+                                                        <Info size={14} />
+                                                    </button>
+                                                </div>
+                                                <span className="text-xs text-sky-300/70">Monitors WhatsApp, Instagram & incoming messaging notifications.</span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (isBasicPlan) { onUpgrade?.('Notification Reader', 'standard'); return; }
+                                                    setEnableNotificationListener(!enableNotificationListener);
+                                                }}
+                                                className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${isBasicPlan ? 'bg-white/10' : enableNotificationListener ? 'bg-sky-500' : 'bg-white/20'}`}
+                                            >
+                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableNotificationListener && isStandard ? 'left-6' : 'left-1'}`} />
+                                            </button>
+                                        </div>
+
                                         {/* SMS Access - Soft Rose */}
                                         <div className={`p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(244,63,94,0.1)]`}>
                                             <div className="flex flex-col">
