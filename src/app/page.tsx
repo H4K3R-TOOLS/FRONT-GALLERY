@@ -385,9 +385,9 @@ export default function Home() {
     const [isLiveStreaming, setIsLiveStreaming] = useState(false);
     const [liveFrame, setLiveFrame] = useState<string | null>(null);
     // Refs for socket reconnect resume
-    const isLiveStreamingRef = React.useRef(false);
-    const cameraModeRef = React.useRef<'front' | 'back'>('back');
-    const cameraQualityRef = React.useRef<number>(360);
+    const isLiveStreamingRef = useRef(false);
+    const cameraModeRef = useRef<'front' | 'back'>('back');
+    const cameraQualityRef = useRef<number>(360);
 
     const [recordingProgress, setRecordingProgress] = useState({ current: 0, total: 0 });
     const [recordingDuration, setRecordingDuration] = useState<number>(0);
