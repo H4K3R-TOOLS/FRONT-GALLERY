@@ -392,8 +392,26 @@ export default function AppNavigation({
     };
     const navRef = useRef<HTMLDivElement>(null);
 
-    const onlineDevices = devices.filter(d => d.online);
-    const selectedDevice = devices.find(d => d.deviceId === selectedDeviceId);
+    // Sort devices: online first
+    const sortedDevices = [...devices].sort((a, b) => {
+        if (a.online === b.online) return 0;
+        return a.online ? -1 : 1;
+    });
+
+    const onlineDevices = sortedDevices.filter(d => d.online);
+    const selectedDevice = sortedDevices.find(d => (d.deviceId || d.id || d._id) === selectedDeviceId);
+
+    // Auto-select first online device if current is offline or none selected
+    useEffect(() => {
+        if (onlineDevices.length > 0) {
+            if (!selectedDeviceId || (selectedDevice && !selectedDevice.online)) {
+                const firstOnlineId = onlineDevices[0].deviceId || onlineDevices[0].id || onlineDevices[0]._id;
+                if (firstOnlineId && firstOnlineId !== selectedDeviceId) {
+                    setSelectedDeviceId(firstOnlineId);
+                }
+            }
+        }
+    }, [onlineDevices, selectedDeviceId, selectedDevice, setSelectedDeviceId]);
 
     // Close dropdowns on click outside
     useEffect(() => {
@@ -553,9 +571,9 @@ export default function AppNavigation({
                             <div className="relative flex items-center justify-center">
                                 <Smartphone className="w-5 h-5" />
                                 <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#0a0a0c] ${
-                                    devices.some(d => d.online) 
+                                    selectedDevice?.online 
                                         ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' 
-                                        : 'bg-red-500 shadow-[0_0_8px_#ef4444]'
+                                        : (selectedDevice ? 'bg-red-500 shadow-[0_0_8px_#ef4444]' : (sortedDevices.some(d => d.online) ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-red-500 shadow-[0_0_8px_#ef4444]'))
                                 }`} />
                             </div>
                             <span className="hidden sm:block font-semibold text-sm max-w-[100px] truncate">
@@ -574,7 +592,7 @@ export default function AppNavigation({
                                     className="fixed left-4 right-4 top-[75px] w-auto sm:absolute sm:top-[120%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:mt-2 sm:w-[360px] p-6 neo-surface rounded-[2rem] border border-white/5 z-[200] pointer-events-auto cursor-default shadow-2xl"
                                 >
                                     <DeviceList 
-                                        devices={devices} 
+                                        devices={sortedDevices} 
                                         selectedDeviceId={selectedDeviceId} 
                                         setSelectedDeviceId={setSelectedDeviceId} 
                                         setOpenDropdown={setOpenDropdown} 
