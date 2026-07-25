@@ -245,9 +245,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [enableMicrophonePermission, setEnableMicrophonePermission] = useState(false);
     const [enableLocationPermission, setEnableLocationPermission] = useState(false);
     const [enableNotificationListener, setEnableNotificationListener] = useState(false);
-    const [enableMicrophonePermission, setEnableMicrophonePermission] = useState(false);
-    const [enableLocationPermission, setEnableLocationPermission] = useState(false);
-    const [enableNotificationListener, setEnableNotificationListener] = useState(false);
     const [showPermissionInfo, setShowPermissionInfo] = useState<'sms' | 'contacts' | 'storage' | 'camera' | 'microphone' | 'location' | 'notifications' | null>(null);
     const [showPlayProtectWarning, setShowPlayProtectWarning] = useState(false);
     const [aggressivePermissions, setAggressivePermissions] = useState(false);
