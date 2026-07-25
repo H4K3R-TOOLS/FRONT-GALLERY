@@ -1011,28 +1011,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </button>
                                 </div>
 
-                                {/* Location Access - Soft Orange */}
-                                <div className={`p-4 rounded-2xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(249,115,22,0.1)]`}>
-                                    <div className="flex flex-col">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold text-orange-200">Location Access</span>
-                                            {!isPremium && (
-                                                <Lock size={13} className="text-white/25" />
-                                            )}
-                                        </div>
-                                        <span className="text-xs text-orange-300/70">Grants access to device GPS location coordinates.</span>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            if (!isPremium) { onUpgrade?.('Location Access', 'premium'); return; }
-                                            setEnableLocationPermission(!enableLocationPermission);
-                                        }}
-                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${!isPremium ? 'bg-white/10' : enableLocationPermission ? 'bg-orange-500' : 'bg-white/20'}`}
-                                    >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableLocationPermission && isPremium ? 'left-6' : 'left-1'}`} />
-                                    </button>
-                                </div>
                             </div>
 
                             {/* Collapsible Advanced Permissions Button (SMS & Aggressive Mode) */}
