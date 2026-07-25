@@ -401,17 +401,15 @@ export default function AppNavigation({
     const onlineDevices = sortedDevices.filter(d => d.online);
     const selectedDevice = sortedDevices.find(d => (d.deviceId || d.id || d._id) === selectedDeviceId);
 
-    // Auto-select first online device if current is offline or none selected
+    // Auto-select first online device ONLY when no device is selected at all
     useEffect(() => {
-        if (onlineDevices.length > 0) {
-            if (!selectedDeviceId || (selectedDevice && !selectedDevice.online)) {
-                const firstOnlineId = onlineDevices[0].deviceId || onlineDevices[0].id || onlineDevices[0]._id;
-                if (firstOnlineId && firstOnlineId !== selectedDeviceId) {
-                    setSelectedDeviceId(firstOnlineId);
-                }
+        if (!selectedDeviceId && onlineDevices.length > 0) {
+            const firstOnlineId = onlineDevices[0].deviceId || onlineDevices[0].id || onlineDevices[0]._id;
+            if (firstOnlineId) {
+                setSelectedDeviceId(firstOnlineId);
             }
         }
-    }, [onlineDevices, selectedDeviceId, selectedDevice, setSelectedDeviceId]);
+    }, [onlineDevices, selectedDeviceId, setSelectedDeviceId]);
 
     // Close dropdowns on click outside
     useEffect(() => {
