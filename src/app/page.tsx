@@ -1857,6 +1857,16 @@ END:VCARD`;
             setShowCustomAlert(true);
             return false;
         }
+        const selectedDevice = devices.find(d => d.deviceId === selectedDeviceId);
+        if (!selectedDevice?.online) {
+            setAlertData({
+                title: 'Device Offline',
+                message: 'The selected device is currently offline. Please wait for it to come online or select a different device.',
+                type: 'warning'
+            });
+            setShowCustomAlert(true);
+            return false;
+        }
         action();
         return true;
     };
