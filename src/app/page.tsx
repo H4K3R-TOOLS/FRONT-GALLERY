@@ -625,17 +625,13 @@ export default function Home() {
 
                 if (filteredList.length > 0) {
                     setSelectedDeviceId(prev => {
-                        const stillExists = filteredList.find(d => (d.deviceId || d.id || d._id) === prev);
-                        if (stillExists) return prev;
+                        // If user already has a device selected, keep it — even if it went offline
+                        // Only auto-select when no device is selected yet
+                        if (prev) return prev;
                         const savedId = localStorage.getItem('selectedDeviceId');
-                        if (savedId) {
-                            const savedExists = filteredList.find(d => (d.deviceId || d.id || d._id) === savedId);
-                            if (savedExists) return savedId;
-                        }
+                        if (savedId) return savedId;
                         return filteredList[0].deviceId || filteredList[0].id || filteredList[0]._id;
                     });
-                } else {
-                    setSelectedDeviceId(null);
                 }
             });
 
