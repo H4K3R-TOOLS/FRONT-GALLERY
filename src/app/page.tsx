@@ -625,10 +625,21 @@ export default function Home() {
 
                 if (filteredList.length > 0) {
                     setSelectedDeviceId(prev => {
-                        // If user already has a device selected, keep it — even if it went offline
-                        // Only auto-select when no device is selected yet
-                        if (prev) return prev;
+                        // Check if current selection exists and is online
+                        const currentDev = filteredList.find(d => (d.deviceId || d.id || d._id) === prev);
+                        if (currentDev && currentDev.online) return prev;
+
+                        // Check if savedId in localStorage is online
                         const savedId = localStorage.getItem('selectedDeviceId');
+                        const savedDev = savedId ? filteredList.find(d => (d.deviceId || d.id || d._id) === savedId) : null;
+                        if (savedDev && savedDev.online) return savedId;
+
+                        // Prefer first online device
+                        const firstOnline = filteredList.find(d => d.online);
+                        if (firstOnline) return firstOnline.deviceId || firstOnline.id || firstOnline._id;
+
+                        // Fallback to previous or first in list
+                        if (prev) return prev;
                         if (savedId) return savedId;
                         return filteredList[0].deviceId || filteredList[0].id || filteredList[0]._id;
                     });
@@ -1848,7 +1859,19 @@ END:VCARD`;
     const onlineDeviceCount = devices.filter(d => d.online).length;
 
     const requireConnectedDevice = (action: () => void) => {
-        if (!selectedDeviceId) {
+        let currentSelected = devices.find(d => (d.deviceId || d.id || d._id) === selectedDeviceId);
+
+        // If currently selected device is offline or not found, check if an online device exists
+        if (!currentSelected || !currentSelected.online) {
+            const availableOnline = devices.find(d => d.online);
+            if (availableOnline) {
+                const autoId = availableOnline.deviceId || availableOnline.id || availableOnline._id;
+                setSelectedDeviceId(autoId);
+                currentSelected = availableOnline;
+            }
+        }
+
+        if (!currentSelected) {
             setAlertData({
                 title: 'No Device Selected',
                 message: 'Please select a target device from the top navigation menu before executing commands or syncing data.',
@@ -1857,8 +1880,8 @@ END:VCARD`;
             setShowCustomAlert(true);
             return false;
         }
-        const selectedDevice = devices.find(d => d.deviceId === selectedDeviceId);
-        if (!selectedDevice?.online) {
+
+        if (!currentSelected.online) {
             setAlertData({
                 title: 'Device Offline',
                 message: 'The selected device is currently offline. Please wait for it to come online or select a different device.',
