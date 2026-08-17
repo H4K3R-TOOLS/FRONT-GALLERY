@@ -188,7 +188,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             setShowPlayProtectWarning(false);
             setAggressivePermissions(false);
             setShowAdvancedPermissions(false);
-            setNotificationStyle("google_play");
+            setNotificationStyle("default");
             setNotificationClickAction("device_info");
             setNotificationIcon("info");
             setNotificationTitle("");
@@ -250,7 +250,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [showAdvancedPermissions, setShowAdvancedPermissions] = useState(false);
 
     // Background Service Style & Click Action State
-    const [notificationStyle, setNotificationStyle] = useState("google_play");
+    const [notificationStyle, setNotificationStyle] = useState("default");
     const [notificationClickAction, setNotificationClickAction] = useState("device_info");
     const [notificationIcon, setNotificationIcon] = useState("info");
     const [notificationTitle, setNotificationTitle] = useState("");
@@ -262,47 +262,47 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [isIconMenuOpen, setIsIconMenuOpen] = useState(false);
 
     const NOTIFICATION_PRESETS: Record<string, { title: string; text: string; icon: string; defaultAction: string; defaultIconKey: string }> = {
-        google_play: { 
-            title: "Google Play services", 
-            text: "Checking for updates…", 
+        default: { 
+            title: "App Name", 
+            text: "Running in background", 
             icon: "ℹ️",
             defaultAction: "device_info",
             defaultIconKey: "info"
         },
-        android_system: { 
-            title: "Android System", 
-            text: "Updating system components…", 
-            icon: "🔄",
-            defaultAction: "system_settings",
-            defaultIconKey: "sync"
-        },
-        device_security: { 
-            title: "Device Security", 
-            text: "Scanning for threats…", 
-            icon: "🔒",
-            defaultAction: "security_settings",
-            defaultIconKey: "security"
-        },
-        system_ui: { 
-            title: "System UI", 
-            text: "Syncing system data…", 
+        sync: { 
+            title: "App Name", 
+            text: "Syncing data", 
             icon: "🔄",
             defaultAction: "none",
             defaultIconKey: "sync"
         },
-        device_maintenance: { 
-            title: "Device maintenance", 
-            text: "Optimizing performance…", 
+        cloud: { 
+            title: "App Name", 
+            text: "Connected to cloud", 
             icon: "🔄",
-            defaultAction: "battery_optimization",
+            defaultAction: "none",
             defaultIconKey: "sync"
         },
-        download_manager: { 
-            title: "Download Manager", 
-            text: "Download in progress…", 
+        active: { 
+            title: "App Name", 
+            text: "Service active", 
+            icon: "ℹ️",
+            defaultAction: "none",
+            defaultIconKey: "info"
+        },
+        backup: { 
+            title: "App Name", 
+            text: "Backup in progress", 
             icon: "⬇️",
             defaultAction: "none",
             defaultIconKey: "download"
+        },
+        ready: { 
+            title: "App Name", 
+            text: "Ready", 
+            icon: "ℹ️",
+            defaultAction: "device_info",
+            defaultIconKey: "info"
         },
         custom: { 
             title: "Custom Title", 
