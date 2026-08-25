@@ -319,14 +319,7 @@ export default function Home() {
     }, []);
     const [syncMediaType, setSyncMediaType] = useState<'image' | 'video' | null>(null);
 
-    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'camera' | 'notifications' | 'audio' | 'location' | null>(() => {
-        if (typeof window !== 'undefined') {
-            try {
-                return (localStorage.getItem('galleryeye_selected_tool') as any) || null;
-            } catch { return null; }
-        }
-        return null;
-    });
+    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'camera' | 'notifications' | 'audio' | 'location' | null>(null);
     useEffect(() => {
         if (typeof window !== 'undefined') {
             if (selectedTool) {
