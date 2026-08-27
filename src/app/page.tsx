@@ -668,9 +668,14 @@ export default function Home() {
 
             socket.on("new_image", (image: any) => {
                 if (isSyncCanceledRef.current) return;
+                const currentDevId = localStorage.getItem('selectedDeviceId');
+                const imageWithDevice = {
+                    ...image,
+                    deviceId: image.deviceId || currentDevId || null
+                };
                 setImages((prev) => {
-                    if (prev.some(img => img.id === image.id)) return prev;
-                    return [image, ...prev];
+                    if (prev.some(img => img.id === imageWithDevice.id)) return prev;
+                    return [imageWithDevice, ...prev];
                 });
             });
 
@@ -1220,7 +1225,18 @@ export default function Home() {
                                 return [...prev, ...newItems];
                             });
                         } else {
-                            setImages(galleryItems);
+                            // Non-destructive merge: retain all newly synced items from current session matching this device
+                            setImages(prev => {
+                                const incomingMap = new Map<string, any>();
+                                galleryItems.forEach((item: any) => incomingMap.set(item.id, item));
+                                const merged = [...galleryItems];
+                                prev.forEach((pItem: any) => {
+                                    if (!incomingMap.has(pItem.id) && (!pItem.deviceId || pItem.deviceId === targetDeviceId)) {
+                                        merged.push(pItem);
+                                    }
+                                });
+                                return merged;
+                            });
                         }
                         setGalleryHasMore(hasMore);
                         setGalleryPage(loadPage);
