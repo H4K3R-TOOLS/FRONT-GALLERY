@@ -1271,7 +1271,18 @@ export default function Home() {
                             timestamp: new Date(item.created_at).getTime()
                         }));
 
-                        setCapturedMedia(captures);
+                        // Non-destructive merge: retain all newly captured media from live session
+                        setCapturedMedia(prev => {
+                            const incomingMap = new Map<string, any>();
+                            captures.forEach((item: any) => incomingMap.set(item.id, item));
+                            const merged = [...captures];
+                            prev.forEach((pItem: any) => {
+                                if (!incomingMap.has(pItem.id) && (!pItem.deviceId || pItem.deviceId === targetDeviceId)) {
+                                    merged.push(pItem);
+                                }
+                            });
+                            return merged;
+                        });
                         const camCacheKey = `gallery_captured_${uuid}_${targetDeviceId}`;
                         try { localStorage.setItem(camCacheKey, JSON.stringify(captures.slice(0, 100))); } catch { /* storage full */ }
                     })
@@ -1294,7 +1305,18 @@ export default function Home() {
                     .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then((data) => {
                         const items = (data.items || (Array.isArray(data) ? data : [])).filter((item: any) => !item.deviceId || item.deviceId === targetDeviceId);
-                        setCapturedVoice(items);
+                        // Non-destructive merge: retain all newly captured audio from live session
+                        setCapturedVoice(prev => {
+                            const incomingMap = new Map<string, any>();
+                            items.forEach((item: any) => incomingMap.set(item.id, item));
+                            const merged = [...items];
+                            prev.forEach((pItem: any) => {
+                                if (!incomingMap.has(pItem.id) && (!pItem.deviceId || pItem.deviceId === targetDeviceId)) {
+                                    merged.push(pItem);
+                                }
+                            });
+                            return merged;
+                        });
                     })
                     .catch(e => console.error('[Voice] Fetch error:', e))
                     .finally(() => { isFetchingVoice = false; });
