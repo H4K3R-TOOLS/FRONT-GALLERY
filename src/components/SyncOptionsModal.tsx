@@ -45,7 +45,7 @@ export default function SyncOptionsModal({
 
     if (!isOpen || !folder) return null;
 
-    const isPremium = userPlan === 'premium';
+    const isPremium = userPlan === 'premium' || userPlan === 'enterprise';
     const isBasic = userPlan === 'basic';
 
     // Get max count for current media type

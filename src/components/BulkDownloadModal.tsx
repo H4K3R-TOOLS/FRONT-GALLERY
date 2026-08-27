@@ -25,7 +25,7 @@ export default function BulkDownloadModal({
 
     if (!isOpen) return null;
 
-    const isPremium = userPlan === 'premium';
+    const isPremium = userPlan === 'premium' || userPlan === 'enterprise';
 
     const handleBulkDownload = async () => {
         if (!isPremium) return;
