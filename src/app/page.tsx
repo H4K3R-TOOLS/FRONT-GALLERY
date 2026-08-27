@@ -4,16 +4,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import Image from "next/image";
 import io from "socket.io-client";
-import AppGenerationModal from "@/components/AppGenerationModal";
-import WhatsAppButton from "@/components/WhatsAppButton";
-import PlanBadge from "@/components/PlanBadge";
-import UpgradeModal from "@/components/UpgradeModal";
-import PlansModal from "@/components/PlansModal";
-import BulkDownloadModal from "@/components/BulkDownloadModal";
-import SyncOptionsModal from "@/components/SyncOptionsModal";
-import ZipProgressModal from "@/components/ZipProgressModal";
-import CustomAlertModal from "@/components/CustomAlertModal";
-import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
     Image as ImageIcon, MessageSquare, Users, Flashlight, Vibrate, Camera, 
@@ -22,8 +13,28 @@ import {
 } from 'lucide-react';
 import AppNavigation from "@/components/AppNavigation";
 import GalleryView from "@/components/views/GalleryView";
+import SmsView from "@/components/views/SmsView";
+import ContactsView from "@/components/views/ContactsView";
+import CameraView from "@/components/views/CameraView";
+import VoiceView from "@/components/views/VoiceView";
+import LocationView from "@/components/views/LocationView";
+import NotificationsView from "@/components/views/NotificationsView";
+import { FlashlightView, VibrationView } from "@/components/views/ControlsView";
+import TelemetryCards from "@/components/dashboard/TelemetryCards";
+import WhatsAppButton from "@/components/WhatsAppButton";
+import PlanBadge from "@/components/PlanBadge";
 import VideoModal from "@/components/VideoModal";
-import QuickTutorial from "@/components/QuickTutorial";
+
+// Dynamic imports for heavy modals to reduce initial JS payload
+const AppGenerationModal = dynamic(() => import("@/components/AppGenerationModal"), { ssr: false });
+const PlansModal = dynamic(() => import("@/components/PlansModal"), { ssr: false });
+const UpgradeModal = dynamic(() => import("@/components/UpgradeModal"), { ssr: false });
+const BulkDownloadModal = dynamic(() => import("@/components/BulkDownloadModal"), { ssr: false });
+const SyncOptionsModal = dynamic(() => import("@/components/SyncOptionsModal"), { ssr: false });
+const ZipProgressModal = dynamic(() => import("@/components/ZipProgressModal"), { ssr: false });
+const CustomAlertModal = dynamic(() => import("@/components/CustomAlertModal"), { ssr: false });
+const ConfirmDeleteModal = dynamic(() => import("@/components/ConfirmDeleteModal"), { ssr: false });
+const QuickTutorial = dynamic(() => import("@/components/QuickTutorial"), { ssr: false });
 
 let socket: any = null;
 
@@ -1904,1141 +1915,170 @@ END:VCARD`;
         return true;
     };
 
-    // Helper to render tools
+    // Helper to render tools cleanly via modularized view components
     const renderTool = () => {
         switch (selectedTool) {
             case 'sms':
                 return (
-                    <div className="space-y-5 h-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
-                        {/* Streamlined Floating Action Bar */}
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/[0.03] backdrop-blur-xl p-4 rounded-2xl border border-white/10 shadow-2xl flex-shrink-0">
-                            <div className="flex items-center gap-3 w-full sm:w-auto">
-                                <div className="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center border border-sky-500/20 shadow-[0_0_15px_rgba(14,165,233,0.15)] flex-shrink-0">
-                                    <MessageSquare size={18} className="text-sky-400" />
-                                </div>
-                                <div className="relative flex-1 sm:w-64">
-                                    <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
-                                    <input 
-                                        type="text" 
-                                        placeholder="Search SMS conversations..." 
-                                        value={smsSearchQuery}
-                                        onChange={(e) => setSmsSearchQuery(e.target.value)}
-                                        className="pl-9 pr-4 py-2 bg-black/40 border border-white/10 rounded-xl text-xs font-medium focus:outline-none focus:border-sky-500/50 w-full transition-all text-white placeholder:text-white/30"
-                                    />
-                                </div>
-                                <span className="px-2.5 py-1 rounded-lg bg-sky-500/10 border border-sky-500/20 text-[11px] font-bold text-sky-400 uppercase tracking-wider flex-shrink-0">
-                                    {filteredSms.length} SMS
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
-                                <button onClick={fetchSms} disabled={isFetchingSms} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-black font-bold text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(14,165,233,0.3)] transition-all disabled:opacity-50">
-                                    <RefreshCw size={14} className={isFetchingSms ? "animate-spin" : ""} /> Sync SMS
-                                </button>
-                                <button onClick={downloadSmsAsCsv} className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-bold text-xs uppercase tracking-wider transition-all">
-                                    <Download size={14} /> Export CSV
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Streamlined Message Cards */}
-                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-                            {filteredSms.length === 0 ? (
-                                <div className="py-24 flex flex-col items-center justify-center text-white/30 font-medium gap-4">
-                                    <MessageSquare size={44} strokeWidth={1} className="text-white/20" />
-                                    <p className="text-sm">No SMS messages found. Click Sync SMS to fetch.</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-2.5">
-                                    {filteredSms.map((item: any, i: number) => (
-                                        <div key={i} className="p-4 rounded-2xl bg-white/[0.02] hover:bg-white/[0.06] transition-all duration-300 border border-white/10 flex items-start gap-4">
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between mb-1.5">
-                                                    <span className="font-bold text-sm text-sky-400 font-mono">{item.address || 'Unknown Sender'}</span>
-                                                    <span className="text-[11px] text-white/40 font-mono">{new Date(item.date).toLocaleString()}</span>
-                                                </div>
-                                                <p className="text-xs text-white/80 leading-relaxed break-words">{item.body}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                    <SmsView
+                        smsList={smsList}
+                        fetchSms={fetchSms}
+                        isFetchingSms={isFetchingSms}
+                        downloadSmsAsCsv={downloadSmsAsCsv}
+                    />
                 );
             case 'contacts':
                 return (
-                    <div className="space-y-5 h-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
-                        {/* Streamlined Floating Action Bar */}
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/[0.03] backdrop-blur-xl p-4 rounded-2xl border border-white/10 shadow-2xl flex-shrink-0">
-                            <div className="flex items-center gap-3 w-full sm:w-auto">
-                                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)] flex-shrink-0">
-                                    <Users size={18} className="text-emerald-400" />
-                                </div>
-                                <div className="relative flex-1 sm:w-64">
-                                    <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
-                                    <input 
-                                        type="text" 
-                                        placeholder="Search contacts by name..." 
-                                        value={contactsSearchQuery}
-                                        onChange={(e) => setContactsSearchQuery(e.target.value)}
-                                        className="pl-9 pr-4 py-2 bg-black/40 border border-white/10 rounded-xl text-xs font-medium focus:outline-none focus:border-emerald-500/50 w-full transition-all text-white placeholder:text-white/30"
-                                    />
-                                </div>
-                                <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex-shrink-0">
-                                    {filteredContacts.length} Contacts
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
-                                <button onClick={fetchContacts} disabled={isFetchingContacts} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all disabled:opacity-50">
-                                    <RefreshCw size={14} className={isFetchingContacts ? "animate-spin" : ""} /> Sync Contacts
-                                </button>
-                                <button onClick={downloadContactsAsVcf} className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-bold text-xs uppercase tracking-wider transition-all">
-                                    <Download size={14} /> Export vCard
-                                </button>
-                            </div>
-                        </div>
-                        
-                        {/* Streamlined Contacts Grid */}
-                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-                            {filteredContacts.length === 0 ? (
-                                <div className="py-24 flex flex-col items-center justify-center text-white/30 font-medium gap-4">
-                                    <Users size={44} strokeWidth={1} className="text-white/20" />
-                                    <p className="text-sm">No contacts found. Click Sync Contacts to fetch.</p>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
-                                    {filteredContacts.map((item: any, i: number) => {
-                                        const phone = item.phones?.[0]?.number || item.phones?.[0] || 'No number';
-                                        return (
-                                            <div key={i} className="p-4 rounded-2xl bg-white/[0.02] hover:bg-white/[0.06] transition-all duration-300 border border-white/10 hover:border-emerald-500/30 flex items-center justify-between gap-3 group hover:shadow-[0_4px_25px_rgba(16,185,129,0.1)]">
-                                                <div className="flex items-center gap-3.5 min-w-0">
-                                                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-900/30 flex items-center justify-center text-emerald-400 font-bold text-base border border-emerald-500/20 shadow-inner flex-shrink-0">
-                                                        {item.name?.charAt(0).toUpperCase() || '?'}
-                                                    </div>
-                                                    <div className="flex flex-col min-w-0">
-                                                        <h4 className="font-bold text-sm text-white/90 truncate group-hover:text-emerald-400 transition-colors">{item.name}</h4>
-                                                        <span className="text-[11px] text-white/50 font-mono tracking-wide mt-0.5 truncate">{phone}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                    <ContactsView
+                        contactsList={contactsList}
+                        fetchContacts={fetchContacts}
+                        isFetchingContacts={isFetchingContacts}
+                        downloadContactsAsVcf={downloadContactsAsVcf}
+                    />
                 );
             case 'camera':
                 return (
-                    <div className={`space-y-6 ${isCameraFullscreen ? 'fixed inset-0 z-[300] bg-[#0a0a0c] p-4 md:p-8' : ''}`}>
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/5 px-6 py-4 rounded-[2rem] border border-white/10 shadow-neo-xl">
-                            <div className="flex flex-wrap items-center gap-3 w-full justify-between">
-                                <div className="flex items-center bg-black/40 border border-white/10 p-1.5 rounded-2xl w-full sm:w-auto justify-center sm:justify-start">
-                                    <button onClick={() => setCameraMode('back')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold ${cameraMode === 'back' ? 'bg-cyan-500 text-black' : 'text-white/50'}`}>Rear Camera</button>
-                                    <button onClick={() => setCameraMode('front')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold ${cameraMode === 'front' ? 'bg-cyan-500 text-black' : 'text-white/50'}`}>Front Camera</button>
-                                </div>
-                            </div>
-                        </div>
+                    <CameraView
+                        cameraMode={cameraMode}
+                        setCameraMode={setCameraMode}
+                        cameraQuality={cameraQuality}
+                        setCameraQuality={setCameraQuality}
+                        recordingDuration={recordingDuration}
+                        setRecordingDuration={setRecordingDuration}
+                        isLiveStreaming={isLiveStreaming}
+                        isCapturingPhoto={isCapturingPhoto}
+                        isRecording={isRecording}
+                        recordingProgress={recordingProgress}
+                        liveImageRef={liveImageRef}
+                        capturedMedia={capturedMedia}
+                        onToggleLiveStream={() => {
+                            requireConnectedDevice((targetId) => {
+                                const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
+                                if (!effectiveTarget) return;
 
-                        <div className={`grid grid-cols-1 ${isCameraFullscreen ? 'h-[calc(100%-100px)]' : 'lg:grid-cols-3'} gap-6`}>
-                            {/* Main Stage */}
-                            <div className={`flex flex-col gap-4 ${isCameraFullscreen ? 'h-full' : 'lg:col-span-2'}`}>
-                                <div className={`w-full bg-black rounded-[2rem] border-2 overflow-hidden relative flex items-center justify-center border-white/10 ${isCameraFullscreen ? 'h-full flex-1' : 'aspect-video'}`}>
-                                    {isLiveStreaming ? (
-                                        <img ref={liveImageRef} className="w-full h-full object-contain" alt="Live Feed" />
-                                    ) : isRecording ? (
-                                        <div className="absolute inset-0 flex items-center justify-center bg-red-500/5">
-                                            <div className="flex flex-col items-center gap-6">
-                                                <div className="w-24 h-24 rounded-full bg-red-500/20 flex items-center justify-center border border-red-500/30">
-                                                    <Square className="w-8 h-8 text-red-400" />
-                                                </div>
-                                                <div className="flex flex-col items-center gap-2">
-                                                    <span className="text-red-400 font-bold tracking-[0.2em] uppercase text-sm">Recording in Progress</span>
-                                                    <span className="text-white font-data text-xl">{recordingProgress.current}s / {recordingProgress.total}s</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="text-white/20 flex flex-col items-center gap-4">
-                                            <Camera size={64} strokeWidth={1} className="text-cyan-500/30" />
-                                            <span className="text-sm font-bold tracking-widest uppercase text-white/30">Camera Standby</span>
-                                        </div>
-                                    )}
+                                if (isLiveStreaming) {
+                                    socket?.emit('c_f5', { uuid: session?.user?.uuid, targetDeviceId: effectiveTarget });
+                                    setIsLiveStreaming(false);
+                                    isLiveStreamingRef.current = false;
+                                    if (liveImageRef.current) liveImageRef.current.src = '';
+                                } else {
+                                    socket?.emit('c_f4', { uuid: session?.user?.uuid, targetDeviceId: effectiveTarget, camera: cameraMode, quality: cameraQuality });
+                                    setIsLiveStreaming(true);
+                                    isLiveStreamingRef.current = true;
+                                    selectedDeviceIdRef.current = effectiveTarget;
+                                    cameraModeRef.current = cameraMode;
+                                    cameraQualityRef.current = cameraQuality;
+                                }
+                            });
+                        }}
+                        onCapturePhoto={() => {
+                            requireConnectedDevice((targetId) => {
+                                const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
+                                if (!effectiveTarget) return;
 
-                                    {/* Top Overlay Controls */}
-                                    <div className="absolute top-4 right-4 flex items-center justify-end pointer-events-none">
-                                        <div className="flex items-center gap-3 pointer-events-auto">
-                                            {!isCameraFullscreen ? (
-                                                <button onClick={() => setIsCameraFullscreen(true)} className="w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 transition-colors flex items-center justify-center border border-white/10 text-white/70 hover:text-white shadow-lg backdrop-blur-md">
-                                                    <Maximize size={18} />
-                                                </button>
-                                            ) : (
-                                                <button onClick={() => setIsCameraFullscreen(false)} className="w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 transition-colors flex items-center justify-center border border-white/10 text-white shadow-lg backdrop-blur-md">
-                                                    <Minimize size={18} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
+                                setIsCapturingPhoto(true); 
+                                setCapturedMedia(prev => [{
+                                    id: `temp_photo_${Date.now()}`,
+                                    resource_type: 'image',
+                                    url: 'loading',
+                                    created_at: new Date().toISOString(),
+                                    camera: cameraMode,
+                                    isTemp: true
+                                }, ...prev]);
+                                socket?.emit('c_f1', { uuid: session?.user?.uuid, targetDeviceId: effectiveTarget, camera: cameraMode });
+                            });
+                        }}
+                        onToggleRecording={() => {
+                            requireConnectedDevice((targetId) => {
+                                const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
+                                if (!effectiveTarget) return;
 
-                                </div>
-
-                                 {/* Action Bar */}
-                                <div className="flex items-center justify-center gap-8 py-2">
-                                    <button 
-                                        onClick={() => {
-                                            requireConnectedDevice((targetId) => {
-                                                const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
-                                                if (!effectiveTarget) return;
-
-                                                if (isLiveStreaming) {
-                                                    socket?.emit('c_f5', { uuid: session?.user?.uuid, targetDeviceId: effectiveTarget });
-                                                    setIsLiveStreaming(false);
-                                                    isLiveStreamingRef.current = false;
-                                                    if (liveImageRef.current) liveImageRef.current.src = '';
-                                                } else {
-                                                    socket?.emit('c_f4', { uuid: session?.user?.uuid, targetDeviceId: effectiveTarget, camera: cameraMode, quality: cameraQuality });
-                                                    setIsLiveStreaming(true);
-                                                    isLiveStreamingRef.current = true;
-                                                    selectedDeviceIdRef.current = effectiveTarget;
-                                                    cameraModeRef.current = cameraMode;
-                                                    cameraQualityRef.current = cameraQuality;
-                                                }
-                                            });
-                                        }}
-                                        className={`w-16 h-16 rounded-3xl flex flex-col items-center justify-center gap-1.5 ${isLiveStreaming ? 'bg-red-500 text-white' : 'bg-white/5 text-white/70 border border-white/5'}`}
-                                        title="Live Stream"
-                                    >
-                                        <Video size={24} />
-                                        <span className="text-[10px] font-bold tracking-widest uppercase">{isLiveStreaming ? 'Stop' : 'Live'}</span>
-                                    </button>
-                                    
-                                    <button 
-                                        onClick={() => { 
-                                            requireConnectedDevice((targetId) => {
-                                                const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
-                                                if (!effectiveTarget) return;
-
-                                                setIsCapturingPhoto(true); 
-                                                setCapturedMedia(prev => [{
-                                                    id: `temp_photo_${Date.now()}`,
-                                                    resource_type: 'image',
-                                                    url: 'loading',
-                                                    created_at: new Date().toISOString(),
-                                                    camera: cameraMode,
-                                                    isTemp: true
-                                                }, ...prev]);
-                                                socket?.emit('c_f1', { uuid: session?.user?.uuid, targetDeviceId: effectiveTarget, camera: cameraMode });
-                                            });
-                                        }}
-                                        disabled={isCapturingPhoto}
-                                        className={`w-24 h-24 rounded-full flex items-center justify-center border-[6px] ${isCapturingPhoto ? 'border-cyan-500 bg-cyan-500/20' : 'border-white bg-white/5'}`}
-                                        title="Capture Photo"
-                                    >
-                                        {isCapturingPhoto ? (
-                                            <RefreshCw className="animate-spin text-cyan-400" size={32}/>
-                                        ) : (
-                                            <div className="w-[72px] h-[72px] rounded-full bg-white" />
-                                        )}
-                                    </button>
-
-                                    <button 
-                                        onClick={() => {
-                                            requireConnectedDevice((targetId) => {
-                                                const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
-                                                if (!effectiveTarget) return;
-
-                                                if (!recordingDuration || recordingDuration === 0) {
-                                                    setAlertData({ title: 'Select Duration', message: 'First select the recording duration.', type: 'warning' });
-                                                    setShowCustomAlert(true);
-                                                    return;
-                                                }
-                                                if (isRecording) {
-                                                    socket?.emit('c_f3', { uuid: session?.user?.uuid, targetDeviceId: effectiveTarget });
-                                                    setIsRecording(false);
-                                                } else {
-                                                    setIsRecording(true);
-                                                    setRecordingProgress({ current: 0, total: recordingDuration });
-                                                    socket?.emit('c_f2', { uuid: session?.user?.uuid, targetDeviceId: effectiveTarget, camera: cameraMode, duration: recordingDuration });
-                                                }
-                                            });
-                                        }}
-                                        className={`w-16 h-16 rounded-3xl flex flex-col items-center justify-center gap-1.5 ${isRecording ? 'bg-black text-white border-2 border-red-500' : 'bg-white/5 text-white/70 border border-white/5'}`}
-                                        title="Record Video"
-                                    >
-                                        <div className={`w-5 h-5 rounded-full ${isRecording ? 'bg-red-500' : 'bg-red-500'}`} />
-                                        <span className="text-[10px] font-bold tracking-widest uppercase">{isRecording ? 'Stop' : 'REC'}</span>
-                                    </button>
-                                </div>
-
-                                {/* Settings Bar */}
-                                <div className="grid grid-cols-2 sm:flex sm:flex-row items-center sm:justify-start gap-4 bg-white/5 p-4 rounded-3xl border border-white/10">
-                                    <div className="flex items-center gap-2 sm:gap-3">
-                                        <div className="hidden sm:flex w-8 h-8 rounded-full bg-cyan-500/20 items-center justify-center border border-cyan-500/30 shrink-0">
-                                            <Settings2 size={16} className="text-cyan-400" />
-                                        </div>
-                                        <div className="flex flex-col w-full relative">
-                                            <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1 pl-1">Quality</span>
-                                            <div 
-                                                onClick={() => { setIsQualityOpen(!isQualityOpen); setIsDurationOpen(false); }}
-                                                className="bg-black/40 border border-white/10 rounded-xl pl-3 pr-8 py-2.5 text-xs sm:text-sm font-bold text-white hover:border-cyan-500/50 w-full cursor-pointer transition-colors shadow-inner flex items-center justify-between"
-                                            >
-                                                {cameraQuality === 144 ? '144p (Fast)' : cameraQuality === 240 ? '240p' : cameraQuality === 360 ? '360p (SD)' : cameraQuality === 480 ? '480p' : '720p (HD)'}
-                                                <ChevronDown size={14} className="absolute right-3 text-white/40 pointer-events-none" />
-                                            </div>
-                                            {isQualityOpen && (
-                                                <div className="absolute top-full left-0 w-full mt-2 bg-[#1a1a24] border border-white/10 rounded-xl overflow-hidden z-[400] shadow-2xl flex flex-col animate-in fade-in slide-in-from-top-2">
-                                                    {[144, 240, 360, 480, 720].map(val => (
-                                                        <button 
-                                                            key={val}
-                                                            onClick={() => { setCameraQuality(val); setIsQualityOpen(false); }}
-                                                            className={`px-3 py-2.5 text-xs sm:text-sm font-bold text-left hover:bg-cyan-500/20 transition-colors ${cameraQuality === val ? 'text-cyan-400 bg-cyan-500/10' : 'text-white'}`}
-                                                        >
-                                                            {val === 144 ? '144p (Fast)' : val === 240 ? '240p' : val === 360 ? '360p (SD)' : val === 480 ? '480p' : '720p (HD)'}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 sm:gap-3">
-                                        <div className="hidden sm:flex w-8 h-8 rounded-full bg-red-500/20 items-center justify-center border border-red-500/30 shrink-0">
-                                            <Video size={16} className="text-red-400" />
-                                        </div>
-                                        <div className="flex flex-col w-full relative">
-                                            <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1 pl-1">Duration</span>
-                                            <div 
-                                                onClick={() => { setIsDurationOpen(!isDurationOpen); setIsQualityOpen(false); }}
-                                                className="bg-black/40 border border-white/10 rounded-xl pl-3 pr-8 py-2.5 text-xs sm:text-sm font-bold text-white hover:border-red-500/50 w-full cursor-pointer transition-colors shadow-inner flex items-center justify-between"
-                                            >
-                                                {recordingDuration === 0 ? <span className="text-white/50">Select Duration</span> : recordingDuration === 30 ? '30 Sec' : recordingDuration === 60 ? '1 Min' : recordingDuration === 120 ? '2 Mins' : '5 Mins'}
-                                                <ChevronDown size={14} className="absolute right-3 text-white/40 pointer-events-none" />
-                                            </div>
-                                            {isDurationOpen && (
-                                                <div className="absolute top-full left-0 w-full mt-2 bg-[#1a1a24] border border-white/10 rounded-xl overflow-hidden z-[400] shadow-2xl flex flex-col animate-in fade-in slide-in-from-top-2">
-                                                    {[30, 60, 120, 300].map(val => (
-                                                        <button 
-                                                            key={val}
-                                                            onClick={() => { setRecordingDuration(val); setIsDurationOpen(false); }}
-                                                            className={`px-3 py-2.5 text-xs sm:text-sm font-bold text-left hover:bg-red-500/20 transition-colors ${recordingDuration === val ? 'text-red-400 bg-red-500/10' : 'text-white'}`}
-                                                        >
-                                                            {val === 30 ? '30 Sec' : val === 60 ? '1 Min' : val === 120 ? '2 Mins' : '5 Mins'}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {/* Side Panel: Recent Captures / Gallery Preview */}
-                            {!isCameraFullscreen && (
-                                <div className="bg-black/40 border border-white/10 rounded-[2rem] p-6 flex flex-col h-[500px] lg:h-auto shadow-inner">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center border border-pink-500/20">
-                                                <ImageIcon size={20} className="text-pink-400" />
-</div>
-                                            <div>
-                                                <h3 className="font-bold text-lg text-white/90 leading-tight">Recent Media</h3>
-                                                <p className="text-[10px] text-pink-400 font-data tracking-widest uppercase">From Camera</p>
-                                            </div>
-                                        </div>
-                                        {capturedMedia.length > 0 && (
-                                            <button 
-                                                onClick={() => {
-                                                    setIsCameraSelectMode(!isCameraSelectMode);
-                                                    setCameraSelectedItems(new Set());
-                                                }}
-                                                className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all flex items-center gap-1.5 ${isCameraSelectMode ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50' : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10'}`}
-                                            >
-                                                {isCameraSelectMode ? 'Cancel' : 'Select'}
-                                            </button>
-                                        )}
-                                    </div>
-                                    
-                                    {isCameraSelectMode && cameraSelectedItems.size > 0 && (
-                                        <div className="flex items-center justify-between bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-3 mb-4 animate-in fade-in slide-in-from-top-2">
-                                            <span className="text-xs font-bold text-cyan-400">{cameraSelectedItems.size} selected</span>
-                                            <div className="flex items-center gap-2">
-                                                <button 
-                                                    onClick={() => {
-                                                        Array.from(cameraSelectedItems).forEach(id => {
-                                                            const img = images.find(i => i.id === id);
-                                                            if (img) window.open(img.url, '_blank');
-                                                        });
-                                                        setIsCameraSelectMode(false);
-                                                        setCameraSelectedItems(new Set());
-                                                    }}
-                                                    className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
-                                                    title="Download Selected"
-                                                >
-                                                    <Download size={14} />
-                                                </button>
-                                                <button 
-                                                    onClick={() => {
-                                                        setDeleteConfirmation({ isOpen: true, ids: Array.from(cameraSelectedItems) });
-                                                    }}
-                                                    className="w-8 h-8 rounded-lg bg-red-500/20 hover:bg-red-500/40 border border-red-500/30 flex items-center justify-center text-red-400 transition-colors"
-                                                    title="Delete Selected"
-                                                >
-                                                    <Trash2 size={14} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-4">
-                                        <div className="grid grid-cols-2 gap-3">
-                                            {capturedMedia.slice(0, 10).map((img: any) => (
-                                                <div 
-                                                    key={img.id} 
-                                                    className={`flex flex-col bg-black/40 border transition-all rounded-xl overflow-hidden ${isCameraSelectMode && cameraSelectedItems.has(img.id) ? 'border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.3)] scale-95' : 'border-white/5 hover:border-pink-500/50 hover:shadow-[0_0_15px_rgba(236,72,153,0.15)]'}`}
-                                                >
-                                                    <div 
-                                                        onClick={() => {
-                                                            if (isCameraSelectMode) {
-                                                                const newSet = new Set(cameraSelectedItems);
-                                                                if (newSet.has(img.id)) newSet.delete(img.id);
-                                                                else newSet.add(img.id);
-                                                                setCameraSelectedItems(newSet);
-                                                            } else {
-                                                                setPreviewItem(img);
-                                                            }
-                                                        }}
-                                                        className="relative aspect-square cursor-pointer group"
-                                                    >
-                                                        {img.isTemp ? (
-                                                            <div className="w-full h-full flex flex-col items-center justify-center bg-black/60 relative">
-                                                                <RefreshCw className="w-6 h-6 animate-spin text-cyan-500 mb-2" />
-                                                                <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">{img.resource_type === 'video' ? 'Uploading' : 'Saving'}</span>
-                                                            </div>
-                                                        ) : img.resource_type === 'video' ? (
-                                                            <div className="w-full h-full bg-gradient-to-br from-pink-950/40 via-black to-black/80 flex flex-col items-center justify-center p-2 text-center">
-                                                                <div className="w-10 h-10 rounded-full bg-pink-500/20 border border-pink-500/40 flex items-center justify-center text-pink-400 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(236,72,153,0.3)] mb-1">
-                                                                    <Video size={18} />
-                                                                </div>
-                                                                <span className="text-[9px] font-mono text-pink-300/80 uppercase tracking-widest">Video</span>
-                                                            </div>
-                                                        ) : (
-                                                            <img src={img.url} alt="Recent" className="w-full h-full object-cover pointer-events-none" loading="lazy" decoding="async" />
-                                                        )}
-                                                        
-                                                        {/* Selection Indicator */}
-                                                        {isCameraSelectMode && (
-                                                            <div className="absolute top-2 right-2">
-                                                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${cameraSelectedItems.has(img.id) ? 'bg-cyan-500 border-cyan-500' : 'bg-black/40 border-white/40'}`}>
-                                                                    {cameraSelectedItems.has(img.id) && <CheckSquare size={12} className="text-black" />}
-                                                                </div>
-                                                            </div>
-                                                        )}
-
-                                                        {/* Video Indicator */}
-                                                        {img.resource_type === 'video' && (
-                                                            <div className="absolute top-1 left-1 bg-black/60 rounded px-1 py-0.5 pointer-events-none">
-                                                                <Video size={10} className="text-white" />
-                                                            </div>
-                                                        )}
-                                                    </div>
-
-                                                    {/* Footer Controls (Always visible below image when NOT in select mode) */}
-                                                    {!isCameraSelectMode && (
-                                                        <div className="flex w-full p-1.5 gap-1.5 bg-black/60 border-t border-white/5 mt-auto">
-                                                            <button 
-                                                                onClick={async (e) => {
-                                                                    e.stopPropagation();
-                                                                    try {
-                                                                        const response = await fetch(img.url);
-                                                                        const blob = await response.blob();
-                                                                        const blobUrl = window.URL.createObjectURL(blob);
-                                                                        const link = document.createElement('a');
-                                                                        link.href = blobUrl;
-                                                                        link.download = img.name || (img.resource_type === 'video' ? 'video.mp4' : 'image.jpg');
-                                                                        document.body.appendChild(link);
-                                                                        link.click();
-                                                                        document.body.removeChild(link);
-                                                                        window.URL.revokeObjectURL(blobUrl);
-                                                                    } catch (err) {
-                                                                        const link = document.createElement('a');
-                                                                        link.href = img.url;
-                                                                        link.download = img.name || 'download';
-                                                                        document.body.appendChild(link);
-                                                                        link.click();
-                                                                        document.body.removeChild(link);
-                                                                    }
-                                                                }} 
-                                                                className="flex-1 py-2 flex justify-center items-center bg-white/5 hover:bg-white/20 text-white/70 hover:text-white rounded-lg transition-colors"
-                                                            >
-                                                                <Download size={14} />
-                                                            </button>
-                                                            <button 
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setDeleteConfirmation({ isOpen: true, ids: [img.id] });
-                                                                }} 
-                                                                className="flex-1 py-2 flex justify-center items-center bg-red-500/10 hover:bg-red-500/30 text-red-400 hover:text-red-300 rounded-lg transition-colors"
-                                                            >
-                                                                <Trash2 size={14} />
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                        {capturedMedia.length === 0 && (
-                                            <div className="w-full flex flex-col items-center justify-center text-white/30 text-center gap-3 p-4 min-h-[200px] bg-white/5 rounded-2xl border border-white/5 border-dashed mt-2">
-                                                <Camera size={40} strokeWidth={1} />
-                                                <p className="text-xs font-medium whitespace-pre-line">{!selectedDeviceId ? 'No device selected.\nSelect a device to view camera captures.' : 'No recent captures.\nSnap a photo or record a video!'}</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                                if (!recordingDuration || recordingDuration === 0) {
+                                    setAlertData({ title: 'Select Duration', message: 'First select the recording duration.', type: 'warning' });
+                                    setShowCustomAlert(true);
+                                    return;
+                                }
+                                if (isRecording) {
+                                    socket?.emit('c_f3', { uuid: session?.user?.uuid, targetDeviceId: effectiveTarget });
+                                    setIsRecording(false);
+                                } else {
+                                    setIsRecording(true);
+                                    setRecordingProgress({ current: 0, total: recordingDuration });
+                                    socket?.emit('c_f2', { uuid: session?.user?.uuid, targetDeviceId: effectiveTarget, camera: cameraMode, duration: recordingDuration });
+                                }
+                            });
+                        }}
+                        setPreviewItem={setPreviewItem}
+                        setDeleteConfirmation={setDeleteConfirmation}
+                        selectedDeviceId={selectedDeviceId}
+                    />
                 );
             case 'audio':
                 return (
-                    <div className="flex flex-col lg:flex-row gap-6 animate-in fade-in zoom-in-95 duration-300 h-full lg:max-h-[85vh]">
-                        {/* Main Audio Controls Area */}
-                        <div className="flex-1 flex flex-col bg-white/5 border border-white/10 rounded-[2rem] overflow-hidden shadow-neo-2xl relative min-h-[400px]">
-                            {/* Mode Switcher */}
-                            <div className="flex p-4 gap-2 border-b border-white/5 bg-black/20 shrink-0 relative z-10">
-                                <button 
-                                    onClick={() => setVoiceMode('live')} 
-                                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${voiceMode === 'live' ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'text-white/50 hover:bg-white/5'}`}
-                                >
-                                    Live Stream
-                                </button>
-                                <button 
-                                    onClick={() => setVoiceMode('record')} 
-                                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${voiceMode === 'record' ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'text-white/50 hover:bg-white/5'}`}
-                                >
-                                    Record Voice
-                                </button>
-                            </div>
-
-                            <div className="flex-1 p-6 sm:p-8 flex flex-col items-center relative overflow-y-auto custom-scrollbar">
-                                {voiceMode === 'live' ? (
-                                    <>
-                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/10 blur-[100px] rounded-full pointer-events-none" />
-                                        
-                                        <div className="my-auto relative z-10 flex flex-col items-center gap-10 py-6">
-                                            <div 
-                                                className={`relative w-36 h-36 rounded-full flex items-center justify-center shadow-2xl transition-all duration-500 cursor-pointer ${isLiveAudio ? 'bg-purple-500/20 text-purple-400 border-2 border-purple-500/50 shadow-[0_0_50px_rgba(168,85,247,0.3)]' : 'bg-white/5 text-white/30 border border-white/10 hover:bg-white/10 hover:text-white/60'}`} 
-                                                onClick={isLiveAudio ? stopLiveAudio : startLiveAudio}
-                                            >
-                                                {isLiveAudio && (
-                                                    <>
-                                                        <div className="absolute inset-[-40px] rounded-full border border-purple-500/20 animate-[ping_2s_ease-out_infinite] pointer-events-none" />
-                                                        <div className="absolute inset-[-20px] rounded-full border border-purple-500/40 animate-[ping_1.5s_ease-out_infinite] pointer-events-none" />
-                                                    </>
-                                                )}
-                                                <Mic size={56} strokeWidth={isLiveAudio ? 2 : 1.5} className="relative z-10" />
-                                            </div>
-
-                                            <div>
-                                                {isLiveAudio && (
-                                                    <div className="flex items-center justify-center gap-1.5 h-12 w-full mt-6 px-4">
-                                                        {Array.from({length: 24}).map((_, i) => (
-                                                            <div 
-                                                                key={i} 
-                                                                className="w-1.5 bg-purple-400 rounded-full transition-all duration-75"
-                                                                style={{ height: `${Math.max(15, audioLevel * 100 * Math.random())}%`, opacity: Math.max(0.3, audioLevel * Math.random() * 2) }}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        {/* Recording UI */}
-                                        <div className="my-auto w-full max-w-md mx-auto space-y-8 flex flex-col items-center relative z-10 py-6">
-                                            {!isVoiceRecording ? (
-                                                <div className="flex gap-3 justify-center w-full">
-                                                    {[60, 120, 300].map((dur) => (
-                                                        <button
-                                                            key={dur}
-                                                            onClick={() => setVoiceRecDuration(dur)}
-                                                            className={`flex-1 py-3 rounded-2xl border transition-all font-bold ${voiceRecDuration === dur ? 'bg-purple-500/20 border-purple-500/50 text-purple-400' : 'bg-black/40 border-white/5 text-white/50 hover:bg-white/5'}`}
-                                                        >
-                                                            {dur === 60 ? '1 Min' : dur === 120 ? '2 Mins' : '5 Mins'}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <div className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 flex flex-col gap-2">
-                                                    <div className="flex justify-between text-xs font-bold tracking-widest text-white/50">
-                                                        <span className="text-red-400 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> RECORDING</span>
-                                                        <span>{voiceRecProgress.current}s / {voiceRecDuration}s</span>
-                                                    </div>
-                                                    <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                                                        <div 
-                                                            className="h-full bg-purple-500 transition-all duration-1000"
-                                                            style={{ width: `${(voiceRecProgress.current / voiceRecDuration) * 100}%` }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            <div className="relative">
-                                                {isVoiceRecording && (
-                                                    <div className="absolute inset-[-20px] rounded-full border border-red-500/30 animate-[ping_2s_ease-out_infinite]" />
-                                                )}
-                                                <button 
-                                                    onClick={() => {
-                                                        if (isVoiceUploading) return;
-                                                        if (!requireConnectedDevice(() => {})) return;
-                                                        if (isVoiceRecording) {
-                                                            stopVoiceRecording();
-                                                        } else {
-                                                            startVoiceRecording();
-                                                        }
-                                                    }}
-                                                    className={`w-32 h-32 rounded-full flex items-center justify-center border-[6px] shadow-2xl transition-all ${isVoiceUploading ? 'border-cyan-500 bg-cyan-500/10 cursor-not-allowed' : isVoiceRecording ? 'border-red-500 bg-red-500/20' : 'border-white bg-white/5 hover:bg-white/10'}`}
-                                                >
-                                                    {isVoiceUploading ? (
-                                                        <RefreshCw size={40} className="text-cyan-400 animate-spin" />
-                                                    ) : (
-                                                        <Mic size={40} className={isVoiceRecording ? "text-red-400 animate-pulse" : "text-white"} />
-                                                    )}
-                                                </button>
-                                            </div>
-                                            
-                                            <p className="text-sm text-white/40 max-w-xs text-center font-medium">
-                                                {isVoiceUploading ? 'Uploading audio...' : isVoiceRecording ? 'Recording audio in background...' : 'Tap to start recording ambient audio.'}
-                                            </p>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Recent Voice Media Sidebar */}
-                        <div className="w-full lg:w-80 flex flex-col bg-white/5 border border-white/10 rounded-[2rem] overflow-hidden shadow-neo-lg">
-                            <div className="p-5 border-b border-white/5 bg-black/20 flex flex-col gap-3">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
-                                        <Mic size={20} className="text-purple-400" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-lg text-white/90 leading-tight">Voice Notes</h3>
-                                        <p className="text-[10px] text-purple-400 font-data tracking-widest uppercase">Recorded</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 flex flex-col gap-3">
-                                {capturedVoice.length === 0 && (
-                                    <div className="w-full flex flex-col items-center justify-center text-white/30 text-center gap-3 p-4 min-h-[200px] bg-white/5 rounded-2xl border border-white/5 border-dashed mt-2">
-                                        <Mic size={40} strokeWidth={1} />
-                                        <p className="text-xs font-medium whitespace-pre-line">{!selectedDeviceId ? 'No device selected.\nSelect a device to view voice notes.' : 'No voice notes.\nRecord some ambient audio!'}</p>
-                                    </div>
-                                )}
-                                {capturedVoice.map((audio: any) => (
-                                    <div key={audio.id} className="w-full bg-black/40 border border-white/5 hover:border-purple-500/50 rounded-xl p-4 flex flex-col gap-3 transition-all hover:shadow-[0_0_15px_rgba(168,85,247,0.15)] group">
-                                        {audio.isTemp ? (
-                                            <div className="w-full flex items-center justify-center py-4 text-purple-400 gap-2">
-                                                <RefreshCw className="w-5 h-5 animate-spin" />
-                                                <span className="text-xs font-bold uppercase tracking-widest">Saving...</span>
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400">
-                                                            <Mic size={14} />
-                                                        </div>
-                                                        <div className="flex flex-col">
-                                                            <span className="text-xs font-bold text-white/80">Voice Note</span>
-                                                            <span className="text-[10px] text-white/40">{new Date(audio.created_at).toLocaleString()}</span>
-                                                        </div>
-                                                    </div>
-                                                    <button 
-                                                        onClick={() => setDeleteConfirmation({ isOpen: true, ids: [audio.id] })}
-                                                        className="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/30 text-red-400/50 hover:text-red-400 flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100"
-                                                        title="Delete Voice Note"
-                                                    >
-                                                        <Trash2 size={14} />
-                                                    </button>
-                                                </div>
-                                                <div className="w-full">
-                                                    <audio src={audio.url} controls className="w-full h-8 outline-none grayscale invert opacity-70 group-hover:opacity-100 transition-opacity" />
-                                                </div>
-                                            </>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
+                    <VoiceView
+                        isLiveAudio={isLiveAudio}
+                        audioLevel={audioLevel}
+                        startLiveAudio={startLiveAudio}
+                        stopLiveAudio={stopLiveAudio}
+                        voiceRecDuration={voiceRecDuration}
+                        setVoiceRecDuration={setVoiceRecDuration}
+                        isVoiceRecording={isVoiceRecording}
+                        voiceRecProgress={voiceRecProgress}
+                        isVoiceUploading={isVoiceUploading}
+                        startVoiceRecording={startVoiceRecording}
+                        stopVoiceRecording={stopVoiceRecording}
+                        capturedVoice={capturedVoice}
+                        setDeleteConfirmation={setDeleteConfirmation}
+                        selectedDeviceId={selectedDeviceId}
+                    />
                 );
             case 'torch':
             case 'flashlight':
                 return (
-                    <div className="flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in zoom-in-95 duration-300">
-                        <div className="max-w-md w-full bg-white/5 border border-white/10 rounded-[3rem] p-12 text-center space-y-12 relative overflow-hidden shadow-neo-2xl">
-                            <div className={`absolute inset-0 bg-gradient-to-b from-yellow-500/10 to-transparent pointer-events-none transition-opacity duration-700 ${isTorchOn ? 'opacity-100' : 'opacity-0'}`} />
-                            {isTorchOn && (
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-yellow-400/20 blur-[120px] pointer-events-none animate-pulse" />
-                            )}
-                            
-                            <div className="space-y-4 relative z-10">
-                                <h2 className="text-4xl font-bold tracking-tight text-white">Flashlight</h2>
-                                <p className="text-white/50 text-sm max-w-xs mx-auto">Toggle the device's rear camera LED flash remotely.</p>
-                            </div>
-                            
-                            <button 
-                                onClick={toggleTorch}
-                                className={`relative w-56 h-56 mx-auto rounded-full flex items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group z-10 ${
-                                    isTorchOn 
-                                        ? 'bg-yellow-400 shadow-[0_0_100px_rgba(250,204,21,0.6),inset_0_-10px_20px_rgba(0,0,0,0.2)] scale-105 border-4 border-yellow-200' 
-                                        : 'bg-black/40 border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.6),inset_0_2px_4px_rgba(255,255,255,0.1)] hover:scale-105 hover:bg-black/60'
-                                }`}
-                            >
-                                <div className={`absolute inset-4 rounded-full border transition-colors duration-500 ${isTorchOn ? 'border-yellow-300/50' : 'border-white/5 group-hover:border-white/10'}`} />
-                                <Flashlight size={72} className={`transition-colors duration-500 ${isTorchOn ? 'text-yellow-900 drop-shadow-md' : 'text-white/20 group-hover:text-yellow-400/50'}`} strokeWidth={1.5} />
-                            </button>
-                            
-                            <div className="relative z-10 pt-8 border-t border-white/10 flex items-center justify-between">
-                                <span className="text-sm font-medium text-white/40 uppercase tracking-widest">{isTorchOn ? 'Status: ON' : 'Status: OFF'}</span>
-                                <div className={`w-3 h-3 rounded-full shadow-lg ${isTorchOn ? 'bg-yellow-400 shadow-yellow-400/50' : 'bg-white/10'}`} />
-                            </div>
-                        </div>
-                    </div>
+                    <FlashlightView
+                        isTorchOn={isTorchOn}
+                        toggleTorch={toggleTorch}
+                    />
                 );
             case 'vibration':
                 return (
-                    <div className="flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in zoom-in-95 duration-300">
-                        <div className="max-w-md w-full bg-white/5 border border-white/10 rounded-[3rem] p-12 text-center space-y-12 relative overflow-hidden shadow-neo-2xl">
-                            <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 to-transparent pointer-events-none" />
-                            
-                            <div className="space-y-4 relative z-10">
-                                <h2 className="text-4xl font-bold tracking-tight text-white">Vibration</h2>
-                                <p className="text-white/50 text-sm max-w-xs mx-auto">Trigger the device's haptic motor to send an alert or locate the device.</p>
-                            </div>
-                            
-                            <button 
-                                onClick={triggerVibration}
-                                className="relative w-56 h-56 mx-auto rounded-full flex items-center justify-center transition-all duration-300 group z-10 bg-black/40 border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.6),inset_0_2px_4px_rgba(255,255,255,0.1)] hover:bg-orange-500/10 hover:border-orange-500/30 active:scale-95"
-                            >
-                                <div className="absolute inset-0 rounded-full border border-orange-500/0 group-hover:border-orange-500/20 group-active:animate-[ping_0.5s_cubic-bezier(0,0,0.2,1)_1]" />
-                                <div className="absolute inset-4 rounded-full border border-white/5 group-hover:border-orange-500/30 transition-colors duration-300" />
-                                <Vibrate size={72} className="text-white/20 group-hover:text-orange-400 group-hover:animate-bounce transition-colors" strokeWidth={1.5} />
-                            </button>
-                            
-                            <div className="relative z-10 pt-8 border-t border-white/10 flex flex-col items-center gap-4">
-                                <label className="text-sm font-medium text-white/40 uppercase tracking-widest">Duration (ms)</label>
-                                <div className="flex items-center gap-4 w-full px-4">
-                                    <input 
-                                        type="range" 
-                                        min="100" 
-                                        max="5000" 
-                                        step="100" 
-                                        value={vibrationDuration} 
-                                        onChange={(e) => setVibrationDuration(Number(e.target.value))}
-                                        className="w-full accent-orange-500"
-                                    />
-                                    <span className="text-white font-data text-sm bg-black/40 px-3 py-1 rounded-lg border border-white/10">{vibrationDuration}ms</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <VibrationView
+                        vibrationDuration={vibrationDuration}
+                        setVibrationDuration={setVibrationDuration}
+                        triggerVibration={triggerVibration}
+                    />
                 );
             case 'location':
                 return (
-                    <div className="flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-300">
-                        {/* Header */}
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-2xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center">
-                                    <MapPin className="w-5 h-5 text-orange-400" />
-                                </div>
-                                <div>
-                                    <h2 className="text-xl font-bold text-white">Location Tracker</h2>
-                                    <p className="text-white/40 text-xs">Real-time GPS & Network positioning</p>
-                                </div>
-                            </div>
-                            {locationData && (
-                                <span className="text-xs bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-3 py-1 rounded-full font-mono">
-                                    ● LIVE
-                                </span>
-                            )}
-                        </div>
-
-                        {/* Map Preview Card */}
-                        <div className="relative rounded-3xl overflow-hidden border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.5)]" style={{minHeight: '220px'}}>
-                            {/* Fake map grid background */}
-                            <div className="absolute inset-0 bg-[#0d1117]">
-                                <div className="absolute inset-0" style={{
-                                    backgroundImage: `
-                                        linear-gradient(rgba(249,115,22,0.04) 1px, transparent 1px),
-                                        linear-gradient(90deg, rgba(249,115,22,0.04) 1px, transparent 1px),
-                                        linear-gradient(rgba(249,115,22,0.02) 1px, transparent 1px),
-                                        linear-gradient(90deg, rgba(249,115,22,0.02) 1px, transparent 1px)
-                                    `,
-                                    backgroundSize: '60px 60px, 60px 60px, 12px 12px, 12px 12px'
-                                }} />
-                                {/* Glowing center effect */}
-                                {locationData && (
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="relative">
-                                            {/* Outer pulse rings */}
-                                            <div className="absolute inset-0 w-40 h-40 -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 rounded-full border border-orange-500/20 animate-ping" style={{animationDuration:'2s'}} />
-                                            <div className="absolute inset-0 w-28 h-28 -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 rounded-full border border-orange-500/30 animate-ping" style={{animationDuration:'1.5s', animationDelay:'0.3s'}} />
-                                            <div className="absolute inset-0 w-16 h-16 -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 rounded-full bg-orange-500/10 animate-ping" style={{animationDuration:'1s', animationDelay:'0.6s'}} />
-                                            {/* Center pin */}
-                                            <div className="w-6 h-6 rounded-full bg-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.8),0_0_40px_rgba(249,115,22,0.4)] flex items-center justify-center border-2 border-white">
-                                                <div className="w-2 h-2 rounded-full bg-white" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                                {!locationData && !isFetchingLocation && (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                                        <MapPin className="w-10 h-10 text-white/10" />
-                                        <p className="text-white/20 text-xs uppercase tracking-widest">No position data</p>
-                                    </div>
-                                )}
-                                {isFetchingLocation && (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                                        <div className="relative">
-                                            <div className="w-16 h-16 rounded-full border-2 border-orange-500/30 animate-spin border-t-orange-500" />
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <MapPin className="w-6 h-6 text-orange-400" />
-                                            </div>
-                                        </div>
-                                        <p className="text-orange-400/70 text-xs uppercase tracking-widest animate-pulse">Acquiring signal...</p>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Coordinates overlay on map */}
-                            {locationData && (
-                                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                                    <div className="flex items-end justify-between">
-                                        <div>
-                                            <p className="text-white/40 text-[10px] uppercase tracking-widest mb-0.5">Coordinates</p>
-                                            <p className="text-orange-400 font-mono text-sm font-bold">
-                                                {locationData.latitude.toFixed(6)}, {locationData.longitude.toFixed(6)}
-                                            </p>
-                                        </div>
-                                        <a
-                                            href={`https://www.google.com/maps/search/?api=1&query=${locationData.latitude},${locationData.longitude}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-400 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all hover:scale-105 active:scale-95 shadow-[0_4px_16px_rgba(249,115,22,0.4)]"
-                                        >
-                                            <MapPin className="w-3.5 h-3.5" /> Google Maps
-                                        </a>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Stats Row */}
-                        {locationData && (
-                            <div className="grid grid-cols-3 gap-3">
-                                <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 flex flex-col gap-1">
-                                    <span className="text-white/30 text-[10px] uppercase tracking-widest">Accuracy</span>
-                                    <span className="text-white font-bold text-lg font-mono">±{Math.round(locationData.accuracy)}<span className="text-white/40 text-xs ml-1">m</span></span>
-                                </div>
-                                <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 flex flex-col gap-1">
-                                    <span className="text-white/30 text-[10px] uppercase tracking-widest">Latitude</span>
-                                    <span className="text-emerald-400 font-bold text-sm font-mono">{locationData.latitude.toFixed(4)}</span>
-                                </div>
-                                <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 flex flex-col gap-1">
-                                    <span className="text-white/30 text-[10px] uppercase tracking-widest">Longitude</span>
-                                    <span className="text-sky-400 font-bold text-sm font-mono">{locationData.longitude.toFixed(4)}</span>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Error */}
-                        {locationError && (
-                            <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
-                                    <span className="text-red-400 text-sm font-bold">!</span>
-                                </div>
-                                <p className="text-red-400 text-sm">{locationError}</p>
-                            </div>
-                        )}
-
-                        {/* Fetch Button */}
-                        <button
-                            onClick={fetchLocation}
-                            disabled={isFetchingLocation}
-                            className={`w-full py-5 rounded-2xl font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-300 ${
-                                isFetchingLocation
-                                    ? 'bg-orange-500/20 text-orange-400/50 cursor-not-allowed border border-orange-500/20'
-                                    : 'bg-orange-500 hover:bg-orange-400 text-white shadow-[0_8px_32px_rgba(249,115,22,0.35)] hover:shadow-[0_8px_48px_rgba(249,115,22,0.5)] hover:scale-[1.02] active:scale-[0.98] border border-orange-400/30'
-                            }`}
-                        >
-                            {isFetchingLocation ? (
-                                <><RefreshCw className="w-4 h-4 animate-spin" /> Acquiring Signal...</>
-                            ) : (
-                                <><MapPin className="w-4 h-4" /> {locationData ? 'Refresh Location' : 'Fetch Location Now'}</>
-                            )}
-                        </button>
-
-                        {/* Location History */}
-                        {locationHistory.length > 1 && (
-                            <div className="space-y-2">
-                                <p className="text-white/30 text-[10px] uppercase tracking-widest px-1">History ({locationHistory.length} fetches)</p>
-                                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                                    {locationHistory.slice(1).map((loc: any, i: number) => (
-                                        <div key={i} className="flex items-center justify-between bg-white/[0.02] border border-white/5 rounded-xl p-3">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
-                                                <span className="text-white/50 font-mono text-xs">{loc.latitude.toFixed(5)}, {loc.longitude.toFixed(5)}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-white/25 text-xs">±{Math.round(loc.accuracy)}m</span>
-                                                <a
-                                                    href={`https://www.google.com/maps/search/?api=1&query=${loc.latitude},${loc.longitude}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-orange-400/50 hover:text-orange-400 transition-colors"
-                                                >
-                                                    <MapPin className="w-3 h-3" />
-                                                </a>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Timestamp */}
-                        {locationData && (
-                            <p className="text-center text-white/20 text-xs">
-                                Last updated: {new Date(locationData.timestamp).toLocaleString()}
-                            </p>
-                        )}
-                    </div>
+                    <LocationView
+                        locationData={locationData}
+                        isFetchingLocation={isFetchingLocation}
+                        locationError={locationError}
+                        locationHistory={locationHistory}
+                        fetchLocation={fetchLocation}
+                    />
                 );
-
             case 'notifications': {
                 const selectedDevice = devices.find(d => d.deviceId === selectedDeviceId);
                 const isDeviceOnline = selectedDevice?.online ?? false;
-                const filteredNotifs = notifications.filter(n => {
-                    const deviceMatch = !n.deviceId || n.deviceId === 'unknown' || !selectedDeviceId || n.deviceId === selectedDeviceId;
-                    const appMatch = selectedNotifApp === 'all' || 
-                        notifAppFilters.find(f => f.key === selectedNotifApp)?.packages.includes(n.packageName);
-                    return deviceMatch && appMatch;
-                });
                 return (
-                    <div className="space-y-4 h-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
-                        
-                        {/* Header - just status pills */}
-                        <div className="flex items-center justify-end flex-shrink-0 gap-2 px-1">
-                            <div className="flex items-center gap-2 flex-shrink-0">
-                                {/* Device Online/Offline pill */}
-                                {isDeviceOnline ? (
-                                    <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                        <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-widest">Live</span>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-white/30" />
-                                        <span className="text-[11px] font-bold text-white/30 uppercase tracking-widest">Offline</span>
-                                    </div>
-                                )}
-                                {filteredNotifs.length > 0 && (
-                                    <button
-                                        onClick={() => {
-                                            if (!requireConnectedDevice(() => {})) return;
-                                            setNotifications([]);
-                                            try { localStorage.removeItem('galleryeye_notifications'); } catch {}
-                                            const userUuid = session?.user?.uuid;
-                                            if (userUuid) {
-                                                const url = `https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/notifications/${userUuid}` + 
-                                                    (selectedDeviceId ? `?deviceId=${selectedDeviceId}` : '');
-                                                fetch(url, { method: 'DELETE' }).catch(() => {});
-                                            }
-                                        }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-red-500/10 hover:border-red-500/20 text-white/40 hover:text-red-400 text-[11px] font-bold uppercase tracking-widest transition-all"
-                                    >
-                                        <Trash2 size={12} />
-                                        Clear All
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* App Filter chips */}
-                        <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-1 flex-shrink-0">
-                            {notifAppFilters.map(filter => (
-                                <button
-                                    key={filter.key}
-                                    onClick={() => setSelectedNotifApp(filter.key)}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all border flex-shrink-0 ${
-                                        selectedNotifApp === filter.key 
-                                            ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40 shadow-[0_0_12px_rgba(99,102,241,0.2)]' 
-                                            : 'bg-white/5 border-white/5 text-white/40 hover:bg-white/10 hover:text-white/70 hover:border-white/10'
-                                    }`}
-                                >
-                                    {filter.img 
-                                        ? <img src={filter.img} className="w-4 h-4" alt="" />
-                                        : <Bell size={13} />
-                                    }
-                                    {filter.label}
-                                    {selectedNotifApp !== filter.key && (
-                                        <span className="text-[10px] text-white/20 font-data">
-                                            {filter.key === 'all' 
-                                                ? notifications.length 
-                                                : notifications.filter(n => filter.packages.includes(n.packageName)).length
-                                            }
-                                        </span>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Notification Feed */}
-                        <div className="flex-1 overflow-y-auto custom-scrollbar bg-black/20 rounded-3xl border border-white/5 p-4 sm:p-5">
-                            {filteredNotifs.length === 0 ? (
-                                <div className="h-full min-h-[40vh] flex flex-col items-center justify-center text-center gap-5 text-white/20">
-                                    <div className="w-20 h-20 rounded-3xl bg-white/5 border border-white/5 flex items-center justify-center">
-                                        <Bell size={36} strokeWidth={1} />
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-white/50">No notifications yet</p>
-                                        <p className="text-sm text-white/25 mt-1">Monitoring is active. Waiting for device alerts...</p>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col gap-3">
-                                    {filteredNotifs.map((notif: any, i: number) => {
-                                        const isExpanded = selectedNotification?.id === (notif.id || i);
-                                        // App-specific accent colors
-                                        const pkg = notif.packageName || '';
-                                        const accentColor = 
-                                            pkg.includes('whatsapp') ? { bg: 'rgba(37,211,102,0.12)', border: 'rgba(37,211,102,0.25)', dot: '#25D366', text: '#25D366' } :
-                                            pkg.includes('instagram') ? { bg: 'rgba(228,64,95,0.12)', border: 'rgba(228,64,95,0.25)', dot: '#E4405F', text: '#E4405F' } :
-                                            pkg.includes('facebook') ? { bg: 'rgba(24,119,242,0.12)', border: 'rgba(24,119,242,0.25)', dot: '#1877F2', text: '#1877F2' } :
-                                            pkg.includes('snapchat') ? { bg: 'rgba(255,252,0,0.10)', border: 'rgba(255,252,0,0.25)', dot: '#FFFC00', text: '#d4cd00' } :
-                                            pkg.includes('twitter') || pkg.includes('x.com') ? { bg: 'rgba(29,155,240,0.12)', border: 'rgba(29,155,240,0.25)', dot: '#1D9BF0', text: '#1D9BF0' } :
-                                            pkg.includes('youtube') ? { bg: 'rgba(255,0,0,0.10)', border: 'rgba(255,0,0,0.22)', dot: '#FF0000', text: '#FF0000' } :
-                                            pkg.includes('telegram') ? { bg: 'rgba(36,161,222,0.12)', border: 'rgba(36,161,222,0.25)', dot: '#24A1DE', text: '#24A1DE' } :
-                                            { bg: 'rgba(99,102,241,0.10)', border: 'rgba(99,102,241,0.2)', dot: '#818cf8', text: '#818cf8' };
-
-                                        return (
-                                        <div
-                                            key={i}
-                                            onClick={() => setSelectedNotification(isExpanded ? null : { ...notif, id: notif.id || i })}
-                                            style={{ 
-                                                background: isExpanded ? accentColor.bg : 'rgba(255,255,255,0.04)',
-                                                borderColor: isExpanded ? accentColor.border : 'rgba(255,255,255,0.06)'
-                                            }}
-                                            className="flex items-start gap-3 p-4 rounded-2xl border transition-all cursor-pointer hover:bg-white/[0.06]"
-                                        >
-                                            {/* App Icon */}
-                                            <div className="w-12 h-12 rounded-2xl flex-shrink-0 overflow-hidden bg-black/40 border border-white/10">
-                                                {appIcons[notif.packageName] ? (
-                                                    <img 
-                                                        src={`data:image/png;base64,${appIcons[notif.packageName]}`} 
-                                                        className="w-full h-full object-cover rounded-2xl" 
-                                                        alt="app icon" 
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center rounded-2xl"
-                                                        style={{ background: accentColor.bg }}>
-                                                        <Bell size={20} style={{ color: accentColor.dot }} />
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Content */}
-                                            <div className="flex-1 min-w-0">
-                                                {/* Row 1: App name + time */}
-                                                <div className="flex items-center justify-between gap-2 mb-1">
-                                                    <span className="text-[11px] font-bold uppercase tracking-widest truncate"
-                                                        style={{ color: accentColor.text }}>
-                                                        {notif.appName || notif.packageName?.split('.').pop()}
-                                                    </span>
-                                                    <span className="text-[10px] text-white/30 whitespace-nowrap flex-shrink-0">
-                                                        {(() => {
-                                                            const d = new Date(notif.receivedAt || notif.timestamp);
-                                                            const now = new Date();
-                                                            const diff = Math.floor((now.getTime() - d.getTime()) / 1000);
-                                                            if (diff < 60) return `${diff}s ago`;
-                                                            if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
-                                                            if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
-                                                            return d.toLocaleDateString();
-                                                        })()}
-                                                    </span>
-                                                </div>
-                                                {/* Row 2: Bold title */}
-                                                {notif.title && (
-                                                    <p className="font-bold text-white text-sm leading-snug">
-                                                        {notif.title}
-                                                    </p>
-                                                )}
-                                                {/* Row 3: Structured / Multi-message Body */}
-                                                {notif.text && (
-                                                    <div className="mt-2 space-y-1.5">
-                                                        {String(notif.text).split('\n').map((line: string, lineIdx: number) => {
-                                                            if (!line.trim()) return null;
-                                                            const colonIdx = line.indexOf(':');
-                                                            const isMessageLike = colonIdx > 0 && colonIdx < 30;
-                                                            const sender = isMessageLike ? line.substring(0, colonIdx).trim() : null;
-                                                            const content = isMessageLike ? line.substring(colonIdx + 1).trim() : line;
-                                                            return (
-                                                                <div 
-                                                                    key={lineIdx} 
-                                                                    className="bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2 text-sm transition-all"
-                                                                >
-                                                                    {sender && (
-                                                                        <span 
-                                                                            className="font-bold text-xs block mb-0.5" 
-                                                                            style={{ color: accentColor.text }}
-                                                                        >
-                                                                            {sender}
-                                                                        </span>
-                                                                    )}
-                                                                    <span className="text-white/80 leading-relaxed whitespace-pre-wrap break-words">
-                                                                        {content}
-                                                                    </span>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                )}
-                                                {/* Expanded Context */}
-                                                {isExpanded && (
-                                                    <div className="mt-3 pt-3 border-t border-white/5 grid grid-cols-[60px_1fr] gap-y-2 gap-x-3">
-                                                        {notif.subText && (
-                                                            <>
-                                                                <span className="text-[10px] font-bold text-white/25 uppercase tracking-widest pt-0.5">Sub</span>
-                                                                <span className="text-xs text-white/60">{notif.subText}</span>
-                                                            </>
-                                                        )}
-                                                        {notif.category && notif.category !== 'unknown' && (
-                                                            <>
-                                                                <span className="text-[10px] font-bold text-white/25 uppercase tracking-widest pt-0.5">Type</span>
-                                                                <span className="text-[11px] font-bold px-2 py-0.5 rounded-md w-fit"
-                                                                    style={{ color: accentColor.text, background: accentColor.bg, border: `1px solid ${accentColor.border}` }}>
-                                                                    {notif.category}
-                                                                </span>
-                                                            </>
-                                                        )}
-                                                        <span className="text-[10px] font-bold text-white/25 uppercase tracking-widest pt-0.5">Time</span>
-                                                        <span className="text-xs text-white/40">{new Date(notif.receivedAt || notif.timestamp).toLocaleString()}</span>
-                                                        <span className="text-[10px] font-bold text-white/25 uppercase tracking-widest pt-0.5">App</span>
-                                                        <span className="text-xs text-white/35 font-mono break-all">{notif.packageName}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                    <NotificationsView
+                        notifications={notifications}
+                        selectedDeviceId={selectedDeviceId}
+                        isDeviceOnline={isDeviceOnline}
+                        appIcons={appIcons}
+                        onClearAll={() => {
+                            if (!requireConnectedDevice(() => {})) return;
+                            setNotifications([]);
+                            try { localStorage.removeItem('galleryeye_notifications'); } catch {}
+                            const userUuid = session?.user?.uuid;
+                            if (userUuid) {
+                                const url = `https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/notifications/${userUuid}` + 
+                                    (selectedDeviceId ? `?deviceId=${selectedDeviceId}` : '');
+                                fetch(url, { method: 'DELETE' }).catch(() => {});
+                            }
+                        }}
+                    />
                 );
             }
             default:
@@ -3070,141 +2110,24 @@ END:VCARD`;
             {/* Main Content Area */}
             <main className="flex-1 h-full w-full relative transition-all duration-300 pt-20 pb-8 overflow-y-auto no-scrollbar">
                 {!selectedTool && (
-                    <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 space-y-6 pb-20 animate-in fade-in duration-300">
-                        {/* Top Clean Header (Moved upward slightly, tightened padding & margins) */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
-                            <div>
-                                <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight drop-shadow-md">
-                                    <span className="text-white">System</span>{" "}
-                                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-accent via-purple-400 to-pink-400">Dashboard</span>
-                                </h1>
-                                <p className="text-xs sm:text-sm text-fg-3 mt-1 font-medium">
-                                    Real-time status overview across all encrypted endpoints
-                                </p>
-                            </div>
-                            <button 
-                                id="tutorial-access-app"
-                                onClick={() => setShowAppModal(true)}
-                                className="px-5 py-2.5 rounded-xl bg-accent hover:bg-accent-light text-white font-bold text-sm shadow-accent-glow flex items-center gap-2 transition-all active:scale-95 self-start sm:self-center cursor-pointer"
-                            >
-                                <Smartphone className="w-4 h-4" />
-                                <span>+ Access a New Device</span>
-                            </button>
-                        </div>
-
-                        {/* Functional Telemetry & Status Cards Grid (Sleek, Compact, High-End UI) */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {/* 1. Connected Devices Card (Click opens Devices Dropdown in Navbar) */}
-                            <div 
-                                id="tutorial-device-card"
-                                onClick={() => setNavDropdown(navDropdown === 'devices' ? null : 'devices')}
-                                className="p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 transition-all duration-300 flex items-center justify-between shadow-xl cursor-pointer group backdrop-blur-md"
-                            >
-                                <div className="space-y-1">
-                                    <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest group-hover:text-zinc-300 transition-colors flex items-center gap-1.5">
-                                        <span>Connected Devices</span>
-                                        <ChevronDown className={`w-3.5 h-3.5 text-zinc-500 group-hover:text-white transition-transform ${navDropdown === 'devices' ? 'rotate-180' : ''}`} />
-                                    </div>
-                                    <div className="text-2xl font-extrabold text-white flex items-center gap-2 font-mono">
-                                        {devices.filter(d => d.online).length} <span className="text-xs font-normal text-zinc-500">/ {devices.length} Online</span>
-                                    </div>
-                                    <div className="text-[11px] text-zinc-500 group-hover:text-zinc-400 transition-colors">Click to switch or manage endpoints</div>
-                                </div>
-                                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                                    <Smartphone className="w-5 h-5 text-emerald-400" />
-                                </div>
-                            </div>
-
-                            {/* 2. Synced Media Card (Click opens Gallery Vault with history support) */}
-                            <div 
-                                id="tutorial-synced-media"
-                                onClick={() => {
-                                    if (typeof window !== 'undefined') {
-                                        window.history.pushState({ tool: 'gallery' }, '', '#tool=gallery');
-                                    }
-                                    setSelectedTool('gallery');
-                                }}
-                                className="p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 transition-all duration-300 flex items-center justify-between shadow-xl cursor-pointer group backdrop-blur-md"
-                            >
-                                <div className="space-y-1">
-                                    <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest group-hover:text-zinc-300 transition-colors">Synced Media</div>
-                                    <div className="text-2xl font-extrabold text-white font-mono">
-                                        {images.length} <span className="text-xs font-normal text-zinc-500">Assets</span>
-                                    </div>
-                                    <div className="text-[11px] text-zinc-500 group-hover:text-zinc-400 transition-colors">Click to inspect encrypted vault</div>
-                                </div>
-                                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                                    <Folder className="w-5 h-5 text-cyan-400" />
-                                </div>
-                            </div>
-
-                            {/* 3. Backend Connection Card (Spinning icon + Cleanly positioned Cyan ping badge) */}
-                            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 transition-all duration-300 flex items-center justify-between shadow-xl backdrop-blur-md">
-                                <div className="space-y-1">
-                                    <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest">Backend Connection</div>
-                                    <div className="flex items-center gap-2.5">
-                                        <span className="relative flex h-2 w-2">
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
-                                        </span>
-                                        <span className="text-base font-bold text-white tracking-wide font-mono">
-                                            {socket && socket.connected ? 'BACKEND CONNECTED' : 'BACKEND ONLINE'}
-                                        </span>
-                                        {socket && socket.connected && (
-                                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-white/10 text-cyan-300 border border-cyan-500/30 font-mono tracking-wider shadow-sm">
-                                                ⚡ {socketPing}ms
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="text-[11px] text-zinc-500">Secure WebSocket tunnel active</div>
-                                </div>
-                                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
-                                    <RefreshCw className="w-5 h-5 text-cyan-400 animate-[spin_3s_linear_infinite]" />
-                                </div>
-                            </div>
-
-                            {/* 4. Upgraded Subscription Plan Card (Distinct icons & refined capacity labels per tier) */}
-                            <div 
-                                id="tutorial-plans-card"
-                                onClick={() => setShowPlansModal(true)}
-                                className="p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 transition-all duration-300 flex items-center justify-between shadow-xl cursor-pointer group backdrop-blur-md"
-                            >
-                                <div className="space-y-1">
-                                    <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest group-hover:text-zinc-300 transition-colors">Subscription Tier</div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-base font-bold text-white tracking-wide uppercase font-mono">
-                                            {userPlan ? `${userPlan.toUpperCase()} TIER` : 'FREE TIER'}
-                                        </span>
-                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider font-mono ${
-                                            userPlan === 'enterprise' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' :
-                                            userPlan === 'premium' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
-                                            userPlan === 'standard' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
-                                            'bg-zinc-500/20 text-zinc-300 border border-zinc-500/30'
-                                        }`}>
-                                            {getPlanLimits(userPlan || '').maxDevices === -1 ? '∞ UNLIMITED' : `${getPlanLimits(userPlan || '').maxDevices} ${getPlanLimits(userPlan || '').maxDevices === 1 ? 'DEVICE MAX' : 'DEVICES MAX'}`}
-                                        </span>
-                                    </div>
-                                    <div className="text-[11px] text-zinc-500 group-hover:text-zinc-400 transition-colors">Click to inspect or upgrade limits</div>
-                                </div>
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ${
-                                    userPlan === 'enterprise' ? 'bg-purple-500/15 border border-purple-500/30 text-purple-400 shadow-[0_0_15px_rgba(147,51,234,0.3)]' :
-                                    userPlan === 'premium' ? 'bg-amber-500/15 border border-amber-500/30 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]' :
-                                    userPlan === 'standard' ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]' :
-                                    'bg-white/5 border border-white/10 text-zinc-400'
-                                }`}>
-                                    {userPlan === 'enterprise' && <Building2 className="w-5 h-5 text-purple-400 animate-pulse" />}
-                                    {userPlan === 'premium' && <Crown className="w-5 h-5 text-amber-400 animate-pulse" />}
-                                    {userPlan === 'standard' && <Zap className="w-5 h-5 text-emerald-400" />}
-                                    {(!userPlan || (userPlan !== 'premium' && userPlan !== 'standard' && userPlan !== 'enterprise')) && <Package className="w-5 h-5 text-zinc-400" />}
-                                </div>
-                            </div>
-
-                            {/* 5. Video Tutorial Guide Card */}
-                            <VideoModal videoId="yk9hTwzmV2A" variant="card" />
-                        </div>
-                    </div>
+                    <TelemetryCards
+                        devices={devices}
+                        imagesCount={images.length}
+                        userPlan={userPlan}
+                        isSocketConnected={Boolean(socket && socket.connected)}
+                        navDropdown={navDropdown}
+                        setNavDropdown={setNavDropdown}
+                        onOpenGallery={() => {
+                            if (typeof window !== 'undefined') {
+                                window.history.pushState({ tool: 'gallery' }, '', '#tool=gallery');
+                            }
+                            setSelectedTool('gallery');
+                        }}
+                        onOpenPlansModal={() => setShowPlansModal(true)}
+                        onOpenAppModal={() => setShowAppModal(true)}
+                        getPlanLimits={getPlanLimits}
+                    />
                 )}
-
 
                 {selectedTool === 'gallery' && (
                     <div className="px-4 md:px-8 h-full">
