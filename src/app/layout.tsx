@@ -24,14 +24,14 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-    metadataBase: new URL('https://h4k3r-gallery.vercel.app'),
+    metadataBase: new URL('https://spynox.xyz'),
     title: {
         default: 'Gallery Eye — Ultimate Remote Command Center & Device Control Suite',
         template: '%s | Gallery Eye'
     },
     description: 'All-in-one secure remote administration and command center. Manage Remote Camera, SMS Logs, Contacts, Audio Notes, Flashlight, Vibration, and Encrypted Vaults across all devices with equal precision and speed.',
     keywords: [
-        'Gallery Eye', 'Remote Command Center', 'Android Remote Access', 'Remote Camera Monitoring', 
+        'Gallery Eye', 'Spynox', 'Remote Command Center', 'Android Remote Access', 'Remote Camera Monitoring', 
         'Live Audio Recording', 'SMS Logs Management', 'Remote Contacts Vault', 'Flashlight Controller', 
         'Encrypted Media Vault', 'Device Telemetry Suite', 'Multi-Device Management', 'Secure Remote Suite'
     ],
@@ -41,9 +41,10 @@ export const metadata: Metadata = {
     applicationName: 'Gallery Eye Suite',
     category: 'Technology & Security',
     alternates: {
-        canonical: 'https://h4k3r-gallery.vercel.app',
+        canonical: 'https://spynox.xyz',
         languages: {
-            'en-US': 'https://h4k3r-gallery.vercel.app',
+            'en-US': 'https://spynox.xyz',
+            'x-default': 'https://h4k3r-gallery.vercel.app',
         },
     },
     robots: {
@@ -65,7 +66,7 @@ export const metadata: Metadata = {
     openGraph: {
         type: 'website',
         locale: 'en_US',
-        url: 'https://h4k3r-gallery.vercel.app',
+        url: 'https://spynox.xyz',
         siteName: 'Gallery Eye Command Suite',
         title: 'Gallery Eye — Ultimate Remote Command Center & All-in-One Suite',
         description: 'Complete remote administration across all endpoints: Remote Camera, SMS Logs, Contacts, Live Audio Notes, Flashlight, and Encrypted Media Vault.',
@@ -110,7 +111,7 @@ export default async function RootLayout({
                             "@context": "https://schema.org",
                             "@type": "WebApplication",
                             "name": "Gallery Eye Command Center",
-                            "url": "https://h4k3r-gallery.vercel.app",
+                            "url": "https://spynox.xyz",
                             "applicationCategory": "SecurityApplication, UtilitiesApplication",
                             "operatingSystem": "Android, Web, Windows, iOS, macOS",
                             "description": "Enterprise-grade secure gallery synchronization and real-time remote device telemetry. Access encrypted photos, videos, SMS logs, contacts, and live captures instantly across all devices.",
@@ -124,7 +125,7 @@ export default async function RootLayout({
                             "author": {
                                 "@type": "Organization",
                                 "name": "Gallery Eye Security & Sync",
-                                "url": "https://h4k3r-gallery.vercel.app"
+                                "url": "https://spynox.xyz"
                             },
                             "aggregateRating": {
                                 "@type": "AggregateRating",
