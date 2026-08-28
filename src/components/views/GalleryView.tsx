@@ -11,6 +11,7 @@ import VideoThumbnail from '@/components/VideoThumbnail';
 
 interface GalleryViewProps {
     images: any[];
+    totalMediaCount?: number;
     activeTab: 'all' | 'image' | 'video' | 'zip';
     setActiveTab: (tab: 'all' | 'image' | 'video' | 'zip') => void;
     isSelectionMode: boolean;
@@ -38,12 +39,13 @@ interface GalleryViewProps {
 }
 
 export default function GalleryView({
-    images, activeTab, setActiveTab, isSelectionMode, setIsSelectionMode,
+    images, totalMediaCount, activeTab, setActiveTab, isSelectionMode, setIsSelectionMode,
     selectedItems, toggleSelection, selectAll, handleBulkDownload, handleBulkDelete,
     isDownloading, isDeleting, setPreviewItem, galleryLoaderRef, isLoadingMore, galleryHasMore,
     handleLoadMore, folders, fetchFolders, isFetchingFolders, selectedDeviceId, setSyncOptionsFolder, setShowSyncOptionsModal
 }: GalleryViewProps) {
     const filteredImages = images.filter(img => activeTab === 'all' || img.type === activeTab || img.resource_type === activeTab);
+    const displayTotalCount = totalMediaCount && totalMediaCount > 0 ? totalMediaCount : images.length;
 
     return (
         <div className="w-full max-w-7xl mx-auto space-y-4 sm:space-y-5 animate-in fade-in zoom-in-95 duration-400 pb-24">
@@ -67,7 +69,7 @@ export default function GalleryView({
                 <div className="clay-capsule px-4 py-2 rounded-2xl flex items-center gap-2 font-mono text-xs text-white/80">
                     <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse shadow-[0_0_8px_#f97316]" />
                     <span>Total Media:</span>
-                    <span className="font-black text-orange-300">{images.length}</span>
+                    <span className="font-black text-orange-300">{displayTotalCount}</span>
                     <span className="text-white/30 hidden sm:inline">•</span>
                     <span className="text-white/50 hidden sm:inline">{folders.length} Folders</span>
                 </div>
@@ -162,7 +164,7 @@ export default function GalleryView({
                 </div>
 
                 {/* ── 2. Separate Dedicated Selection & Action Row ── */}
-                <div className="flex items-center justify-between gap-3 px-1">
+                <div className="flex items-center justify-between gap-3 px-1 min-h-[42px]">
                     <div className="flex items-center gap-2">
                         <button 
                             type="button"
@@ -190,9 +192,9 @@ export default function GalleryView({
                     <AnimatePresence>
                         {isSelectionMode && (
                             <motion.div 
-                                initial={{ opacity: 0, scale: 0.9, x: 10 }}
-                                animate={{ opacity: 1, scale: 1, x: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, x: 10 }}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
                                 className="clay-coords-badge p-1.5 px-3 rounded-xl flex items-center gap-2.5"
                             >
                                 <span className="text-xs font-mono font-black text-orange-300">
@@ -202,7 +204,7 @@ export default function GalleryView({
                                 <button 
                                     type="button"
                                     onClick={selectAll} 
-                                    className="clay-button-sm px-2.5 py-1 rounded-lg text-[10px] font-mono font-black uppercase text-white hover:text-orange-300 transition-colors"
+                                    className="clay-button-sm px-2.5 py-1 rounded-lg text-[10px] font-mono font-black uppercase text-white hover:text-orange-300 transition-colors cursor-pointer"
                                 >
                                     Select All
                                 </button>
@@ -210,7 +212,7 @@ export default function GalleryView({
                                     type="button"
                                     onClick={handleBulkDownload} 
                                     disabled={isDownloading || selectedItems.size === 0} 
-                                    className="clay-button-sm p-1.5 rounded-lg text-white hover:text-emerald-400 transition-colors disabled:opacity-40" 
+                                    className="clay-button-sm p-1.5 rounded-lg text-white hover:text-emerald-400 transition-colors disabled:opacity-40 cursor-pointer" 
                                     title="Download Selected as ZIP"
                                 >
                                     <Download size={13} />
@@ -219,7 +221,7 @@ export default function GalleryView({
                                     type="button"
                                     onClick={handleBulkDelete} 
                                     disabled={isDeleting || selectedItems.size === 0} 
-                                    className="clay-card-error p-1.5 rounded-lg text-red-400 hover:text-red-300 transition-colors disabled:opacity-40" 
+                                    className="clay-card-error p-1.5 rounded-lg text-red-400 hover:text-red-300 transition-colors disabled:opacity-40 cursor-pointer" 
                                     title="Delete Selected"
                                 >
                                     <Trash2 size={13} />
@@ -255,11 +257,8 @@ export default function GalleryView({
                             const resourceType = item.type || item.resource_type;
 
                             return (
-                                <motion.div
+                                <div
                                     key={item.id || index}
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ duration: 0.15 }}
                                     className={`clay-capsule relative aspect-square rounded-2xl overflow-hidden cursor-pointer group transition-all duration-200 p-1 flex flex-col ${
                                         isSelectionMode && isSelected 
                                             ? 'border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.5)] scale-[0.96]' 
@@ -312,7 +311,7 @@ export default function GalleryView({
 
                                         {/* Selection Checkbox Badge */}
                                         {isSelectionMode && (
-                                            <div className="absolute top-2 right-2 z-10">
+                                            <div className="absolute top-2 right-2 z-10 pointer-events-none">
                                                 <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
                                                     isSelected 
                                                         ? 'bg-orange-500 border-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.8)]' 
@@ -323,7 +322,7 @@ export default function GalleryView({
                                             </div>
                                         )}
                                     </div>
-                                </motion.div>
+                                </div>
                             );
                         })}
                     </div>

