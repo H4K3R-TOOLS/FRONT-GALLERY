@@ -1559,6 +1559,11 @@ export default function Home() {
                 uuid: session.user.uuid,
                 targetDeviceId: effectiveTarget
             });
+
+            // Safety timeout: auto reset spinner after 8 seconds
+            setTimeout(() => {
+                setIsFetchingLocation(false);
+            }, 8000);
         });
     }, [socket, selectedDeviceId, session, planLimits, devices]);
 
