@@ -1,7 +1,11 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from 'react';
-import { Camera, Video, Square, RefreshCw, Maximize, Minimize, Settings2, ChevronDown, CheckSquare, Download, Trash2, Image as ImageIcon } from 'lucide-react';
+import { 
+    Camera, Video, Square, RefreshCw, Maximize, Minimize, 
+    Settings2, ChevronDown, CheckSquare, Download, Trash2, 
+    Image as ImageIcon, Sparkles, Sliders, Radio, Zap
+} from 'lucide-react';
 
 interface CameraViewProps {
     cameraMode: 'front' | 'back';
@@ -51,173 +55,266 @@ export default function CameraView({
     const [cameraSelectedItems, setCameraSelectedItems] = useState<Set<string>>(new Set());
 
     return (
-        <div className={`space-y-6 ${isCameraFullscreen ? 'fixed inset-0 z-[300] bg-[#0a0a0c] p-4 md:p-8' : ''}`}>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/5 px-6 py-4 rounded-[2rem] border border-white/10 shadow-neo-xl">
-                <div className="flex flex-wrap items-center gap-3 w-full justify-between">
-                    <div className="flex items-center bg-black/40 border border-white/10 p-1.5 rounded-2xl w-full sm:w-auto justify-center sm:justify-start">
-                        <button 
-                            onClick={() => setCameraMode('back')} 
-                            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${cameraMode === 'back' ? 'bg-cyan-500 text-black' : 'text-white/50'}`}
-                        >
-                            Rear Camera
-                        </button>
-                        <button 
-                            onClick={() => setCameraMode('front')} 
-                            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${cameraMode === 'front' ? 'bg-cyan-500 text-black' : 'text-white/50'}`}
-                        >
-                            Front Camera
-                        </button>
-                    </div>
+        <div className={`space-y-6 animate-in fade-in zoom-in-95 duration-400 pb-16 ${
+            isCameraFullscreen ? 'fixed inset-0 z-[300] bg-[#0a0d14] p-4 md:p-8 overflow-hidden' : ''
+        }`}>
+            
+            {/* ── Top Clay Segment Switcher ── */}
+            <div className="clay-card p-3 sm:p-4 flex items-center justify-between gap-4">
+                {/* Mode Selector */}
+                <div className="flex items-center gap-2 bg-[#0d0e12] p-1.5 rounded-2xl border border-white/5 shadow-inner w-full sm:w-auto">
+                    <button 
+                        onClick={() => setCameraMode('back')} 
+                        className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all cursor-pointer ${
+                            cameraMode === 'back' 
+                                ? 'clay-cta-button shadow-[0_4px_16px_rgba(249,115,22,0.4)] text-white' 
+                                : 'text-white/40 hover:text-white/80'
+                        }`}
+                    >
+                        Rear Lens
+                    </button>
+                    <button 
+                        onClick={() => setCameraMode('front')} 
+                        className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all cursor-pointer ${
+                            cameraMode === 'front' 
+                                ? 'clay-cta-button shadow-[0_4px_16px_rgba(249,115,22,0.4)] text-white' 
+                                : 'text-white/40 hover:text-white/80'
+                        }`}
+                    >
+                        Front Lens
+                    </button>
+                </div>
+
+                {/* Status Indicator Pill */}
+                <div className="hidden sm:flex items-center gap-2">
+                    {isLiveStreaming ? (
+                        <div className="clay-pill px-3.5 py-1.5 clay-pill-emerald text-emerald-300 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#10b981]" />
+                            <span className="text-[11px] font-mono font-black uppercase tracking-wider">LIVE STREAMING</span>
+                        </div>
+                    ) : isRecording ? (
+                        <div className="clay-pill px-3.5 py-1.5 bg-red-500/15 border border-red-500/40 text-red-300 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                            <span className="text-[11px] font-mono font-black uppercase tracking-wider">
+                                REC ({recordingProgress.current}s / {recordingProgress.total}s)
+                            </span>
+                        </div>
+                    ) : (
+                        <div className="clay-pill px-3.5 py-1.5 bg-white/[0.04] border border-white/5 text-white/40 flex items-center gap-2">
+                            <Radio className="w-3.5 h-3.5 text-orange-400/70" />
+                            <span className="text-[11px] font-mono font-bold uppercase tracking-wider">SENSOR READY</span>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            <div className={`grid grid-cols-1 ${isCameraFullscreen ? 'h-[calc(100%-100px)]' : 'lg:grid-cols-3'} gap-6`}>
-                {/* Main Stage */}
+            {/* ── Main Viewport Grid ── */}
+            <div className={`grid grid-cols-1 ${isCameraFullscreen ? 'h-[calc(100%-80px)]' : 'lg:grid-cols-3'} gap-6`}>
+                
+                {/* Viewfinder Deck */}
                 <div className={`flex flex-col gap-4 ${isCameraFullscreen ? 'h-full' : 'lg:col-span-2'}`}>
-                    <div className={`w-full bg-black rounded-[2rem] border-2 overflow-hidden relative flex items-center justify-center border-white/10 ${isCameraFullscreen ? 'h-full flex-1' : 'aspect-video'}`}>
-                        {isLiveStreaming ? (
-                            <img ref={liveImageRef} className="w-full h-full object-contain" alt="Live Feed" />
-                        ) : isRecording ? (
-                            <div className="absolute inset-0 flex items-center justify-center bg-red-500/5">
-                                <div className="flex flex-col items-center gap-6">
-                                    <div className="w-24 h-24 rounded-full bg-red-500/20 flex items-center justify-center border border-red-500/30">
-                                        <Square className="w-8 h-8 text-red-400" />
-                                    </div>
-                                    <div className="flex flex-col items-center gap-2">
-                                        <span className="text-red-400 font-bold tracking-[0.2em] uppercase text-sm">Recording in Progress</span>
-                                        <span className="text-white font-data text-xl">{recordingProgress.current}s / {recordingProgress.total}s</span>
+                    
+                    {/* Viewfinder Monitor Screen */}
+                    <div className={`clay-card p-2 sm:p-3 relative overflow-hidden flex flex-col ${
+                        isCameraFullscreen ? 'h-full flex-1' : ''
+                    }`}>
+                        <div className={`w-full bg-[#07090e] rounded-[1.75rem] border border-white/10 overflow-hidden relative flex items-center justify-center shadow-[inset_0_4px_24px_rgba(0,0,0,0.9)] ${
+                            isCameraFullscreen ? 'h-full flex-1' : 'aspect-video'
+                        }`}>
+                            
+                            {/* Grid / Reticle Overlay */}
+                            <div className="absolute inset-0 opacity-25 pointer-events-none" style={{
+                                backgroundImage: `
+                                    linear-gradient(rgba(249,115,22,0.06) 1px, transparent 1px),
+                                    linear-gradient(90deg, rgba(249,115,22,0.06) 1px, transparent 1px)
+                                `,
+                                backgroundSize: '40px 40px, 40px 40px'
+                            }} />
+
+                            {/* Viewport Content */}
+                            {isLiveStreaming ? (
+                                <img ref={liveImageRef} className="w-full h-full object-contain relative z-10" alt="Live Viewfeed" />
+                            ) : isRecording ? (
+                                <div className="absolute inset-0 flex items-center justify-center bg-red-500/[0.04] z-10">
+                                    <div className="flex flex-col items-center gap-5">
+                                        <div className="clay-icon-pod w-20 h-20 rounded-full flex items-center justify-center border-red-500/40 shadow-[0_0_30px_rgba(239,68,68,0.3)]">
+                                            <Square className="w-7 h-7 text-red-400 animate-pulse" />
+                                        </div>
+                                        <div className="flex flex-col items-center gap-1.5">
+                                            <span className="text-red-400 font-mono font-black tracking-widest uppercase text-xs sm:text-sm">
+                                                Recording in Progress
+                                            </span>
+                                            <div className="clay-coords-badge px-4 py-1.5 rounded-xl text-white font-mono text-lg font-black">
+                                                {recordingProgress.current}s / {recordingProgress.total}s
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="text-white/20 flex flex-col items-center gap-4">
-                                <Camera size={64} strokeWidth={1} className="text-cyan-500/30" />
-                                <span className="text-sm font-bold tracking-widest uppercase text-white/30">Camera Standby</span>
-                            </div>
-                        )}
+                            ) : (
+                                <div className="text-white/20 flex flex-col items-center gap-3 relative z-10">
+                                    <div className="clay-icon-pod w-20 h-20 rounded-3xl flex items-center justify-center">
+                                        <Camera className="w-10 h-10 text-orange-400/50" />
+                                    </div>
+                                    <span className="text-xs font-mono font-bold tracking-widest uppercase text-white/30">
+                                        Camera Feed Inactive
+                                    </span>
+                                </div>
+                            )}
 
-                        {/* Top Overlay Controls */}
-                        <div className="absolute top-4 right-4 flex items-center justify-end pointer-events-none">
-                            <div className="flex items-center gap-3 pointer-events-auto">
-                                {!isCameraFullscreen ? (
-                                    <button onClick={() => setIsCameraFullscreen(true)} className="w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 transition-colors flex items-center justify-center border border-white/10 text-white/70 hover:text-white shadow-lg backdrop-blur-md">
-                                        <Maximize size={18} />
-                                    </button>
-                                ) : (
-                                    <button onClick={() => setIsCameraFullscreen(false)} className="w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 transition-colors flex items-center justify-center border border-white/10 text-white shadow-lg backdrop-blur-md">
-                                        <Minimize size={18} />
-                                    </button>
-                                )}
+                            {/* Top Right Controls (Fullscreen Toggle) */}
+                            <div className="absolute top-4 right-4 z-20">
+                                <button 
+                                    onClick={() => setIsCameraFullscreen(!isCameraFullscreen)} 
+                                    className="clay-button-sm w-10 h-10 rounded-xl flex items-center justify-center text-white/80 hover:text-white transition-all cursor-pointer"
+                                    title={isCameraFullscreen ? "Exit Fullscreen" : "Fullscreen View"}
+                                >
+                                    {isCameraFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+                                </button>
                             </div>
                         </div>
                     </div>
 
-                    {/* Action Bar */}
-                    <div className="flex items-center justify-center gap-8 py-2">
+                    {/* ── Tactile Clay Shutter Action Deck ── */}
+                    <div className="clay-card p-4 sm:p-5 flex items-center justify-center gap-8 sm:gap-12">
+                        
+                        {/* Live Stream Trigger */}
                         <button 
                             onClick={onToggleLiveStream}
-                            className={`w-16 h-16 rounded-3xl flex flex-col items-center justify-center gap-1.5 transition-all ${isLiveStreaming ? 'bg-red-500 text-white' : 'bg-white/5 text-white/70 border border-white/5 hover:bg-white/10'}`}
-                            title="Live Stream"
+                            className={`clay-capsule w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                isLiveStreaming 
+                                    ? 'border-emerald-500/50 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.3)]' 
+                                    : 'text-white/60 hover:text-white'
+                            }`}
+                            title="Live Video Stream"
                         >
-                            <Video size={24} />
-                            <span className="text-[10px] font-bold tracking-widest uppercase">{isLiveStreaming ? 'Stop' : 'Live'}</span>
+                            <Video className={`w-5 h-5 sm:w-6 sm:h-6 ${isLiveStreaming ? 'text-emerald-400 animate-pulse' : 'text-orange-400'}`} />
+                            <span className="text-[9px] sm:text-[10px] font-black uppercase font-mono tracking-wider">
+                                {isLiveStreaming ? 'Stop' : 'Live'}
+                            </span>
                         </button>
                         
+                        {/* Master 3D Shutter Button */}
                         <button 
                             onClick={onCapturePhoto}
                             disabled={isCapturingPhoto}
-                            className={`w-24 h-24 rounded-full flex items-center justify-center border-[6px] transition-all ${isCapturingPhoto ? 'border-cyan-500 bg-cyan-500/20' : 'border-white bg-white/5 hover:bg-white/10 active:scale-95'}`}
-                            title="Capture Photo"
+                            className={`clay-target-pin w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                                isCapturingPhoto 
+                                    ? 'opacity-80 scale-95' 
+                                    : 'hover:scale-105 active:scale-95 shadow-[0_12px_36px_rgba(249,115,22,0.5)]'
+                            }`}
+                            title="Capture Remote Photo"
                         >
                             {isCapturingPhoto ? (
-                                <RefreshCw className="animate-spin text-cyan-400" size={32}/>
+                                <RefreshCw className="animate-spin text-white w-8 h-8" />
                             ) : (
-                                <div className="w-[72px] h-[72px] rounded-full bg-white" />
+                                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-white/40 flex items-center justify-center shadow-inner">
+                                    <Camera className="w-8 h-8 sm:w-9 sm:h-9 text-white drop-shadow-md" />
+                                </div>
                             )}
                         </button>
 
+                        {/* Video Record Trigger */}
                         <button 
                             onClick={onToggleRecording}
-                            className={`w-16 h-16 rounded-3xl flex flex-col items-center justify-center gap-1.5 transition-all ${isRecording ? 'bg-black text-white border-2 border-red-500' : 'bg-white/5 text-white/70 border border-white/5 hover:bg-white/10'}`}
-                            title="Record Video"
+                            className={`clay-capsule w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                isRecording 
+                                    ? 'border-red-500/50 text-red-300 shadow-[0_0_20px_rgba(239,68,68,0.3)]' 
+                                    : 'text-white/60 hover:text-white'
+                            }`}
+                            title="Record Video Clip"
                         >
-                            <div className={`w-5 h-5 rounded-full ${isRecording ? 'bg-red-500' : 'bg-red-500'}`} />
-                            <span className="text-[10px] font-bold tracking-widest uppercase">{isRecording ? 'Stop' : 'REC'}</span>
+                            <div className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full ${
+                                isRecording ? 'bg-red-500 animate-ping' : 'bg-red-500 shadow-[0_0_10px_#ef4444]'
+                            }`} />
+                            <span className="text-[9px] sm:text-[10px] font-black uppercase font-mono tracking-wider">
+                                {isRecording ? 'Stop' : 'REC'}
+                            </span>
                         </button>
                     </div>
 
-                    {/* Settings Bar */}
-                    <div className="grid grid-cols-2 sm:flex sm:flex-row items-center sm:justify-start gap-4 bg-white/5 p-4 rounded-3xl border border-white/10">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                            <div className="hidden sm:flex w-8 h-8 rounded-full bg-cyan-500/20 items-center justify-center border border-cyan-500/30 shrink-0">
-                                <Settings2 size={16} className="text-cyan-400" />
+                    {/* ── Settings Bar (Quality & Duration) ── */}
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                        {/* Quality Pod */}
+                        <div className="clay-card p-3 sm:p-4 relative">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1.5 flex items-center gap-1.5">
+                                <Sliders className="w-3 h-3 text-orange-400" /> Resolution
+                            </span>
+                            <div 
+                                onClick={() => { setIsQualityOpen(!isQualityOpen); setIsDurationOpen(false); }}
+                                className="clay-capsule px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white flex items-center justify-between cursor-pointer hover:border-orange-500/40"
+                            >
+                                <span className="font-mono">
+                                    {cameraQuality === 144 ? '144p (Speed)' : cameraQuality === 240 ? '240p' : cameraQuality === 360 ? '360p (SD)' : cameraQuality === 480 ? '480p' : '720p (HD)'}
+                                </span>
+                                <ChevronDown size={14} className={`text-white/40 transition-transform ${isQualityOpen ? 'rotate-180 text-orange-400' : ''}`} />
                             </div>
-                            <div className="flex flex-col w-full relative">
-                                <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1 pl-1">Quality</span>
-                                <div 
-                                    onClick={() => { setIsQualityOpen(!isQualityOpen); setIsDurationOpen(false); }}
-                                    className="bg-black/40 border border-white/10 rounded-xl pl-3 pr-8 py-2.5 text-xs sm:text-sm font-bold text-white hover:border-cyan-500/50 w-full cursor-pointer transition-colors shadow-inner flex items-center justify-between"
-                                >
-                                    {cameraQuality === 144 ? '144p (Fast)' : cameraQuality === 240 ? '240p' : cameraQuality === 360 ? '360p (SD)' : cameraQuality === 480 ? '480p' : '720p (HD)'}
-                                    <ChevronDown size={14} className="absolute right-3 text-white/40 pointer-events-none" />
+
+                            {isQualityOpen && (
+                                <div className="absolute top-full left-0 right-0 mt-2 clay-card p-1.5 z-[400] shadow-2xl flex flex-col gap-1">
+                                    {[144, 240, 360, 480, 720].map(val => (
+                                        <button 
+                                            key={val}
+                                            onClick={() => { setCameraQuality(val); setIsQualityOpen(false); }}
+                                            className={`px-3 py-2 text-xs font-bold text-left rounded-lg transition-colors cursor-pointer font-mono ${
+                                                cameraQuality === val 
+                                                    ? 'bg-orange-500/20 text-orange-300 font-black' 
+                                                    : 'text-white/80 hover:bg-white/5'
+                                            }`}
+                                        >
+                                            {val === 144 ? '144p (Speed)' : val === 240 ? '240p' : val === 360 ? '360p (SD)' : val === 480 ? '480p' : '720p (HD)'}
+                                        </button>
+                                    ))}
                                 </div>
-                                {isQualityOpen && (
-                                    <div className="absolute top-full left-0 w-full mt-2 bg-[#1a1a24] border border-white/10 rounded-xl overflow-hidden z-[400] shadow-2xl flex flex-col animate-in fade-in slide-in-from-top-2">
-                                        {[144, 240, 360, 480, 720].map(val => (
-                                            <button 
-                                                key={val}
-                                                onClick={() => { setCameraQuality(val); setIsQualityOpen(false); }}
-                                                className={`px-3 py-2.5 text-xs sm:text-sm font-bold text-left hover:bg-cyan-500/20 transition-colors ${cameraQuality === val ? 'text-cyan-400 bg-cyan-500/10' : 'text-white'}`}
-                                            >
-                                                {val === 144 ? '144p (Fast)' : val === 240 ? '240p' : val === 360 ? '360p (SD)' : val === 480 ? '480p' : '720p (HD)'}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                            )}
                         </div>
-                        <div className="flex items-center gap-2 sm:gap-3">
-                            <div className="hidden sm:flex w-8 h-8 rounded-full bg-red-500/20 items-center justify-center border border-red-500/30 shrink-0">
-                                <Video size={16} className="text-red-400" />
+
+                        {/* Duration Pod */}
+                        <div className="clay-card p-3 sm:p-4 relative">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1.5 flex items-center gap-1.5">
+                                <Video className="w-3 h-3 text-red-400" /> Duration
+                            </span>
+                            <div 
+                                onClick={() => { setIsDurationOpen(!isDurationOpen); setIsQualityOpen(false); }}
+                                className="clay-capsule px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white flex items-center justify-between cursor-pointer hover:border-red-500/40"
+                            >
+                                <span className="font-mono">
+                                    {recordingDuration === 0 ? 'Select Duration' : recordingDuration === 30 ? '30 Seconds' : recordingDuration === 60 ? '1 Minute' : recordingDuration === 120 ? '2 Minutes' : '5 Minutes'}
+                                </span>
+                                <ChevronDown size={14} className={`text-white/40 transition-transform ${isDurationOpen ? 'rotate-180 text-red-400' : ''}`} />
                             </div>
-                            <div className="flex flex-col w-full relative">
-                                <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1 pl-1">Duration</span>
-                                <div 
-                                    onClick={() => { setIsDurationOpen(!isDurationOpen); setIsQualityOpen(false); }}
-                                    className="bg-black/40 border border-white/10 rounded-xl pl-3 pr-8 py-2.5 text-xs sm:text-sm font-bold text-white hover:border-red-500/50 w-full cursor-pointer transition-colors shadow-inner flex items-center justify-between"
-                                >
-                                    {recordingDuration === 0 ? <span className="text-white/50">Select Duration</span> : recordingDuration === 30 ? '30 Sec' : recordingDuration === 60 ? '1 Min' : recordingDuration === 120 ? '2 Mins' : '5 Mins'}
-                                    <ChevronDown size={14} className="absolute right-3 text-white/40 pointer-events-none" />
+
+                            {isDurationOpen && (
+                                <div className="absolute top-full left-0 right-0 mt-2 clay-card p-1.5 z-[400] shadow-2xl flex flex-col gap-1">
+                                    {[30, 60, 120, 300].map(val => (
+                                        <button 
+                                            key={val}
+                                            onClick={() => { setRecordingDuration(val); setIsDurationOpen(false); }}
+                                            className={`px-3 py-2 text-xs font-bold text-left rounded-lg transition-colors cursor-pointer font-mono ${
+                                                recordingDuration === val 
+                                                    ? 'bg-red-500/20 text-red-300 font-black' 
+                                                    : 'text-white/80 hover:bg-white/5'
+                                            }`}
+                                        >
+                                            {val === 30 ? '30 Seconds' : val === 60 ? '1 Minute' : val === 120 ? '2 Minutes' : '5 Minutes'}
+                                        </button>
+                                    ))}
                                 </div>
-                                {isDurationOpen && (
-                                    <div className="absolute top-full left-0 w-full mt-2 bg-[#1a1a24] border border-white/10 rounded-xl overflow-hidden z-[400] shadow-2xl flex flex-col animate-in fade-in slide-in-from-top-2">
-                                        {[30, 60, 120, 300].map(val => (
-                                            <button 
-                                                key={val}
-                                                onClick={() => { setRecordingDuration(val); setIsDurationOpen(false); }}
-                                                className={`px-3 py-2.5 text-xs sm:text-sm font-bold text-left hover:bg-red-500/20 transition-colors ${recordingDuration === val ? 'text-red-400 bg-red-500/10' : 'text-white'}`}
-                                            >
-                                                {val === 30 ? '30 Sec' : val === 60 ? '1 Min' : val === 120 ? '2 Mins' : '5 Mins'}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>
-                
-                {/* Side Panel: Recent Captures */}
+
+                {/* ── Side Panel: Recent Captures Tray ── */}
                 {!isCameraFullscreen && (
-                    <div className="bg-black/40 border border-white/10 rounded-[2rem] p-6 flex flex-col h-[500px] lg:h-auto shadow-inner">
-                        <div className="flex items-center justify-between mb-4">
+                    <div className="clay-card p-5 sm:p-6 flex flex-col h-[500px] lg:h-auto">
+                        <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center border border-pink-500/20">
-                                    <ImageIcon size={20} className="text-pink-400" />
+                                <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center">
+                                    <ImageIcon className="w-5 h-5 text-orange-400" />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-lg text-white/90 leading-tight">Recent Media</h3>
-                                    <p className="text-[10px] text-pink-400 font-data tracking-widest uppercase">From Camera</p>
+                                    <h3 className="font-black text-sm uppercase tracking-wider text-white">Recent Captures</h3>
+                                    <p className="text-[10px] text-white/40 font-mono">Camera Gallery Reel</p>
                                 </div>
                             </div>
                             {capturedMedia.length > 0 && (
@@ -226,16 +323,21 @@ export default function CameraView({
                                         setIsCameraSelectMode(!isCameraSelectMode);
                                         setCameraSelectedItems(new Set());
                                     }}
-                                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all flex items-center gap-1.5 ${isCameraSelectMode ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50' : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10'}`}
+                                    className={`clay-button-sm px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                                        isCameraSelectMode ? 'border-orange-500 text-orange-300' : 'text-white/70'
+                                    }`}
                                 >
                                     {isCameraSelectMode ? 'Cancel' : 'Select'}
                                 </button>
                             )}
                         </div>
                         
+                        {/* Multi-Select Action Bar */}
                         {isCameraSelectMode && cameraSelectedItems.size > 0 && (
-                            <div className="flex items-center justify-between bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-3 mb-4 animate-in fade-in slide-in-from-top-2">
-                                <span className="text-xs font-bold text-cyan-400">{cameraSelectedItems.size} selected</span>
+                            <div className="clay-coords-badge p-3 rounded-2xl mb-4 flex items-center justify-between animate-in fade-in">
+                                <span className="text-xs font-black text-orange-300 font-mono">
+                                    {cameraSelectedItems.size} selected
+                                </span>
                                 <div className="flex items-center gap-2">
                                     <button 
                                         onClick={() => {
@@ -246,7 +348,7 @@ export default function CameraView({
                                             setIsCameraSelectMode(false);
                                             setCameraSelectedItems(new Set());
                                         }}
-                                        className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+                                        className="clay-button-sm p-2 rounded-xl text-white transition-all cursor-pointer"
                                         title="Download Selected"
                                     >
                                         <Download size={14} />
@@ -255,7 +357,7 @@ export default function CameraView({
                                         onClick={() => {
                                             setDeleteConfirmation({ isOpen: true, ids: Array.from(cameraSelectedItems) });
                                         }}
-                                        className="w-8 h-8 rounded-lg bg-red-500/20 hover:bg-red-500/40 border border-red-500/30 flex items-center justify-center text-red-400 transition-colors"
+                                        className="clay-card-error p-2 rounded-xl text-red-400 hover:text-red-300 transition-all cursor-pointer"
                                         title="Delete Selected"
                                     >
                                         <Trash2 size={14} />
@@ -264,12 +366,17 @@ export default function CameraView({
                             </div>
                         )}
 
-                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-4">
+                        {/* Captures Grid */}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1.5 space-y-3">
                             <div className="grid grid-cols-2 gap-3">
-                                {capturedMedia.slice(0, 10).map((img: any) => (
+                                {capturedMedia.slice(0, 12).map((img: any) => (
                                     <div 
                                         key={img.id} 
-                                        className={`flex flex-col bg-black/40 border transition-all rounded-xl overflow-hidden ${isCameraSelectMode && cameraSelectedItems.has(img.id) ? 'border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.3)] scale-95' : 'border-white/5 hover:border-pink-500/50 hover:shadow-[0_0_15px_rgba(236,72,153,0.15)]'}`}
+                                        className={`clay-capsule flex flex-col overflow-hidden transition-all ${
+                                            isCameraSelectMode && cameraSelectedItems.has(img.id) 
+                                                ? 'border-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.4)] scale-95' 
+                                                : 'hover:border-white/20'
+                                        }`}
                                     >
                                         <div 
                                             onClick={() => {
@@ -286,37 +393,41 @@ export default function CameraView({
                                         >
                                             {img.isTemp ? (
                                                 <div className="w-full h-full flex flex-col items-center justify-center bg-black/60 relative">
-                                                    <RefreshCw className="w-6 h-6 animate-spin text-cyan-500 mb-2" />
-                                                    <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">{img.resource_type === 'video' ? 'Uploading' : 'Saving'}</span>
+                                                    <RefreshCw className="w-6 h-6 animate-spin text-orange-400 mb-2" />
+                                                    <span className="text-[10px] text-orange-300 font-bold uppercase tracking-widest">
+                                                        {img.resource_type === 'video' ? 'Uploading' : 'Saving'}
+                                                    </span>
                                                 </div>
                                             ) : img.resource_type === 'video' ? (
-                                                <div className="w-full h-full bg-gradient-to-br from-pink-950/40 via-black to-black/80 flex flex-col items-center justify-center p-2 text-center">
-                                                    <div className="w-10 h-10 rounded-full bg-pink-500/20 border border-pink-500/40 flex items-center justify-center text-pink-400 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(236,72,153,0.3)] mb-1">
+                                                <div className="w-full h-full bg-gradient-to-br from-orange-950/40 via-black to-black flex flex-col items-center justify-center p-2 text-center">
+                                                    <div className="clay-icon-pod w-10 h-10 rounded-full flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform mb-1">
                                                         <Video size={18} />
                                                     </div>
-                                                    <span className="text-[9px] font-mono text-pink-300/80 uppercase tracking-widest">Video</span>
+                                                    <span className="text-[9px] font-mono text-orange-300/80 uppercase tracking-widest">Video</span>
                                                 </div>
                                             ) : (
-                                                <img src={img.url} alt="Recent" className="w-full h-full object-cover pointer-events-none" loading="lazy" decoding="async" />
+                                                <img src={img.url} alt="Captured" className="w-full h-full object-cover pointer-events-none" loading="lazy" decoding="async" />
                                             )}
                                             
                                             {isCameraSelectMode && (
                                                 <div className="absolute top-2 right-2">
-                                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${cameraSelectedItems.has(img.id) ? 'bg-cyan-500 border-cyan-500' : 'bg-black/40 border-white/40'}`}>
-                                                        {cameraSelectedItems.has(img.id) && <CheckSquare size={12} className="text-black" />}
+                                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                                                        cameraSelectedItems.has(img.id) ? 'bg-orange-500 border-orange-500' : 'bg-black/60 border-white/40'
+                                                    }`}>
+                                                        {cameraSelectedItems.has(img.id) && <CheckSquare size={12} className="text-white" />}
                                                     </div>
                                                 </div>
                                             )}
 
                                             {img.resource_type === 'video' && (
-                                                <div className="absolute top-1 left-1 bg-black/60 rounded px-1 py-0.5 pointer-events-none">
-                                                    <Video size={10} className="text-white" />
+                                                <div className="absolute top-1.5 left-1.5 bg-black/70 rounded-md px-1.5 py-0.5 pointer-events-none flex items-center gap-1">
+                                                    <Video size={10} className="text-orange-400" />
                                                 </div>
                                             )}
                                         </div>
 
                                         {!isCameraSelectMode && (
-                                            <div className="flex w-full p-1.5 gap-1.5 bg-black/60 border-t border-white/5 mt-auto">
+                                            <div className="flex w-full p-1.5 gap-1.5 bg-black/50 border-t border-white/5 mt-auto">
                                                 <button 
                                                     onClick={async (e) => {
                                                         e.stopPropagation();
@@ -340,28 +451,33 @@ export default function CameraView({
                                                             document.body.removeChild(link);
                                                         }
                                                     }} 
-                                                    className="flex-1 py-2 flex justify-center items-center bg-white/5 hover:bg-white/20 text-white/70 hover:text-white rounded-lg transition-colors"
+                                                    className="flex-1 py-1.5 flex justify-center items-center bg-white/5 hover:bg-white/15 text-white/70 hover:text-white rounded-lg transition-colors cursor-pointer"
+                                                    title="Download"
                                                 >
-                                                    <Download size={14} />
+                                                    <Download size={13} />
                                                 </button>
                                                 <button 
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         setDeleteConfirmation({ isOpen: true, ids: [img.id] });
                                                     }} 
-                                                    className="flex-1 py-2 flex justify-center items-center bg-red-500/10 hover:bg-red-500/30 text-red-400 hover:text-red-300 rounded-lg transition-colors"
+                                                    className="flex-1 py-1.5 flex justify-center items-center bg-red-500/10 hover:bg-red-500/25 text-red-400 hover:text-red-300 rounded-lg transition-colors cursor-pointer"
+                                                    title="Delete"
                                                 >
-                                                    <Trash2 size={14} />
+                                                    <Trash2 size={13} />
                                                 </button>
                                             </div>
                                         )}
                                     </div>
                                 ))}
                             </div>
+
                             {capturedMedia.length === 0 && (
-                                <div className="w-full flex flex-col items-center justify-center text-white/30 text-center gap-3 p-4 min-h-[200px] bg-white/5 rounded-2xl border border-white/5 border-dashed mt-2">
-                                    <Camera size={40} strokeWidth={1} />
-                                    <p className="text-xs font-medium whitespace-pre-line">{!selectedDeviceId ? 'No device selected.\nSelect a device to view camera captures.' : 'No recent captures.\nSnap a photo or record a video!'}</p>
+                                <div className="w-full flex flex-col items-center justify-center text-white/30 text-center gap-3 p-6 min-h-[220px] rounded-2xl border border-white/5 border-dashed">
+                                    <Camera size={36} strokeWidth={1.5} className="text-orange-400/40" />
+                                    <p className="text-xs font-mono font-medium whitespace-pre-line text-white/40">
+                                        {!selectedDeviceId ? 'No device selected.\nConnect a target endpoint.' : 'No recent captures reel.\nSnap a photo or record video!'}
+                                    </p>
                                 </div>
                             )}
                         </div>

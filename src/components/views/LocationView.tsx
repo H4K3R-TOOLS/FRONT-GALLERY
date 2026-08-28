@@ -48,64 +48,38 @@ export default function LocationView({
     const accuracyRadius = locationData ? Math.round(locationData.accuracy) : null;
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in zoom-in-95 duration-400 pb-16">
+        <div className="max-w-4xl mx-auto space-y-5 animate-in fade-in zoom-in-95 duration-400 pb-16">
             
-            {/* ── Top Claymorphic Header ── */}
-            <div className="clay-card p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden">
-                {/* Background Ambient Glow */}
-                <div className="absolute -top-12 -left-12 w-48 h-48 bg-orange-500/15 rounded-full blur-3xl pointer-events-none" />
-                <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
-
-                <div className="flex items-center gap-4 relative z-10">
-                    <div className="clay-icon-pod w-14 h-14 rounded-2xl flex items-center justify-center shrink-0">
-                        <Compass className="w-7 h-7 text-orange-400 animate-spin-slow" />
-                    </div>
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight drop-shadow-sm">
-                                GPS Telemetry
-                            </h2>
-                            <span className="text-[10px] uppercase font-black tracking-widest px-2.5 py-0.5 rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/30">
-                                v3.0 Clay
-                            </span>
-                        </div>
-                        <p className="text-white/50 text-xs sm:text-sm mt-0.5 font-medium">
-                            Physical satellite orbit & network positioning node
-                        </p>
-                    </div>
-                </div>
-
-                {/* Live Status Pill */}
-                <div className="flex items-center gap-2.5 self-start sm:self-center relative z-10">
-                    {locationData ? (
-                        <div className={`clay-pill px-4 py-2 flex items-center gap-2 ${
-                            isLiveFix 
-                                ? 'clay-pill-emerald text-emerald-300' 
-                                : 'clay-pill-amber text-amber-300'
-                        }`}>
-                            <span className={`w-2.5 h-2.5 rounded-full ${
-                                isLiveFix 
-                                    ? 'bg-emerald-400 shadow-[0_0_10px_#10b981] animate-pulse' 
-                                    : 'bg-amber-400'
-                            }`} />
-                            <span className="text-xs font-black uppercase tracking-wider font-mono">
-                                {isLiveFix ? 'LIVE GPS LOCK' : 'LAST RECORDED'}
-                            </span>
-                        </div>
-                    ) : (
-                        <div className="clay-pill px-4 py-2 flex items-center gap-2 text-white/40 border border-white/5">
-                            <Radio className="w-3.5 h-3.5" />
-                            <span className="text-xs font-mono font-bold uppercase tracking-wider">STANDBY</span>
-                        </div>
-                    )}
-                </div>
-            </div>
-
             {/* ── Main Tactile Radar & Visualizer Card ── */}
             <div className="clay-card p-4 sm:p-6 relative overflow-hidden">
                 
                 {/* Visualizer Frame */}
                 <div className="relative rounded-[1.75rem] overflow-hidden border border-white/10 shadow-[inset_0_4px_20px_rgba(0,0,0,0.8)] bg-[#0a0d14] min-h-[300px] sm:min-h-[340px] flex items-center justify-center">
+                    
+                    {/* Top Floating Status Indicator */}
+                    <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
+                        {locationData ? (
+                            <div className={`clay-pill px-3.5 py-1.5 flex items-center gap-2 ${
+                                isLiveFix 
+                                    ? 'clay-pill-emerald text-emerald-300' 
+                                    : 'clay-pill-amber text-amber-300'
+                            }`}>
+                                <span className={`w-2 h-2 rounded-full ${
+                                    isLiveFix 
+                                        ? 'bg-emerald-400 shadow-[0_0_8px_#10b981] animate-pulse' 
+                                        : 'bg-amber-400'
+                                }`} />
+                                <span className="text-[11px] font-black uppercase tracking-wider font-mono">
+                                    {isLiveFix ? 'LIVE GPS LOCK' : 'LAST KNOWN FIX'}
+                                </span>
+                            </div>
+                        ) : (
+                            <div className="clay-pill px-3 py-1.5 flex items-center gap-2 text-white/40 border border-white/5 bg-black/40 backdrop-blur-md">
+                                <Radio className="w-3 h-3 text-orange-400/70" />
+                                <span className="text-[10px] font-mono font-bold uppercase tracking-wider">STANDBY</span>
+                            </div>
+                        )}
+                    </div>
                     
                     {/* Tactical Radar Grid Background */}
                     <div className="absolute inset-0 opacity-40 pointer-events-none" style={{
