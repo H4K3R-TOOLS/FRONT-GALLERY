@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Image as ImageIcon, Video, Package, DownloadCloud, X, LayoutGrid, Lock, Crown, Keyboard } from 'lucide-react';
+import { 
+    Image as ImageIcon, Video, Package, DownloadCloud, 
+    X, LayoutGrid, Lock, Crown, Layers, Sparkles
+} from 'lucide-react';
 
 interface SyncOptionsModalProps {
     isOpen: boolean;
@@ -53,24 +56,19 @@ export default function SyncOptionsModal({
         ? (folder?.imageCount ?? folder?.count ?? 999)
         : (folder?.videoCount ?? folder?.count ?? 999);
 
-    // Compute accurate total count — never show 0 if image/video counts exist
-    const computedTotal = (() => {
+    const totalCount = (() => {
         if (folder?.count && folder.count > 0) return folder.count;
         const ic = folder?.imageCount ?? 0;
         const vc = folder?.videoCount ?? 0;
         if (ic + vc > 0) return ic + vc;
-        return null; // unknown — hide the count
+        return null;
     })();
 
-    const totalCount = computedTotal;
-
-    // Handle locked feature click
     const handleLockedClick = (feature: string) => {
-        setUpgradeMessage(`Upgrade to Premium to unlock "${feature}"`);
+        setUpgradeMessage(`Upgrade your plan to unlock "${feature}"`);
         setShowUpgradePopup(true);
     };
 
-    // Handle manual input submit
     const handleManualSubmit = () => {
         const val = parseInt(manualInput, 10);
         if (!isNaN(val) && val > 0) {
@@ -85,268 +83,279 @@ export default function SyncOptionsModal({
         { label: '15', value: 15 },
         { label: '50', value: 50 },
         { label: 'All', value: 'all', locked: isBasic },
-        { label: 'Manual', value: 'manual' },
+        { label: 'Custom', value: 'manual' },
     ];
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
             <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="relative w-full max-w-lg neo-surface rounded-[2rem] border border-white/10 shadow-2xl overflow-hidden"
+                exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                className="relative w-full max-w-md clay-card p-5 sm:p-7 rounded-[2rem] border border-white/15 shadow-[0_25px_60px_rgba(0,0,0,0.95)] overflow-hidden"
             >
-                {/* Header Gradient */}
-                <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-accent/20 to-transparent opacity-50 pointer-events-none" />
-
                 {/* Close Button */}
-                <button onClick={onClose} className="absolute top-6 right-6 p-2 rounded-full bg-white/5 hover:bg-white/10 text-fg-2 hover:text-white transition-colors z-10">
-                    <X className="w-5 h-5" />
+                <button 
+                    type="button"
+                    onClick={onClose} 
+                    className="absolute top-5 right-5 p-2 rounded-xl clay-button-sm text-white/60 hover:text-white transition-colors z-10 cursor-pointer"
+                >
+                    <X className="w-4 h-4" />
                 </button>
 
-                <div className="p-8 pt-10">
-                    {/* Title */}
-                    <div className="text-center mb-8">
-                        <h2 className="text-2xl font-bold text-fg-1 tracking-tight mb-2">Sync Settings</h2>
-                        <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full bg-black/40 border border-white/5 shadow-inner">
-                            <span className="text-accent font-semibold">{folder.name}</span>
-                            {totalCount !== null && (
-                                <span className="text-fg-3 text-sm">({totalCount} items)</span>
-                            )}
-                        </div>
+                {/* ── Modal Header ── */}
+                <div className="flex flex-col items-center text-center mb-6 pt-1">
+                    <div className="clay-icon-pod w-12 h-12 rounded-2xl flex items-center justify-center mb-3">
+                        <Layers className="w-6 h-6 text-orange-400" />
                     </div>
-
-                    <div className="space-y-8">
-                        {/* 1. Media Type */}
-                        {(hasImages && hasVideos) && (
-                            <div>
-                                <h3 className="text-sm font-bold text-fg-2 uppercase tracking-widest mb-3 px-1">1. Media Type</h3>
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={() => { setMediaType('image'); setShowManualInput(false); setManualInput(''); }}
-                                        className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-2xl border transition-all duration-300 ${mediaType === 'image' ? 'bg-accent/10 border-accent/50 shadow-accent-glow' : 'bg-black/40 border-white/5 hover:bg-white/5'}`}
-                                    >
-                                        <ImageIcon className={`w-8 h-8 ${mediaType === 'image' ? 'text-accent' : 'text-fg-3'}`} />
-                                        <span className={`font-bold ${mediaType === 'image' ? 'text-accent' : 'text-fg-2'}`}>Photos {folder?.imageCount !== undefined ? `(${folder.imageCount})` : ''}</span>
-                                    </button>
-                                    <button
-                                        onClick={() => { setMediaType('video'); setShowManualInput(false); setManualInput(''); }}
-                                        className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-2xl border transition-all duration-300 ${mediaType === 'video' ? 'bg-accent/10 border-accent/50 shadow-accent-glow' : 'bg-black/40 border-white/5 hover:bg-white/5'}`}
-                                    >
-                                        <Video className={`w-8 h-8 ${mediaType === 'video' ? 'text-accent' : 'text-fg-3'}`} />
-                                        <span className={`font-bold ${mediaType === 'video' ? 'text-accent' : 'text-fg-2'}`}>Videos {folder?.videoCount !== undefined ? `(${folder.videoCount})` : ''}</span>
-                                    </button>
-                                </div>
-                            </div>
+                    <h2 className="text-lg font-black text-white uppercase tracking-wider">Sync Folder Media</h2>
+                    <div className="clay-coords-badge px-3.5 py-1.5 rounded-xl flex items-center gap-2 mt-2">
+                        <span className="text-orange-300 font-mono font-bold text-xs truncate max-w-[180px]">{folder.name}</span>
+                        {totalCount !== null && (
+                            <span className="text-white/40 font-mono text-[11px]">({totalCount} items)</span>
                         )}
-
-                        {/* 2. Quantity to Fetch */}
-                        <div>
-                            <h3 className="text-sm font-bold text-fg-2 uppercase tracking-widest mb-3 px-1">2. Quantity to Fetch</h3>
-                            {/* Quantity Buttons — fixed size, color/border glow on active */}
-                            <div className="flex gap-2 bg-black/40 p-2 rounded-2xl border border-white/5 shadow-inner">
-                                {quantityOptions.map((opt) => {
-                                    const isActive = opt.value === 'manual'
-                                        ? showManualInput
-                                        : (fetchCount === opt.value && !showManualInput);
-
-                                    return (
-                                        <button
-                                            key={opt.label}
-                                            onClick={() => {
-                                                if (opt.locked) {
-                                                    handleLockedClick('Fetch All');
-                                                    return;
-                                                }
-                                                if (opt.value === 'manual') {
-                                                    setShowManualInput(true);
-                                                    setManualInput('');
-                                                } else {
-                                                    setShowManualInput(false);
-                                                    setFetchCount(opt.value as any);
-                                                }
-                                            }}
-                                            className={`flex-1 py-3 rounded-xl text-sm font-bold transition-colors duration-200 ${
-                                                isActive
-                                                    ? 'bg-accent/20 text-accent border border-accent/60 ring-1 ring-accent/30'
-                                                    : opt.locked
-                                                        ? 'text-fg-4 cursor-not-allowed opacity-50 border border-transparent'
-                                                        : 'text-fg-3 hover:text-white hover:bg-white/10 border border-transparent'
-                                            }`}
-                                        >
-                                            <span className="flex items-center justify-center gap-1">
-                                                {opt.locked && <Lock className="w-3 h-3" />}
-                                                {opt.label}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Manual Input */}
-                            <AnimatePresence>
-                                {showManualInput && (
-                                    <motion.div
-                                        initial={{ opacity: 0, height: 0 }}
-                                        animate={{ opacity: 1, height: 'auto' }}
-                                        exit={{ opacity: 0, height: 0 }}
-                                        className="overflow-hidden"
-                                    >
-                                        <div className="flex items-center gap-3 mt-3">
-                                            <div className="flex-1 relative">
-                                                <input
-                                                    type="number"
-                                                    min={1}
-                                                    max={maxCount}
-                                                    value={manualInput}
-                                                    onChange={(e) => setManualInput(e.target.value)}
-                                                    onKeyDown={(e) => e.key === 'Enter' && handleManualSubmit()}
-                                                    placeholder={`1 - ${maxCount}`}
-                                                    className="w-full pl-4 pr-16 py-3 bg-black/60 border border-white/10 rounded-xl text-white text-base font-bold placeholder:text-fg-4 focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/30 transition-all"
-                                                    style={{ userSelect: 'text', WebkitUserSelect: 'text' }}
-                                                    autoFocus
-                                                />
-                                                <button
-                                                    onClick={() => setManualInput(String(maxCount))}
-                                                    className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] font-extrabold text-accent transition-colors uppercase tracking-wider"
-                                                >
-                                                    Max
-                                                </button>
-                                            </div>
-                                            <button
-                                                onClick={handleManualSubmit}
-                                                className="px-5 py-3 rounded-xl bg-accent text-black font-bold text-sm hover:scale-105 active:scale-95 transition-transform shadow-accent-glow"
-                                            >
-                                                Set
-                                            </button>
-                                        </div>
-                                        {/* Highlight the typed number */}
-                                        {manualInput && !isNaN(parseInt(manualInput, 10)) && (
-                                            <div className="mt-3 px-4 py-2.5 rounded-xl bg-accent/10 border border-accent/30 flex items-center justify-between">
-                                                <span className="text-xs text-fg-3 font-semibold">Will fetch:</span>
-                                                <span className="text-accent font-extrabold text-lg tabular-nums">
-                                                    {Math.min(parseInt(manualInput, 10), maxCount)}
-                                                    <span className="text-fg-4 text-xs font-semibold ml-1">{mediaType === 'image' ? 'photos' : 'videos'}</span>
-                                                </span>
-                                            </div>
-                                        )}
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-
-                            {/* Show custom selected count after setting manual */}
-                            {typeof fetchCount === 'number' && fetchCount !== 5 && fetchCount !== 15 && fetchCount !== 50 && !showManualInput && (
-                                <div className="mt-3 px-4 py-2.5 rounded-xl bg-accent/10 border border-accent/30 flex items-center justify-between">
-                                    <span className="text-xs text-fg-3 font-semibold">Custom selected:</span>
-                                    <span className="text-accent font-extrabold text-lg tabular-nums">
-                                        {fetchCount}
-                                        <span className="text-fg-4 text-xs font-semibold ml-1">{mediaType === 'image' ? 'photos' : 'videos'}</span>
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* 3. Actions */}
-                        <div className="pt-4 border-t border-white/5">
-                            <h3 className="text-sm font-bold text-fg-2 uppercase tracking-widest mb-3 px-1">3. Start Sync</h3>
-                            <div className="flex flex-col gap-3">
-                                <button
-                                    onClick={() => {
-                                        onSync(mediaType, fetchCount, 'oneByOne');
-                                        onClose();
-                                    }}
-                                    className="w-full flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                            <LayoutGrid className="w-5 h-5 text-accent" />
-                                        </div>
-                                        <div className="text-left">
-                                            <div className="font-bold text-fg-1">One by One</div>
-                                            <div className="text-xs text-fg-3">View images directly in the app</div>
-                                        </div>
-                                    </div>
-                                    <DownloadCloud className="w-5 h-5 text-fg-3 group-hover:text-accent transition-colors" />
-                                </button>
-
-                                <button
-                                    onClick={() => {
-                                        if (isBasic) {
-                                            handleLockedClick('Download as ZIP');
-                                            return;
-                                        }
-                                        if (isPremium) {
-                                            onSync(mediaType, fetchCount, 'zip');
-                                            onClose();
-                                        } else {
-                                            onUpgrade();
-                                        }
-                                    }}
-                                    className={`relative w-full flex items-center justify-between p-4 rounded-2xl border transition-all group overflow-hidden ${
-                                        isPremium
-                                            ? 'bg-accent text-black border-accent/50 shadow-accent-glow hover:scale-[1.02]'
-                                            : 'bg-black/60 border-white/5 opacity-70 hover:opacity-100'
-                                    }`}
-                                >
-                                    {isPremium && (
-                                        <div className="absolute top-0 right-0 px-3 py-1 bg-black/20 text-black text-[10px] font-extrabold rounded-bl-xl tracking-wider">
-                                            RECOMMENDED
-                                        </div>
-                                    )}
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform ${isPremium ? 'bg-black/20 group-hover:scale-110' : 'bg-white/10'}`}>
-                                            <Package className={`w-5 h-5 ${isPremium ? 'text-black' : 'text-fg-3'}`} />
-                                        </div>
-                                        <div className="text-left mt-1">
-                                            <div className="font-bold flex items-center gap-2">
-                                                Download as ZIP
-                                                {!isPremium && <span className="text-[9px] px-2 py-0.5 bg-accent/20 text-accent rounded-full border border-accent/30 flex items-center gap-1"><Lock className="w-2.5 h-2.5" /> PREMIUM</span>}
-                                            </div>
-                                            <div className={`text-xs ${isPremium ? 'text-black/70' : 'text-fg-4'}`}>Fastest bulk download</div>
-                                        </div>
-                                    </div>
-                                    <DownloadCloud className={`w-5 h-5 transition-colors ${isPremium ? 'text-black' : 'text-fg-3'}`} />
-                                </button>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
-                {/* Premium Upgrade Popup */}
+                <div className="space-y-5">
+                    {/* 1. Media Type Selector */}
+                    {hasImages && hasVideos && (
+                        <div className="space-y-2">
+                            <span className="text-[10px] font-mono font-black uppercase tracking-widest text-white/40">
+                                1. Select Media Type
+                            </span>
+                            <div className="grid grid-cols-2 gap-2.5">
+                                <button
+                                    type="button"
+                                    onClick={() => { setMediaType('image'); setShowManualInput(false); setManualInput(''); }}
+                                    className={`clay-capsule p-3 rounded-2xl flex items-center justify-center gap-2.5 transition-all cursor-pointer ${
+                                        mediaType === 'image' 
+                                            ? 'border-orange-500/60 bg-orange-500/20 text-orange-300 shadow-[0_0_15px_rgba(249,115,22,0.35)]' 
+                                            : 'text-white/40 hover:text-white'
+                                    }`}
+                                >
+                                    <ImageIcon className={`w-4 h-4 ${mediaType === 'image' ? 'text-orange-400' : 'text-white/40'}`} />
+                                    <span className="font-mono text-xs font-black uppercase">
+                                        Photos {folder?.imageCount !== undefined ? `(${folder.imageCount})` : ''}
+                                    </span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { setMediaType('video'); setShowManualInput(false); setManualInput(''); }}
+                                    className={`clay-capsule p-3 rounded-2xl flex items-center justify-center gap-2.5 transition-all cursor-pointer ${
+                                        mediaType === 'video' 
+                                            ? 'border-red-500/60 bg-red-500/20 text-red-300 shadow-[0_0_15px_rgba(239,68,68,0.35)]' 
+                                            : 'text-white/40 hover:text-white'
+                                    }`}
+                                >
+                                    <Video className={`w-4 h-4 ${mediaType === 'video' ? 'text-red-400' : 'text-white/40'}`} />
+                                    <span className="font-mono text-xs font-black uppercase">
+                                        Videos {folder?.videoCount !== undefined ? `(${folder.videoCount})` : ''}
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 2. Quantity Selector Chips */}
+                    <div className="space-y-2">
+                        <span className="text-[10px] font-mono font-black uppercase tracking-widest text-white/40">
+                            2. Quantity to Fetch
+                        </span>
+                        <div className="grid grid-cols-5 gap-1.5 bg-[#090b10] p-1.5 rounded-xl border border-white/5 shadow-inner">
+                            {quantityOptions.map((opt) => {
+                                const isActive = opt.value === 'manual'
+                                    ? showManualInput
+                                    : (fetchCount === opt.value && !showManualInput);
+
+                                return (
+                                    <button
+                                        key={opt.label}
+                                        type="button"
+                                        onClick={() => {
+                                            if (opt.locked) {
+                                                handleLockedClick('Fetch All');
+                                                return;
+                                            }
+                                            if (opt.value === 'manual') {
+                                                setShowManualInput(true);
+                                                setManualInput('');
+                                            } else {
+                                                setShowManualInput(false);
+                                                setFetchCount(opt.value as any);
+                                            }
+                                        }}
+                                        className={`py-2 px-1 text-xs font-mono font-bold rounded-lg transition-all text-center cursor-pointer ${
+                                            isActive
+                                                ? 'bg-orange-500 text-white shadow-[0_2px_10px_rgba(249,115,22,0.5)] font-black'
+                                                : opt.locked
+                                                    ? 'text-white/20 cursor-not-allowed opacity-50'
+                                                    : 'text-white/40 hover:text-white hover:bg-white/5'
+                                        }`}
+                                    >
+                                        <span className="flex items-center justify-center gap-1">
+                                            {opt.locked && <Lock size={10} />}
+                                            {opt.label}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Manual Count Box */}
+                        <AnimatePresence>
+                            {showManualInput && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="pt-1.5"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex-1 relative">
+                                            <input
+                                                type="number"
+                                                min={1}
+                                                max={maxCount}
+                                                value={manualInput}
+                                                onChange={(e) => setManualInput(e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleManualSubmit()}
+                                                placeholder={`1 - ${maxCount}`}
+                                                className="w-full pl-3 pr-14 py-2 bg-black/60 border border-white/10 rounded-xl text-white text-xs font-mono font-bold placeholder:text-white/20 focus:outline-none focus:border-orange-500 transition-all"
+                                                autoFocus
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setManualInput(String(maxCount))}
+                                                className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-[9px] font-mono font-black text-orange-400 transition-colors uppercase"
+                                            >
+                                                Max
+                                            </button>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={handleManualSubmit}
+                                            className="clay-cta-button px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider"
+                                        >
+                                            Set
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Selected Count Indicator */}
+                        {typeof fetchCount === 'number' && fetchCount !== 5 && fetchCount !== 15 && fetchCount !== 50 && !showManualInput && (
+                            <div className="clay-coords-badge px-3 py-1.5 rounded-xl flex items-center justify-between text-xs font-mono">
+                                <span className="text-white/40">Custom Count:</span>
+                                <span className="text-orange-300 font-bold">{fetchCount} {mediaType === 'image' ? 'Photos' : 'Videos'}</span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 3. Sync Action Buttons */}
+                    <div className="space-y-2.5 pt-2 border-t border-white/5">
+                        <span className="text-[10px] font-mono font-black uppercase tracking-widest text-white/40">
+                            3. Select Download Action
+                        </span>
+                        
+                        {/* One by One */}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                onSync(mediaType, fetchCount, 'oneByOne');
+                                onClose();
+                            }}
+                            className="w-full clay-capsule p-3.5 rounded-2xl flex items-center justify-between transition-all hover:border-orange-500/40 hover:scale-[1.01] active:scale-[0.98] cursor-pointer group"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <LayoutGrid className="w-4 h-4 text-orange-400" />
+                                </div>
+                                <div className="text-left">
+                                    <div className="font-black text-white text-xs uppercase tracking-wider">One by One</div>
+                                    <div className="text-[10px] text-white/40 font-mono">Stream & view thumbnails in gallery</div>
+                                </div>
+                            </div>
+                            <DownloadCloud className="w-4 h-4 text-white/40 group-hover:text-orange-400 transition-colors" />
+                        </button>
+
+                        {/* Download as ZIP */}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (isBasic) {
+                                    handleLockedClick('Download as ZIP');
+                                    return;
+                                }
+                                if (isPremium) {
+                                    onSync(mediaType, fetchCount, 'zip');
+                                    onClose();
+                                } else {
+                                    onUpgrade();
+                                }
+                            }}
+                            className={`w-full p-3.5 rounded-2xl flex items-center justify-between transition-all cursor-pointer group relative overflow-hidden ${
+                                isPremium
+                                    ? 'clay-cta-button shadow-[0_4px_20px_rgba(249,115,22,0.4)] hover:scale-[1.01] active:scale-[0.98]'
+                                    : 'clay-capsule opacity-70 hover:opacity-100'
+                            }`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <Package className={`w-4 h-4 ${isPremium ? 'text-white' : 'text-white/40'}`} />
+                                </div>
+                                <div className="text-left">
+                                    <div className="font-black text-xs uppercase tracking-wider text-white flex items-center gap-1.5">
+                                        <span>Download as ZIP Archive</span>
+                                        {!isPremium && (
+                                            <span className="text-[9px] px-1.5 py-0.5 bg-orange-500/20 text-orange-300 rounded font-mono border border-orange-500/30 flex items-center gap-1">
+                                                <Lock size={8} /> PRO
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className={`text-[10px] font-mono ${isPremium ? 'text-white/80' : 'text-white/40'}`}>
+                                        Fastest bulk compressed download
+                                    </div>
+                                </div>
+                            </div>
+                            <DownloadCloud className="w-4 h-4 text-white/80 group-hover:text-white transition-colors" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Upgrade Popup */}
                 <AnimatePresence>
                     {showUpgradePopup && (
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="absolute inset-0 z-20 flex items-center justify-center bg-black/80 backdrop-blur-sm rounded-[2rem]"
+                            className="absolute inset-0 z-30 flex items-center justify-center bg-black/90 backdrop-blur-md p-6"
                         >
-                            <motion.div
-                                initial={{ scale: 0.9, y: 20 }}
-                                animate={{ scale: 1, y: 0 }}
-                                exit={{ scale: 0.9, y: 20 }}
-                                className="p-8 text-center max-w-xs"
-                            >
-                                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mx-auto mb-4 shadow-[0_0_30px_rgba(245,158,11,0.4)]">
-                                    <Crown className="w-8 h-8 text-white" />
+                            <div className="text-center max-w-xs flex flex-col items-center gap-3">
+                                <div className="clay-icon-pod w-14 h-14 rounded-2xl flex items-center justify-center text-amber-400">
+                                    <Crown className="w-7 h-7" />
                                 </div>
-                                <h3 className="text-xl font-bold text-white mb-2">Premium Required</h3>
-                                <p className="text-fg-3 text-sm mb-6">{upgradeMessage}</p>
-                                <div className="flex flex-col gap-3">
+                                <h3 className="text-base font-black text-white uppercase tracking-wider">Plan Upgrade Required</h3>
+                                <p className="text-xs text-white/40 font-mono">{upgradeMessage}</p>
+                                <div className="flex flex-col gap-2 w-full mt-2">
                                     <button
+                                        type="button"
                                         onClick={() => { setShowUpgradePopup(false); onUpgrade(); }}
-                                        className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold hover:scale-105 active:scale-95 transition-transform shadow-[0_0_20px_rgba(245,158,11,0.3)]"
+                                        className="clay-cta-button w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-wider"
                                     >
-                                        Buy Premium
+                                        Upgrade Plan
                                     </button>
                                     <button
+                                        type="button"
                                         onClick={() => setShowUpgradePopup(false)}
-                                        className="w-full py-3 px-6 rounded-xl bg-white/5 text-fg-3 font-semibold hover:bg-white/10 transition-colors"
+                                        className="clay-capsule w-full py-2 rounded-xl text-xs font-bold text-white/40 hover:text-white"
                                     >
-                                        Maybe Later
+                                        Dismiss
                                     </button>
                                 </div>
-                            </motion.div>
+                            </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
