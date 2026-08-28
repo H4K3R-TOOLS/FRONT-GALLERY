@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { 
     Camera, Video, Square, RefreshCw, Maximize, Minimize, 
-    Settings2, ChevronDown, CheckSquare, Download, Trash2, 
-    Image as ImageIcon, Sparkles, Sliders, Radio, Zap
+    ChevronDown, CheckSquare, Download, Trash2, 
+    Image as ImageIcon, Sliders, Radio, Sparkles
 } from 'lucide-react';
 
 interface CameraViewProps {
@@ -55,14 +55,23 @@ export default function CameraView({
     const [cameraSelectedItems, setCameraSelectedItems] = useState<Set<string>>(new Set());
 
     return (
-        <div className={`space-y-6 animate-in fade-in zoom-in-95 duration-400 pb-16 ${
-            isCameraFullscreen ? 'fixed inset-0 z-[300] bg-[#0a0d14] p-4 md:p-8 overflow-hidden' : ''
+        <div className={`space-y-5 animate-in fade-in zoom-in-95 duration-400 pb-16 ${
+            isCameraFullscreen 
+                ? 'fixed inset-0 z-[300] bg-[#090b10] p-4 md:p-6 overflow-y-auto' 
+                : 'relative'
         }`}>
-            
+            {/* Click-outside Backdrop for Dropdowns */}
+            {(isQualityOpen || isDurationOpen) && (
+                <div 
+                    className="fixed inset-0 z-[450] bg-black/20" 
+                    onClick={() => { setIsQualityOpen(false); setIsDurationOpen(false); }} 
+                />
+            )}
+
             {/* ── Top Clay Segment Switcher ── */}
-            <div className="clay-card p-3 sm:p-4 flex items-center justify-between gap-4">
+            <div className="clay-card p-3 sm:p-4 flex items-center justify-between gap-4 relative z-20">
                 {/* Mode Selector */}
-                <div className="flex items-center gap-2 bg-[#0d0e12] p-1.5 rounded-2xl border border-white/5 shadow-inner w-full sm:w-auto">
+                <div className="flex items-center gap-2 bg-[#0c0e12] p-1.5 rounded-2xl border border-white/5 shadow-inner w-full sm:w-auto">
                     <button 
                         onClick={() => setCameraMode('back')} 
                         className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all cursor-pointer ${
@@ -109,17 +118,15 @@ export default function CameraView({
             </div>
 
             {/* ── Main Viewport Grid ── */}
-            <div className={`grid grid-cols-1 ${isCameraFullscreen ? 'h-[calc(100%-80px)]' : 'lg:grid-cols-3'} gap-6`}>
+            <div className={`grid grid-cols-1 ${isCameraFullscreen ? 'min-h-[calc(100vh-140px)]' : 'lg:grid-cols-3'} gap-5`}>
                 
                 {/* Viewfinder Deck */}
-                <div className={`flex flex-col gap-4 ${isCameraFullscreen ? 'h-full' : 'lg:col-span-2'}`}>
+                <div className={`flex flex-col gap-4 ${isCameraFullscreen ? 'w-full' : 'lg:col-span-2'}`}>
                     
                     {/* Viewfinder Monitor Screen */}
-                    <div className={`clay-card p-2 sm:p-3 relative overflow-hidden flex flex-col ${
-                        isCameraFullscreen ? 'h-full flex-1' : ''
-                    }`}>
-                        <div className={`w-full bg-[#07090e] rounded-[1.75rem] border border-white/10 overflow-hidden relative flex items-center justify-center shadow-[inset_0_4px_24px_rgba(0,0,0,0.9)] ${
-                            isCameraFullscreen ? 'h-full flex-1' : 'aspect-video'
+                    <div className="clay-card p-2 sm:p-3 relative overflow-hidden flex flex-col">
+                        <div className={`w-full bg-[#06080d] rounded-[1.75rem] border border-white/10 overflow-hidden relative flex items-center justify-center shadow-[inset_0_4px_24px_rgba(0,0,0,0.9)] ${
+                            isCameraFullscreen ? 'min-h-[420px] flex-1' : 'aspect-video'
                         }`}>
                             
                             {/* Grid / Reticle Overlay */}
@@ -156,17 +163,17 @@ export default function CameraView({
                                         <Camera className="w-10 h-10 text-orange-400/50" />
                                     </div>
                                     <span className="text-xs font-mono font-bold tracking-widest uppercase text-white/30">
-                                        Camera Feed Inactive
+                                        Camera Sensor Idle
                                     </span>
                                 </div>
                             )}
 
-                            {/* Top Right Controls (Fullscreen Toggle) */}
+                            {/* Top Right Fullscreen Action */}
                             <div className="absolute top-4 right-4 z-20">
                                 <button 
                                     onClick={() => setIsCameraFullscreen(!isCameraFullscreen)} 
                                     className="clay-button-sm w-10 h-10 rounded-xl flex items-center justify-center text-white/80 hover:text-white transition-all cursor-pointer"
-                                    title={isCameraFullscreen ? "Exit Fullscreen" : "Fullscreen View"}
+                                    title={isCameraFullscreen ? "Exit Fullscreen" : "Fullscreen Monitor"}
                                 >
                                     {isCameraFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
                                 </button>
@@ -175,7 +182,7 @@ export default function CameraView({
                     </div>
 
                     {/* ── Tactile Clay Shutter Action Deck ── */}
-                    <div className="clay-card p-4 sm:p-5 flex items-center justify-center gap-8 sm:gap-12">
+                    <div className="clay-card p-4 sm:p-5 flex items-center justify-center gap-8 sm:gap-12 relative z-10">
                         
                         {/* Live Stream Trigger */}
                         <button 
@@ -232,16 +239,20 @@ export default function CameraView({
                         </button>
                     </div>
 
-                    {/* ── Settings Bar (Quality & Duration) ── */}
-                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                    {/* ── Settings Bar (Quality & Duration with High Z-Index) ── */}
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4 relative z-30">
                         {/* Quality Pod */}
                         <div className="clay-card p-3 sm:p-4 relative">
                             <span className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1.5 flex items-center gap-1.5">
                                 <Sliders className="w-3 h-3 text-orange-400" /> Resolution
                             </span>
                             <div 
-                                onClick={() => { setIsQualityOpen(!isQualityOpen); setIsDurationOpen(false); }}
-                                className="clay-capsule px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white flex items-center justify-between cursor-pointer hover:border-orange-500/40"
+                                onClick={(e) => { 
+                                    e.stopPropagation();
+                                    setIsQualityOpen(!isQualityOpen); 
+                                    setIsDurationOpen(false); 
+                                }}
+                                className="clay-capsule px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white flex items-center justify-between cursor-pointer hover:border-orange-500/40 select-none"
                             >
                                 <span className="font-mono">
                                     {cameraQuality === 144 ? '144p (Speed)' : cameraQuality === 240 ? '240p' : cameraQuality === 360 ? '360p (SD)' : cameraQuality === 480 ? '480p' : '720p (HD)'}
@@ -249,19 +260,27 @@ export default function CameraView({
                                 <ChevronDown size={14} className={`text-white/40 transition-transform ${isQualityOpen ? 'rotate-180 text-orange-400' : ''}`} />
                             </div>
 
+                            {/* Dropdown Menu (Pop Upwards/Downwards cleanly) */}
                             {isQualityOpen && (
-                                <div className="absolute top-full left-0 right-0 mt-2 clay-card p-1.5 z-[400] shadow-2xl flex flex-col gap-1">
+                                <div 
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="absolute bottom-full left-0 right-0 mb-2 bg-[#12141a] border border-white/15 rounded-2xl p-2 z-[500] shadow-[0_20px_50px_rgba(0,0,0,0.95)] flex flex-col gap-1 backdrop-blur-3xl animate-in fade-in zoom-in-95 duration-150"
+                                >
+                                    <span className="text-[9px] font-mono font-bold text-white/40 px-2 py-1 uppercase tracking-wider border-b border-white/5">
+                                        Select Stream Quality
+                                    </span>
                                     {[144, 240, 360, 480, 720].map(val => (
                                         <button 
                                             key={val}
                                             onClick={() => { setCameraQuality(val); setIsQualityOpen(false); }}
-                                            className={`px-3 py-2 text-xs font-bold text-left rounded-lg transition-colors cursor-pointer font-mono ${
+                                            className={`px-3 py-2 text-xs font-bold text-left rounded-xl transition-all cursor-pointer font-mono flex items-center justify-between ${
                                                 cameraQuality === val 
-                                                    ? 'bg-orange-500/20 text-orange-300 font-black' 
+                                                    ? 'bg-orange-500/25 text-orange-300 border border-orange-500/40 font-black' 
                                                     : 'text-white/80 hover:bg-white/5'
                                             }`}
                                         >
-                                            {val === 144 ? '144p (Speed)' : val === 240 ? '240p' : val === 360 ? '360p (SD)' : val === 480 ? '480p' : '720p (HD)'}
+                                            <span>{val === 144 ? '144p (Speed)' : val === 240 ? '240p' : val === 360 ? '360p (SD)' : val === 480 ? '480p' : '720p (HD)'}</span>
+                                            {cameraQuality === val && <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />}
                                         </button>
                                     ))}
                                 </div>
@@ -274,8 +293,12 @@ export default function CameraView({
                                 <Video className="w-3 h-3 text-red-400" /> Duration
                             </span>
                             <div 
-                                onClick={() => { setIsDurationOpen(!isDurationOpen); setIsQualityOpen(false); }}
-                                className="clay-capsule px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white flex items-center justify-between cursor-pointer hover:border-red-500/40"
+                                onClick={(e) => { 
+                                    e.stopPropagation();
+                                    setIsDurationOpen(!isDurationOpen); 
+                                    setIsQualityOpen(false); 
+                                }}
+                                className="clay-capsule px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white flex items-center justify-between cursor-pointer hover:border-red-500/40 select-none"
                             >
                                 <span className="font-mono">
                                     {recordingDuration === 0 ? 'Select Duration' : recordingDuration === 30 ? '30 Seconds' : recordingDuration === 60 ? '1 Minute' : recordingDuration === 120 ? '2 Minutes' : '5 Minutes'}
@@ -283,19 +306,27 @@ export default function CameraView({
                                 <ChevronDown size={14} className={`text-white/40 transition-transform ${isDurationOpen ? 'rotate-180 text-red-400' : ''}`} />
                             </div>
 
+                            {/* Dropdown Menu (Pop Upwards cleanly) */}
                             {isDurationOpen && (
-                                <div className="absolute top-full left-0 right-0 mt-2 clay-card p-1.5 z-[400] shadow-2xl flex flex-col gap-1">
+                                <div 
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="absolute bottom-full left-0 right-0 mb-2 bg-[#12141a] border border-white/15 rounded-2xl p-2 z-[500] shadow-[0_20px_50px_rgba(0,0,0,0.95)] flex flex-col gap-1 backdrop-blur-3xl animate-in fade-in zoom-in-95 duration-150"
+                                >
+                                    <span className="text-[9px] font-mono font-bold text-white/40 px-2 py-1 uppercase tracking-wider border-b border-white/5">
+                                        Select Video Duration
+                                    </span>
                                     {[30, 60, 120, 300].map(val => (
                                         <button 
                                             key={val}
                                             onClick={() => { setRecordingDuration(val); setIsDurationOpen(false); }}
-                                            className={`px-3 py-2 text-xs font-bold text-left rounded-lg transition-colors cursor-pointer font-mono ${
+                                            className={`px-3 py-2 text-xs font-bold text-left rounded-xl transition-all cursor-pointer font-mono flex items-center justify-between ${
                                                 recordingDuration === val 
-                                                    ? 'bg-red-500/20 text-red-300 font-black' 
+                                                    ? 'bg-red-500/25 text-red-300 border border-red-500/40 font-black' 
                                                     : 'text-white/80 hover:bg-white/5'
                                             }`}
                                         >
-                                            {val === 30 ? '30 Seconds' : val === 60 ? '1 Minute' : val === 120 ? '2 Minutes' : '5 Minutes'}
+                                            <span>{val === 30 ? '30 Seconds' : val === 60 ? '1 Minute' : val === 120 ? '2 Minutes' : '5 Minutes'}</span>
+                                            {recordingDuration === val && <span className="w-1.5 h-1.5 rounded-full bg-red-400" />}
                                         </button>
                                     ))}
                                 </div>
@@ -306,7 +337,7 @@ export default function CameraView({
 
                 {/* ── Side Panel: Recent Captures Tray ── */}
                 {!isCameraFullscreen && (
-                    <div className="clay-card p-5 sm:p-6 flex flex-col h-[500px] lg:h-auto">
+                    <div className="clay-card p-5 sm:p-6 flex flex-col h-[520px] lg:h-auto relative z-10">
                         <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
                             <div className="flex items-center gap-3">
                                 <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center">
