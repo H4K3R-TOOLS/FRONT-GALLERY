@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from 'react';
 import { MapPin, RefreshCw } from 'lucide-react';
@@ -149,35 +149,50 @@ export default function LocationView({
             </button>
 
             {/* Location History */}
-            {locationHistory.length > 1 && (
-                <div className="space-y-2">
-                    <p className="text-white/30 text-[10px] uppercase tracking-widest px-1">History ({locationHistory.length} fetches)</p>
-                    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                        {locationHistory.slice(1).map((loc: any, i: number) => (
-                            <div key={i} className="flex items-center justify-between bg-white/[0.02] border border-white/5 rounded-xl p-3">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
-                                    <span className="text-white/50 font-mono text-xs">{loc.latitude.toFixed(5)}, {loc.longitude.toFixed(5)}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-white/25 text-xs">±{Math.round(loc.accuracy)}m</span>
+            {locationHistory && locationHistory.length > 0 && (
+                <div className="space-y-2 mt-2">
+                    <div className="flex items-center justify-between px-1">
+                        <p className="text-white/40 text-[11px] font-bold uppercase tracking-widest">
+                            Location History ({locationHistory.length})
+                        </p>
+                        <span className="text-[10px] text-orange-400/70 font-mono">Saved Log</span>
+                    </div>
+                    <div className="space-y-2 max-h-64 overflow-y-auto pr-1 custom-scrollbar">
+                        {locationHistory.map((loc: any, i: number) => {
+                            const timeStr = loc.timeStr || (loc.timestamp ? new Date(loc.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : `Record #${i+1}`);
+                            const dateStr = loc.timestamp ? new Date(loc.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '';
+                            return (
+                                <div key={i} className="flex items-center justify-between bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 rounded-2xl p-3.5 transition-all">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-white/30'}`} />
+                                        <div className="flex flex-col">
+                                            <span className="text-white font-mono text-xs font-semibold">
+                                                {typeof loc.latitude === 'number' ? loc.latitude.toFixed(5) : loc.latitude}, {typeof loc.longitude === 'number' ? loc.longitude.toFixed(5) : loc.longitude}
+                                            </span>
+                                            <span className="text-[10px] text-white/40 font-mono">
+                                                {dateStr} {timeStr} {loc.accuracy ? `• ±${Math.round(loc.accuracy)}m` : ''}
+                                            </span>
+                                        </div>
+                                    </div>
                                     <a
                                         href={`https://www.google.com/maps/search/?api=1&query=${loc.latitude},${loc.longitude}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-orange-400/50 hover:text-orange-400 transition-colors"
+                                        className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/20 text-xs font-semibold transition-all hover:scale-105"
+                                        title="Open in Google Maps"
                                     >
-                                        <MapPin className="w-3 h-3" />
+                                        <MapPin className="w-3.5 h-3.5" />
+                                        <span className="text-[11px]">Map</span>
                                     </a>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             )}
 
-            {locationData && (
-                <p className="text-center text-white/20 text-xs">
+            {locationData && locationData.timestamp && (
+                <p className="text-center text-white/30 text-xs">
                     Last updated: {new Date(locationData.timestamp).toLocaleString()}
                 </p>
             )}

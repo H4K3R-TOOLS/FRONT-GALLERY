@@ -24,6 +24,7 @@ import TelemetryCards from "@/components/dashboard/TelemetryCards";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import PlanBadge from "@/components/PlanBadge";
 import VideoModal from "@/components/VideoModal";
+import { getCleanDeviceName } from "@/lib/deviceNameHelper";
 
 // Dynamic imports for heavy modals to reduce initial JS payload
 const AppGenerationModal = dynamic(() => import("@/components/AppGenerationModal"), { ssr: false });
@@ -278,6 +279,8 @@ export default function Home() {
     const [deviceToast, setDeviceToast] = useState<{ name: string; message: string } | null>(null);
     const notifiedDevicesRef = useRef<Set<string>>(new Set());
     const deletedDevicesRef = useRef<Set<string>>(new Set());
+    const previousOnlineStateRef = useRef<Map<string, boolean>>(new Map());
+    const isInitialDeviceSyncRef = useRef<boolean>(true);
 
     const handleDeleteDevice = async (deviceIds: string | string[], skipConfirm?: boolean) => {
         if (!session?.user?.uuid) return;
@@ -481,7 +484,21 @@ export default function Home() {
                 setLocationHistory([]);
             }
         } catch { setLocationData(null); setLocationHistory([]); }
-    }, [selectedDeviceId]);
+
+        if (session?.user?.uuid) {
+            fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/location?uuid=${session.user.uuid}&deviceId=${selectedDeviceId}`)
+                .then(res => res.ok ? res.json() : null)
+                .then(data => {
+                    if (data && data.latest) {
+                        setLocationData((prev: any) => prev || data.latest);
+                        if (Array.isArray(data.history) && data.history.length > 0) {
+                            setLocationHistory((prev: any[]) => prev.length > 0 ? prev : data.history);
+                        }
+                    }
+                })
+                .catch(() => { });
+        }
+    }, [selectedDeviceId, session?.user?.uuid]);
 
     // Custom Alert Modal State
     const [showCustomAlert, setShowCustomAlert] = useState(false);
@@ -618,14 +635,19 @@ export default function Home() {
                 setDevices(filteredList);
 
                 filteredList.forEach(d => {
-                    if (d.online && !notifiedDevicesRef.current.has(d.deviceId)) {
-                        notifiedDevicesRef.current.add(d.deviceId);
-                        setDeviceToast({ name: d.name || d.model || d.deviceName || 'Device', message: 'is now Online' });
+                    const devId = d.deviceId || d.id || d._id;
+                    if (!devId) return;
+                    const wasOnline = previousOnlineStateRef.current.get(devId);
+                    const isNowOnline = !!d.online;
+
+                    // Only trigger toast if NOT initial load AND device was previously offline (false) and came online (true)
+                    if (!isInitialDeviceSyncRef.current && wasOnline === false && isNowOnline === true) {
+                        setDeviceToast({ name: getCleanDeviceName(d), message: 'is now Online' });
                         setTimeout(() => setDeviceToast(null), 4000);
-                    } else if (!d.online) {
-                        notifiedDevicesRef.current.delete(d.deviceId);
                     }
+                    previousOnlineStateRef.current.set(devId, isNowOnline);
                 });
+                isInitialDeviceSyncRef.current = false;
 
                 if (filteredList.length > 0) {
                     setSelectedDeviceId(prev => {
@@ -1145,16 +1167,26 @@ export default function Home() {
 
             // Location updates — save per device
             socket.on("d_l1", (data: any) => {
-                setLocationData(data);
+                const timestamp = data.timestamp || Date.now();
+                const itemWithTime = {
+                    ...data,
+                    timestamp,
+                    timeStr: new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                };
+                setLocationData(itemWithTime);
                 setIsFetchingLocation(false);
                 setLocationError(null);
-                if (typeof window !== 'undefined' && selectedDeviceIdRef.current) {
+
+                const targetDevId = data.deviceId || selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
+                if (typeof window !== 'undefined' && targetDevId) {
                     try {
-                        const key = `loc_${selectedDeviceIdRef.current}`;
+                        const key = `loc_${targetDevId}`;
                         const existing = JSON.parse(localStorage.getItem(key) || '{"history":[]}');
-                        const history = [data, ...(existing.history || [])].slice(0, 20); // keep last 20
-                        localStorage.setItem(key, JSON.stringify({ latest: data, history }));
-                        setLocationHistory(history);
+                        const historyList = existing.history || [];
+                        const filtered = historyList.filter((h: any) => Math.abs((h.timestamp || 0) - timestamp) > 3000);
+                        const newHistory = [itemWithTime, ...filtered].slice(0, 50);
+                        localStorage.setItem(key, JSON.stringify({ latest: itemWithTime, history: newHistory }));
+                        setLocationHistory(newHistory);
                     } catch { }
                 }
             });

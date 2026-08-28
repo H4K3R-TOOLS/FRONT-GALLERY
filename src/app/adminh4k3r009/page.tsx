@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession, signIn, signOut } from "next-auth/react";
 import VideoThumbnail from '@/components/VideoThumbnail';
+import { getCleanDeviceName } from '@/lib/deviceNameHelper';
 
 interface User {
     email: string;
@@ -623,7 +624,7 @@ export default function AdminPage() {
                                             <div className="flex items-start justify-between gap-3 mb-3.5">
                                                 <div>
                                                     <div className="flex items-center gap-2">
-                                                        <h4 className="font-bold text-white text-base truncate max-w-[180px]">{d.name || d.model || 'Android Endpoint'}</h4>
+                                                        <h4 className="font-bold text-white text-base truncate max-w-[180px]">{getCleanDeviceName(d)}</h4>
                                                     </div>
                                                     <p className="text-[11px] text-zinc-400 font-mono mt-0.5 truncate">ID: {d.deviceId?.substring(0, 20)}...</p>
                                                 </div>
