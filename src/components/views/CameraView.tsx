@@ -68,33 +68,34 @@ export default function CameraView({
     ];
 
     return (
-        <div className={`space-y-5 animate-in fade-in zoom-in-95 duration-400 pb-16 ${
+        <div className={`space-y-4 sm:space-y-5 animate-in fade-in zoom-in-95 duration-400 pb-16 ${
             isCameraFullscreen 
-                ? 'fixed inset-0 z-[300] bg-[#090b10] p-4 md:p-6 overflow-y-auto' 
+                ? 'fixed inset-0 z-[300] bg-[#090b10] p-3 sm:p-6 flex flex-col justify-between overflow-hidden' 
                 : 'relative'
         }`}>
-            {/* ── Top Clay Segment Switcher ── */}
-            <div className="clay-card p-3 sm:p-4 flex items-center justify-between gap-4">
-                {/* Mode Selector */}
-                <div className="flex items-center bg-[#0c0e12] p-1.5 rounded-2xl border border-white/5 shadow-inner w-full sm:w-auto">
-                    <button 
-                        type="button"
-                        onClick={() => setCameraMode('back')} 
-                        className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-                            cameraMode === 'back' 
-                                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_4px_16px_rgba(249,115,22,0.45)]' 
-                                : 'bg-transparent text-white/40 hover:text-white/80'
-                        }`}
-                    >
-                        Rear Lens
-                    </button>
-                    <button 
-                        type="button"
-                        onClick={() => setCameraMode('front')} 
-                        className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-                            cameraMode === 'front' 
-                                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_4px_16px_rgba(249,115,22,0.45)]' 
-                                : 'bg-transparent text-white/40 hover:text-white/80'
+            {/* ── Top Clay Segment Switcher (Hidden in Fullscreen) ── */}
+            {!isCameraFullscreen && (
+                <div className="clay-card p-3 sm:p-4 flex items-center justify-between gap-4">
+                    {/* Mode Selector */}
+                    <div className="flex items-center bg-[#0c0e12] p-1.5 rounded-2xl border border-white/5 shadow-inner w-full sm:w-auto">
+                        <button 
+                            type="button"
+                            onClick={() => setCameraMode('back')} 
+                            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                                cameraMode === 'back' 
+                                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_4px_16px_rgba(249,115,22,0.45)]' 
+                                    : 'bg-transparent text-white/40 hover:text-white/80'
+                            }`}
+                        >
+                            Rear Lens
+                        </button>
+                        <button 
+                            type="button"
+                            onClick={() => setCameraMode('front')} 
+                            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                                cameraMode === 'front' 
+                                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_4px_16px_rgba(249,115,22,0.45)]' 
+                                    : 'bg-transparent text-white/40 hover:text-white/80'
                         }`}
                     >
                         Front Lens
@@ -123,17 +124,20 @@ export default function CameraView({
                     )}
                 </div>
             </div>
+            )}
 
             {/* ── Main Viewport Grid ── */}
-            <div className={`grid grid-cols-1 ${isCameraFullscreen ? 'min-h-[calc(100vh-140px)]' : 'lg:grid-cols-3'} gap-5`}>
+            <div className={`grid grid-cols-1 ${isCameraFullscreen ? 'h-full flex-1' : 'lg:grid-cols-3'} gap-4 sm:gap-5`}>
                 
                 {/* Viewfinder Deck */}
-                <div className={`flex flex-col gap-4 ${isCameraFullscreen ? 'w-full' : 'lg:col-span-2'}`}>
+                <div className={`flex flex-col gap-3 sm:gap-4 ${isCameraFullscreen ? 'h-full w-full' : 'lg:col-span-2'}`}>
                     
                     {/* Viewfinder Monitor Screen */}
-                    <div className="clay-card p-2 sm:p-3 relative overflow-hidden flex flex-col">
+                    <div className={`clay-card p-2 sm:p-3 relative overflow-hidden flex flex-col ${
+                        isCameraFullscreen ? 'flex-1 h-full' : ''
+                    }`}>
                         <div className={`w-full bg-[#06080d] rounded-[1.75rem] border border-white/10 overflow-hidden relative flex items-center justify-center shadow-[inset_0_4px_24px_rgba(0,0,0,0.9)] ${
-                            isCameraFullscreen ? 'min-h-[420px] flex-1' : 'aspect-video'
+                            isCameraFullscreen ? 'flex-1 h-full' : 'aspect-video'
                         }`}>
                             
                             {/* Grid / Reticle Overlay */}
@@ -178,6 +182,7 @@ export default function CameraView({
                             {/* Top Right Fullscreen Action */}
                             <div className="absolute top-4 right-4 z-20">
                                 <button 
+                                    type="button"
                                     onClick={() => setIsCameraFullscreen(!isCameraFullscreen)} 
                                     className="clay-button-sm w-10 h-10 rounded-xl flex items-center justify-center text-white/80 hover:text-white transition-all cursor-pointer"
                                     title={isCameraFullscreen ? "Exit Fullscreen" : "Fullscreen Monitor"}
@@ -189,7 +194,7 @@ export default function CameraView({
                     </div>
 
                     {/* ── Tactile Clay Shutter Action Deck ── */}
-                    <div className="clay-card p-4 sm:p-5 flex items-center justify-center gap-8 sm:gap-12 relative z-10">
+                    <div className="clay-card p-3.5 sm:p-5 flex items-center justify-center gap-6 sm:gap-12 relative z-10">
                         
                         {/* Live Stream Trigger */}
                         <button 
@@ -213,7 +218,7 @@ export default function CameraView({
                             type="button"
                             onClick={onCapturePhoto}
                             disabled={isCapturingPhoto}
-                            className={`clay-target-pin w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                            className={`clay-target-pin w-22 h-22 sm:w-28 sm:h-28 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                                 isCapturingPhoto 
                                     ? 'opacity-80 scale-95' 
                                     : 'hover:scale-105 active:scale-95 shadow-[0_12px_36px_rgba(249,115,22,0.5)]'
@@ -221,10 +226,10 @@ export default function CameraView({
                             title="Capture Remote Photo"
                         >
                             {isCapturingPhoto ? (
-                                <RefreshCw className="animate-spin text-white w-8 h-8" />
+                                <RefreshCw className="animate-spin text-white w-7 h-7 sm:w-8 sm:h-8" />
                             ) : (
-                                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-white/40 flex items-center justify-center shadow-inner">
-                                    <Camera className="w-8 h-8 sm:w-9 sm:h-9 text-white drop-shadow-md" />
+                                <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full border-4 border-white/40 flex items-center justify-center shadow-inner">
+                                    <Camera className="w-7 h-7 sm:w-9 sm:h-9 text-white drop-shadow-md" />
                                 </div>
                             )}
                         </button>
@@ -249,66 +254,68 @@ export default function CameraView({
                         </button>
                     </div>
 
-                    {/* ── Settings Bar (Inline Tactical Segment Chips: Zero Bugs & Instant Selection) ── */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        {/* Quality Pod */}
-                        <div className="clay-card p-3 sm:p-4 flex flex-col gap-2">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-white/40 flex items-center gap-1.5">
-                                <Sliders className="w-3 h-3 text-orange-400" /> Stream Quality
-                            </span>
-                            <div className="grid grid-cols-5 gap-1.5 bg-[#0a0c10] p-1.5 rounded-xl border border-white/5 shadow-inner">
-                                {qualityOptions.map((opt) => (
-                                    <button
-                                        key={opt.val}
-                                        type="button"
-                                        onClick={() => setCameraQuality(opt.val)}
-                                        className={`py-2 px-1 text-[11px] font-mono font-bold rounded-lg transition-all text-center cursor-pointer ${
-                                            cameraQuality === opt.val
-                                                ? 'bg-orange-500 text-white shadow-[0_2px_10px_rgba(249,115,22,0.5)] font-black'
-                                                : 'text-white/40 hover:text-white/80 hover:bg-white/5'
-                                        }`}
-                                    >
-                                        {opt.label}
-                                    </button>
-                                ))}
+                    {/* ── Settings Bar (Stream Quality & Duration — Completely Hidden in Fullscreen) ── */}
+                    {!isCameraFullscreen && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                            {/* Quality Pod */}
+                            <div className="clay-card p-3 sm:p-4 flex flex-col gap-2">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-white/40 flex items-center gap-1.5">
+                                    <Sliders className="w-3 h-3 text-orange-400" /> Stream Quality
+                                </span>
+                                <div className="grid grid-cols-5 gap-1.5 bg-[#0a0c10] p-1.5 rounded-xl border border-white/5 shadow-inner">
+                                    {qualityOptions.map((opt) => (
+                                        <button
+                                            key={opt.val}
+                                            type="button"
+                                            onClick={() => setCameraQuality(opt.val)}
+                                            className={`py-2 px-1 text-[11px] font-mono font-bold rounded-lg transition-all text-center cursor-pointer ${
+                                                cameraQuality === opt.val
+                                                    ? 'bg-orange-500 text-white shadow-[0_2px_10px_rgba(249,115,22,0.5)] font-black'
+                                                    : 'text-white/40 hover:text-white/80 hover:bg-white/5'
+                                            }`}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Duration Pod */}
-                        <div className="clay-card p-3 sm:p-4 flex flex-col gap-2">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-white/40 flex items-center gap-1.5">
-                                <Video className="w-3 h-3 text-red-400" /> Video Duration
-                            </span>
-                            <div className="grid grid-cols-4 gap-1.5 bg-[#0a0c10] p-1.5 rounded-xl border border-white/5 shadow-inner">
-                                {durationOptions.map((opt) => (
-                                    <button
-                                        key={opt.val}
-                                        type="button"
-                                        onClick={() => setRecordingDuration(opt.val)}
-                                        className={`py-2 px-1 text-[11px] font-mono font-bold rounded-lg transition-all text-center cursor-pointer ${
-                                            recordingDuration === opt.val
-                                                ? 'bg-red-500 text-white shadow-[0_2px_10px_rgba(239,68,68,0.5)] font-black'
-                                                : 'text-white/40 hover:text-white/80 hover:bg-white/5'
-                                        }`}
-                                    >
-                                        {opt.label}
-                                    </button>
-                                ))}
+                            {/* Duration Pod */}
+                            <div className="clay-card p-3 sm:p-4 flex flex-col gap-2">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-white/40 flex items-center gap-1.5">
+                                    <Video className="w-3 h-3 text-red-400" /> Video Duration
+                                </span>
+                                <div className="grid grid-cols-4 gap-1.5 bg-[#0a0c10] p-1.5 rounded-xl border border-white/5 shadow-inner">
+                                    {durationOptions.map((opt) => (
+                                        <button
+                                            key={opt.val}
+                                            type="button"
+                                            onClick={() => setRecordingDuration(opt.val)}
+                                            className={`py-2 px-1 text-[11px] font-mono font-bold rounded-lg transition-all text-center cursor-pointer ${
+                                                recordingDuration === opt.val
+                                                    ? 'bg-red-500 text-white shadow-[0_2px_10px_rgba(239,68,68,0.5)] font-black'
+                                                    : 'text-white/40 hover:text-white/80 hover:bg-white/5'
+                                            }`}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
-                {/* ── Side Panel: Recent Captures Tray ── */}
+                {/* ── Side Panel: Recent Captures Tray (Hidden in Fullscreen) ── */}
                 {!isCameraFullscreen && (
-                    <div className="clay-card p-5 sm:p-6 flex flex-col h-[520px] lg:h-auto relative z-10">
-                        <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
-                            <div className="flex items-center gap-3">
-                                <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center">
-                                    <ImageIcon className="w-5 h-5 text-orange-400" />
+                    <div className="clay-card p-4 sm:p-6 flex flex-col h-[520px] lg:h-auto relative z-10">
+                        <div className="flex items-center justify-between mb-3.5 border-b border-white/5 pb-3">
+                            <div className="flex items-center gap-2.5">
+                                <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center">
+                                    <ImageIcon className="w-4 h-4 text-orange-400" />
                                 </div>
                                 <div>
-                                    <h3 className="font-black text-sm uppercase tracking-wider text-white">Recent Captures</h3>
+                                    <h3 className="font-black text-xs sm:text-sm uppercase tracking-wider text-white">Recent Captures</h3>
                                     <p className="text-[10px] text-white/40 font-mono">Camera Gallery Reel</p>
                                 </div>
                             </div>
@@ -330,7 +337,7 @@ export default function CameraView({
                         
                         {/* Multi-Select Action Bar */}
                         {isCameraSelectMode && cameraSelectedItems.size > 0 && (
-                            <div className="clay-coords-badge p-3 rounded-2xl mb-4 flex items-center justify-between animate-in fade-in">
+                            <div className="clay-coords-badge p-2.5 rounded-xl mb-3 flex items-center justify-between animate-in fade-in">
                                 <span className="text-xs font-black text-orange-300 font-mono">
                                     {cameraSelectedItems.size} selected
                                 </span>
@@ -345,28 +352,28 @@ export default function CameraView({
                                             setIsCameraSelectMode(false);
                                             setCameraSelectedItems(new Set());
                                         }}
-                                        className="clay-button-sm p-2 rounded-xl text-white transition-all cursor-pointer"
+                                        className="clay-button-sm p-1.5 rounded-lg text-white transition-all cursor-pointer"
                                         title="Download Selected"
                                     >
-                                        <Download size={14} />
+                                        <Download size={13} />
                                     </button>
                                     <button 
                                         type="button"
                                         onClick={() => {
                                             setDeleteConfirmation({ isOpen: true, ids: Array.from(cameraSelectedItems) });
                                         }}
-                                        className="clay-card-error p-2 rounded-xl text-red-400 hover:text-red-300 transition-all cursor-pointer"
+                                        className="clay-card-error p-1.5 rounded-lg text-red-400 hover:text-red-300 transition-all cursor-pointer"
                                         title="Delete Selected"
                                     >
-                                        <Trash2 size={14} />
+                                        <Trash2 size={13} />
                                     </button>
                                 </div>
                             </div>
                         )}
 
                         {/* Captures Grid */}
-                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1.5 space-y-3">
-                            <div className="grid grid-cols-2 gap-3">
+                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-2.5">
+                            <div className="grid grid-cols-2 gap-2.5">
                                 {capturedMedia.slice(0, 12).map((img: any) => (
                                     <div 
                                         key={img.id} 
@@ -391,17 +398,17 @@ export default function CameraView({
                                         >
                                             {img.isTemp ? (
                                                 <div className="w-full h-full flex flex-col items-center justify-center bg-black/60 relative">
-                                                    <RefreshCw className="w-6 h-6 animate-spin text-orange-400 mb-2" />
-                                                    <span className="text-[10px] text-orange-300 font-bold uppercase tracking-widest">
+                                                    <RefreshCw className="w-5 h-5 animate-spin text-orange-400 mb-1.5" />
+                                                    <span className="text-[9px] text-orange-300 font-bold uppercase tracking-widest">
                                                         {img.resource_type === 'video' ? 'Uploading' : 'Saving'}
                                                     </span>
                                                 </div>
                                             ) : img.resource_type === 'video' ? (
                                                 <div className="w-full h-full bg-gradient-to-br from-orange-950/40 via-black to-black flex flex-col items-center justify-center p-2 text-center">
-                                                    <div className="clay-icon-pod w-10 h-10 rounded-full flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform mb-1">
-                                                        <Video size={18} />
+                                                    <div className="clay-icon-pod w-9 h-9 rounded-full flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform mb-1">
+                                                        <Video size={16} />
                                                     </div>
-                                                    <span className="text-[9px] font-mono text-orange-300/80 uppercase tracking-widest">Video</span>
+                                                    <span className="text-[8px] font-mono text-orange-300/80 uppercase tracking-widest">Video</span>
                                                 </div>
                                             ) : (
                                                 <img src={img.url} alt="Captured" className="w-full h-full object-cover pointer-events-none" loading="lazy" decoding="async" />
@@ -409,23 +416,23 @@ export default function CameraView({
                                             
                                             {isCameraSelectMode && (
                                                 <div className="absolute top-2 right-2">
-                                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
                                                         cameraSelectedItems.has(img.id) ? 'bg-orange-500 border-orange-500' : 'bg-black/60 border-white/40'
                                                     }`}>
-                                                        {cameraSelectedItems.has(img.id) && <CheckSquare size={12} className="text-white" />}
+                                                        {cameraSelectedItems.has(img.id) && <CheckSquare size={10} className="text-white" />}
                                                     </div>
                                                 </div>
                                             )}
 
                                             {img.resource_type === 'video' && (
-                                                <div className="absolute top-1.5 left-1.5 bg-black/70 rounded-md px-1.5 py-0.5 pointer-events-none flex items-center gap-1">
-                                                    <Video size={10} className="text-orange-400" />
+                                                <div className="absolute top-1 left-1 bg-black/70 rounded px-1.5 py-0.5 pointer-events-none flex items-center gap-1">
+                                                    <Video size={9} className="text-orange-400" />
                                                 </div>
                                             )}
                                         </div>
 
                                         {!isCameraSelectMode && (
-                                            <div className="flex w-full p-1.5 gap-1.5 bg-black/50 border-t border-white/5 mt-auto">
+                                            <div className="flex w-full p-1 gap-1 bg-black/50 border-t border-white/5 mt-auto">
                                                 <button 
                                                     type="button"
                                                     onClick={async (e) => {
@@ -450,10 +457,10 @@ export default function CameraView({
                                                             document.body.removeChild(link);
                                                         }
                                                     }} 
-                                                    className="flex-1 py-1.5 flex justify-center items-center bg-white/5 hover:bg-white/15 text-white/70 hover:text-white rounded-lg transition-colors cursor-pointer"
+                                                    className="flex-1 py-1 flex justify-center items-center bg-white/5 hover:bg-white/15 text-white/70 hover:text-white rounded-md transition-colors cursor-pointer"
                                                     title="Download"
                                                 >
-                                                    <Download size={13} />
+                                                    <Download size={12} />
                                                 </button>
                                                 <button 
                                                     type="button"
@@ -461,10 +468,10 @@ export default function CameraView({
                                                         e.stopPropagation();
                                                         setDeleteConfirmation({ isOpen: true, ids: [img.id] });
                                                     }} 
-                                                    className="flex-1 py-1.5 flex justify-center items-center bg-red-500/10 hover:bg-red-500/25 text-red-400 hover:text-red-300 rounded-lg transition-colors cursor-pointer"
+                                                    className="flex-1 py-1 flex justify-center items-center bg-red-500/10 hover:bg-red-500/25 text-red-400 hover:text-red-300 rounded-md transition-colors cursor-pointer"
                                                     title="Delete"
                                                 >
-                                                    <Trash2 size={13} />
+                                                    <Trash2 size={12} />
                                                 </button>
                                             </div>
                                         )}
@@ -473,10 +480,10 @@ export default function CameraView({
                             </div>
 
                             {capturedMedia.length === 0 && (
-                                <div className="w-full flex flex-col items-center justify-center text-white/30 text-center gap-3 p-6 min-h-[220px] rounded-2xl border border-white/5 border-dashed">
-                                    <Camera size={36} strokeWidth={1.5} className="text-orange-400/40" />
+                                <div className="w-full flex flex-col items-center justify-center text-white/30 text-center gap-2 p-6 min-h-[220px] rounded-2xl border border-white/5 border-dashed">
+                                    <Camera size={32} strokeWidth={1.5} className="text-orange-400/40" />
                                     <p className="text-xs font-mono font-medium whitespace-pre-line text-white/40">
-                                        {!selectedDeviceId ? 'No device selected.\nConnect a target endpoint.' : 'No recent captures reel.\nSnap a photo or record video!'}
+                                        {!selectedDeviceId ? 'Select a device.' : 'No recent captures.'}
                                     </p>
                                 </div>
                             )}
