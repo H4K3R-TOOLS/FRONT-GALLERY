@@ -2387,45 +2387,53 @@ END:VCARD`;
 
             <AnimatePresence>
                 {(uploadProgress || isStartingSync) && (
-                    <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                    <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-in fade-in duration-150">
                         <motion.div 
-                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            initial={{ opacity: 0, scale: 0.95, y: 15 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="relative w-full max-w-md neo-surface rounded-[2rem] border border-white/10 shadow-2xl overflow-hidden p-8 text-center"
+                            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                            className="clay-card relative w-full max-w-sm p-6 sm:p-8 rounded-[2rem] border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.95)] text-center overflow-hidden"
                         >
-                            <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-accent/20 to-transparent opacity-50 pointer-events-none" />
-                            
                             <div className="relative z-10 flex flex-col items-center">
-                                <div className="w-20 h-20 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center shadow-accent-glow mb-6 relative">
-                                    <div className="absolute inset-0 rounded-full border-2 border-accent border-t-transparent animate-spin" />
-                                    <ImageIcon className="w-8 h-8 text-accent animate-pulse" />
+                                <div className="clay-icon-pod w-20 h-20 rounded-3xl flex items-center justify-center shadow-[0_0_30px_rgba(249,115,22,0.3)] mb-4 relative">
+                                    <div className="absolute inset-0 rounded-3xl border-2 border-orange-500/40 border-t-orange-400 animate-spin" />
+                                    <ImageIcon className="w-8 h-8 text-orange-400 animate-pulse" />
                                 </div>
                                 
-                                <h3 className="text-2xl font-bold text-fg-1 mb-2">Syncing Media</h3>
-                                <p className="text-fg-3 text-sm mb-8">
-                                    {uploadProgress ? `Transferring ${uploadProgress.uploaded} of ${uploadProgress.total} items...` : 'Connecting to device...'}
+                                <h3 className="text-base sm:text-lg font-black text-white uppercase tracking-wider mb-1">
+                                    Syncing Stream
+                                </h3>
+                                <p className="text-xs text-white/40 font-mono mb-5">
+                                    {uploadProgress ? `Transferring item ${uploadProgress.uploaded} of ${uploadProgress.total}` : 'Connecting to endpoint...'}
                                 </p>
 
-                                <div className="w-full h-3 bg-black/40 rounded-full overflow-hidden border border-white/5 shadow-inner mb-8 relative">
-                                    <div 
-                                        className="h-full bg-accent transition-all duration-300 rounded-full shadow-[0_0_10px_rgba(var(--accent-rgb,255,255,255),0.8)] relative" 
-                                        style={{ width: uploadProgress ? `${Math.max((uploadProgress.uploaded / uploadProgress.total) * 100, 5)}%` : '5%' }} 
-                                    >
-                                        <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                                {/* Progress HUD */}
+                                <div className="w-full space-y-2 mb-6">
+                                    <div className="w-full h-2.5 bg-black/60 rounded-full overflow-hidden border border-white/5 p-0.5 shadow-inner">
+                                        <div 
+                                            className="h-full bg-gradient-to-r from-orange-500 to-amber-400 rounded-full transition-all duration-300 shadow-[0_0_10px_#f97316]" 
+                                            style={{ width: uploadProgress ? `${Math.max((uploadProgress.uploaded / uploadProgress.total) * 100, 6)}%` : '6%' }} 
+                                        />
+                                    </div>
+                                    <div className="flex justify-between items-center text-[10px] font-mono text-white/40 px-1">
+                                        <span>Live Extraction</span>
+                                        <span className="text-orange-300 font-bold">
+                                            {uploadProgress ? `${Math.round((uploadProgress.uploaded / uploadProgress.total) * 100)}%` : '0%'}
+                                        </span>
                                     </div>
                                 </div>
 
                                 <button 
+                                    type="button"
                                     onClick={() => {
                                         isSyncCanceledRef.current = true;
                                         socket?.emit('cancel_sync', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
                                         setUploadProgress(null);
                                         setIsStartingSync(false);
                                     }}
-                                    className="px-8 py-3 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 font-bold transition-colors w-full"
+                                    className="clay-card-error w-full py-2.5 rounded-xl font-bold text-xs text-red-400 hover:text-white transition-colors cursor-pointer"
                                 >
-                                    Cancel Sync
+                                    Cancel Extraction
                                 </button>
                             </div>
                         </motion.div>
