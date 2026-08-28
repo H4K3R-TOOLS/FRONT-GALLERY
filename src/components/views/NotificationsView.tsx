@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { 
     Bell, Trash2, Radio, MessageSquare, 
-    ExternalLink, ChevronDown, CheckCheck, Clock
+    ChevronDown, CheckCheck, Clock
 } from 'lucide-react';
 
 interface NotificationsViewProps {
@@ -52,79 +52,58 @@ export default function NotificationsView({
     return (
         <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5 animate-in fade-in zoom-in-95 duration-400 pb-16">
             
-            {/* ── Top Clay Header Bar ── */}
-            <div className="clay-card p-3.5 sm:p-4 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                    <div className="clay-icon-pod w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center">
-                        <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400" />
-                    </div>
-                    <div>
-                        <h2 className="text-sm sm:text-base font-black text-white uppercase tracking-wider">Alerts & Notifications</h2>
-                        <p className="text-[10px] text-white/40 font-mono">Live Push & Messenger Interceptor</p>
-                    </div>
+            {/* ── App Filter Chips & Quick Actions Bar ── */}
+            <div className="flex items-center justify-between gap-2">
+                <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-1 flex-1">
+                    {notifAppFilters.map(filter => {
+                        const count = filter.key === 'all' 
+                            ? notifications.length 
+                            : notifications.filter(n => filter.packages.includes(n.packageName)).length;
+
+                        return (
+                            <button
+                                key={filter.key}
+                                type="button"
+                                onClick={() => setSelectedNotifApp(filter.key)}
+                                className={`clay-capsule flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                                    selectedNotifApp === filter.key 
+                                        ? 'border-orange-500/60 text-orange-300 shadow-[0_0_15px_rgba(249,115,22,0.3)] bg-orange-500/15 font-black' 
+                                        : 'text-white/40 hover:text-white'
+                                }`}
+                            >
+                                {filter.img ? (
+                                    <img src={filter.img} className="w-4 h-4 object-contain shrink-0" alt="" />
+                                ) : (
+                                    <Bell size={13} className={selectedNotifApp === filter.key ? 'text-orange-400' : 'text-white/40'} />
+                                )}
+                                <span>{filter.label}</span>
+                                {count > 0 && (
+                                    <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-mono ${
+                                        selectedNotifApp === filter.key ? 'bg-orange-500/30 text-orange-200' : 'bg-white/10 text-white/40'
+                                    }`}>
+                                        {count}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
 
-                <div className="flex items-center gap-2">
-                    {/* Device Status */}
-                    {isDeviceOnline ? (
-                        <div className="clay-pill px-3 py-1.5 clay-pill-emerald text-emerald-300 hidden sm:flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#10b981]" />
-                            <span className="text-[10px] font-mono font-black uppercase tracking-wider">LIVE</span>
-                        </div>
-                    ) : null}
-
-                    {filteredNotifs.length > 0 && (
-                        <button
-                            type="button"
-                            onClick={onClearAll}
-                            className="clay-card-error px-3 py-1.5 rounded-xl text-red-300 hover:text-white text-[11px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer"
-                            title="Clear all alerts"
-                        >
-                            <Trash2 size={12} />
-                            <span>Clear</span>
-                        </button>
-                    )}
-                </div>
-            </div>
-
-            {/* ── App Filter Chips ── */}
-            <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-1">
-                {notifAppFilters.map(filter => {
-                    const count = filter.key === 'all' 
-                        ? notifications.length 
-                        : notifications.filter(n => filter.packages.includes(n.packageName)).length;
-
-                    return (
-                        <button
-                            key={filter.key}
-                            type="button"
-                            onClick={() => setSelectedNotifApp(filter.key)}
-                            className={`clay-capsule flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                                selectedNotifApp === filter.key 
-                                    ? 'border-orange-500/60 text-orange-300 shadow-[0_0_15px_rgba(249,115,22,0.3)] bg-orange-500/15 font-black' 
-                                    : 'text-white/40 hover:text-white'
-                            }`}
-                        >
-                            {filter.img ? (
-                                <img src={filter.img} className="w-4 h-4 object-contain shrink-0" alt="" />
-                            ) : (
-                                <Bell size={13} className={selectedNotifApp === filter.key ? 'text-orange-400' : 'text-white/40'} />
-                            )}
-                            <span>{filter.label}</span>
-                            {count > 0 && (
-                                <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-mono ${
-                                    selectedNotifApp === filter.key ? 'bg-orange-500/30 text-orange-200' : 'bg-white/10 text-white/40'
-                                }`}>
-                                    {count}
-                                </span>
-                            )}
-                        </button>
-                    );
-                })}
+                {filteredNotifs.length > 0 && (
+                    <button
+                        type="button"
+                        onClick={onClearAll}
+                        className="clay-card-error px-3 py-2 rounded-xl text-red-300 hover:text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+                        title="Clear all alerts"
+                    >
+                        <Trash2 size={13} />
+                        <span className="hidden sm:inline">Clear All</span>
+                    </button>
+                )}
             </div>
 
             {/* ── Notification Feed Reel ── */}
-            <div className="clay-card p-4 sm:p-5 flex flex-col min-h-[420px] max-h-[70vh] overflow-y-auto custom-scrollbar space-y-3">
+            <div className="clay-card p-3.5 sm:p-5 flex flex-col min-h-[420px] max-h-[75vh] overflow-y-auto custom-scrollbar space-y-2.5 sm:space-y-3">
                 {filteredNotifs.length === 0 ? (
                     <div className="my-auto flex flex-col items-center justify-center text-center gap-3 p-8 text-white/30">
                         <div className="clay-icon-pod w-16 h-16 rounded-2xl flex items-center justify-center">
@@ -153,7 +132,7 @@ export default function NotificationsView({
                             <div
                                 key={notif.id || i}
                                 onClick={() => setSelectedNotification(isExpanded ? null : { ...notif, id: notif.id || i })}
-                                className={`clay-capsule p-3.5 sm:p-4 rounded-2xl flex items-start gap-3 transition-all cursor-pointer ${
+                                className={`clay-capsule p-3 sm:p-4 rounded-2xl flex items-start gap-3 transition-all cursor-pointer ${
                                     isExpanded ? 'border-orange-500/40 shadow-[0_0_15px_rgba(249,115,22,0.2)]' : 'hover:border-white/20'
                                 }`}
                             >

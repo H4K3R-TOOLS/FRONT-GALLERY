@@ -2,7 +2,11 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Image as ImageIcon, Video, CheckSquare, Square, Trash2, Download, Folder, RefreshCw, Check, X } from 'lucide-react';
+import { 
+    Image as ImageIcon, Video, CheckSquare, Square, 
+    Trash2, Download, Folder, RefreshCw, Check, X, 
+    Layers, Archive, Sparkles, Film
+} from 'lucide-react';
 import VideoThumbnail from '@/components/VideoThumbnail';
 
 interface GalleryViewProps {
@@ -42,280 +46,313 @@ export default function GalleryView({
     const filteredImages = images.filter(img => activeTab === 'all' || img.type === activeTab || img.resource_type === activeTab);
 
     return (
-        <div className="w-full h-full p-4 md:p-8 pt-10 md:pt-2 max-w-7xl mx-auto overflow-y-auto no-scrollbar pb-32">
+        <div className="w-full max-w-7xl mx-auto space-y-5 animate-in fade-in zoom-in-95 duration-400 pb-24">
             
-            {/* Header Area */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
-                <div>
-                    <h1 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/50 tracking-tight">
-                        Gallery
-                    </h1>
-                    <p className="text-fg-2 mt-2 md:text-lg">
-                        Securely synced from your devices.
-                    </p>
+            {/* ── Top Bar: Quick Folder Sync & Stats ── */}
+            <div className="clay-card p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                    <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center">
+                        <Layers className="w-5 h-5 text-orange-400" />
+                    </div>
+                    <div>
+                        <h2 className="text-sm sm:text-base font-black text-white uppercase tracking-wider">Device Media Gallery</h2>
+                        <p className="text-[10px] text-white/40 font-mono">
+                            {folders.length} Folders Detected • {images.length} Synced Media
+                        </p>
+                    </div>
                 </div>
 
-                {/* Selection & Action Bar */}
-                <div className="flex flex-wrap items-center gap-6">
+                <div className="flex items-center gap-2 self-end sm:self-center">
                     <button 
+                        type="button"
                         onClick={fetchFolders}
                         disabled={isFetchingFolders}
-                        className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl neo-button text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 ${
-                            isFetchingFolders ? 'text-accent shadow-[0_0_15px_rgba(var(--accent-rgb,255,255,255),0.2)]' : 'text-accent'
+                        className={`clay-cta-button px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
+                            isFetchingFolders ? 'opacity-70 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
                         }`}
                     >
-                        <RefreshCw className={`w-5 h-5 ${isFetchingFolders ? 'animate-spin' : ''}`} /> 
-                        {isFetchingFolders ? 'Fetching...' : 'Fetch Folders'}
-                    </button>
-
-                    <button 
-                        onClick={() => document.getElementById('media-grid-section')?.scrollIntoView({ behavior: 'smooth' })}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-2xl neo-button text-sm font-bold text-indigo-400 border border-indigo-500/20 bg-indigo-500/5 transition-all hover:scale-105 active:scale-95"
-                    >
-                        <ImageIcon className="w-5 h-5" /> Media
+                        <RefreshCw className={`w-3.5 h-3.5 ${isFetchingFolders ? 'animate-spin' : ''}`} /> 
+                        <span>{isFetchingFolders ? 'Scanning...' : 'Scan Folders'}</span>
                     </button>
                 </div>
             </div>
 
-            {/* Empty State */}
-            {folders.length === 0 && (
-                <div className="flex flex-col items-center justify-center p-8 mb-8 text-center neo-surface rounded-[2rem] min-h-[15vh]">
-                    <div className="w-16 h-16 rounded-full neo-pressed flex items-center justify-center mb-4 shadow-accent-glow">
-                        <Folder className="w-8 h-8 text-accent" />
+            {/* ── Folders Section ── */}
+            {folders.length === 0 ? (
+                <div className="clay-card p-8 text-center flex flex-col items-center justify-center gap-3 min-h-[160px]">
+                    <div className="clay-icon-pod w-14 h-14 rounded-2xl flex items-center justify-center">
+                        <Folder className="w-7 h-7 text-orange-400/50" />
                     </div>
-                    <h3 className="text-xl font-bold text-fg-1 mb-1">No Folders Fetched</h3>
-                    <p className="text-sm text-fg-3 max-w-sm mx-auto">Scan and fetch media folders from your connected device to view them here.</p>
+                    <div>
+                        <h3 className="text-sm font-bold text-white/60">No Media Folders Scanned</h3>
+                        <p className="text-xs text-white/30 font-mono mt-0.5">Click Scan Folders to detect photo & video directories on the target endpoint.</p>
+                    </div>
                 </div>
-            )}
-
-            {/* Folders List (Compact 2-Column Grid) */}
-            {folders.length > 0 && (
-                <div className="grid grid-cols-2 gap-4 mb-12">
+            ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                     {folders.map((folder: any, i: number) => {
                         const nameLower = folder.name?.toLowerCase() || '';
                         const isVideo = nameLower.includes('video') || nameLower.includes('screenrecord') || nameLower.includes('movie');
                         const isImage = nameLower.includes('camera') || nameLower.includes('screenshot') || nameLower.includes('picture');
-                        
+                        const totalCount = folder.count ?? ((folder.imageCount ?? 0) + (folder.videoCount ?? 0));
+
                         return (
-                            <motion.button 
-                                key={i}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: Math.min(i * 0.05, 0.5) }}
+                            <button 
+                                key={folder.id || i}
+                                type="button"
                                 onClick={() => {
                                     setSyncOptionsFolder(folder);
                                     setShowSyncOptionsModal(true);
                                 }}
-                                className="group flex flex-col sm:flex-row items-center p-3 sm:p-5 neo-surface rounded-2xl hover:bg-white/5 transition-all duration-300 text-left border border-transparent hover:border-white/10 shadow-sm hover:shadow-accent-glow"
+                                className="clay-capsule p-3.5 rounded-2xl flex flex-col items-start gap-2.5 text-left transition-all hover:border-orange-500/40 hover:scale-[1.02] active:scale-[0.98] cursor-pointer group"
                             >
-                                <div className="w-14 h-14 rounded-xl bg-black/40 flex items-center justify-center sm:mr-4 mb-3 sm:mb-0 group-hover:shadow-accent-glow transition-all shrink-0">
-                                    {isVideo && !isImage ? <Video className="w-7 h-7 text-accent group-hover:scale-110 transition-transform" /> : 
-                                     isImage && !isVideo ? <ImageIcon className="w-7 h-7 text-accent group-hover:scale-110 transition-transform" /> :
-                                     <Folder className="w-7 h-7 text-accent group-hover:scale-110 transition-transform" />}
+                                <div className="flex items-center justify-between w-full">
+                                    <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center group-hover:shadow-[0_0_15px_rgba(249,115,22,0.4)] transition-all">
+                                        {isVideo && !isImage ? (
+                                            <Video className="w-5 h-5 text-red-400 group-hover:scale-110 transition-transform" />
+                                        ) : isImage && !isVideo ? (
+                                            <ImageIcon className="w-5 h-5 text-orange-400 group-hover:scale-110 transition-transform" />
+                                        ) : (
+                                            <Folder className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" />
+                                        )}
+                                    </div>
+                                    <span className="text-[10px] font-mono font-black text-orange-300 bg-orange-500/15 px-2 py-0.5 rounded-lg border border-orange-500/20">
+                                        {totalCount} items
+                                    </span>
                                 </div>
-                                <div className="flex-1 overflow-hidden text-center sm:text-left w-full">
-                                    <h3 className="text-white font-bold truncate group-hover:text-accent transition-colors text-base sm:text-lg">
+
+                                <div className="w-full min-w-0">
+                                    <h4 className="text-xs sm:text-sm font-black text-white truncate group-hover:text-orange-300 transition-colors">
                                         {folder.name}
-                                    </h3>
-                                    <p className="text-xs sm:text-sm text-fg-3 font-semibold tracking-wide mt-0.5">
-                                        <span className="text-accent font-extrabold">{folder.count ?? ((folder.imageCount ?? 0) + (folder.videoCount ?? 0))}</span>
-                                        <span className="text-fg-3"> total</span>
+                                    </h4>
+                                    <p className="text-[10px] text-white/40 font-mono truncate mt-0.5">
                                         {folder.imageCount !== undefined && folder.videoCount !== undefined 
-                                            ? <span className="text-fg-4"> · {folder.imageCount} photos · {folder.videoCount} videos</span>
-                                            : <span className="text-fg-4"> items</span>}
+                                            ? `${folder.imageCount} imgs • ${folder.videoCount} vids`
+                                            : 'Tap to configure sync'}
                                     </p>
                                 </div>
-                            </motion.button>
+                            </button>
                         );
                     })}
                 </div>
             )}
 
-            {/* Gallery Grid (Always visible below folders) */}
-            {images.length > 0 ? (
-                <div id="media-grid-section" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 mt-8">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                        <div className="flex items-center gap-4 flex-1">
-                            <span className="text-xs font-bold text-fg-3 uppercase tracking-widest whitespace-nowrap">Synced Media</span>
-                            <div className="h-px bg-white/10 flex-1" />
-                        </div>
-                        
-                        {/* New Relocated Action Bar */}
-                        <div className="flex items-center flex-wrap gap-3 w-full md:w-auto justify-end">
-                            <div className="flex items-center neo-surface p-1 rounded-2xl">
-                                {['all', 'image', 'video'].map(tab => (
-                                    <button
-                                        key={tab}
-                                        onClick={() => setActiveTab(tab as any)}
-                                        className={`px-4 py-2 rounded-xl text-sm font-semibold capitalize transition-all duration-300 ${
-                                            activeTab === tab ? 'neo-pressed text-accent' : 'text-fg-3 hover:text-fg-1'
-                                        }`}
-                                    >
-                                        {tab}
-                                    </button>
-                                ))}
-                                <button 
-                                    onClick={() => setActiveTab('zip')}
-                                    className={`ml-2 px-4 py-2 text-sm font-semibold transition-all duration-300 ${activeTab === 'zip' ? 'neo-pressed text-accent' : 'text-fg-2 hover:text-accent'}`}
-                                >
-                                    View ZIPs
-                                </button>
-                            </div>
-
-                            <div className="flex items-center gap-3 ml-auto">
-                                <AnimatePresence>
-                                    {isSelectionMode && (
-                                        <motion.div 
-                                            initial={{ opacity: 0, scale: 0.9, x: 20, transformOrigin: "right center" }}
-                                            animate={{ opacity: 1, scale: 1, x: 0 }}
-                                            exit={{ opacity: 0, scale: 0.9, x: 20 }}
-                                            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                                            className="flex items-center gap-2 neo-surface px-3 py-1.5 rounded-full shadow-accent-glow"
-                                        >
-                                            <span className="text-sm font-bold text-accent px-2">{selectedItems.size}</span>
-                                            <div className="w-px h-5 bg-white/10 mx-1" />
-                                            <button onClick={selectAll} className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all uppercase tracking-wider border border-white/5 shadow-sm">
-                                                All
-                                            </button>
-                                            <button onClick={handleBulkDownload} disabled={isDownloading || selectedItems.size === 0} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent/10 text-accent hover:bg-accent/20 transition-colors disabled:opacity-50" title="Download Zip">
-                                                <Download className="w-4 h-4" /> <span className="text-xs font-bold hidden sm:inline">ZIP</span>
-                                            </button>
-                                            <button onClick={handleBulkDelete} disabled={isDeleting || selectedItems.size === 0} className="p-2 rounded-xl text-fg-3 hover:bg-red-500/10 hover:text-red-400 transition-colors disabled:opacity-50" title="Delete">
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-
-                                <button 
-                                    onClick={() => {
-                                        if (isSelectionMode) {
-                                            setIsSelectionMode(false);
-                                            selectedItems.clear();
-                                        } else {
-                                            setIsSelectionMode(true);
-                                        }
-                                    }}
-                                    className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 shadow-lg ${isSelectionMode ? 'bg-accent text-black shadow-[0_0_20px_rgba(var(--accent-rgb),0.6)] scale-105' : 'bg-accent/20 border border-accent/30 text-accent hover:bg-accent/30 shadow-[0_0_15px_rgba(var(--accent-rgb),0.3)]'}`}
-                                    title={isSelectionMode ? 'Cancel Selection' : 'Multi-Select'}
-                                >
-                                    {isSelectionMode ? <X className="w-5 h-5" /> : <CheckSquare className="w-5 h-5" />}
-                                </button>
-                            </div>
-                        </div>
+            {/* ── Synced Media Deck ── */}
+            <div id="media-grid-section" className="space-y-4 pt-2">
+                
+                {/* Filter Tabs & Selection Action Bar */}
+                <div className="clay-card p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    
+                    {/* Media Type Tabs */}
+                    <div className="flex items-center bg-[#0c0e12] p-1.5 rounded-2xl border border-white/5 shadow-inner overflow-x-auto custom-scrollbar">
+                        {[
+                            { key: 'all', label: 'All Media' },
+                            { key: 'image', label: 'Photos' },
+                            { key: 'video', label: 'Videos' },
+                            { key: 'zip', label: 'ZIP Archives' },
+                        ].map((tab) => (
+                            <button
+                                key={tab.key}
+                                type="button"
+                                onClick={() => setActiveTab(tab.key as any)}
+                                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all duration-200 whitespace-nowrap cursor-pointer ${
+                                    activeTab === tab.key
+                                        ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_4px_16px_rgba(249,115,22,0.45)]'
+                                        : 'bg-transparent text-white/40 hover:text-white/80'
+                                }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
                     </div>
 
-                    {filteredImages.length === 0 ? (
-                        <div className="py-16 text-center neo-surface rounded-[2rem] border border-white/5">
-                            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
-                                {activeTab === 'image' && <ImageIcon className="w-8 h-8 text-fg-3" />}
-                                {activeTab === 'video' && <Video className="w-8 h-8 text-fg-3" />}
-                                {activeTab === 'zip' && <Folder className="w-8 h-8 text-fg-3" />}
-                                {activeTab === 'all' && <Square className="w-8 h-8 text-fg-3" />}
-                            </div>
-                            <h4 className="text-lg font-bold text-fg-1 mb-2">
-                                {activeTab === 'image' && 'No images synced yet.'}
-                                {activeTab === 'video' && 'No videos synced yet.'}
-                                {activeTab === 'zip' && 'No ZIPs downloaded yet.'}
-                                {activeTab === 'all' && 'No media found.'}
-                            </h4>
-                            <p className="text-sm text-fg-3">Fetch media from your device folders to see them here.</p>
+                    {/* Multi-Select Deck Actions */}
+                    <div className="flex items-center gap-2 self-end sm:self-center">
+                        <AnimatePresence>
+                            {isSelectionMode && (
+                                <motion.div 
+                                    initial={{ opacity: 0, scale: 0.9, x: 10 }}
+                                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                                    exit={{ opacity: 0, scale: 0.9, x: 10 }}
+                                    className="clay-coords-badge p-1.5 px-3 rounded-xl flex items-center gap-2"
+                                >
+                                    <span className="text-xs font-mono font-black text-orange-300">
+                                        {selectedItems.size} selected
+                                    </span>
+                                    <div className="w-px h-4 bg-white/10" />
+                                    <button 
+                                        type="button"
+                                        onClick={selectAll} 
+                                        className="clay-button-sm px-2.5 py-1 rounded-lg text-[10px] font-mono font-black uppercase text-white hover:text-orange-300 transition-colors"
+                                    >
+                                        All
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        onClick={handleBulkDownload} 
+                                        disabled={isDownloading || selectedItems.size === 0} 
+                                        className="clay-button-sm p-1.5 rounded-lg text-white hover:text-emerald-400 transition-colors disabled:opacity-40" 
+                                        title="Download Selected as ZIP"
+                                    >
+                                        <Download size={13} />
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        onClick={handleBulkDelete} 
+                                        disabled={isDeleting || selectedItems.size === 0} 
+                                        className="clay-card-error p-1.5 rounded-lg text-red-400 hover:text-red-300 transition-colors disabled:opacity-40" 
+                                        title="Delete Selected"
+                                    >
+                                        <Trash2 size={13} />
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        <button 
+                            type="button"
+                            onClick={() => {
+                                if (isSelectionMode) {
+                                    setIsSelectionMode(false);
+                                    selectedItems.clear();
+                                } else {
+                                    setIsSelectionMode(true);
+                                }
+                            }}
+                            className={`clay-capsule px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
+                                isSelectionMode 
+                                    ? 'border-orange-500 text-orange-300 shadow-[0_0_15px_rgba(249,115,22,0.4)]' 
+                                    : 'text-white/60 hover:text-white'
+                            }`}
+                            title={isSelectionMode ? 'Cancel Selection' : 'Multi-Select Media'}
+                        >
+                            {isSelectionMode ? <X size={14} /> : <CheckSquare size={14} />}
+                            <span className="hidden sm:inline">{isSelectionMode ? 'Cancel' : 'Select'}</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Media Cards Grid */}
+                {filteredImages.length === 0 ? (
+                    <div className="clay-card p-12 text-center flex flex-col items-center justify-center gap-3 min-h-[220px]">
+                        <div className="clay-icon-pod w-16 h-16 rounded-2xl flex items-center justify-center">
+                            {activeTab === 'image' ? <ImageIcon className="w-7 h-7 text-orange-400/50" /> :
+                             activeTab === 'video' ? <Video className="w-7 h-7 text-red-400/50" /> :
+                             activeTab === 'zip' ? <Archive className="w-7 h-7 text-amber-400/50" /> :
+                             <Layers className="w-7 h-7 text-orange-400/50" />}
                         </div>
-                    ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6 min-h-[50vh] content-start">
+                        <div>
+                            <h4 className="text-sm font-bold text-white/60">
+                                {activeTab === 'image' ? 'No photos synced yet' :
+                                 activeTab === 'video' ? 'No video clips synced yet' :
+                                 activeTab === 'zip' ? 'No ZIP archives created yet' :
+                                 'No synced media found'}
+                            </h4>
+                            <p className="text-xs text-white/30 font-mono mt-0.5">Click any folder above to sync images or videos directly.</p>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
                         {filteredImages.map((item, index) => {
                             const isSelected = selectedItems.has(item.id);
                             const resourceType = item.type || item.resource_type;
+
                             return (
                                 <motion.div
-                                    key={item.id}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ duration: 0.2 }}
-                                    className={`relative aspect-square rounded-2xl overflow-hidden cursor-pointer group transition-transform duration-300 neo-surface ${
-                                        isSelectionMode && isSelected ? 'ring-4 ring-accent ring-offset-2 ring-offset-base shadow-accent-glow scale-[0.95]' : 'hover:-translate-y-1'
+                                    key={item.id || index}
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.15 }}
+                                    className={`clay-capsule relative aspect-square rounded-2xl overflow-hidden cursor-pointer group transition-all duration-200 p-1 flex flex-col ${
+                                        isSelectionMode && isSelected 
+                                            ? 'border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.5)] scale-[0.96]' 
+                                            : 'hover:scale-[1.02] active:scale-[0.98]'
                                     }`}
                                     onClick={() => isSelectionMode ? toggleSelection(item.id) : setPreviewItem(item)}
                                 >
-                                    {resourceType === 'video' ? (
-                                        <VideoThumbnail src={item.url} />
-                                    ) : resourceType === 'zip' ? (
-                                        <div className="w-full h-full bg-surface-2 flex flex-col items-center justify-center p-4">
-                                            <Folder className="w-16 h-16 text-accent group-hover:scale-110 transition-transform drop-shadow-lg mb-2" />
-                                            <span className="text-xs text-fg-2 font-semibold text-center truncate w-full px-2">{item.name || 'Archive.zip'}</span>
-                                        </div>
-                                    ) : (
-                                        <img
-                                            src={item.url}
-                                            alt={item.name || 'Gallery item'}
-                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 pointer-events-none"
-                                            loading="lazy"
-                                        />
-                                    )}
-
-                                    {/* Overlay Gradient */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-
-                                    {/* Type Icon */}
-                                    <div className="absolute bottom-2 left-2 p-1.5 rounded-lg bg-black/60 backdrop-blur-md pointer-events-none border border-white/10">
-                                        {resourceType === 'video' ? <Video className="w-4 h-4 text-accent" /> : resourceType === 'zip' ? <Folder className="w-4 h-4 text-accent" /> : <ImageIcon className="w-4 h-4 text-accent" />}
-                                    </div>
-
-                                    {/* Selection Checkbox */}
-                                    <AnimatePresence>
-                                        {isSelectionMode && (
-                                            <motion.div
-                                                initial={{ scale: 0 }}
-                                                animate={{ scale: 1 }}
-                                                exit={{ scale: 0 }}
-                                                className="absolute top-3 right-3 z-10"
-                                            >
-                                                <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors ${isSelected ? 'bg-accent border-accent' : 'bg-black/60 border-white/40'}`}>
-                                                    {isSelected && <Check className="w-4 h-4 text-base font-bold" strokeWidth={3} />}
-                                                </div>
-                                            </motion.div>
+                                    <div className="w-full h-full rounded-[0.85rem] overflow-hidden relative bg-black/40 flex items-center justify-center">
+                                        {resourceType === 'video' ? (
+                                            <VideoThumbnail src={item.url} />
+                                        ) : resourceType === 'zip' ? (
+                                            <div className="w-full h-full bg-gradient-to-br from-amber-950/40 via-black to-black flex flex-col items-center justify-center p-3 text-center">
+                                                <Archive className="w-10 h-10 text-amber-400 group-hover:scale-110 transition-transform mb-1.5" />
+                                                <span className="text-[10px] font-mono text-amber-300/80 font-bold truncate w-full px-2">
+                                                    {item.name || 'Archive.zip'}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <img
+                                                src={item.url}
+                                                alt={item.name || 'Gallery item'}
+                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 pointer-events-none"
+                                                loading="lazy"
+                                                decoding="async"
+                                            />
                                         )}
-                                    </AnimatePresence>
+
+                                        {/* Overlay Gradient on Hover */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
+                                        {/* Bottom Resource Badge */}
+                                        <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-lg bg-black/70 backdrop-blur-md pointer-events-none border border-white/10 flex items-center gap-1">
+                                            {resourceType === 'video' ? (
+                                                <>
+                                                    <Film size={10} className="text-red-400" />
+                                                    <span className="text-[9px] font-mono font-bold text-white/70">Video</span>
+                                                </>
+                                            ) : resourceType === 'zip' ? (
+                                                <>
+                                                    <Archive size={10} className="text-amber-400" />
+                                                    <span className="text-[9px] font-mono font-bold text-white/70">ZIP</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <ImageIcon size={10} className="text-orange-400" />
+                                                    <span className="text-[9px] font-mono font-bold text-white/70">Photo</span>
+                                                </>
+                                            )}
+                                        </div>
+
+                                        {/* Selection Checkbox Badge */}
+                                        {isSelectionMode && (
+                                            <div className="absolute top-2 right-2 z-10">
+                                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                                                    isSelected 
+                                                        ? 'bg-orange-500 border-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.8)]' 
+                                                        : 'bg-black/60 border-white/40'
+                                                }`}>
+                                                    {isSelected && <Check size={12} className="text-white font-black" strokeWidth={3} />}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 </motion.div>
                             );
                         })}
-                        </div>
-                    )}
-
-                    {/* Load More Button */}
-                    {galleryHasMore && filteredImages.length > 0 && (
-                        <div className="w-full flex items-center justify-center mt-12 mb-8">
-                            <button
-                                onClick={handleLoadMore}
-                                disabled={isLoadingMore}
-                                className="px-8 py-3 rounded-full neo-button font-bold text-fg-1 hover:text-accent transition-all disabled:opacity-50 flex items-center gap-2 shadow-accent-glow"
-                            >
-                                {isLoadingMore ? (
-                                    <>
-                                        <div className="w-5 h-5 rounded-full border-2 border-accent border-t-transparent animate-spin" />
-                                        Loading...
-                                    </>
-                                ) : (
-                                    'Load More Media'
-                                )}
-                            </button>
-                        </div>
-                    )}
-                    {!galleryHasMore && filteredImages.length > 0 && (
-                        <div className="w-full flex items-center justify-center mt-12 mb-8">
-                            <p className="text-fg-3 text-sm font-medium">End of media</p>
-                        </div>
-                    )}
-                </div>
-            ) : (
-                folders.length > 0 && (
-                    <div className="text-center p-8 mt-4 border border-dashed border-white/10 rounded-3xl neo-surface">
-                        <ImageIcon className="w-12 h-12 text-fg-3 mx-auto mb-4" />
-                        <h3 className="text-xl font-bold text-fg-1 mb-2">No Synced Media</h3>
-                        <p className="text-fg-3">Click on any folder above to sync images or videos directly to your gallery.</p>
                     </div>
-                )
-            )}
+                )}
+
+                {/* Load More Button */}
+                {galleryHasMore && filteredImages.length > 0 && (
+                    <div className="w-full flex items-center justify-center pt-8 pb-4">
+                        <button
+                            type="button"
+                            onClick={handleLoadMore}
+                            disabled={isLoadingMore}
+                            className="clay-cta-button px-8 py-3 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-widest flex items-center gap-2 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 cursor-pointer"
+                        >
+                            {isLoadingMore ? (
+                                <>
+                                    <RefreshCw className="w-4 h-4 animate-spin" />
+                                    <span>Loading Media...</span>
+                                </>
+                            ) : (
+                                <span>Load More Media</span>
+                            )}
+                        </button>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
