@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Image as ImageIcon, Video, Package, DownloadCloud, 
-    X, LayoutGrid, Lock, Crown, Sparkles, Folder, Check
+    X, LayoutGrid, Lock, Crown, Folder, AlertCircle
 } from 'lucide-react';
 
 interface SyncOptionsModalProps {
@@ -31,33 +31,34 @@ export default function SyncOptionsModal({
     const [fetchCount, setFetchCount] = useState<number | 'all'>(5);
     const [manualInput, setManualInput] = useState('');
     const [showManualInput, setShowManualInput] = useState(false);
+    const [manualError, setManualError] = useState(false);
     const [showUpgradePopup, setShowUpgradePopup] = useState(false);
     const [upgradeMessage, setUpgradeMessage] = useState('');
 
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    // Synchronize mediaType safely when folder changes without cascaded flicker
     useEffect(() => {
-        if (isOpen) {
-            if (hasImages && !hasVideos) setMediaType('image');
-            else if (hasVideos && !hasImages) setMediaType('video');
-            else setMediaType('image');
+        if (isOpen && folder) {
+            setMediaType(hasImages ? 'image' : 'video');
             setFetchCount(5);
             setShowManualInput(false);
             setManualInput('');
+            setManualError(false);
             setShowUpgradePopup(false);
         }
-    }, [isOpen, hasImages, hasVideos]);
+    }, [isOpen, folder?.name]);
 
     if (!isOpen || !folder) return null;
 
     const isPremium = userPlan === 'premium' || userPlan === 'enterprise';
     const isBasic = userPlan === 'basic';
 
-    // Get max count for current media type
     const maxCount = mediaType === 'image'
         ? (folder?.imageCount ?? folder?.count ?? 999)
         : (folder?.videoCount ?? folder?.count ?? 999);
 
-    // Compute accurate total count
-    const computedTotal = (() => {
+    const totalCount = (() => {
         if (folder?.count && folder.count > 0) return folder.count;
         const ic = folder?.imageCount ?? 0;
         const vc = folder?.videoCount ?? 0;
@@ -65,22 +66,38 @@ export default function SyncOptionsModal({
         return null;
     })();
 
-    const totalCount = computedTotal;
-
-    // Handle locked feature click
     const handleLockedClick = (feature: string) => {
         setUpgradeMessage(`Upgrade to Premium or Enterprise to unlock "${feature}"`);
         setShowUpgradePopup(true);
     };
 
-    // Handle manual input submit
     const handleManualSubmit = () => {
         const val = parseInt(manualInput, 10);
         if (!isNaN(val) && val > 0) {
             const clamped = Math.min(val, maxCount);
             setFetchCount(clamped);
-            setShowManualInput(false);
+            setManualError(false);
+        } else {
+            setManualError(true);
         }
+    };
+
+    const validateAndTriggerSync = (method: 'oneByOne' | 'zip') => {
+        if (showManualInput) {
+            const val = parseInt(manualInput, 10);
+            if (isNaN(val) || val <= 0) {
+                setManualError(true);
+                if (inputRef.current) inputRef.current.focus();
+                return;
+            }
+            const clamped = Math.min(val, maxCount);
+            onSync(mediaType, clamped, method);
+            onClose();
+            return;
+        }
+
+        onSync(mediaType, fetchCount, method);
+        onClose();
     };
 
     const quantityOptions: { label: string; value: number | 'all' | 'manual'; locked?: boolean }[] = [
@@ -92,80 +109,91 @@ export default function SyncOptionsModal({
     ];
 
     return (
-        <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 15 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 15 }}
-                className="clay-card relative w-full max-w-lg p-6 sm:p-8 rounded-[2rem] border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.95)] overflow-hidden"
+        <div 
+            className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-in fade-in duration-150"
+            onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+        >
+            <div
+                className="clay-card relative w-full max-w-lg p-5 sm:p-8 rounded-[2rem] border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.95)] overflow-hidden animate-in zoom-in-95 duration-150"
             >
                 {/* Close Button */}
                 <button 
                     type="button"
                     onClick={onClose} 
-                    className="clay-button-sm absolute top-5 right-5 w-9 h-9 rounded-xl flex items-center justify-center text-white/60 hover:text-white transition-colors cursor-pointer z-10"
+                    className="clay-button-sm absolute top-4 right-4 sm:top-5 sm:right-5 w-9 h-9 rounded-xl flex items-center justify-center text-white/60 hover:text-white transition-colors cursor-pointer z-10"
+                    title="Close"
                 >
                     <X size={16} />
                 </button>
 
-                <div className="space-y-6">
+                <div className="space-y-5 sm:space-y-6">
                     
                     {/* Header */}
-                    <div className="text-center pt-2">
-                        <div className="clay-icon-pod w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-[0_0_20px_rgba(249,115,22,0.3)]">
-                            <Folder className="w-6 h-6 text-orange-400" />
+                    <div className="text-center pt-1">
+                        <div className="clay-icon-pod w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center mx-auto mb-2.5 shadow-[0_0_20px_rgba(249,115,22,0.3)]">
+                            <Folder className="w-5 h-5 sm:w-6 sm:h-6 text-orange-400" />
                         </div>
-                        <h2 className="text-lg sm:text-xl font-black text-white uppercase tracking-wider">
+                        <h2 className="text-base sm:text-lg font-black text-white uppercase tracking-wider">
                             Folder Sync Config
                         </h2>
-                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/50 border border-white/5 mt-2">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/50 border border-white/5 mt-1.5">
                             <span className="text-xs font-black text-orange-300 font-mono">{folder.name}</span>
                             {totalCount !== null && (
-                                <span className="text-[11px] text-white/40 font-mono">({totalCount} items)</span>
+                                <span className="text-[10px] text-white/40 font-mono">({totalCount} items)</span>
                             )}
                         </div>
                     </div>
 
                     {/* 1. Media Type Selector */}
                     {(hasImages && hasVideos) && (
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                             <span className="text-[10px] font-black uppercase tracking-widest text-white/40 px-1">
                                 1. Select Media Type
                             </span>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 gap-2.5">
                                 <button
                                     type="button"
-                                    onClick={() => { setMediaType('image'); setShowManualInput(false); setManualInput(''); }}
-                                    className={`clay-capsule p-3.5 rounded-2xl flex items-center gap-3 transition-all cursor-pointer ${
+                                    onClick={() => { 
+                                        setMediaType('image'); 
+                                        setShowManualInput(false); 
+                                        setManualInput(''); 
+                                        setManualError(false);
+                                    }}
+                                    className={`clay-capsule p-3 rounded-2xl flex items-center gap-2.5 transition-all cursor-pointer ${
                                         mediaType === 'image' 
                                             ? 'border-orange-500/60 bg-orange-500/15 shadow-[0_0_20px_rgba(249,115,22,0.3)]' 
                                             : 'hover:border-white/20'
                                     }`}
                                 >
-                                    <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
-                                        <ImageIcon className={`w-5 h-5 ${mediaType === 'image' ? 'text-orange-400' : 'text-white/40'}`} />
+                                    <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center shrink-0">
+                                        <ImageIcon className={`w-4 h-4 ${mediaType === 'image' ? 'text-orange-400' : 'text-white/40'}`} />
                                     </div>
-                                    <div className="text-left">
-                                        <div className={`text-xs font-black ${mediaType === 'image' ? 'text-orange-300' : 'text-white'}`}>Photos</div>
-                                        <div className="text-[10px] font-mono text-white/40">{folder?.imageCount ?? 'All'} available</div>
+                                    <div className="text-left min-w-0">
+                                        <div className={`text-xs font-black truncate ${mediaType === 'image' ? 'text-orange-300' : 'text-white'}`}>Photos</div>
+                                        <div className="text-[9px] font-mono text-white/40 truncate">{folder?.imageCount ?? 'All'} available</div>
                                     </div>
                                 </button>
 
                                 <button
                                     type="button"
-                                    onClick={() => { setMediaType('video'); setShowManualInput(false); setManualInput(''); }}
-                                    className={`clay-capsule p-3.5 rounded-2xl flex items-center gap-3 transition-all cursor-pointer ${
+                                    onClick={() => { 
+                                        setMediaType('video'); 
+                                        setShowManualInput(false); 
+                                        setManualInput(''); 
+                                        setManualError(false);
+                                    }}
+                                    className={`clay-capsule p-3 rounded-2xl flex items-center gap-2.5 transition-all cursor-pointer ${
                                         mediaType === 'video' 
                                             ? 'border-orange-500/60 bg-orange-500/15 shadow-[0_0_20px_rgba(249,115,22,0.3)]' 
                                             : 'hover:border-white/20'
                                     }`}
                                 >
-                                    <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
-                                        <Video className={`w-5 h-5 ${mediaType === 'video' ? 'text-red-400' : 'text-white/40'}`} />
+                                    <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center shrink-0">
+                                        <Video className={`w-4 h-4 ${mediaType === 'video' ? 'text-red-400' : 'text-white/40'}`} />
                                     </div>
-                                    <div className="text-left">
-                                        <div className={`text-xs font-black ${mediaType === 'video' ? 'text-orange-300' : 'text-white'}`}>Videos</div>
-                                        <div className="text-[10px] font-mono text-white/40">{folder?.videoCount ?? 'All'} available</div>
+                                    <div className="text-left min-w-0">
+                                        <div className={`text-xs font-black truncate ${mediaType === 'video' ? 'text-orange-300' : 'text-white'}`}>Videos</div>
+                                        <div className="text-[9px] font-mono text-white/40 truncate">{folder?.videoCount ?? 'All'} available</div>
                                     </div>
                                 </button>
                             </div>
@@ -174,9 +202,16 @@ export default function SyncOptionsModal({
 
                     {/* 2. Quantity to Fetch */}
                     <div className="space-y-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white/40 px-1">
-                            2. Quantity to Pull
-                        </span>
+                        <div className="flex items-center justify-between px-1">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-white/40">
+                                2. Quantity to Pull
+                            </span>
+                            {showManualInput && (
+                                <span className="text-[10px] font-mono font-bold text-orange-400">
+                                    Max: {maxCount}
+                                </span>
+                            )}
+                        </div>
                         
                         <div className="grid grid-cols-5 gap-1.5 bg-[#0a0c10] p-1.5 rounded-2xl border border-white/5 shadow-inner">
                             {quantityOptions.map((opt) => {
@@ -195,13 +230,15 @@ export default function SyncOptionsModal({
                                             }
                                             if (opt.value === 'manual') {
                                                 setShowManualInput(true);
-                                                setManualInput('');
+                                                setManualError(false);
+                                                setTimeout(() => inputRef.current?.focus(), 50);
                                             } else {
                                                 setShowManualInput(false);
+                                                setManualError(false);
                                                 setFetchCount(opt.value as any);
                                             }
                                         }}
-                                        className={`py-2.5 rounded-xl text-xs font-mono font-bold transition-all text-center cursor-pointer flex items-center justify-center gap-1 ${
+                                        className={`py-2 sm:py-2.5 rounded-xl text-xs font-mono font-bold transition-all text-center cursor-pointer flex items-center justify-center gap-1 ${
                                             isActive
                                                 ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_2px_12px_rgba(249,115,22,0.5)] font-black'
                                                 : opt.locked
@@ -217,46 +254,61 @@ export default function SyncOptionsModal({
                         </div>
 
                         {/* Manual Input Field */}
-                        <AnimatePresence>
-                            {showManualInput && (
-                                <motion.div
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: 'auto' }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    className="overflow-hidden pt-2"
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex-1 relative">
-                                            <input
-                                                type="number"
-                                                min={1}
-                                                max={maxCount}
-                                                value={manualInput}
-                                                onChange={(e) => setManualInput(e.target.value)}
-                                                onKeyDown={(e) => e.key === 'Enter' && handleManualSubmit()}
-                                                placeholder={`Enter count (1 - ${maxCount})`}
-                                                className="w-full pl-4 pr-14 py-2.5 bg-[#0a0c10] border border-white/10 rounded-xl text-white text-xs font-mono font-bold placeholder:text-white/20 focus:outline-none focus:border-orange-500/60 shadow-inner"
-                                                autoFocus
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setManualInput(String(maxCount))}
-                                                className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 rounded bg-white/10 text-[9px] font-mono font-black text-orange-400 uppercase"
-                                            >
-                                                Max
-                                            </button>
-                                        </div>
+                        {showManualInput && (
+                            <div className="pt-1 space-y-1.5 animate-in fade-in duration-100">
+                                <div className="flex items-center gap-2">
+                                    <div className="flex-1 relative">
+                                        <input
+                                            ref={inputRef}
+                                            type="number"
+                                            min={1}
+                                            max={maxCount}
+                                            value={manualInput}
+                                            onChange={(e) => {
+                                                setManualInput(e.target.value);
+                                                setManualError(false);
+                                                const val = parseInt(e.target.value, 10);
+                                                if (!isNaN(val) && val > 0) {
+                                                    setFetchCount(Math.min(val, maxCount));
+                                                }
+                                            }}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleManualSubmit()}
+                                            placeholder={`Enter number (1 - ${maxCount})`}
+                                            className={`w-full pl-3.5 pr-14 py-2 bg-[#0a0c10] border rounded-xl text-white text-xs font-mono font-bold placeholder:text-white/20 focus:outline-none transition-all shadow-inner ${
+                                                manualError 
+                                                    ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)]' 
+                                                    : 'border-white/10 focus:border-orange-500/60'
+                                            }`}
+                                        />
                                         <button
                                             type="button"
-                                            onClick={handleManualSubmit}
-                                            className="clay-cta-button px-4 py-2.5 rounded-xl font-bold text-xs cursor-pointer"
+                                            onClick={() => {
+                                                setManualInput(String(maxCount));
+                                                setFetchCount(maxCount);
+                                                setManualError(false);
+                                            }}
+                                            className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2 py-0.5 rounded bg-white/10 text-[9px] font-mono font-black text-orange-400 uppercase hover:bg-white/20 cursor-pointer"
                                         >
-                                            Set
+                                            Max
                                         </button>
                                     </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                                    <button
+                                        type="button"
+                                        onClick={handleManualSubmit}
+                                        className="clay-cta-button px-4 py-2 rounded-xl font-bold text-xs cursor-pointer"
+                                    >
+                                        Set
+                                    </button>
+                                </div>
+
+                                {manualError && (
+                                    <div className="flex items-center gap-1 text-[11px] font-mono text-red-400 animate-in fade-in">
+                                        <AlertCircle size={12} />
+                                        <span>Please enter a valid count before extracting!</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     {/* 3. Sync Action Buttons */}
@@ -265,23 +317,20 @@ export default function SyncOptionsModal({
                             3. Select Extraction Method
                         </span>
 
-                        <div className="flex flex-col gap-2.5">
+                        <div className="flex flex-col gap-2">
                             {/* Option A: One by One */}
                             <button
                                 type="button"
-                                onClick={() => {
-                                    onSync(mediaType, fetchCount, 'oneByOne');
-                                    onClose();
-                                }}
-                                className="clay-capsule w-full flex items-center justify-between p-3.5 rounded-2xl hover:border-orange-500/40 transition-all cursor-pointer group"
+                                onClick={() => validateAndTriggerSync('oneByOne')}
+                                className="clay-capsule w-full flex items-center justify-between p-3 sm:p-3.5 rounded-2xl hover:border-orange-500/40 transition-all cursor-pointer group"
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
-                                        <LayoutGrid className="w-5 h-5 text-orange-400" />
+                                    <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
+                                        <LayoutGrid className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400" />
                                     </div>
                                     <div className="text-left">
                                         <div className="text-xs font-black text-white uppercase tracking-wider">Stream to Gallery</div>
-                                        <div className="text-[10px] text-white/40 font-mono">View photos & videos directly inside app</div>
+                                        <div className="text-[9px] sm:text-[10px] text-white/40 font-mono">View media directly in app</div>
                                     </div>
                                 </div>
                                 <DownloadCloud size={16} className="text-white/40 group-hover:text-orange-400 transition-colors" />
@@ -296,13 +345,12 @@ export default function SyncOptionsModal({
                                         return;
                                     }
                                     if (isPremium) {
-                                        onSync(mediaType, fetchCount, 'zip');
-                                        onClose();
+                                        validateAndTriggerSync('zip');
                                     } else {
                                         onUpgrade();
                                     }
                                 }}
-                                className={`w-full flex items-center justify-between p-3.5 rounded-2xl transition-all cursor-pointer relative overflow-hidden ${
+                                className={`w-full flex items-center justify-between p-3 sm:p-3.5 rounded-2xl transition-all cursor-pointer relative overflow-hidden ${
                                     isPremium
                                         ? 'clay-cta-button text-white shadow-[0_8px_24px_rgba(249,115,22,0.4)] hover:scale-[1.01] active:scale-[0.98]'
                                         : 'clay-capsule opacity-70 hover:opacity-100'
@@ -314,8 +362,8 @@ export default function SyncOptionsModal({
                                     </div>
                                 )}
                                 <div className="flex items-center gap-3">
-                                    <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center">
-                                        <Package className="w-5 h-5 text-white" />
+                                    <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center">
+                                        <Package className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                                     </div>
                                     <div className="text-left">
                                         <div className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
@@ -326,7 +374,7 @@ export default function SyncOptionsModal({
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="text-[10px] text-white/70 font-mono">Compressed single package extraction</div>
+                                        <div className="text-[9px] sm:text-[10px] text-white/70 font-mono">Compressed single package extraction</div>
                                     </div>
                                 </div>
                                 <DownloadCloud size={16} className="text-white" />
@@ -372,7 +420,7 @@ export default function SyncOptionsModal({
                         </motion.div>
                     )}
                 </AnimatePresence>
-            </motion.div>
+            </div>
         </div>
     );
 }

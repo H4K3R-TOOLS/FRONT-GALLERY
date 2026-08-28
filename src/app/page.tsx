@@ -2439,24 +2439,29 @@ END:VCARD`;
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[600] bg-black/90 backdrop-blur-2xl flex items-center justify-center p-4 md:p-8"
+                        className="fixed inset-0 z-[600] bg-black/90 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-6"
                         onClick={() => setPreviewItem(null)}
                     >
                         <motion.div 
                             initial={{ scale: 0.95, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.95, opacity: 0 }}
-                            className="relative max-w-6xl w-full h-full flex items-center justify-center"
+                            className="relative max-w-5xl w-full h-full max-h-[90vh] flex items-center justify-center"
                             onClick={(e) => e.stopPropagation()}
                         >
                             {previewItem.resource_type === 'video' ? (
-                                <video src={previewItem.url} controls autoPlay className="max-w-full max-h-full rounded-xl neo-surface" />
+                                <div className="clay-card p-2 sm:p-3 rounded-3xl max-w-full max-h-full overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.95)]">
+                                    <video src={previewItem.url} controls autoPlay className="max-w-full max-h-[80vh] rounded-2xl bg-black" />
+                                </div>
                             ) : previewItem.resource_type === 'zip' ? (
-                                <div className="flex flex-col items-center justify-center p-12 neo-surface rounded-[2rem] border border-white/5 bg-black/40 backdrop-blur-xl max-w-sm w-full mx-4">
-                                    <Folder className="w-24 h-24 text-accent mb-6 drop-shadow-[0_0_15px_rgba(var(--accent-rgb),0.5)]" />
-                                    <h3 className="text-xl font-bold text-fg-1 text-center truncate w-full mb-2">{previewItem.name || 'Archive.zip'}</h3>
-                                    <p className="text-sm text-fg-3 mb-8 text-center">This is a ZIP archive containing your synced media.</p>
+                                <div className="clay-card flex flex-col items-center justify-center p-8 sm:p-10 rounded-[2rem] border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.95)] max-w-sm w-full mx-4 text-center">
+                                    <div className="clay-icon-pod w-20 h-20 rounded-3xl flex items-center justify-center mb-5 shadow-[0_0_30px_rgba(249,115,22,0.3)]">
+                                        <Folder className="w-10 h-10 text-orange-400" />
+                                    </div>
+                                    <h3 className="text-base sm:text-lg font-black text-white truncate w-full mb-1">{previewItem.name || 'Archive.zip'}</h3>
+                                    <p className="text-xs text-white/40 font-mono mb-6">Compressed encrypted media archive package.</p>
                                     <button 
+                                        type="button"
                                         onClick={async () => {
                                             try {
                                                 const response = await fetch(previewItem.url);
@@ -2478,17 +2483,21 @@ END:VCARD`;
                                                 document.body.removeChild(link);
                                             }
                                         }}
-                                        className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-accent text-black font-bold shadow-[0_0_15px_rgba(var(--accent-rgb),0.4)] hover:scale-105 active:scale-95 transition-all"
+                                        className="clay-cta-button w-full py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_8px_24px_rgba(249,115,22,0.5)] transition-transform hover:scale-105 active:scale-95 cursor-pointer"
                                     >
-                                        <Download className="w-5 h-5" /> Download ZIP
+                                        <Download className="w-4 h-4" /> Download ZIP
                                     </button>
                                 </div>
                             ) : (
-                                <img src={previewItem.url} alt="Preview" className="max-w-full max-h-full object-contain rounded-xl neo-surface" />
+                                <div className="clay-card p-2 sm:p-3 rounded-3xl max-w-full max-h-full overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.95)] flex items-center justify-center">
+                                    <img src={previewItem.url} alt="Preview" className="max-w-full max-h-[80vh] object-contain rounded-2xl" />
+                                </div>
                             )}
                             
-                            <div className="absolute top-4 right-4 flex items-center gap-3">
+                            {/* Floating Action Controls */}
+                            <div className="absolute top-2 right-2 sm:top-4 sm:right-4 flex items-center gap-2 z-20">
                                 <button 
+                                    type="button"
                                     onClick={async () => {
                                         try {
                                             const response = await fetch(previewItem.url);
@@ -2510,17 +2519,18 @@ END:VCARD`;
                                             document.body.removeChild(link);
                                         }
                                     }}
-                                    className="p-3 rounded-full neo-button text-fg-1 hover:text-accent transition-colors shadow-lg bg-black/40 backdrop-blur-md border border-white/10"
+                                    className="clay-button-sm w-10 h-10 rounded-xl flex items-center justify-center text-white/80 hover:text-white transition-colors cursor-pointer"
                                     title="Download Media"
                                 >
-                                    <Download size={24} />
+                                    <Download size={18} />
                                 </button>
                                 <button 
+                                    type="button"
                                     onClick={() => setPreviewItem(null)} 
-                                    className="p-3 rounded-full neo-button text-fg-1 hover:text-accent transition-colors shadow-lg bg-black/40 backdrop-blur-md border border-white/10"
+                                    className="clay-button-sm w-10 h-10 rounded-xl flex items-center justify-center text-white/80 hover:text-white transition-colors cursor-pointer"
                                     title="Close Preview"
                                 >
-                                    <X size={24} />
+                                    <X size={18} />
                                 </button>
                             </div>
                         </motion.div>
