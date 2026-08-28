@@ -32,8 +32,12 @@ export default function LocationView({
                     </div>
                 </div>
                 {locationData && (
-                    <span className="text-xs bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-3 py-1 rounded-full font-mono">
-                        ● LIVE
+                    <span className={`text-xs border px-3 py-1 rounded-full font-mono font-bold ${
+                        (locationData as any).isFresh === false 
+                            ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' 
+                            : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                    }`}>
+                        {(locationData as any).isFresh === false ? '🕒 LAST KNOWN' : '● LIVE GPS'}
                     </span>
                 )}
             </div>

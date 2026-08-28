@@ -459,10 +459,11 @@ export default function AppNavigation({
 
     const handleSelectTool = (toolId: string) => {
         if (toolId !== selectedTool && typeof window !== 'undefined') {
+            const targetPath = toolId === 'audio' ? '/voice' : `/${toolId}`;
             if (selectedTool) {
-                window.history.replaceState({ tool: toolId }, '', '#tool=' + toolId);
+                window.history.pushState({ tool: toolId }, '', targetPath);
             } else {
-                window.history.pushState({ tool: toolId }, '', '#tool=' + toolId);
+                window.history.pushState({ tool: toolId }, '', targetPath);
             }
         }
         setSelectedTool(toolId);
@@ -503,8 +504,8 @@ export default function AppNavigation({
                     type="button"
                     onClick={() => {
                         setSelectedTool(null);
-                        if (typeof window !== 'undefined' && window.location.hash.includes('tool=')) {
-                            window.history.replaceState(null, '', window.location.pathname + window.location.search);
+                        if (typeof window !== 'undefined') {
+                            window.history.pushState(null, '', '/');
                         }
                     }}
                     title="Back to Command Center Home"

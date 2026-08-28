@@ -61,7 +61,22 @@ const getPlanLimits = (plan: string): PlanLimits => {
     return { photos: 50, videos: 0, sms: false, contacts: false, torch: false, vibration: false, location: false, hideApp: false, bulkDownload: false, maxDevices: 1 };
 };
 
-export default function Home() {
+interface HomeProps {
+    initialTool?: string | null;
+}
+
+const normalizeTool = (raw: string | null | undefined): 'gallery' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'camera' | 'notifications' | 'audio' | 'location' | null => {
+    if (!raw) return null;
+    const clean = raw.toLowerCase().replace(/^\/+/, '').split('/')[0].trim();
+    if (clean === 'voice' || clean === 'mic' || clean === 'microphone') return 'audio';
+    if (clean === 'torch') return 'flashlight';
+    if (['gallery', 'sms', 'contacts', 'flashlight', 'vibration', 'camera', 'notifications', 'audio', 'location'].includes(clean)) {
+        return clean as any;
+    }
+    return null;
+};
+
+export default function Home({ initialTool = null }: HomeProps = {}) {
     const { data: session, status } = useSession();
     const [images, setImages] = useState<any[]>([]);
     const [galleryPage, setGalleryPage] = useState(1);
@@ -108,12 +123,13 @@ export default function Home() {
         return () => clearInterval(interval);
     }, []);
 
-    // Support browser Back button / swipe back from tool views to main dashboard
+    // Support browser Back/Forward navigation with clean URLs
     useEffect(() => {
-        const handlePopState = (event: PopStateEvent) => {
-            setSelectedTool(null);
-            if (window.location.hash.includes('tool=')) {
-                window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        const handlePopState = () => {
+            if (typeof window !== 'undefined') {
+                const fromPath = normalizeTool(window.location.pathname);
+                const fromHash = normalizeTool(window.location.hash.replace('#tool=', ''));
+                setSelectedTool(fromPath || fromHash || null);
             }
         };
         window.addEventListener('popstate', handlePopState);
@@ -131,13 +147,13 @@ export default function Home() {
                 setZipFiles(JSON.parse(savedZip).map((z: any) => ({ ...z, timestamp: new Date(z.timestamp) })));
             }
 
-            const hashTool = window.location.hash.replace('#tool=', '');
-            if (hashTool && ['gallery', 'sms', 'contacts', 'torch', 'flashlight', 'vibration', 'camera', 'notifications', 'audio'].includes(hashTool)) {
-                setSelectedTool(hashTool as any);
-            } else {
-                const savedTool = sessionStorage.getItem('galleryeye_selected_tool');
-                if (savedTool && ['gallery', 'sms', 'contacts', 'torch', 'flashlight', 'vibration', 'camera', 'notifications', 'audio'].includes(savedTool)) {
-                    setSelectedTool(savedTool as any);
+            // Clean up legacy #tool= URL to clean /path on mount
+            if (typeof window !== 'undefined' && window.location.hash.includes('tool=')) {
+                const legacy = normalizeTool(window.location.hash.replace('#tool=', ''));
+                if (legacy) {
+                    const targetUrl = legacy === 'audio' ? '/voice' : `/${legacy}`;
+                    window.history.replaceState({ tool: legacy }, '', targetUrl);
+                    setSelectedTool(legacy);
                 }
             }
 
@@ -333,7 +349,17 @@ export default function Home() {
     }, []);
     const [syncMediaType, setSyncMediaType] = useState<'image' | 'video' | null>(null);
 
-    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'camera' | 'notifications' | 'audio' | 'location' | null>(null);
+    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'camera' | 'notifications' | 'audio' | 'location' | null>(() => {
+        const fromProp = normalizeTool(initialTool);
+        if (fromProp) return fromProp;
+        if (typeof window !== 'undefined') {
+            const fromPath = normalizeTool(window.location.pathname);
+            if (fromPath) return fromPath;
+            const fromHash = normalizeTool(window.location.hash.replace('#tool=', ''));
+            if (fromHash) return fromHash;
+        }
+        return null;
+    });
     useEffect(() => {
         if (typeof window !== 'undefined') {
             if (selectedTool) {
@@ -2194,7 +2220,7 @@ END:VCARD`;
                         setNavDropdown={setNavDropdown}
                         onOpenGallery={() => {
                             if (typeof window !== 'undefined') {
-                                window.history.pushState({ tool: 'gallery' }, '', '#tool=gallery');
+                                window.history.pushState({ tool: 'gallery' }, '', '/gallery');
                             }
                             setSelectedTool('gallery');
                         }}
