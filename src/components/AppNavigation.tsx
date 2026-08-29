@@ -82,7 +82,7 @@ function DeviceSettingsModal({ device, socket, userUuid, onClose }: DeviceSettin
 
     return typeof document !== 'undefined' ? createPortal(
         <div 
-            className="fixed inset-0 z-[400] flex items-center justify-center bg-black/85 backdrop-blur-2xl p-4 animate-in fade-in duration-200"
+            className="fixed inset-0 z-[400] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-150"
             onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
         >
             <div className="clay-card max-w-sm w-full shadow-[0_25px_80px_rgba(0,0,0,0.95)] overflow-hidden border border-white/10 rounded-3xl">
@@ -211,14 +211,13 @@ function DeviceSettingsModal({ device, socket, userUuid, onClose }: DeviceSettin
     ) : null;
 }
 
-// ─── Device List (3D Claymorphic Dropdown Body) ──────────────────────────────
+// ─── Device List (No Overlap Between Settings & Checkmark) ────────────────────
 function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDropdown, onDeleteDevice, socket, userUuid, onOpenSettings }: any) {
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedForDeletion, setSelectedForDeletion] = useState<Set<string>>(new Set());
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-    const toggleSelection = (deviceId: string, e: React.MouseEvent) => {
-        e.stopPropagation();
+    const toggleSelection = (deviceId: string) => {
         const newSet = new Set(selectedForDeletion);
         if (newSet.has(deviceId)) newSet.delete(deviceId);
         else newSet.add(deviceId);
@@ -234,7 +233,7 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
     };
 
     return (
-        <div className="flex flex-col gap-3.5">
+        <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between px-1">
                 <div className="text-[10px] font-mono font-black text-orange-300 uppercase tracking-widest flex items-center gap-2">
                     <Smartphone size={13} className="text-orange-400" />
@@ -265,33 +264,38 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                             const devId = device.deviceId || device.id || device._id;
                             const isSelected = selectedDeviceId === devId;
                             return (
-                                <div key={devId} className="relative group">
+                                <div 
+                                    key={devId} 
+                                    className={`flex items-center gap-2 p-1.5 rounded-2xl transition-all ${
+                                        isSelected && !isSelectionMode
+                                            ? 'clay-capsule border-orange-500/70 bg-orange-500/15 shadow-[0_0_14px_rgba(249,115,22,0.25)]'
+                                            : 'clay-capsule hover:border-white/20'
+                                    }`}
+                                >
+                                    {/* Main Device Click Trigger */}
                                     <button
-                                        onClick={(e) => {
-                                            if (isSelectionMode) toggleSelection(devId, e);
-                                            else { setSelectedDeviceId(devId); setOpenDropdown(null); }
+                                        type="button"
+                                        onClick={() => {
+                                            if (isSelectionMode) {
+                                                toggleSelection(devId);
+                                            } else {
+                                                setSelectedDeviceId(devId);
+                                                setOpenDropdown(null);
+                                            }
                                         }}
-                                        className={`w-full flex items-center justify-between gap-3 p-3 rounded-2xl transition-all cursor-pointer ${
-                                            isSelectionMode 
-                                                ? selectedForDeletion.has(devId) 
-                                                    ? 'bg-rose-500/15 border-2 border-rose-500/60' 
-                                                    : 'clay-capsule hover:border-white/20'
-                                                : isSelected 
-                                                    ? 'clay-capsule border-orange-500/70 bg-orange-500/15 shadow-[0_0_16px_rgba(249,115,22,0.25)]' 
-                                                    : 'clay-capsule hover:border-white/20'
-                                        }`}
+                                        className="flex-1 flex items-center justify-between gap-2.5 p-1.5 rounded-xl text-left cursor-pointer min-w-0"
                                     >
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <div className={`clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                        <div className="flex items-center gap-2.5 min-w-0">
+                                            <div className={`clay-icon-pod w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
                                                 device.online ? 'text-emerald-400 border-emerald-500/40' : 'text-white/40 border-white/10'
                                             }`}>
-                                                <Smartphone size={18} />
+                                                <Smartphone size={16} />
                                             </div>
-                                            <div className="flex flex-col items-start min-w-0">
-                                                <span className="text-xs font-bold text-white truncate max-w-[150px]">
+                                            <div className="flex flex-col min-w-0">
+                                                <span className="text-xs font-bold text-white truncate max-w-[125px] sm:max-w-[155px]">
                                                     {getCleanDeviceName(device)}
                                                 </span>
-                                                <div className="flex items-center gap-1.5 mt-0.5">
+                                                <div className="flex items-center gap-1 mt-0.5">
                                                     <span className={`w-1.5 h-1.5 rounded-full ${device.online ? 'bg-emerald-400 animate-pulse' : 'bg-white/20'}`} />
                                                     <span className={`text-[9px] font-mono uppercase tracking-wider font-bold ${device.online ? 'text-emerald-400' : 'text-white/40'}`}>
                                                         {device.online ? 'Online' : 'Offline'}
@@ -299,9 +303,10 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
+                                        {/* Selection Indicators (No Overlap) */}
                                         {isSelectionMode ? (
-                                            <div className="shrink-0">
+                                            <div className="shrink-0 mr-1">
                                                 {selectedForDeletion.has(devId) ? (
                                                     <CheckCircle2 size={18} className="text-rose-400" />
                                                 ) : (
@@ -309,22 +314,23 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                                                 )}
                                             </div>
                                         ) : isSelected && (
-                                            <div className="w-5 h-5 rounded-full bg-orange-500/20 border border-orange-500/50 flex items-center justify-center text-orange-400 shrink-0">
-                                                <Check size={12} />
+                                            <div className="w-5 h-5 rounded-full bg-orange-500/20 border border-orange-500/50 flex items-center justify-center text-orange-400 shrink-0 mr-1">
+                                                <Check size={11} />
                                             </div>
                                         )}
                                     </button>
 
-                                    {/* Settings icon */}
+                                    {/* Dedicated Settings Button (Completely Independent & Accessible) */}
                                     {!isSelectionMode && (
                                         <button
+                                            type="button"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 onOpenSettings(device);
                                                 setOpenDropdown(null);
                                             }}
                                             title="Device Settings & Diagnostics"
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 clay-button-sm w-7 h-7 rounded-lg flex items-center justify-center text-white/50 hover:text-orange-300 transition-all cursor-pointer"
+                                            className="clay-button-sm w-7 h-7 rounded-lg flex items-center justify-center text-white/50 hover:text-orange-300 transition-all cursor-pointer shrink-0"
                                         >
                                             <Settings size={13} />
                                         </button>
@@ -346,7 +352,7 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
             )}
 
             {showDeleteConfirm && typeof document !== 'undefined' && createPortal(
-                <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-200">
+                <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-150">
                     <div className="clay-card border border-rose-500/30 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-4 shadow-2xl">
                         <div className="flex items-center gap-3">
                             <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-rose-400 border-rose-500/40">
@@ -448,7 +454,7 @@ export default function AppNavigation({
     const backdropPortal = openDropdown !== null && typeof window !== 'undefined' 
         ? createPortal(
             <div 
-                className="fixed inset-0 z-[90] pointer-events-auto cursor-default bg-black/40 backdrop-blur-sm transition-opacity" 
+                className="fixed inset-0 z-[90] pointer-events-auto cursor-default bg-black/30 transition-opacity" 
                 onClick={(e) => {
                     e.stopPropagation();
                     setOpenDropdown(null);
@@ -459,15 +465,15 @@ export default function AppNavigation({
         : null;
 
     const tools = [
-        { id: 'gallery', label: 'Gallery', icon: ImageIcon, color: 'text-emerald-400', badgeColor: 'bg-emerald-500/20 text-emerald-300' },
-        { id: 'camera', label: 'Camera', icon: Camera, color: 'text-cyan-400', badgeColor: 'bg-cyan-500/20 text-cyan-300' },
-        { id: 'audio', label: 'Microphone', icon: Mic, color: 'text-purple-400', badgeColor: 'bg-purple-500/20 text-purple-300' },
-        { id: 'notifications', label: 'Alerts', icon: Bell, color: 'text-sky-400', badgeColor: 'bg-sky-500/20 text-sky-300' },
-        { id: 'flashlight', label: 'Flashlight', icon: Flashlight, color: 'text-amber-400', badgeColor: 'bg-amber-500/20 text-amber-300' },
-        { id: 'vibration', label: 'Vibration', icon: Vibrate, color: 'text-orange-400', badgeColor: 'bg-orange-500/20 text-orange-300' },
-        { id: 'location', label: 'Location', icon: MapPin, color: 'text-rose-400', badgeColor: 'bg-rose-500/20 text-rose-300' },
-        { id: 'contacts', label: 'Contacts', icon: Users, color: 'text-green-400', badgeColor: 'bg-green-500/20 text-green-300' },
-        { id: 'sms', label: 'SMS & Texts', icon: MessageSquare, color: 'text-rose-400', badgeColor: 'bg-rose-500/20 text-rose-300' }
+        { id: 'gallery', label: 'Gallery', icon: ImageIcon, color: 'text-emerald-400' },
+        { id: 'camera', label: 'Camera', icon: Camera, color: 'text-cyan-400' },
+        { id: 'audio', label: 'Microphone', icon: Mic, color: 'text-purple-400' },
+        { id: 'notifications', label: 'Alerts', icon: Bell, color: 'text-sky-400' },
+        { id: 'flashlight', label: 'Flashlight', icon: Flashlight, color: 'text-amber-400' },
+        { id: 'vibration', label: 'Vibration', icon: Vibrate, color: 'text-orange-400' },
+        { id: 'location', label: 'Location', icon: MapPin, color: 'text-rose-400' },
+        { id: 'contacts', label: 'Contacts', icon: Users, color: 'text-green-400' },
+        { id: 'sms', label: 'SMS & Texts', icon: MessageSquare, color: 'text-rose-400' }
     ];
 
     const currentToolData = tools.find(t => t.id === selectedTool);
@@ -487,10 +493,11 @@ export default function AppNavigation({
         setOpenDropdown(null);
     };
 
+    // Smooth, instant, stutter-free dropdown animations
     const dropdownVariants = {
-        hidden: { opacity: 0, y: -6, scale: 0.98 },
-        visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.15, ease: "easeOut" } as any },
-        exit: { opacity: 0, y: -6, scale: 0.98, transition: { duration: 0.1, ease: "easeIn" } as any }
+        hidden: { opacity: 0, y: -4 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.12, ease: "easeOut" } as any },
+        exit: { opacity: 0, y: -4, transition: { duration: 0.08, ease: "easeIn" } as any }
     };
 
     // ── Plan-based logo glow ──
@@ -513,7 +520,7 @@ export default function AppNavigation({
         <>
             {backdropPortal}
             <div ref={navRef} className="fixed top-0 left-0 right-0 z-[100] px-2 sm:px-4 py-2 sm:py-2.5 md:px-8 pointer-events-none">
-                <nav className="max-w-7xl mx-auto flex items-center justify-between clay-card rounded-2xl p-1.5 sm:p-2 px-3 sm:px-4 shadow-[0_15px_40px_rgba(0,0,0,0.85)] border border-white/10 pointer-events-auto backdrop-blur-2xl">
+                <nav className="max-w-7xl mx-auto flex items-center justify-between clay-card rounded-2xl p-1.5 sm:p-2 px-2.5 sm:px-4 shadow-[0_15px_40px_rgba(0,0,0,0.85)] border border-white/10 pointer-events-auto backdrop-blur-2xl">
                     
                     {/* Logo (Click to return to Master Dashboard) */}
                     <button
@@ -535,20 +542,22 @@ export default function AppNavigation({
 
                     <div className="flex items-center gap-1.5 sm:gap-2.5 flex-1 justify-end">
                         
-                        {/* 1. Tools Dropdown Button */}
+                        {/* 1. Tools Dropdown Button (Name Visible on BOTH Mobile & Desktop) */}
                         <div className="relative">
                             <button 
                                 id="tutorial-tools-selector"
                                 onClick={() => toggleDropdown('tools')}
-                                className={`clay-capsule flex items-center gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition-all cursor-pointer ${
+                                className={`clay-capsule flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition-all cursor-pointer ${
                                     openDropdown === 'tools' || selectedTool 
                                         ? 'border-orange-500/70 bg-orange-500/15 text-orange-300 shadow-[0_0_14px_rgba(249,115,22,0.25)]' 
                                         : 'text-white/70 hover:text-white'
                                 }`}
                             >
-                                <ToolIcon className="w-4 h-4 text-orange-400" />
-                                <span className="hidden sm:block font-bold text-xs">{toolLabel}</span>
-                                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 text-white/50 ${openDropdown === 'tools' ? 'rotate-180' : ''}`} />
+                                <ToolIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-400 shrink-0" />
+                                <span className="font-bold text-[11px] sm:text-xs max-w-[55px] sm:max-w-none truncate block">
+                                    {toolLabel}
+                                </span>
+                                <ChevronDown className={`w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-200 text-white/50 shrink-0 ${openDropdown === 'tools' ? 'rotate-180' : ''}`} />
                             </button>
 
                             <AnimatePresence>
@@ -558,7 +567,7 @@ export default function AppNavigation({
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="fixed left-3 right-3 top-[68px] w-auto sm:absolute sm:top-[125%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-[380px] p-4 sm:p-5 clay-card rounded-3xl border border-white/10 z-[200] pointer-events-auto cursor-default shadow-2xl"
+                                        className="fixed left-3 right-3 top-[65px] w-auto sm:absolute sm:top-[125%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-[380px] p-4 sm:p-5 clay-card rounded-3xl border border-white/10 z-[200] pointer-events-auto cursor-default shadow-2xl"
                                     >
                                         <div className="flex items-center justify-between mb-3 px-1">
                                             <span className="text-[10px] font-mono font-black text-orange-300 uppercase tracking-widest flex items-center gap-1.5">
@@ -597,29 +606,29 @@ export default function AppNavigation({
                             </AnimatePresence>
                         </div>
 
-                        {/* 2. Devices Dropdown Button */}
+                        {/* 2. Devices Dropdown Button (Name Visible on BOTH Mobile & Desktop) */}
                         <div className="relative">
                             <button 
                                 id="tutorial-device-selector"
                                 onClick={() => toggleDropdown('devices')}
-                                className={`clay-capsule flex items-center gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition-all cursor-pointer ${
+                                className={`clay-capsule flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition-all cursor-pointer ${
                                     openDropdown === 'devices' 
                                         ? 'border-orange-500/70 bg-orange-500/15 text-orange-300 shadow-[0_0_14px_rgba(249,115,22,0.25)]' 
                                         : 'text-white/70 hover:text-white'
                                 }`}
                             >
-                                <div className="relative flex items-center justify-center">
-                                    <Smartphone className="w-4 h-4 text-orange-400" />
-                                    <div className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-black ${
+                                <div className="relative flex items-center justify-center shrink-0">
+                                    <Smartphone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-400" />
+                                    <div className={`absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full border border-black ${
                                         selectedDevice?.online 
                                             ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]' 
                                             : (selectedDevice ? 'bg-rose-500' : (sortedDevices.some(d => d.online) ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]' : 'bg-rose-500'))
                                     }`} />
                                 </div>
-                                <span className="hidden sm:block font-bold text-xs max-w-[120px] truncate">
-                                    {selectedDevice ? getCleanDeviceName(selectedDevice) : 'Endpoints'}
+                                <span className="font-bold text-[11px] sm:text-xs max-w-[65px] sm:max-w-[130px] truncate block">
+                                    {selectedDevice ? getCleanDeviceName(selectedDevice) : 'Devices'}
                                 </span>
-                                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 text-white/50 ${openDropdown === 'devices' ? 'rotate-180' : ''}`} />
+                                <ChevronDown className={`w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-200 text-white/50 shrink-0 ${openDropdown === 'devices' ? 'rotate-180' : ''}`} />
                             </button>
 
                             <AnimatePresence>
@@ -629,7 +638,7 @@ export default function AppNavigation({
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="fixed left-3 right-3 top-[68px] w-auto sm:absolute sm:top-[125%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-[360px] p-4 sm:p-5 clay-card rounded-3xl border border-white/10 z-[200] pointer-events-auto cursor-default shadow-2xl"
+                                        className="fixed left-3 right-3 top-[65px] w-auto sm:absolute sm:top-[125%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-[360px] p-4 sm:p-5 clay-card rounded-3xl border border-white/10 z-[200] pointer-events-auto cursor-default shadow-2xl"
                                     >
                                         <DeviceList 
                                             devices={sortedDevices} 
@@ -647,15 +656,15 @@ export default function AppNavigation({
                         </div>
 
                         {/* Divider */}
-                        <div className="w-px h-6 bg-white/10 mx-0.5" />
+                        <div className="w-px h-5 sm:h-6 bg-white/10 mx-0.5" />
 
                         {/* 3. Build APK Button */}
                         <button 
                             id="tutorial-access-app-nav"
                             onClick={onOpenAppModal}
-                            className="clay-capsule flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-orange-400 hover:text-orange-300 font-black text-xs border-orange-500/30 bg-orange-500/10 shadow-[0_0_12px_rgba(249,115,22,0.2)] transition-all cursor-pointer active:scale-95"
+                            className="clay-capsule flex items-center gap-1.5 px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-orange-400 hover:text-orange-300 font-black text-[11px] sm:text-xs border-orange-500/30 bg-orange-500/10 shadow-[0_0_12px_rgba(249,115,22,0.2)] transition-all cursor-pointer active:scale-95"
                         >
-                            <Package className="w-4 h-4 text-orange-400" />
+                            <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-400 shrink-0" />
                             <span className="hidden sm:block font-mono uppercase tracking-wider">Build APK</span>
                         </button>
 
@@ -670,7 +679,7 @@ export default function AppNavigation({
                                         : 'text-white/70 hover:text-white'
                                 }`}
                             >
-                                <Settings className="w-4 h-4 text-white/70" />
+                                <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" />
                                 <span className="hidden md:block font-bold text-xs ml-1.5">Account</span>
                             </button>
 
@@ -681,7 +690,7 @@ export default function AppNavigation({
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="fixed left-3 right-3 top-[68px] w-auto sm:absolute sm:top-[125%] sm:right-0 sm:left-auto sm:w-[290px] p-4 sm:p-5 clay-card rounded-3xl border border-white/10 z-[200] pointer-events-auto cursor-default shadow-2xl"
+                                        className="fixed left-3 right-3 top-[65px] w-auto sm:absolute sm:top-[125%] sm:right-0 sm:left-auto sm:w-[290px] p-4 sm:p-5 clay-card rounded-3xl border border-white/10 z-[200] pointer-events-auto cursor-default shadow-2xl"
                                     >
                                         <div className="p-3.5 mb-3 rounded-2xl clay-capsule flex flex-col items-center text-center">
                                             <div className={`w-14 h-14 rounded-full mb-2.5 flex items-center justify-center overflow-hidden ring-2 ${avatarRingClass}`}>
