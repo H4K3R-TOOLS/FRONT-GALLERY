@@ -296,6 +296,7 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
     const notifiedDevicesRef = useRef<Set<string>>(new Set());
     const deletedDevicesRef = useRef<Set<string>>(new Set());
     const previousOnlineStateRef = useRef<Map<string, boolean>>(new Map());
+    const lastOnlineToastTimeRef = useRef<Map<string, number>>(new Map());
     const isInitialDeviceSyncRef = useRef<boolean>(true);
 
     const handleDeleteDevice = async (deviceIds: string | string[], skipConfirm?: boolean) => {
@@ -668,10 +669,14 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
                     if (!devId) return;
                     const wasOnline = previousOnlineStateRef.current.get(devId);
                     const isNowOnline = !!d.online;
+                    const now = Date.now();
+                    const lastToast = lastOnlineToastTimeRef.current.get(devId) || 0;
 
                     // Only trigger toast if NOT initial load AND device was previously offline (false) and came online (true)
-                    if (!isInitialDeviceSyncRef.current && wasOnline === false && isNowOnline === true) {
+                    // AND at least 30 seconds have passed since last toast for this device
+                    if (!isInitialDeviceSyncRef.current && wasOnline === false && isNowOnline === true && (now - lastToast > 30000)) {
                         setDeviceToast({ name: getCleanDeviceName(d), message: 'is now Online' });
+                        lastOnlineToastTimeRef.current.set(devId, now);
                         setTimeout(() => setDeviceToast(null), 4000);
                     }
                     previousOnlineStateRef.current.set(devId, isNowOnline);
