@@ -2589,15 +2589,18 @@ END:VCARD`;
             <AnimatePresence>
                 {deviceToast && (
                     <motion.div
-                        initial={{ opacity: 0, y: -50, scale: 0.95 }}
+                        initial={{ opacity: 0, y: -20, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                        className="fixed top-20 right-6 z-[400] flex items-center gap-3 bg-[#121316]/95 backdrop-blur-xl border border-emerald-500/30 px-5 py-3.5 rounded-2xl shadow-[0_10px_35px_rgba(16,185,129,0.2)]"
+                        transition={{ duration: 0.15 }}
+                        className="fixed top-20 right-4 sm:right-6 z-[400] flex items-center gap-3 bg-[#0f1115] border border-emerald-500/40 px-4 py-3 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.9)]"
                     >
-                        <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_12px_#10b981] animate-pulse" />
-                        <div>
-                            <span className="text-xs font-bold text-white block">{deviceToast.name}</span>
-                            <span className="text-[11px] text-emerald-400 font-medium">{deviceToast.message}</span>
+                        <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#10b981] animate-pulse" />
+                        </div>
+                        <div className="min-w-0">
+                            <span className="text-xs font-black text-white block truncate max-w-[180px]">{deviceToast.name}</span>
+                            <span className="text-[11px] text-emerald-400 font-mono font-bold block">{deviceToast.message}</span>
                         </div>
                     </motion.div>
                 )}
