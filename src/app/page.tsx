@@ -2264,6 +2264,12 @@ END:VCARD`;
                         }}
                         onOpenPlansModal={() => setShowPlansModal(true)}
                         onOpenAppModal={() => setShowAppModal(true)}
+                        onSelectTool={(tool: string) => {
+                            if (typeof window !== 'undefined') {
+                                window.history.pushState({ tool }, '', `/${tool}`);
+                            }
+                            setSelectedTool(tool as any);
+                        }}
                         getPlanLimits={getPlanLimits}
                     />
                 )}

@@ -37,20 +37,28 @@ const VideoModal = ({ videoId, label = "Watch Tutorial", variant = 'thumbnail' }
             ) : variant === 'card' ? (
                 <div
                     onClick={() => setIsOpen(true)}
-                    className="p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 transition-all duration-300 flex items-center justify-between shadow-xl cursor-pointer group backdrop-blur-md"
+                    className="clay-card p-5 rounded-3xl relative overflow-hidden group cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] flex flex-col justify-between min-h-[140px]"
                 >
-                    <div className="space-y-1">
-                        <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest group-hover:text-zinc-300 transition-colors">Step-by-Step Guide</div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-base font-bold text-white tracking-wide font-sans">Watch Tutorial</span>
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-red-500/20 text-red-400 font-mono">3 MIN GUIDE</span>
+                    <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                            <div className="text-[10px] font-mono font-black text-rose-400 uppercase tracking-widest flex items-center gap-1.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                                <span>Step-by-Step Guide</span>
+                            </div>
+                            <div className="flex items-center gap-2 pt-1">
+                                <span className="text-base font-extrabold text-white tracking-wide font-mono">Watch Tutorial</span>
+                                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-mono uppercase tracking-wider">3 MIN GUIDE</span>
+                            </div>
                         </div>
-                        <div className="text-[11px] text-zinc-500 group-hover:text-zinc-400 transition-colors">Learn endpoint setup & control</div>
+                        <div className="clay-icon-pod w-11 h-11 rounded-2xl flex items-center justify-center text-rose-400 border-rose-500/30 group-hover:scale-110 transition-transform">
+                            <svg className="w-5 h-5 text-rose-500 fill-rose-500 ml-0.5" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z" />
+                            </svg>
+                        </div>
                     </div>
-                    <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                        <svg className="w-5 h-5 text-red-500 fill-red-500 ml-0.5" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z" />
-                        </svg>
+                    <div className="pt-3 border-t border-white/5 flex items-center justify-between text-[10px] font-mono text-white/40 group-hover:text-rose-300 transition-colors">
+                        <span>Learn endpoint setup & control</span>
+                        <svg className="w-3.5 h-3.5 text-white/40 group-hover:text-rose-300 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
                     </div>
                 </div>
             ) : (
