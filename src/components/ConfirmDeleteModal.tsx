@@ -1,8 +1,7 @@
 "use client";
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, Trash2, X } from 'lucide-react';
+import { Trash2, AlertTriangle, X } from 'lucide-react';
 
 interface ConfirmDeleteModalProps {
     isOpen: boolean;
@@ -20,51 +19,64 @@ export default function ConfirmDeleteModal({
     if (!isOpen) return null;
 
     return (
-        <AnimatePresence>
-            <div className="fixed inset-0 z-[700] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-                <motion.div 
-                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className="relative w-full max-w-md neo-surface rounded-[2rem] border border-red-500/20 shadow-2xl overflow-hidden bg-gradient-to-b from-black/80 to-black/95"
+        <div 
+            className="fixed inset-0 z-[700] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-100"
+            onClick={onClose}
+        >
+            <div 
+                className="relative w-full max-w-sm bg-[#0f1115] border border-rose-500/30 rounded-3xl p-6 shadow-[0_25px_80px_rgba(0,0,0,0.98)] text-center animate-in zoom-in-95 duration-100"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Close Button */}
+                <button 
+                    onClick={onClose} 
+                    className="clay-button-sm absolute top-4 right-4 w-8 h-8 rounded-xl flex items-center justify-center text-white/50 hover:text-white transition-colors cursor-pointer z-10"
                 >
-                    {/* Header Glow */}
-                    <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-red-500/10 to-transparent pointer-events-none" />
+                    <X size={14} />
+                </button>
 
-                    <button onClick={onClose} className="absolute top-5 right-5 p-2 rounded-full bg-white/5 hover:bg-white/10 text-fg-3 hover:text-white transition-colors z-10">
-                        <X className="w-5 h-5" />
+                {/* 3D Icon Pod */}
+                <div className="clay-icon-pod w-16 h-16 rounded-3xl mx-auto mb-4 flex items-center justify-center text-rose-400 border-rose-500/40 shadow-[0_0_30px_rgba(244,63,94,0.3)]">
+                    <Trash2 size={26} />
+                </div>
+                
+                {/* Tag */}
+                <div className="text-[10px] font-mono font-black uppercase tracking-widest text-rose-400/80 mb-1">
+                    Permanent Deletion
+                </div>
+
+                {/* Title */}
+                <h2 className="text-base sm:text-lg font-black text-white tracking-tight mb-2">
+                    Delete Selected Media?
+                </h2>
+
+                {/* Message */}
+                <p className="text-xs text-white/70 font-sans leading-relaxed mb-6">
+                    Are you sure you want to permanently remove <strong className="text-white font-mono font-bold bg-white/10 px-1.5 py-0.5 rounded">{itemCount}</strong> selected {itemCount === 1 ? 'item' : 'items'}? This operation cannot be reversed.
+                </p>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-3">
+                    <button 
+                        type="button"
+                        onClick={onClose}
+                        className="flex-1 py-2.5 rounded-xl bg-[#16181d] border border-white/10 hover:bg-white/10 text-white/70 hover:text-white font-mono font-bold text-xs transition-colors cursor-pointer"
+                    >
+                        Cancel
                     </button>
-
-                    <div className="p-8 pt-10 text-center">
-                        <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(239,68,68,0.15)]">
-                            <AlertTriangle className="w-8 h-8 text-red-500" />
-                        </div>
-                        
-                        <h2 className="text-2xl font-bold text-fg-1 tracking-tight mb-3">Delete Media?</h2>
-                        <p className="text-fg-3 mb-8">
-                            Are you sure you want to permanently delete <strong className="text-fg-1">{itemCount}</strong> selected {itemCount === 1 ? 'item' : 'items'}? This action cannot be undone.
-                        </p>
-
-                        <div className="flex gap-3">
-                            <button 
-                                onClick={onClose}
-                                className="flex-1 py-3.5 rounded-xl neo-button font-bold text-fg-2 hover:text-white transition-colors bg-white/5 border border-white/10"
-                            >
-                                Cancel
-                            </button>
-                            <button 
-                                onClick={() => {
-                                    onConfirm();
-                                    onClose();
-                                }}
-                                className="flex-1 py-3.5 rounded-xl font-bold text-white transition-all bg-red-500 hover:bg-red-600 shadow-[0_0_20px_rgba(239,68,68,0.3)] hover:shadow-[0_0_30px_rgba(239,68,68,0.5)] flex items-center justify-center gap-2"
-                            >
-                                <Trash2 className="w-4 h-4" /> Delete
-                            </button>
-                        </div>
-                    </div>
-                </motion.div>
+                    <button 
+                        type="button"
+                        onClick={() => {
+                            onConfirm();
+                            onClose();
+                        }}
+                        className="flex-1 py-2.5 rounded-xl font-mono font-black text-xs uppercase tracking-wider text-white transition-all bg-rose-500 hover:bg-rose-600 shadow-[0_0_20px_rgba(244,63,94,0.4)] flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 border border-rose-400/50"
+                    >
+                        <Trash2 size={13} />
+                        <span>Confirm Delete</span>
+                    </button>
+                </div>
             </div>
-        </AnimatePresence>
+        </div>
     );
 }

