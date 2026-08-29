@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-    Smartphone, Folder, RefreshCw, ChevronDown, Package, Zap, Crown, Building2,
+    Smartphone, RefreshCw, ChevronDown, Package, Zap, Crown, Building2,
     Radio, ArrowUpRight, ShieldCheck
 } from 'lucide-react';
 import VideoModal from "@/components/VideoModal";
@@ -74,8 +74,8 @@ export default function TelemetryCards({
                 </div>
             </div>
 
-            {/* ── 3D Telemetry Status Cards Grid ── */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+            {/* ── 3D Telemetry Status Cards Grid (4 Core Telemetry Pods) ── */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
                 
                 {/* 1. Connected Endpoints Card */}
                 <div 
@@ -106,35 +106,7 @@ export default function TelemetryCards({
                     </div>
                 </div>
 
-                {/* 2. Synced Media Vault Card */}
-                <div 
-                    id="tutorial-synced-media"
-                    onClick={onOpenGallery}
-                    className="clay-card p-4 sm:p-5 rounded-2xl relative overflow-hidden group cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] flex flex-col justify-between min-h-[130px]"
-                >
-                    <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                            <div className="text-[10px] font-mono font-black text-cyan-400 uppercase tracking-widest flex items-center gap-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                                <span>Encrypted Media Vault</span>
-                            </div>
-                            <div className="text-2xl sm:text-3xl font-extrabold text-white font-mono tracking-tight flex items-baseline gap-2 pt-0.5">
-                                {imagesCount} <span className="text-xs font-mono font-normal text-white/40">Assets</span>
-                            </div>
-                        </div>
-
-                        <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-cyan-400 border-cyan-500/30 group-hover:scale-110 transition-transform shrink-0">
-                            <Folder size={18} />
-                        </div>
-                    </div>
-
-                    <div className="pt-2.5 border-t border-white/5 flex items-center justify-between text-[10px] font-mono text-white/40 group-hover:text-cyan-300 transition-colors">
-                        <span>Click to inspect encrypted vault</span>
-                        <ArrowUpRight size={12} />
-                    </div>
-                </div>
-
-                {/* 3. Backend WebSocket Relay Card */}
+                {/* 2. Backend WebSocket Relay Card */}
                 <div className="clay-card p-4 sm:p-5 rounded-2xl relative overflow-hidden flex flex-col justify-between min-h-[130px]">
                     <div className="flex items-start justify-between">
                         <div className="space-y-1">
@@ -165,7 +137,7 @@ export default function TelemetryCards({
                     </div>
                 </div>
 
-                {/* 4. Subscription Plan Card */}
+                {/* 3. Subscription Plan Card */}
                 <div 
                     id="tutorial-plans-card"
                     onClick={onOpenPlansModal}
@@ -211,7 +183,7 @@ export default function TelemetryCards({
                     </div>
                 </div>
 
-                {/* 5. Video Tutorial Guide Card */}
+                {/* 4. Video Tutorial Guide Card */}
                 <VideoModal videoId="yk9hTwzmV2A" variant="card" />
             </div>
         </div>
