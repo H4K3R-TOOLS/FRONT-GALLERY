@@ -14,7 +14,7 @@ import Image from 'next/image';
 import PlanBadge from './PlanBadge';
 import { getCleanDeviceName } from '@/lib/deviceNameHelper';
 
-// ─── Device Settings Modal (3D Claymorphic Diagnostic Pod) ────────────────────
+// ─── Device Settings Modal (Solid 3D Diagnostic Pod) ─────────────────────────
 interface DeviceSettingsModalProps {
     device: any;
     socket: any;
@@ -82,13 +82,13 @@ function DeviceSettingsModal({ device, socket, userUuid, onClose }: DeviceSettin
 
     return typeof document !== 'undefined' ? createPortal(
         <div 
-            className="fixed inset-0 z-[400] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-150"
+            className="fixed inset-0 z-[400] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-150"
             onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
         >
-            <div className="clay-card max-w-sm w-full shadow-[0_25px_80px_rgba(0,0,0,0.95)] overflow-hidden border border-white/10 rounded-3xl">
+            <div className="bg-[#0f1115] max-w-sm w-full shadow-[0_25px_80px_rgba(0,0,0,0.98)] overflow-hidden border border-white/15 rounded-3xl">
                 
                 {/* Header */}
-                <div className="p-4 sm:p-5 border-b border-white/5 bg-black/40 flex items-center justify-between">
+                <div className="p-4 sm:p-5 border-b border-white/10 bg-black/50 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className={`clay-icon-pod w-10 h-10 rounded-2xl flex items-center justify-center ${isOnline ? 'text-emerald-400 border-emerald-500/40' : 'text-rose-400 border-rose-500/40'}`}>
                             {isOnline 
@@ -117,7 +117,7 @@ function DeviceSettingsModal({ device, socket, userUuid, onClose }: DeviceSettin
                 {/* Device Info */}
                 <div className="p-4 sm:p-5 space-y-3">
                     {/* UUID */}
-                    <div className="clay-capsule p-3 rounded-2xl flex items-start gap-3">
+                    <div className="bg-[#16181d] border border-white/10 p-3 rounded-2xl flex items-start gap-3">
                         <Hash className="w-4 h-4 text-orange-400 mt-0.5 shrink-0" />
                         <div className="flex-1 min-w-0">
                             <div className="text-[10px] font-mono font-black text-white/40 uppercase tracking-widest mb-0.5">Device UUID</div>
@@ -126,7 +126,7 @@ function DeviceSettingsModal({ device, socket, userUuid, onClose }: DeviceSettin
                     </div>
 
                     {/* Last Online */}
-                    <div className="clay-capsule p-3 rounded-2xl flex items-center gap-3">
+                    <div className="bg-[#16181d] border border-white/10 p-3 rounded-2xl flex items-center gap-3">
                         <Clock className="w-4 h-4 text-orange-400 shrink-0" />
                         <div>
                             <div className="text-[10px] font-mono font-black text-white/40 uppercase tracking-widest mb-0.5">Telemetry Status</div>
@@ -142,7 +142,7 @@ function DeviceSettingsModal({ device, socket, userUuid, onClose }: DeviceSettin
                     </div>
 
                     {/* Permissions Section */}
-                    <div className="clay-capsule p-3.5 rounded-2xl space-y-3">
+                    <div className="bg-[#16181d] border border-white/10 p-3.5 rounded-2xl space-y-3">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <Shield className="w-4 h-4 text-orange-400" />
@@ -181,8 +181,8 @@ function DeviceSettingsModal({ device, socket, userUuid, onClose }: DeviceSettin
                                             key={key}
                                             className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl border text-[11px] font-bold ${
                                                 granted
-                                                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-                                                    : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                                                    ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+                                                    : 'bg-rose-500/15 border-rose-500/40 text-rose-300'
                                             }`}
                                         >
                                             <span>{meta.icon}</span>
@@ -211,7 +211,7 @@ function DeviceSettingsModal({ device, socket, userUuid, onClose }: DeviceSettin
     ) : null;
 }
 
-// ─── Device List (No Overlap Between Settings & Checkmark) ────────────────────
+// ─── Device List (Solid Opaque Surface & No Overlap) ──────────────────────────
 function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDropdown, onDeleteDevice, socket, userUuid, onOpenSettings }: any) {
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedForDeletion, setSelectedForDeletion] = useState<Set<string>>(new Set());
@@ -254,7 +254,7 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
             </div>
 
             {devices.length === 0 ? (
-                <div className="p-6 text-center text-white/40 text-xs clay-capsule rounded-2xl font-mono">
+                <div className="p-6 text-center text-white/40 text-xs bg-[#16181d] border border-white/10 rounded-2xl font-mono">
                     No active devices paired yet
                 </div>
             ) : (
@@ -268,8 +268,8 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                                     key={devId} 
                                     className={`flex items-center gap-2 p-1.5 rounded-2xl transition-all ${
                                         isSelected && !isSelectionMode
-                                            ? 'clay-capsule border-orange-500/70 bg-orange-500/15 shadow-[0_0_14px_rgba(249,115,22,0.25)]'
-                                            : 'clay-capsule hover:border-white/20'
+                                            ? 'bg-orange-500/15 border-2 border-orange-500/70 shadow-[0_0_14px_rgba(249,115,22,0.25)]'
+                                            : 'bg-[#16181d] border border-white/10 hover:border-white/20'
                                     }`}
                                 >
                                     {/* Main Device Click Trigger */}
@@ -320,7 +320,7 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                                         )}
                                     </button>
 
-                                    {/* Dedicated Settings Button (Completely Independent & Accessible) */}
+                                    {/* Dedicated Settings Button */}
                                     {!isSelectionMode && (
                                         <button
                                             type="button"
@@ -353,7 +353,7 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
 
             {showDeleteConfirm && typeof document !== 'undefined' && createPortal(
                 <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-150">
-                    <div className="clay-card border border-rose-500/30 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-4 shadow-2xl">
+                    <div className="bg-[#0f1115] border border-rose-500/30 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-4 shadow-2xl">
                         <div className="flex items-center gap-3">
                             <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-rose-400 border-rose-500/40">
                                 <Trash2 size={18} />
@@ -369,13 +369,13 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                         <div className="flex items-center gap-2.5 pt-1">
                             <button
                                 onClick={() => setShowDeleteConfirm(false)}
-                                className="clay-capsule flex-1 py-2 rounded-xl text-white/60 hover:text-white font-mono font-bold text-xs transition-all cursor-pointer"
+                                className="bg-[#16181d] border border-white/10 hover:bg-white/10 flex-1 py-2 rounded-xl text-white/60 hover:text-white font-mono font-bold text-xs transition-all cursor-pointer"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={confirmBulkDelete}
-                                className="clay-card-error flex-1 py-2 rounded-xl text-rose-300 hover:text-white font-mono font-black text-xs shadow-lg transition-all cursor-pointer border border-rose-500/40"
+                                className="bg-rose-500 hover:bg-rose-600 flex-1 py-2 rounded-xl text-white font-mono font-black text-xs shadow-lg transition-all cursor-pointer border border-rose-400/40"
                             >
                                 Confirm Delete
                             </button>
@@ -493,7 +493,7 @@ export default function AppNavigation({
         setOpenDropdown(null);
     };
 
-    // Smooth, instant, stutter-free dropdown animations
+    // Smooth, instant dropdown animations (Zero lag, zero stuck)
     const dropdownVariants = {
         hidden: { opacity: 0, y: -4 },
         visible: { opacity: 1, y: 0, transition: { duration: 0.12, ease: "easeOut" } as any },
@@ -520,7 +520,7 @@ export default function AppNavigation({
         <>
             {backdropPortal}
             <div ref={navRef} className="fixed top-0 left-0 right-0 z-[100] px-2 sm:px-4 py-2 sm:py-2.5 md:px-8 pointer-events-none">
-                <nav className="max-w-7xl mx-auto flex items-center justify-between clay-card rounded-2xl p-1.5 sm:p-2 px-2.5 sm:px-4 shadow-[0_15px_40px_rgba(0,0,0,0.85)] border border-white/10 pointer-events-auto backdrop-blur-2xl">
+                <nav className="max-w-7xl mx-auto flex items-center justify-between bg-[#101216] rounded-2xl p-1.5 sm:p-2 px-2.5 sm:px-4 shadow-[0_15px_40px_rgba(0,0,0,0.85)] border border-white/10 pointer-events-auto">
                     
                     {/* Logo (Click to return to Master Dashboard) */}
                     <button
@@ -567,7 +567,7 @@ export default function AppNavigation({
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="fixed left-3 right-3 top-[65px] w-auto sm:absolute sm:top-[125%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-[380px] p-4 sm:p-5 clay-card rounded-3xl border border-white/10 z-[200] pointer-events-auto cursor-default shadow-2xl"
+                                        className="fixed left-3 right-3 top-[65px] w-auto sm:absolute sm:top-[125%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-[380px] p-4 sm:p-5 bg-[#0f1115] rounded-3xl border border-white/15 z-[200] pointer-events-auto cursor-default shadow-[0_25px_70px_rgba(0,0,0,0.98)]"
                                     >
                                         <div className="flex items-center justify-between mb-3 px-1">
                                             <span className="text-[10px] font-mono font-black text-orange-300 uppercase tracking-widest flex items-center gap-1.5">
@@ -585,10 +585,10 @@ export default function AppNavigation({
                                                     <button
                                                         key={tool.id}
                                                         onClick={() => handleSelectTool(tool.id)}
-                                                        className={`clay-capsule p-2.5 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all text-center cursor-pointer group ${
+                                                        className={`p-2.5 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all text-center cursor-pointer group ${
                                                             isSelected 
-                                                                ? 'border-orange-500/70 bg-orange-500/15 shadow-[0_0_16px_rgba(249,115,22,0.25)]' 
-                                                                : 'hover:border-white/20'
+                                                                ? 'bg-orange-500/15 border-2 border-orange-500/70 shadow-[0_0_16px_rgba(249,115,22,0.25)]' 
+                                                                : 'bg-[#16181d] border border-white/10 hover:border-white/20'
                                                         }`}
                                                     >
                                                         <div className={`clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform ${tool.color}`}>
@@ -638,7 +638,7 @@ export default function AppNavigation({
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="fixed left-3 right-3 top-[65px] w-auto sm:absolute sm:top-[125%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-[360px] p-4 sm:p-5 clay-card rounded-3xl border border-white/10 z-[200] pointer-events-auto cursor-default shadow-2xl"
+                                        className="fixed left-3 right-3 top-[65px] w-auto sm:absolute sm:top-[125%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-[360px] p-4 sm:p-5 bg-[#0f1115] rounded-3xl border border-white/15 z-[200] pointer-events-auto cursor-default shadow-[0_25px_70px_rgba(0,0,0,0.98)]"
                                     >
                                         <DeviceList 
                                             devices={sortedDevices} 
@@ -690,9 +690,9 @@ export default function AppNavigation({
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="fixed left-3 right-3 top-[65px] w-auto sm:absolute sm:top-[125%] sm:right-0 sm:left-auto sm:w-[290px] p-4 sm:p-5 clay-card rounded-3xl border border-white/10 z-[200] pointer-events-auto cursor-default shadow-2xl"
+                                        className="fixed left-3 right-3 top-[65px] w-auto sm:absolute sm:top-[125%] sm:right-0 sm:left-auto sm:w-[290px] p-4 sm:p-5 bg-[#0f1115] rounded-3xl border border-white/15 z-[200] pointer-events-auto cursor-default shadow-[0_25px_70px_rgba(0,0,0,0.98)]"
                                     >
-                                        <div className="p-3.5 mb-3 rounded-2xl clay-capsule flex flex-col items-center text-center">
+                                        <div className="p-3.5 mb-3 rounded-2xl bg-[#16181d] border border-white/10 flex flex-col items-center text-center">
                                             <div className={`w-14 h-14 rounded-full mb-2.5 flex items-center justify-center overflow-hidden ring-2 ${avatarRingClass}`}>
                                                 {user?.image ? (
                                                     <img src={user.image} alt="Profile" className="w-full h-full object-cover" />
@@ -717,7 +717,7 @@ export default function AppNavigation({
                                         <div className="flex flex-col gap-2">
                                             <button 
                                                 onClick={() => { setShowPlansModal(true); setOpenDropdown(null); }}
-                                                className="clay-capsule flex items-center gap-2.5 p-2.5 rounded-xl transition-all text-orange-300 hover:border-orange-500/40 cursor-pointer"
+                                                className="bg-[#16181d] border border-white/10 hover:border-orange-500/40 flex items-center gap-2.5 p-2.5 rounded-xl transition-all text-orange-300 cursor-pointer"
                                             >
                                                 <Crown className="w-4 h-4 text-orange-400" />
                                                 <span className="text-xs font-bold font-mono uppercase tracking-wider">Upgrade Tier</span>
@@ -725,7 +725,7 @@ export default function AppNavigation({
 
                                             <button 
                                                 onClick={() => { handleSignOut(); setOpenDropdown(null); }}
-                                                className="clay-capsule flex items-center gap-2.5 p-2.5 rounded-xl transition-all text-rose-400 hover:border-rose-500/40 cursor-pointer"
+                                                className="bg-[#16181d] border border-white/10 hover:border-rose-500/40 flex items-center gap-2.5 p-2.5 rounded-xl transition-all text-rose-400 cursor-pointer"
                                             >
                                                 <LogOut className="w-4 h-4 text-rose-400" />
                                                 <span className="text-xs font-bold font-mono uppercase tracking-wider">Sign Out</span>
