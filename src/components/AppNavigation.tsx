@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
     MessageSquare, Users, Flashlight, Vibrate, 
     Camera, Bell, Mic, Smartphone, Settings, 
@@ -82,10 +81,10 @@ function DeviceSettingsModal({ device, socket, userUuid, onClose }: DeviceSettin
 
     return typeof document !== 'undefined' ? createPortal(
         <div 
-            className="fixed inset-0 z-[400] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-150"
+            className="fixed inset-0 z-[400] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-100"
             onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
         >
-            <div className="bg-[#0f1115] max-w-sm w-full shadow-[0_25px_80px_rgba(0,0,0,0.98)] overflow-hidden border border-white/15 rounded-3xl">
+            <div className="bg-[#0f1115] max-w-sm w-full shadow-[0_25px_80px_rgba(0,0,0,0.98)] overflow-hidden border border-white/15 rounded-3xl animate-in zoom-in-95 duration-100">
                 
                 {/* Header */}
                 <div className="p-4 sm:p-5 border-b border-white/10 bg-black/50 flex items-center justify-between">
@@ -304,7 +303,7 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                                             </div>
                                         </div>
 
-                                        {/* Selection Indicators (No Overlap) */}
+                                        {/* Selection Indicators */}
                                         {isSelectionMode ? (
                                             <div className="shrink-0 mr-1">
                                                 {selectedForDeletion.has(devId) ? (
@@ -352,8 +351,8 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
             )}
 
             {showDeleteConfirm && typeof document !== 'undefined' && createPortal(
-                <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-150">
-                    <div className="bg-[#0f1115] border border-rose-500/30 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-4 shadow-2xl">
+                <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-100">
+                    <div className="bg-[#0f1115] border border-rose-500/30 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-4 shadow-2xl animate-in zoom-in-95 duration-100">
                         <div className="flex items-center gap-3">
                             <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-rose-400 border-rose-500/40">
                                 <Trash2 size={18} />
@@ -493,13 +492,6 @@ export default function AppNavigation({
         setOpenDropdown(null);
     };
 
-    // Smooth, instant dropdown animations (Zero lag, zero stuck)
-    const dropdownVariants = {
-        hidden: { opacity: 0, y: -4 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.12, ease: "easeOut" } as any },
-        exit: { opacity: 0, y: -4, transition: { duration: 0.08, ease: "easeIn" } as any }
-    };
-
     // ── Plan-based logo glow ──
     const logoGlowClass = 
         userPlan === 'enterprise'
@@ -542,7 +534,7 @@ export default function AppNavigation({
 
                     <div className="flex items-center gap-1.5 sm:gap-2.5 flex-1 justify-end">
                         
-                        {/* 1. Tools Dropdown Button (Name Visible on BOTH Mobile & Desktop) */}
+                        {/* 1. Tools Dropdown Button */}
                         <div className="relative">
                             <button 
                                 id="tutorial-tools-selector"
@@ -557,56 +549,48 @@ export default function AppNavigation({
                                 <span className="font-bold text-[11px] sm:text-xs max-w-[55px] sm:max-w-none truncate block">
                                     {toolLabel}
                                 </span>
-                                <ChevronDown className={`w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-200 text-white/50 shrink-0 ${openDropdown === 'tools' ? 'rotate-180' : ''}`} />
+                                <ChevronDown className={`w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-150 text-white/50 shrink-0 ${openDropdown === 'tools' ? 'rotate-180' : ''}`} />
                             </button>
 
-                            <AnimatePresence>
-                                {openDropdown === 'tools' && (
-                                    <motion.div
-                                        variants={dropdownVariants}
-                                        initial="hidden"
-                                        animate="visible"
-                                        exit="exit"
-                                        className="fixed left-3 right-3 top-[65px] w-auto sm:absolute sm:top-[125%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-[380px] p-4 sm:p-5 bg-[#0f1115] rounded-3xl border border-white/15 z-[200] pointer-events-auto cursor-default shadow-[0_25px_70px_rgba(0,0,0,0.98)]"
-                                    >
-                                        <div className="flex items-center justify-between mb-3 px-1">
-                                            <span className="text-[10px] font-mono font-black text-orange-300 uppercase tracking-widest flex items-center gap-1.5">
-                                                <Activity size={12} className="text-orange-400" />
-                                                <span>Surveillance Tools</span>
-                                            </span>
-                                            <span className="text-[9px] font-mono text-white/40">Select tool to launch</span>
-                                        </div>
+                            {openDropdown === 'tools' && (
+                                <div className="fixed left-3 right-3 top-[65px] w-auto sm:absolute sm:top-[125%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-[380px] p-4 sm:p-5 bg-[#0f1115] rounded-3xl border border-white/15 z-[200] pointer-events-auto cursor-default shadow-[0_25px_70px_rgba(0,0,0,0.98)] animate-in fade-in zoom-in-95 duration-100">
+                                    <div className="flex items-center justify-between mb-3 px-1">
+                                        <span className="text-[10px] font-mono font-black text-orange-300 uppercase tracking-widest flex items-center gap-1.5">
+                                            <Activity size={12} className="text-orange-400" />
+                                            <span>Surveillance Tools</span>
+                                        </span>
+                                        <span className="text-[9px] font-mono text-white/40">Select tool to launch</span>
+                                    </div>
 
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {tools.map((tool) => {
-                                                const isSelected = selectedTool === tool.id;
-                                                const Icon = tool.icon;
-                                                return (
-                                                    <button
-                                                        key={tool.id}
-                                                        onClick={() => handleSelectTool(tool.id)}
-                                                        className={`p-2.5 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all text-center cursor-pointer group ${
-                                                            isSelected 
-                                                                ? 'bg-orange-500/15 border-2 border-orange-500/70 shadow-[0_0_16px_rgba(249,115,22,0.25)]' 
-                                                                : 'bg-[#16181d] border border-white/10 hover:border-white/20'
-                                                        }`}
-                                                    >
-                                                        <div className={`clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform ${tool.color}`}>
-                                                            <Icon size={17} />
-                                                        </div>
-                                                        <span className={`text-[11px] font-bold truncate w-full ${isSelected ? 'text-orange-300 font-black' : 'text-white/70 group-hover:text-white'}`}>
-                                                            {tool.label}
-                                                        </span>
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {tools.map((tool) => {
+                                            const isSelected = selectedTool === tool.id;
+                                            const Icon = tool.icon;
+                                            return (
+                                                <button
+                                                    key={tool.id}
+                                                    onClick={() => handleSelectTool(tool.id)}
+                                                    className={`p-2.5 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all text-center cursor-pointer group ${
+                                                        isSelected 
+                                                            ? 'bg-orange-500/15 border-2 border-orange-500/70 shadow-[0_0_16px_rgba(249,115,22,0.25)]' 
+                                                            : 'bg-[#16181d] border border-white/10 hover:border-white/20'
+                                                    }`}
+                                                >
+                                                    <div className={`clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform ${tool.color}`}>
+                                                        <Icon size={17} />
+                                                    </div>
+                                                    <span className={`text-[11px] font-bold truncate w-full ${isSelected ? 'text-orange-300 font-black' : 'text-white/70 group-hover:text-white'}`}>
+                                                        {tool.label}
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
-                        {/* 2. Devices Dropdown Button (Name Visible on BOTH Mobile & Desktop) */}
+                        {/* 2. Devices Dropdown Button */}
                         <div className="relative">
                             <button 
                                 id="tutorial-device-selector"
@@ -628,31 +612,23 @@ export default function AppNavigation({
                                 <span className="font-bold text-[11px] sm:text-xs max-w-[65px] sm:max-w-[130px] truncate block">
                                     {selectedDevice ? getCleanDeviceName(selectedDevice) : 'Devices'}
                                 </span>
-                                <ChevronDown className={`w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-200 text-white/50 shrink-0 ${openDropdown === 'devices' ? 'rotate-180' : ''}`} />
+                                <ChevronDown className={`w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-150 text-white/50 shrink-0 ${openDropdown === 'devices' ? 'rotate-180' : ''}`} />
                             </button>
 
-                            <AnimatePresence>
-                                {openDropdown === 'devices' && (
-                                    <motion.div
-                                        variants={dropdownVariants}
-                                        initial="hidden"
-                                        animate="visible"
-                                        exit="exit"
-                                        className="fixed left-3 right-3 top-[65px] w-auto sm:absolute sm:top-[125%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-[360px] p-4 sm:p-5 bg-[#0f1115] rounded-3xl border border-white/15 z-[200] pointer-events-auto cursor-default shadow-[0_25px_70px_rgba(0,0,0,0.98)]"
-                                    >
-                                        <DeviceList 
-                                            devices={sortedDevices} 
-                                            selectedDeviceId={selectedDeviceId} 
-                                            setSelectedDeviceId={setSelectedDeviceId} 
-                                            setOpenDropdown={setOpenDropdown} 
-                                            onDeleteDevice={onDeleteDevice}
-                                            socket={socket}
-                                            userUuid={userUuid}
-                                            onOpenSettings={(dev: any) => setSettingsDevice(dev)}
-                                        />
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+                            {openDropdown === 'devices' && (
+                                <div className="fixed left-3 right-3 top-[65px] w-auto sm:absolute sm:top-[125%] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-[360px] p-4 sm:p-5 bg-[#0f1115] rounded-3xl border border-white/15 z-[200] pointer-events-auto cursor-default shadow-[0_25px_70px_rgba(0,0,0,0.98)] animate-in fade-in zoom-in-95 duration-100">
+                                    <DeviceList 
+                                        devices={sortedDevices} 
+                                        selectedDeviceId={selectedDeviceId} 
+                                        setSelectedDeviceId={setSelectedDeviceId} 
+                                        setOpenDropdown={setOpenDropdown} 
+                                        onDeleteDevice={onDeleteDevice}
+                                        socket={socket}
+                                        userUuid={userUuid}
+                                        onOpenSettings={(dev: any) => setSettingsDevice(dev)}
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         {/* Divider */}
@@ -683,57 +659,49 @@ export default function AppNavigation({
                                 <span className="hidden md:block font-bold text-xs ml-1.5">Account</span>
                             </button>
 
-                            <AnimatePresence>
-                                {openDropdown === 'profile' && (
-                                    <motion.div
-                                        variants={dropdownVariants}
-                                        initial="hidden"
-                                        animate="visible"
-                                        exit="exit"
-                                        className="fixed left-3 right-3 top-[65px] w-auto sm:absolute sm:top-[125%] sm:right-0 sm:left-auto sm:w-[290px] p-4 sm:p-5 bg-[#0f1115] rounded-3xl border border-white/15 z-[200] pointer-events-auto cursor-default shadow-[0_25px_70px_rgba(0,0,0,0.98)]"
-                                    >
-                                        <div className="p-3.5 mb-3 rounded-2xl bg-[#16181d] border border-white/10 flex flex-col items-center text-center">
-                                            <div className={`w-14 h-14 rounded-full mb-2.5 flex items-center justify-center overflow-hidden ring-2 ${avatarRingClass}`}>
-                                                {user?.image ? (
-                                                    <img src={user.image} alt="Profile" className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <img src="/gallery-eye-logo.jpg" alt="Profile" className="w-full h-full object-cover" />
-                                                )}
-                                            </div>
-                                            {user?.email ? (
-                                                <div className="text-xs font-bold text-white font-mono tracking-tight truncate max-w-[220px]" title={user.email}>
-                                                    {user.email}
-                                                </div>
+                            {openDropdown === 'profile' && (
+                                <div className="fixed left-3 right-3 top-[65px] w-auto sm:absolute sm:top-[125%] sm:right-0 sm:left-auto sm:w-[290px] p-4 sm:p-5 bg-[#0f1115] rounded-3xl border border-white/15 z-[200] pointer-events-auto cursor-default shadow-[0_25px_70px_rgba(0,0,0,0.98)] animate-in fade-in zoom-in-95 duration-100">
+                                    <div className="p-3.5 mb-3 rounded-2xl bg-[#16181d] border border-white/10 flex flex-col items-center text-center">
+                                        <div className={`w-14 h-14 rounded-full mb-2.5 flex items-center justify-center overflow-hidden ring-2 ${avatarRingClass}`}>
+                                            {user?.image ? (
+                                                <img src={user.image} alt="Profile" className="w-full h-full object-cover" />
                                             ) : (
-                                                <div className="text-xs font-bold text-white font-mono tracking-tight">
-                                                    Account Profile
-                                                </div>
+                                                <img src="/gallery-eye-logo.jpg" alt="Profile" className="w-full h-full object-cover" />
                                             )}
-                                            <div className="mt-2 w-full flex justify-center">
-                                                <PlanBadge plan={userPlan} />
+                                        </div>
+                                        {user?.email ? (
+                                            <div className="text-xs font-bold text-white font-mono tracking-tight truncate max-w-[220px]" title={user.email}>
+                                                {user.email}
                                             </div>
+                                        ) : (
+                                            <div className="text-xs font-bold text-white font-mono tracking-tight">
+                                                Account Profile
+                                            </div>
+                                        )}
+                                        <div className="mt-2 w-full flex justify-center">
+                                            <PlanBadge plan={userPlan} />
                                         </div>
-                                        
-                                        <div className="flex flex-col gap-2">
-                                            <button 
-                                                onClick={() => { setShowPlansModal(true); setOpenDropdown(null); }}
-                                                className="bg-[#16181d] border border-white/10 hover:border-orange-500/40 flex items-center gap-2.5 p-2.5 rounded-xl transition-all text-orange-300 cursor-pointer"
-                                            >
-                                                <Crown className="w-4 h-4 text-orange-400" />
-                                                <span className="text-xs font-bold font-mono uppercase tracking-wider">Upgrade Tier</span>
-                                            </button>
+                                    </div>
+                                    
+                                    <div className="flex flex-col gap-2">
+                                        <button 
+                                            onClick={() => { setShowPlansModal(true); setOpenDropdown(null); }}
+                                            className="bg-[#16181d] border border-white/10 hover:border-orange-500/40 flex items-center gap-2.5 p-2.5 rounded-xl transition-all text-orange-300 cursor-pointer"
+                                        >
+                                            <Crown className="w-4 h-4 text-orange-400" />
+                                            <span className="text-xs font-bold font-mono uppercase tracking-wider">Upgrade Tier</span>
+                                        </button>
 
-                                            <button 
-                                                onClick={() => { handleSignOut(); setOpenDropdown(null); }}
-                                                className="bg-[#16181d] border border-white/10 hover:border-rose-500/40 flex items-center gap-2.5 p-2.5 rounded-xl transition-all text-rose-400 cursor-pointer"
-                                            >
-                                                <LogOut className="w-4 h-4 text-rose-400" />
-                                                <span className="text-xs font-bold font-mono uppercase tracking-wider">Sign Out</span>
-                                            </button>
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+                                        <button 
+                                            onClick={() => { handleSignOut(); setOpenDropdown(null); }}
+                                            className="bg-[#16181d] border border-white/10 hover:border-rose-500/40 flex items-center gap-2.5 p-2.5 rounded-xl transition-all text-rose-400 cursor-pointer"
+                                        >
+                                            <LogOut className="w-4 h-4 text-rose-400" />
+                                            <span className="text-xs font-bold font-mono uppercase tracking-wider">Sign Out</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                     </div>
