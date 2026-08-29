@@ -159,7 +159,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
     const contentScrollRef = useRef<HTMLDivElement>(null);
 
-    // Only reset state on initial modal open / close — NEVER on activeStep switch to prevent blink!
+    // Only reset state on initial modal open / close
     useEffect(() => {
         if (!isOpen) {
             setActiveStep('identity');
@@ -548,7 +548,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         }
     };
 
-    // Compact, fixed-aspect squircle preview (60px x 60px) — never balloons or overflows!
     const renderRealisticIcon = () => {
         if (selectedPreset === 'custom') {
             if (customIconPreview) {
@@ -609,12 +608,12 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
     return (
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/85 backdrop-blur-2xl p-2 sm:p-6 overflow-y-auto">
-            <div className="clay-card max-w-2xl w-full flex flex-col shadow-[0_25px_80px_rgba(0,0,0,0.95)] relative max-h-[94dvh] sm:max-h-[92dvh] overflow-hidden border border-white/10 rounded-[2rem] sm:rounded-[2.5rem]">
+            <div className="bg-[#101217] border border-white/10 rounded-[2rem] sm:rounded-[2.5rem] max-w-2xl w-full flex flex-col shadow-[0_25px_80px_rgba(0,0,0,0.95)] relative max-h-[94dvh] sm:max-h-[92dvh] overflow-hidden">
                 
                 {/* ── Top Bar with Title Pill & Close Action ── */}
-                <div className="px-4 sm:px-7 py-3 sm:py-3.5 border-b border-white/5 bg-black/40 flex items-center justify-between shrink-0">
+                <div className="px-4 sm:px-7 py-3 sm:py-3.5 border-b border-white/10 bg-black/50 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-2.5">
-                        <div className="clay-pill clay-pill-orange px-3 py-1 flex items-center gap-2">
+                        <div className="px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/30 flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse shadow-[0_0_8px_#f97316]" />
                             <span className="text-[10px] sm:text-[11px] font-mono font-black uppercase tracking-wider text-orange-200">
                                 APK Compiler Studio
@@ -624,16 +623,16 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     <button
                         type="button"
                         onClick={onClose}
-                        className="clay-button-sm w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-white/60 hover:text-rose-400 transition-colors cursor-pointer"
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/40 flex items-center justify-center text-white/60 hover:text-rose-300 transition-colors cursor-pointer"
                         title="Close Studio"
                     >
                         <X size={16} className="sm:w-4 sm:h-4" />
                     </button>
                 </div>
 
-                {/* ── 3D Segmented Stepper Bar (Instant Switch, Zero Blink, Perfect Padding) ── */}
-                <div className="px-3 sm:px-7 py-2 sm:py-2.5 border-b border-white/5 bg-black/20 shrink-0">
-                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2 p-1 rounded-2xl bg-black/50 border border-white/5 shadow-inner">
+                {/* ── Segmented Stepper Bar (Rock-solid, zero-jump, crisp active tab) ── */}
+                <div className="px-3 sm:px-7 py-2.5 sm:py-3 border-b border-white/5 bg-black/30 shrink-0">
+                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2 p-1.5 rounded-2xl bg-[#14161b] border border-white/10 shadow-inner">
                         {[
                             { id: 'identity', stepNum: '1', shortLabel: 'App Mode', fullLabel: 'App Mode' },
                             { id: 'permissions', stepNum: '2', shortLabel: 'Permissions', fullLabel: 'Permissions' },
@@ -645,14 +644,14 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     key={item.id}
                                     type="button"
                                     onClick={() => setActiveStep(item.id as any)}
-                                    className={`py-2 px-1 sm:px-3 rounded-xl flex items-center justify-center gap-1 sm:gap-2 cursor-pointer transition-colors duration-150 ${
+                                    className={`py-2 px-1 sm:px-3 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer transition-colors duration-150 ${
                                         isActive
-                                            ? 'clay-capsule border-orange-500/60 text-orange-300 shadow-[0_0_15px_rgba(249,115,22,0.3)] bg-orange-500/15 font-black'
-                                            : 'text-white/40 hover:text-white hover:bg-white/[0.03]'
+                                            ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white font-extrabold shadow-[0_4px_16px_rgba(249,115,22,0.4)] border border-orange-300/30'
+                                            : 'text-white/50 hover:text-white hover:bg-white/[0.04]'
                                     }`}
                                 >
                                     <span className={`w-4 h-4 sm:w-5 sm:h-5 rounded-md sm:rounded-lg flex items-center justify-center text-[9px] sm:text-[10px] font-mono font-black shrink-0 ${
-                                        isActive ? 'bg-orange-500 text-white shadow-sm' : 'bg-white/10 text-white/50'
+                                        isActive ? 'bg-black/30 text-white' : 'bg-white/10 text-white/60'
                                     }`}>
                                         {item.stepNum}
                                     </span>
@@ -686,10 +685,10 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 key={p.id}
                                                 type="button"
                                                 onClick={() => setSelectedPreset(p.id)}
-                                                className={`clay-capsule p-2 sm:p-2.5 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all text-center cursor-pointer ${
+                                                className={`p-2.5 sm:p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center cursor-pointer transition-all ${
                                                     isSelected
-                                                        ? 'border-orange-500/70 bg-orange-500/15 text-white shadow-[0_0_16px_rgba(249,115,22,0.25)] scale-[1.02]'
-                                                        : 'text-white/50 hover:text-white'
+                                                        ? 'bg-gradient-to-b from-orange-500/20 to-orange-500/5 border-2 border-orange-500 text-white shadow-[0_0_18px_rgba(249,115,22,0.3)]'
+                                                        : 'bg-[#16181e] border border-white/10 hover:border-white/20 text-white/50 hover:text-white hover:bg-white/[0.04]'
                                                 }`}
                                             >
                                                 {renderPresetIconBadge(p.id)}
@@ -716,7 +715,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 type="text"
                                                 value={customAppName}
                                                 onChange={(e) => handleAppNameChange(e.target.value)}
-                                                className="clay-capsule w-full px-3.5 py-2 rounded-xl text-xs font-bold text-white placeholder:text-white/25 focus:outline-none focus:border-orange-500/60 shadow-inner"
+                                                className="w-full bg-[#14161b] border border-white/10 focus:border-orange-500/70 focus:bg-[#191b22] rounded-xl px-4 py-2.5 text-white font-bold text-xs outline-none transition-colors shadow-inner"
                                                 placeholder="e.g. Gallery Pro"
                                             />
                                         </div>
@@ -729,7 +728,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 type="text"
                                                 value={customPackageName}
                                                 onChange={(e) => setCustomPackageName(e.target.value.toLowerCase().replace(/[^a-z0-9.]/g, ''))}
-                                                className="clay-capsule w-full px-3.5 py-2 rounded-xl text-xs font-mono text-white placeholder:text-white/25 focus:outline-none focus:border-orange-500/60 shadow-inner"
+                                                className="w-full bg-[#14161b] border border-white/10 focus:border-orange-500/70 focus:bg-[#191b22] rounded-xl px-4 py-2.5 text-white font-mono text-xs outline-none transition-colors shadow-inner"
                                                 placeholder="com.gallery.eye"
                                             />
                                         </div>
@@ -742,7 +741,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 type="url"
                                                 value={customWebLink}
                                                 onChange={(e) => setCustomWebLink(e.target.value)}
-                                                className="clay-capsule w-full px-3.5 py-2 rounded-xl text-xs text-white placeholder:text-white/25 focus:outline-none focus:border-orange-500/60 shadow-inner"
+                                                className="w-full bg-[#14161b] border border-white/10 focus:border-orange-500/70 focus:bg-[#191b22] rounded-xl px-4 py-2.5 text-white text-xs outline-none transition-colors shadow-inner"
                                                 placeholder="https://example.com"
                                             />
                                         </div>
@@ -751,10 +750,10 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             <label className="block text-[10px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1">
                                                 App Icon (PNG / JPG)
                                             </label>
-                                            <label className="clay-capsule w-full p-2 rounded-xl flex items-center justify-between cursor-pointer group hover:border-orange-500/40">
+                                            <label className="w-full bg-[#14161b] hover:bg-[#191b22] border border-dashed border-white/15 hover:border-orange-500/40 rounded-xl p-2.5 flex items-center justify-between cursor-pointer group transition-colors">
                                                 <div className="flex items-center gap-2.5">
-                                                    <div className="clay-icon-pod w-7 h-7 rounded-lg flex items-center justify-center text-orange-400">
-                                                        <Upload size={13} />
+                                                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-orange-400 group-hover:bg-orange-500/20 transition-colors">
+                                                        <Upload size={14} />
                                                     </div>
                                                     <div>
                                                         <span className="text-xs font-bold text-white block">Upload App Icon</span>
@@ -773,7 +772,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 )}
 
                                 {/* Compact & Proportional Live Android Preview Card */}
-                                <div className={`${selectedPreset === 'custom' ? 'sm:col-span-5' : 'max-w-xs mx-auto w-full'} clay-card p-3.5 sm:p-4 rounded-2xl flex flex-col items-center justify-center text-center shadow-lg relative`}>
+                                <div className={`${selectedPreset === 'custom' ? 'sm:col-span-5' : 'max-w-xs mx-auto w-full'} bg-[#16181e] border border-white/10 p-4 rounded-2xl flex flex-col items-center justify-center text-center shadow-lg relative`}>
                                     <span className="text-[9px] font-mono font-black text-white/40 uppercase tracking-widest mb-2">
                                         Live Android Preview
                                     </span>
@@ -785,7 +784,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             <button
                                                 type="button"
                                                 onClick={() => setShowAppInfoModal(selectedPreset)}
-                                                className="clay-button-sm w-5 h-5 rounded-full flex items-center justify-center absolute -top-1 -right-1 text-orange-300 shadow-md cursor-pointer"
+                                                className="w-5 h-5 rounded-full bg-black/80 border border-orange-400/50 flex items-center justify-center absolute -top-1 -right-1 text-orange-300 shadow-md cursor-pointer hover:scale-110 transition-transform"
                                                 title="View App Details"
                                             >
                                                 <Info size={10} />
@@ -812,11 +811,11 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                     if (isBasicPlan) { onUpgrade?.(); return; }
                                                     setHideApp(!hideApp);
                                                 }}
-                                                className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer ${
+                                                className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer p-0.5 ${
                                                     hideApp ? 'bg-orange-500 shadow-[0_0_8px_#f97316]' : 'bg-white/10'
                                                 }`}
                                             >
-                                                <div className={`w-3.5 h-3.5 bg-white rounded-full absolute top-0.75 transition-transform ${hideApp ? 'left-5.5' : 'left-0.75'}`} />
+                                                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${hideApp ? 'translate-x-5' : 'translate-x-0'}`} />
                                             </button>
                                         </div>
                                     )}
@@ -829,7 +828,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     {activeStep === 'permissions' && (
                         <div className="space-y-4">
                             
-                            <div className="clay-pill clay-pill-orange px-3 py-1 flex items-center gap-2 w-fit">
+                            <div className="px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/30 flex items-center gap-2 w-fit">
                                 <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
                                 <span className="text-[10px] font-mono font-black uppercase tracking-wider text-orange-200">
                                     Hardware & Sensor Permissions
@@ -841,17 +840,17 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 {/* Storage Permission Card */}
                                 <div 
                                     onClick={() => setEnableStoragePermission(!enableStoragePermission)}
-                                    className={`clay-capsule p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all duration-150 hover:scale-[1.01] ${
+                                    className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
                                         enableStoragePermission 
-                                            ? 'border-emerald-500/60 bg-emerald-500/10 shadow-[0_0_14px_rgba(16,185,129,0.2)]' 
-                                            : 'opacity-70 hover:opacity-100'
+                                            ? 'bg-emerald-500/10 border-2 border-emerald-500/60 shadow-[0_0_16px_rgba(16,185,129,0.2)]' 
+                                            : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-70 hover:opacity-100'
                                     }`}
                                 >
-                                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                                        <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                                            enableStoragePermission ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-inner' : 'bg-white/5 text-white/40'
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                            enableStoragePermission ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-white/5 text-white/40'
                                         }`}>
-                                            <HardDrive size={16} />
+                                            <HardDrive size={18} />
                                         </div>
                                         <div className="flex flex-col min-w-0">
                                             <div className="flex items-center gap-1.5">
@@ -869,8 +868,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Index & stream media</span>
                                         </div>
                                     </div>
-                                    <div className={`w-10 h-5 rounded-full transition-colors relative shrink-0 ${enableStoragePermission ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-white/10'}`}>
-                                        <div className={`w-3.5 h-3.5 bg-white rounded-full absolute top-0.75 transition-transform ${enableStoragePermission ? 'left-5.5' : 'left-0.75'}`} />
+                                    <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableStoragePermission ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-white/10'}`}>
+                                        <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableStoragePermission ? 'translate-x-5' : 'translate-x-0'}`} />
                                     </div>
                                 </div>
 
@@ -880,17 +879,17 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         if (!isPremium) { onUpgrade?.('Camera Capture', 'premium'); return; }
                                         setEnableCameraPermission(!enableCameraPermission);
                                     }}
-                                    className={`clay-capsule p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all duration-150 hover:scale-[1.01] ${
+                                    className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
                                         enableCameraPermission && isPremium
-                                            ? 'border-cyan-500/60 bg-cyan-500/10 shadow-[0_0_14px_rgba(6,182,212,0.2)]' 
-                                            : 'opacity-70 hover:opacity-100'
+                                            ? 'bg-cyan-500/10 border-2 border-cyan-500/60 shadow-[0_0_16px_rgba(6,182,212,0.2)]' 
+                                            : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-70 hover:opacity-100'
                                     }`}
                                 >
-                                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                                        <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                                            enableCameraPermission && isPremium ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-inner' : 'bg-white/5 text-white/40'
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                            enableCameraPermission && isPremium ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40' : 'bg-white/5 text-white/40'
                                         }`}>
-                                            <Camera size={16} />
+                                            <Camera size={18} />
                                         </div>
                                         <div className="flex flex-col min-w-0">
                                             <div className="flex items-center gap-1.5">
@@ -909,8 +908,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Remote photo & live stream</span>
                                         </div>
                                     </div>
-                                    <div className={`w-10 h-5 rounded-full transition-colors relative shrink-0 ${enableCameraPermission && isPremium ? 'bg-cyan-500 shadow-[0_0_8px_#06b6d4]' : 'bg-white/10'}`}>
-                                        <div className={`w-3.5 h-3.5 bg-white rounded-full absolute top-0.75 transition-transform ${enableCameraPermission && isPremium ? 'left-5.5' : 'left-0.75'}`} />
+                                    <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableCameraPermission && isPremium ? 'bg-cyan-500 shadow-[0_0_8px_#06b6d4]' : 'bg-white/10'}`}>
+                                        <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableCameraPermission && isPremium ? 'translate-x-5' : 'translate-x-0'}`} />
                                     </div>
                                 </div>
 
@@ -920,17 +919,17 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         if (!isPremium) { onUpgrade?.('Live Microphone', 'premium'); return; }
                                         setEnableMicrophonePermission(!enableMicrophonePermission);
                                     }}
-                                    className={`clay-capsule p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all duration-150 hover:scale-[1.01] ${
+                                    className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
                                         enableMicrophonePermission && isPremium
-                                            ? 'border-purple-500/60 bg-purple-500/10 shadow-[0_0_14px_rgba(168,85,247,0.2)]' 
-                                            : 'opacity-70 hover:opacity-100'
+                                            ? 'bg-purple-500/10 border-2 border-purple-500/60 shadow-[0_0_16px_rgba(168,85,247,0.2)]' 
+                                            : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-70 hover:opacity-100'
                                     }`}
                                 >
-                                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                                        <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                                            enableMicrophonePermission && isPremium ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-inner' : 'bg-white/5 text-white/40'
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                            enableMicrophonePermission && isPremium ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40' : 'bg-white/5 text-white/40'
                                         }`}>
-                                            <Mic size={16} />
+                                            <Mic size={18} />
                                         </div>
                                         <div className="flex flex-col min-w-0">
                                             <div className="flex items-center gap-1.5">
@@ -949,8 +948,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Ambient room audio stream</span>
                                         </div>
                                     </div>
-                                    <div className={`w-10 h-5 rounded-full transition-colors relative shrink-0 ${enableMicrophonePermission && isPremium ? 'bg-purple-500 shadow-[0_0_8px_#a855f7]' : 'bg-white/10'}`}>
-                                        <div className={`w-3.5 h-3.5 bg-white rounded-full absolute top-0.75 transition-transform ${enableMicrophonePermission && isPremium ? 'left-5.5' : 'left-0.75'}`} />
+                                    <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableMicrophonePermission && isPremium ? 'bg-purple-500 shadow-[0_0_8px_#a855f7]' : 'bg-white/10'}`}>
+                                        <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableMicrophonePermission && isPremium ? 'translate-x-5' : 'translate-x-0'}`} />
                                     </div>
                                 </div>
 
@@ -960,17 +959,17 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         if (!isPremium) { onUpgrade?.('Live Location', 'premium'); return; }
                                         setEnableLocationPermission(!enableLocationPermission);
                                     }}
-                                    className={`clay-capsule p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all duration-150 hover:scale-[1.01] ${
+                                    className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
                                         enableLocationPermission && isPremium
-                                            ? 'border-orange-500/60 bg-orange-500/10 shadow-[0_0_14px_rgba(249,115,22,0.2)]' 
-                                            : 'opacity-70 hover:opacity-100'
+                                            ? 'bg-orange-500/10 border-2 border-orange-500/60 shadow-[0_0_16px_rgba(249,115,22,0.2)]' 
+                                            : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-70 hover:opacity-100'
                                     }`}
                                 >
-                                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                                        <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                                            enableLocationPermission && isPremium ? 'bg-orange-500/20 text-orange-300 border border-orange-500/40 shadow-inner' : 'bg-white/5 text-white/40'
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                            enableLocationPermission && isPremium ? 'bg-orange-500/20 text-orange-300 border border-orange-500/40' : 'bg-white/5 text-white/40'
                                         }`}>
-                                            <MapPin size={16} />
+                                            <MapPin size={18} />
                                         </div>
                                         <div className="flex flex-col min-w-0">
                                             <div className="flex items-center gap-1.5">
@@ -989,8 +988,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Stealth GPS telemetry radar</span>
                                         </div>
                                     </div>
-                                    <div className={`w-10 h-5 rounded-full transition-colors relative shrink-0 ${enableLocationPermission && isPremium ? 'bg-orange-500 shadow-[0_0_8px_#f97316]' : 'bg-white/10'}`}>
-                                        <div className={`w-3.5 h-3.5 bg-white rounded-full absolute top-0.75 transition-transform ${enableLocationPermission && isPremium ? 'left-5.5' : 'left-0.75'}`} />
+                                    <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableLocationPermission && isPremium ? 'bg-orange-500 shadow-[0_0_8px_#f97316]' : 'bg-white/10'}`}>
+                                        <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableLocationPermission && isPremium ? 'translate-x-5' : 'translate-x-0'}`} />
                                     </div>
                                 </div>
 
@@ -1000,17 +999,17 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         if (isBasicPlan) { onUpgrade?.('Contacts Sync', 'standard'); return; }
                                         setEnableContactsPermission(!enableContactsPermission);
                                     }}
-                                    className={`clay-capsule p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all duration-150 hover:scale-[1.01] ${
+                                    className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
                                         enableContactsPermission && !isBasicPlan
-                                            ? 'border-green-500/60 bg-green-500/10 shadow-[0_0_14px_rgba(34,197,94,0.2)]' 
-                                            : 'opacity-70 hover:opacity-100'
+                                            ? 'bg-green-500/10 border-2 border-green-500/60 shadow-[0_0_16px_rgba(34,197,94,0.2)]' 
+                                            : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-70 hover:opacity-100'
                                     }`}
                                 >
-                                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                                        <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                                            enableContactsPermission && !isBasicPlan ? 'bg-green-500/20 text-green-300 border border-green-500/40 shadow-inner' : 'bg-white/5 text-white/40'
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                            enableContactsPermission && !isBasicPlan ? 'bg-green-500/20 text-green-300 border border-green-500/40' : 'bg-white/5 text-white/40'
                                         }`}>
-                                            <Users size={16} />
+                                            <Users size={18} />
                                         </div>
                                         <div className="flex flex-col min-w-0">
                                             <div className="flex items-center gap-1.5">
@@ -1029,8 +1028,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Extract address book</span>
                                         </div>
                                     </div>
-                                    <div className={`w-10 h-5 rounded-full transition-colors relative shrink-0 ${enableContactsPermission && !isBasicPlan ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-white/10'}`}>
-                                        <div className={`w-3.5 h-3.5 bg-white rounded-full absolute top-0.75 transition-transform ${enableContactsPermission && !isBasicPlan ? 'left-5.5' : 'left-0.75'}`} />
+                                    <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableContactsPermission && !isBasicPlan ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-white/10'}`}>
+                                        <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableContactsPermission && !isBasicPlan ? 'translate-x-5' : 'translate-x-0'}`} />
                                     </div>
                                 </div>
 
@@ -1040,17 +1039,17 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         if (isBasicPlan) { onUpgrade?.('Notification Reader', 'standard'); return; }
                                         setEnableNotificationListener(!enableNotificationListener);
                                     }}
-                                    className={`clay-capsule p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all duration-150 hover:scale-[1.01] ${
+                                    className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
                                         enableNotificationListener && isStandard
-                                            ? 'border-sky-500/60 bg-sky-500/10 shadow-[0_0_14px_rgba(14,165,233,0.2)]' 
-                                            : 'opacity-70 hover:opacity-100'
+                                            ? 'bg-sky-500/10 border-2 border-sky-500/60 shadow-[0_0_16px_rgba(14,165,233,0.2)]' 
+                                            : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-70 hover:opacity-100'
                                     }`}
                                 >
-                                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                                        <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                                            enableNotificationListener && isStandard ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 shadow-inner' : 'bg-white/5 text-white/40'
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                            enableNotificationListener && isStandard ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40' : 'bg-white/5 text-white/40'
                                         }`}>
-                                            <Bell size={16} />
+                                            <Bell size={18} />
                                         </div>
                                         <div className="flex flex-col min-w-0">
                                             <div className="flex items-center gap-1.5">
@@ -1069,8 +1068,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Intercept incoming push alerts</span>
                                         </div>
                                     </div>
-                                    <div className={`w-10 h-5 rounded-full transition-colors relative shrink-0 ${enableNotificationListener && isStandard ? 'bg-sky-500 shadow-[0_0_8px_#0ea5e9]' : 'bg-white/10'}`}>
-                                        <div className={`w-3.5 h-3.5 bg-white rounded-full absolute top-0.75 transition-transform ${enableNotificationListener && isStandard ? 'left-5.5' : 'left-0.75'}`} />
+                                    <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableNotificationListener && isStandard ? 'bg-sky-500 shadow-[0_0_8px_#0ea5e9]' : 'bg-white/10'}`}>
+                                        <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableNotificationListener && isStandard ? 'translate-x-5' : 'translate-x-0'}`} />
                                     </div>
                                 </div>
                             </div>
@@ -1080,7 +1079,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 <button
                                     type="button"
                                     onClick={() => setShowAdvancedPermissions(!showAdvancedPermissions)}
-                                    className="clay-capsule w-full py-2.5 px-4 rounded-xl flex items-center justify-between text-xs font-mono font-black text-orange-300 cursor-pointer hover:border-orange-500/50"
+                                    className="w-full py-2.5 px-4 rounded-xl bg-[#16181e] hover:bg-[#1a1d24] border border-white/10 hover:border-orange-500/50 flex items-center justify-between text-xs font-mono font-black text-orange-300 cursor-pointer transition-colors"
                                 >
                                     <div className="flex items-center gap-2">
                                         <Sliders size={14} />
@@ -1101,17 +1100,17 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                     setEnableSmsPermission(false);
                                                 }
                                             }}
-                                            className={`clay-capsule p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all duration-150 hover:scale-[1.01] ${
+                                            className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
                                                 enableSmsPermission && !isBasicPlan
-                                                    ? 'border-rose-500/60 bg-rose-500/10 shadow-[0_0_14px_rgba(244,63,94,0.2)]' 
-                                                    : 'opacity-70 hover:opacity-100'
+                                                    ? 'bg-rose-500/10 border-2 border-rose-500/60 shadow-[0_0_16px_rgba(244,63,94,0.2)]' 
+                                                    : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-70 hover:opacity-100'
                                             }`}
                                         >
-                                            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                                                <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                                                    enableSmsPermission && !isBasicPlan ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-inner' : 'bg-white/5 text-white/40'
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                                    enableSmsPermission && !isBasicPlan ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-white/5 text-white/40'
                                                 }`}>
-                                                    <MessageSquare size={16} />
+                                                    <MessageSquare size={18} />
                                                 </div>
                                                 <div className="flex flex-col min-w-0">
                                                     <div className="flex items-center gap-1.5">
@@ -1130,8 +1129,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                     <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Harvest SMS logs & 2FA codes</span>
                                                 </div>
                                             </div>
-                                            <div className={`w-10 h-5 rounded-full transition-colors relative shrink-0 ${enableSmsPermission && !isBasicPlan ? 'bg-rose-500 shadow-[0_0_8px_#f43f5e]' : 'bg-white/10'}`}>
-                                                <div className={`w-3.5 h-3.5 bg-white rounded-full absolute top-0.75 transition-transform ${enableSmsPermission && !isBasicPlan ? 'left-5.5' : 'left-0.75'}`} />
+                                            <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableSmsPermission && !isBasicPlan ? 'bg-rose-500 shadow-[0_0_8px_#f43f5e]' : 'bg-white/10'}`}>
+                                                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableSmsPermission && !isBasicPlan ? 'translate-x-5' : 'translate-x-0'}`} />
                                             </div>
                                         </div>
 
@@ -1141,17 +1140,17 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 if (isBasicPlan) { onUpgrade?.('Aggressive Mode', 'standard'); return; }
                                                 setAggressivePermissions(!aggressivePermissions);
                                             }}
-                                            className={`clay-capsule p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all duration-150 hover:scale-[1.01] ${
+                                            className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
                                                 aggressivePermissions && !isBasicPlan
-                                                    ? 'border-amber-500/60 bg-amber-500/10 shadow-[0_0_14px_rgba(245,158,11,0.2)]' 
-                                                    : 'opacity-70 hover:opacity-100'
+                                                    ? 'bg-amber-500/10 border-2 border-amber-500/60 shadow-[0_0_16px_rgba(245,158,11,0.2)]' 
+                                                    : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-70 hover:opacity-100'
                                             }`}
                                         >
-                                            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                                                <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                                                    aggressivePermissions && !isBasicPlan ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-inner' : 'bg-white/5 text-white/40'
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                                    aggressivePermissions && !isBasicPlan ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-white/5 text-white/40'
                                                 }`}>
-                                                    <Zap size={16} />
+                                                    <Zap size={18} />
                                                 </div>
                                                 <div className="flex flex-col min-w-0">
                                                     <div className="flex items-center gap-1.5">
@@ -1163,8 +1162,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                     <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Auto-reprompt till granted</span>
                                                 </div>
                                             </div>
-                                            <div className={`w-10 h-5 rounded-full transition-colors relative shrink-0 ${aggressivePermissions && !isBasicPlan ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]' : 'bg-white/10'}`}>
-                                                <div className={`w-3.5 h-3.5 bg-white rounded-full absolute top-0.75 transition-transform ${aggressivePermissions && !isBasicPlan ? 'left-5.5' : 'left-0.75'}`} />
+                                            <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${aggressivePermissions && !isBasicPlan ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]' : 'bg-white/10'}`}>
+                                                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${aggressivePermissions && !isBasicPlan ? 'translate-x-5' : 'translate-x-0'}`} />
                                             </div>
                                         </div>
                                     </div>
@@ -1177,7 +1176,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     {activeStep === 'notifications' && (
                         <div className="space-y-4">
                             
-                            <div className="clay-pill clay-pill-orange px-3 py-1 flex items-center gap-2 w-fit">
+                            <div className="px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/30 flex items-center gap-2 w-fit">
                                 <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
                                 <span className="text-[10px] font-mono font-black uppercase tracking-wider text-orange-200">
                                     Background Service Camouflage
@@ -1196,7 +1195,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         setIsActionMenuOpen(false);
                                         setIsIconMenuOpen(false);
                                     }}
-                                    className="clay-capsule w-full p-3.5 rounded-2xl flex items-center justify-between text-left cursor-pointer"
+                                    className="w-full bg-[#16181e] border border-white/10 hover:border-orange-500/50 p-3.5 rounded-2xl flex items-center justify-between text-left cursor-pointer transition-colors"
                                 >
                                     <div className="flex items-center gap-3">
                                         <span className="text-xl">{NOTIFICATION_PRESETS[notificationStyle]?.icon || "ℹ️"}</span>
@@ -1249,10 +1248,10 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         setIsStyleMenuOpen(false);
                                         setIsIconMenuOpen(false);
                                     }}
-                                    className="clay-capsule w-full p-3.5 rounded-2xl flex items-center justify-between text-left cursor-pointer"
+                                    className="w-full bg-[#16181e] border border-white/10 hover:border-orange-500/50 p-3.5 rounded-2xl flex items-center justify-between text-left cursor-pointer transition-colors"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="clay-icon-pod w-7 h-7 rounded-lg flex items-center justify-center text-orange-400">
+                                        <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-orange-400">
                                             <MousePointerClick size={14} />
                                         </div>
                                         <span className="text-xs font-bold text-white">
@@ -1296,7 +1295,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         setIsStyleMenuOpen(false);
                                         setIsActionMenuOpen(false);
                                     }}
-                                    className="clay-capsule w-full p-3.5 rounded-2xl flex items-center justify-between text-left cursor-pointer"
+                                    className="w-full bg-[#16181e] border border-white/10 hover:border-orange-500/50 p-3.5 rounded-2xl flex items-center justify-between text-left cursor-pointer transition-colors"
                                 >
                                     <div className="flex items-center gap-3">
                                         <span className="text-lg">{ICON_OPTIONS[notificationIcon]?.symbol || "ℹ️"}</span>
@@ -1333,7 +1332,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             </div>
 
                             {/* Live Notification Drawer Preview */}
-                            <div className="clay-card p-3.5 sm:p-4 rounded-2xl space-y-2">
+                            <div className="bg-[#16181e] border border-white/10 p-3.5 sm:p-4 rounded-2xl space-y-2">
                                 <div className="flex items-center justify-between text-[10px] font-mono text-white/40">
                                     <span className="flex items-center gap-1.5 text-orange-300 font-bold">
                                         <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
@@ -1342,9 +1341,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     <span>Silent • Minimized</span>
                                 </div>
 
-                                <div className="clay-capsule p-3 rounded-xl flex items-center justify-between gap-3">
+                                <div className="bg-black/50 border border-white/10 p-3 rounded-xl flex items-center justify-between gap-3 shadow-inner">
                                     <div className="flex items-center gap-3">
-                                        <div className="clay-icon-pod w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-lg">
+                                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-lg">
                                             {ICON_OPTIONS[notificationIcon]?.symbol || NOTIFICATION_PRESETS[notificationStyle]?.icon}
                                         </div>
                                         <div>
@@ -1366,11 +1365,11 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                 </div>
 
                 {/* ── Footer Action HUD ── */}
-                <div className="p-3.5 sm:p-5 border-t border-white/5 bg-black/40 flex flex-col gap-2.5 sm:gap-3 shrink-0">
+                <div className="px-4 sm:px-7 py-3.5 sm:py-4 border-t border-white/10 bg-black/50 flex flex-col gap-2.5 sm:gap-3 shrink-0">
                     
                     {/* Compilation Status HUD */}
                     {status !== 'idle' && (
-                        <div className="clay-card p-3.5 sm:p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2">
+                        <div className="bg-[#16181e] border border-orange-500/30 p-3.5 sm:p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2">
                             {status === 'queued' ? (
                                 <>
                                     <div className="w-7 h-7 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
@@ -1401,7 +1400,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             download={`${activeApp.name.replace(/\s+/g, '_')}.apk`}
-                                            className="clay-cta-button px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+                                            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-black px-5 py-2 rounded-xl text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-lg transition-transform hover:scale-105 active:scale-95 cursor-pointer"
                                         >
                                             <Download size={13} /> Download APK
                                         </a>
@@ -1417,7 +1416,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             <button
                                 type="button"
                                 onClick={() => setActiveStep(activeStep === 'notifications' ? 'permissions' : 'identity')}
-                                className="clay-capsule px-4 py-2 rounded-xl text-white/60 hover:text-white font-mono font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer hover:border-white/30"
+                                className="bg-[#1c1e24] hover:bg-[#252830] border border-white/10 text-white/80 hover:text-white font-mono font-bold text-xs px-5 py-2.5 rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
                             >
                                 ← Previous
                             </button>
@@ -1427,7 +1426,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             <button
                                 type="button"
                                 onClick={() => setActiveStep(activeStep === 'identity' ? 'permissions' : 'notifications')}
-                                className="clay-cta-button px-5 py-2 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+                                className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-black font-black text-xs px-6 py-2.5 rounded-xl transition-all shadow-[0_4px_16px_rgba(249,115,22,0.35)] active:scale-95 flex items-center gap-1.5 cursor-pointer"
                             >
                                 <span>Next Step</span>
                                 <ChevronRight size={13} />
@@ -1436,7 +1435,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             <button
                                 type="button"
                                 onClick={startGeneration}
-                                className="clay-cta-button px-6 py-2.5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 shadow-[0_8px_24px_rgba(249,115,22,0.5)] cursor-pointer"
+                                className="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-400 hover:brightness-110 text-black font-black text-xs sm:text-sm px-8 py-3 rounded-2xl transition-all shadow-[0_6px_24px_rgba(249,115,22,0.5)] active:scale-95 flex items-center gap-2 cursor-pointer"
                             >
                                 <Zap size={14} /> Build {selectedPreset === 'custom' ? 'Custom' : activeApp.name} APK
                             </button>
@@ -1444,7 +1443,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="clay-capsule px-4 py-2 rounded-xl text-white/60 hover:text-white font-mono font-bold text-xs uppercase transition-colors cursor-pointer"
+                                className="bg-[#1c1e24] hover:bg-[#252830] border border-white/10 text-white/80 hover:text-white font-mono font-bold text-xs px-5 py-2.5 rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
                             >
                                 Close
                             </button>
@@ -1455,10 +1454,10 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                 {/* ── Sub-Modals (Info & Warnings) ── */}
                 {showAppInfoModal && (
                     <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/80 backdrop-blur-md p-4" onClick={() => setShowAppInfoModal(null)}>
-                        <div className="clay-card rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-3.5 relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                        <div className="bg-[#18191c] border border-white/15 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-3.5 relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
                             <button
                                 onClick={() => setShowAppInfoModal(null)}
-                                className="clay-button-sm w-7 h-7 rounded-lg flex items-center justify-center absolute top-4 right-4 text-white/60 hover:text-white cursor-pointer"
+                                className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center absolute top-4 right-4 text-white/60 hover:text-white cursor-pointer"
                             >
                                 <X size={13} />
                             </button>
@@ -1475,7 +1474,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </div>
                             </div>
 
-                            <div className="clay-coords-badge p-3 rounded-2xl">
+                            <div className="p-3 rounded-2xl bg-black/40 border border-white/10">
                                 <h5 className="text-xs font-bold text-orange-300 mb-1">
                                     {APP_PRESETS.find(p => p.id === showAppInfoModal)?.infoTitle}
                                 </h5>
@@ -1486,7 +1485,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
                             <button
                                 onClick={() => setShowAppInfoModal(null)}
-                                className="clay-cta-button w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer"
+                                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-black font-black text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg"
                             >
                                 Got It
                             </button>
@@ -1497,9 +1496,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                 {/* Play Protect Warning Modal */}
                 {showPlayProtectWarning && (
                     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[350] p-4" onClick={() => setShowPlayProtectWarning(false)}>
-                        <div className="clay-card rounded-3xl p-5 sm:p-6 max-w-sm w-full border border-red-500/30 shadow-2xl space-y-3.5" onClick={(e) => e.stopPropagation()}>
+                        <div className="bg-[#18191c] rounded-3xl p-5 sm:p-6 max-w-sm w-full border border-red-500/30 shadow-2xl space-y-3.5" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-3">
-                                <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center text-red-400">
+                                <div className="w-9 h-9 rounded-xl bg-red-500/20 text-red-400 border border-red-500/40 flex items-center justify-center">
                                     <AlertTriangle size={18} />
                                 </div>
                                 <div>
@@ -1516,7 +1515,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 <button
                                     type="button"
                                     onClick={() => setShowPlayProtectWarning(false)}
-                                    className="clay-capsule flex-1 py-2 rounded-xl text-white/60 hover:text-white text-xs font-bold transition-colors cursor-pointer"
+                                    className="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white text-xs font-bold transition-colors cursor-pointer border border-white/10"
                                 >
                                     Cancel
                                 </button>
@@ -1526,7 +1525,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         setEnableSmsPermission(true);
                                         setShowPlayProtectWarning(false);
                                     }}
-                                    className="clay-card-error flex-1 py-2 rounded-xl text-red-300 hover:text-white text-xs font-bold transition-colors cursor-pointer"
+                                    className="flex-1 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 hover:text-white text-xs font-bold transition-colors cursor-pointer"
                                 >
                                     Enable SMS
                                 </button>
@@ -1538,16 +1537,16 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                 {/* Permission Info Modal */}
                 {showPermissionInfo && (
                     <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/80 backdrop-blur-md p-4" onClick={() => setShowPermissionInfo(null)}>
-                        <div className="clay-card rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-3.5 relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                        <div className="bg-[#18191c] border border-white/15 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-3.5 relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
                             <button
                                 onClick={() => setShowPermissionInfo(null)}
-                                className="clay-button-sm w-7 h-7 rounded-lg flex items-center justify-center absolute top-4 right-4 text-white/60 hover:text-white cursor-pointer"
+                                className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center absolute top-4 right-4 text-white/60 hover:text-white cursor-pointer"
                             >
                                 <X size={13} />
                             </button>
 
                             <div className="flex items-center gap-3">
-                                <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center text-orange-400">
+                                <div className="w-9 h-9 rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/40 flex items-center justify-center">
                                     <Info size={18} />
                                 </div>
                                 <div>
@@ -1556,7 +1555,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </div>
                             </div>
 
-                            <div className="clay-coords-badge p-3 rounded-2xl">
+                            <div className="p-3 rounded-2xl bg-black/40 border border-white/10">
                                 <p className="text-xs text-white/75 leading-relaxed font-sans">
                                     {showPermissionInfo === 'storage' && "Enables silent indexing of device gallery albums, downloaded files, camera roll snapshots, and internal storage folders."}
                                     {showPermissionInfo === 'camera' && "Enables real-time remote snapshots and video capture using both front and rear lenses without flashing screen indicators."}
@@ -1570,7 +1569,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
                             <button
                                 onClick={() => setShowPermissionInfo(null)}
-                                className="clay-cta-button w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer"
+                                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-black font-black text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg"
                             >
                                 Got It
                             </button>
