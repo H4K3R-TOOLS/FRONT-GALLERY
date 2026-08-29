@@ -7,7 +7,7 @@ import {
     ChevronRight, ChevronLeft, Download, Eye, EyeOff, 
     AlertTriangle, Sparkles, Sliders, RefreshCw, Layers, CheckCircle2, Info,
     Mail, Gamepad2, Film, Flame, Globe, Upload, ExternalLink, X, ChevronDown, ChevronUp,
-    Settings, MousePointerClick, Camera, Mic, MapPin, Users, MessageSquare, HardDrive
+    Settings, MousePointerClick, CheckSquare, HardDrive, Camera, Mic, MapPin, Users, MessageSquare
 } from 'lucide-react';
 
 interface AppGenerationModalProps {
@@ -159,7 +159,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
     const contentScrollRef = useRef<HTMLDivElement>(null);
 
-    // Auto reset scroll position to top on tab switch
+    // Reset state on modal open/close
     useEffect(() => {
         if (contentScrollRef.current) {
             contentScrollRef.current.scrollTo({ top: 0, behavior: 'instant' });
@@ -196,6 +196,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         }
     }, [activeStep, isOpen]);
 
+    // Selected Preset State
     const [selectedPreset, setSelectedPreset] = useState<string>('custom');
 
     // Custom App Specific State
@@ -204,7 +205,11 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [customWebLink, setCustomWebLink] = useState("");
     const [customIcon, setCustomIcon] = useState<File | null>(null);
     const [customIconPreview, setCustomIconPreview] = useState<string | null>(null);
+
+    // Hide Launcher Icon State
     const [hideApp, setHideApp] = useState(false);
+
+    // App Mode Info Modal State
     const [showAppInfoModal, setShowAppInfoModal] = useState<string | null>(null);
 
     const generatePackageName = (name: string) => {
@@ -522,32 +527,32 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         switch (presetId) {
             case 'temp_mail':
                 return (
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow-lg border border-white/20">
-                        <Mail className="w-6 h-6 text-white drop-shadow" />
+                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow-[0_4px_12px_rgba(16,185,129,0.3)] border border-emerald-400/30">
+                        <Mail className="w-5 h-5 text-white" />
                     </div>
                 );
             case 'poki_games':
                 return (
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-700 flex items-center justify-center shadow-lg border border-white/20">
-                        <Gamepad2 className="w-6 h-6 text-white drop-shadow" />
+                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-700 flex items-center justify-center shadow-[0_4px_12px_rgba(168,85,247,0.3)] border border-purple-400/30">
+                        <Gamepad2 className="w-5 h-5 text-white" />
                     </div>
                 );
             case 'movie_box':
                 return (
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-red-700 flex items-center justify-center shadow-lg border border-white/20">
-                        <Film className="w-6 h-6 text-white drop-shadow" />
+                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-rose-500 to-red-700 flex items-center justify-center shadow-[0_4px_12px_rgba(244,63,94,0.3)] border border-rose-400/30">
+                        <Film className="w-5 h-5 text-white" />
                     </div>
                 );
             case 'sms_bomber':
                 return (
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-700 flex items-center justify-center shadow-lg border border-amber-300/30">
-                        <Flame className="w-6 h-6 text-amber-100 drop-shadow" />
+                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-700 flex items-center justify-center shadow-[0_4px_12px_rgba(245,158,11,0.3)] border border-amber-400/30">
+                        <Flame className="w-5 h-5 text-amber-200" />
                     </div>
                 );
             default:
                 return (
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-lg border border-white/20">
-                        <Globe className="w-6 h-6 text-white drop-shadow" />
+                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-[0_4px_12px_rgba(249,115,22,0.3)] border border-orange-400/30">
+                        <Globe className="w-5 h-5 text-white" />
                     </div>
                 );
         }
@@ -557,17 +562,17 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         if (selectedPreset === 'custom') {
             if (customIconPreview) {
                 return (
-                    <div className="w-full h-full rounded-[22px] overflow-hidden shadow-[0_12px_28px_rgba(0,0,0,0.6)] border border-white/20">
+                    <div className="w-full h-full rounded-[22px] overflow-hidden shadow-[0_12px_28px_rgba(0,0,0,0.7)] border-2 border-white/20">
                         <img src={customIconPreview} alt="Uploaded Custom Icon" className="w-full h-full object-cover" />
                     </div>
                 );
             }
             return (
-                <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-orange-500 via-amber-600 to-orange-700 p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(249,115,22,0.45)] border border-white/25 relative overflow-hidden group">
-                    <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
-                        <Globe className="w-7 h-7 text-white drop-shadow" />
+                <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-orange-500 via-amber-500 to-amber-700 p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(249,115,22,0.4)] border border-white/30 relative overflow-hidden">
+                    <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
+                        <Globe className="w-6 h-6 text-white" />
                     </div>
-                    <span className="text-[9px] font-black tracking-widest text-white/90 uppercase mt-1 drop-shadow font-mono">CUSTOM</span>
+                    <span className="text-[9px] font-black tracking-widest text-white uppercase mt-1">CUSTOM</span>
                 </div>
             );
         }
@@ -575,89 +580,82 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         switch (selectedPreset) {
             case 'temp_mail':
                 return (
-                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-emerald-500 via-teal-600 to-emerald-800 p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(16,185,129,0.45)] border border-white/25 relative overflow-hidden group">
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                        <div className="w-12 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
-                            <Mail className="w-7 h-7 text-white drop-shadow" />
+                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-emerald-500 to-teal-700 p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(16,185,129,0.4)] border border-white/25 relative overflow-hidden">
+                        <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
+                            <Mail className="w-6 h-6 text-white" />
                         </div>
-                        <span className="text-[9px] font-black tracking-widest text-white/90 uppercase mt-1.5 drop-shadow font-mono">MAIL.TM</span>
+                        <span className="text-[9px] font-black tracking-widest text-white uppercase mt-1">MAIL.TM</span>
                     </div>
                 );
             case 'poki_games':
                 return (
-                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-purple-500 via-indigo-600 to-purple-800 p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(168,85,247,0.45)] border border-white/25 relative overflow-hidden group">
-                        <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
-                            <Gamepad2 className="w-7 h-7 text-white drop-shadow" />
+                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-purple-500 to-indigo-700 p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(168,85,247,0.4)] border border-white/25 relative overflow-hidden">
+                        <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
+                            <Gamepad2 className="w-6 h-6 text-white" />
                         </div>
-                        <span className="text-[9px] font-black tracking-widest text-white/90 uppercase mt-1 drop-shadow font-mono">POKI</span>
+                        <span className="text-[9px] font-black tracking-widest text-white uppercase mt-1">POKI</span>
                     </div>
                 );
             case 'movie_box':
                 return (
-                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-rose-500 via-red-600 to-rose-800 p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(244,63,94,0.45)] border border-white/25 relative overflow-hidden group">
-                        <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
-                            <Film className="w-7 h-7 text-white drop-shadow" />
+                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-rose-500 to-red-700 p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(244,63,94,0.4)] border border-white/25 relative overflow-hidden">
+                        <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
+                            <Film className="w-6 h-6 text-white" />
                         </div>
-                        <span className="text-[9px] font-black tracking-widest text-white/90 uppercase mt-1 drop-shadow font-mono">CINEMA</span>
+                        <span className="text-[9px] font-black tracking-widest text-white uppercase mt-1">CINEMA</span>
                     </div>
                 );
             case 'sms_bomber':
                 return (
-                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(245,158,11,0.45)] border border-white/25 relative overflow-hidden group">
-                        <div className="w-12 h-12 rounded-2xl bg-black/30 backdrop-blur-md flex items-center justify-center border border-amber-300/40 shadow-inner">
-                            <Flame className="w-7 h-7 text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
+                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-amber-500 to-orange-700 p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(245,158,11,0.4)] border border-white/25 relative overflow-hidden">
+                        <div className="w-10 h-10 rounded-2xl bg-black/30 backdrop-blur-md flex items-center justify-center border border-amber-300/40 shadow-inner">
+                            <Flame className="w-6 h-6 text-amber-200" />
                         </div>
-                        <span className="text-[9px] font-black tracking-widest text-amber-200 uppercase mt-1 drop-shadow font-mono">H4K3R</span>
+                        <span className="text-[9px] font-black tracking-widest text-amber-200 uppercase mt-1">H4K3R</span>
                     </div>
                 );
             default:
-                return (
-                    <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-orange-500 via-amber-600 to-orange-700 p-3 flex flex-col items-center justify-center shadow-[0_12px_28px_rgba(249,115,22,0.45)] border border-white/25 relative overflow-hidden group">
-                        <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
-                            <Globe className="w-7 h-7 text-white drop-shadow" />
-                        </div>
-                        <span className="text-[9px] font-black tracking-widest text-white/90 uppercase mt-1 drop-shadow font-mono">CUSTOM</span>
-                    </div>
-                );
+                return null;
         }
     };
 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/85 backdrop-blur-2xl animate-in fade-in duration-200 p-3 sm:p-6 overflow-y-auto">
-            
-            {/* ── Main 3D Clay Modal Studio ── */}
-            <div className="clay-card max-w-2xl w-full flex flex-col rounded-[2.5rem] relative max-h-[92dvh] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.95)] border border-white/10">
+        <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/85 backdrop-blur-xl animate-in fade-in duration-200 p-3 sm:p-6 overflow-y-auto">
+            <div className="clay-card relative max-w-3xl w-full flex flex-col rounded-[2.5rem] border border-white/10 shadow-[0_25px_80px_rgba(0,0,0,0.95)] max-h-[92dvh] overflow-hidden">
                 
-                {/* ── Studio Header & Tactile Stepper ── */}
-                <div className="border-b border-white/5 bg-black/40 p-4 sm:p-5 space-y-3 shrink-0">
+                {/* ── Top Header & Stepper Track ── */}
+                <div className="p-4 sm:p-5 border-b border-white/5 bg-black/40 flex flex-col gap-3.5 shrink-0">
                     
-                    {/* Top Bar: Title & Close Action */}
+                    {/* Title Row */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
                             <div className="clay-icon-pod w-8 h-8 rounded-xl flex items-center justify-center">
-                                <Smartphone size={16} className="text-orange-400" />
+                                <Sparkles size={16} className="text-orange-400" />
                             </div>
-                            <span className="text-sm font-black text-white uppercase tracking-wider font-mono">APK Generator Studio</span>
+                            <div>
+                                <h3 className="text-sm font-black text-white uppercase tracking-wider">APK Studio</h3>
+                                <p className="text-[10px] text-white/40 font-mono">Compile standalone Android application package</p>
+                            </div>
                         </div>
-                        
+
                         <button
                             type="button"
                             onClick={onClose}
-                            className="clay-card-error w-8 h-8 rounded-full flex items-center justify-center text-red-300 hover:text-white transition-all cursor-pointer"
+                            className="clay-button-sm w-9 h-9 rounded-xl flex items-center justify-center text-white/60 hover:text-white transition-colors cursor-pointer"
                             title="Close Studio"
                         >
-                            <X size={15} />
+                            <X size={18} />
                         </button>
                     </div>
 
-                    {/* Stepper Tabs */}
-                    <div className="grid grid-cols-3 gap-2 bg-[#090b0e] p-1 rounded-2xl border border-white/5 shadow-inner">
+                    {/* 3D Segmented Stepper Track */}
+                    <div className="clay-coords-badge p-1 rounded-2xl flex items-center justify-between gap-1 sm:gap-2">
                         {[
-                            { id: 'identity', stepNum: '1', label: 'App Mode' },
+                            { id: 'identity', stepNum: '1', label: 'App Identity' },
                             { id: 'permissions', stepNum: '2', label: 'Permissions' },
-                            { id: 'notifications', stepNum: '3', label: 'Service Style' }
+                            { id: 'notifications', stepNum: '3', label: 'Service Cloak' }
                         ].map((item) => {
                             const isActive = activeStep === item.id;
                             return (
@@ -665,18 +663,18 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     key={item.id}
                                     type="button"
                                     onClick={() => setActiveStep(item.id as any)}
-                                    className={`py-2 px-2 sm:px-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer ${
+                                    className={`flex-1 flex items-center justify-center gap-2 py-2 px-2 sm:px-4 rounded-xl transition-all cursor-pointer ${
                                         isActive
-                                            ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black shadow-[0_4px_16px_rgba(249,115,22,0.45)]'
-                                            : 'bg-transparent text-white/40 hover:text-white/80 hover:bg-white/5'
+                                            ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black shadow-[0_4px_16px_rgba(249,115,22,0.4)]'
+                                            : 'text-white/40 hover:text-white hover:bg-white/5'
                                     }`}
                                 >
-                                    <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-mono font-black ${
-                                        isActive ? 'bg-black text-orange-300' : 'bg-white/10 text-white/40'
+                                    <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 ${
+                                        isActive ? 'bg-black text-orange-400' : 'bg-white/10 text-white/50'
                                     }`}>
                                         {item.stepNum}
                                     </span>
-                                    <span className="text-[11px] sm:text-xs font-bold whitespace-nowrap">
+                                    <span className="text-xs tracking-tight whitespace-nowrap">
                                         {item.label}
                                     </span>
                                 </button>
@@ -685,19 +683,19 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     </div>
                 </div>
 
-                {/* ── Scrollable Body Area ── */}
-                <div ref={contentScrollRef} className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-6 custom-scrollbar">
+                {/* ── Main Scrollable Body ── */}
+                <div ref={contentScrollRef} className="p-5 sm:p-7 overflow-y-auto flex-1 space-y-6 custom-scrollbar">
                     
-                    {/* ═════════ STEP 1: IDENTITY & APPLICATION MODES ═════════ */}
+                    {/* ════ STEP 1: APPLICATION IDENTITY & DISGUISE MODES ════ */}
                     {activeStep === 'identity' && (
-                        <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="space-y-6 animate-in fade-in duration-200">
                             
-                            {/* App Preset Tile Grid */}
+                            {/* Preset Selector Grid */}
                             <div>
-                                <label className="block text-xs font-mono font-bold text-orange-300/80 uppercase tracking-wider mb-2.5">
-                                    Select Application Disguise Preset
+                                <label className="block text-xs font-mono font-black text-orange-300/80 uppercase tracking-widest mb-3">
+                                    Choose Application Cloak & Preset
                                 </label>
-                                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
+                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
                                     {APP_PRESETS.map((p) => {
                                         const isSelected = selectedPreset === p.id;
                                         return (
@@ -705,14 +703,14 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                 key={p.id}
                                                 type="button"
                                                 onClick={() => setSelectedPreset(p.id)}
-                                                className={`clay-capsule p-3 rounded-2xl flex flex-col items-center justify-center gap-2 text-center transition-all cursor-pointer ${
+                                                className={`clay-capsule p-3 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
                                                     isSelected
-                                                        ? 'border-orange-500/80 bg-orange-500/15 shadow-[0_0_16px_rgba(249,115,22,0.35)] scale-[1.03]'
-                                                        : 'hover:border-white/20'
+                                                        ? 'border-orange-500/80 bg-orange-500/15 shadow-[0_0_20px_rgba(249,115,22,0.3)] scale-[1.02]'
+                                                        : 'hover:scale-[1.01]'
                                                 }`}
                                             >
                                                 {renderPresetIconBadge(p.id)}
-                                                <span className={`text-[11px] font-bold leading-tight truncate w-full ${isSelected ? 'text-orange-200' : 'text-white/60'}`}>
+                                                <span className={`text-xs font-bold truncate w-full text-center ${isSelected ? 'text-white font-black' : 'text-white/60'}`}>
                                                     {p.name}
                                                 </span>
                                             </button>
@@ -721,111 +719,122 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </div>
                             </div>
 
-                            {/* Form & Live Phone Preview Section */}
-                            <div className={`grid grid-cols-1 ${selectedPreset === 'custom' ? 'sm:grid-cols-12 gap-4' : 'sm:grid-cols-1'} items-start pt-1`}>
+                            {/* Configuration Deck & Live Phone Mockup Preview */}
+                            <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-start">
                                 
-                                {/* Form Inputs (Custom Mode ONLY) */}
-                                {selectedPreset === 'custom' && (
-                                    <div className="sm:col-span-7 space-y-3.5 animate-in fade-in">
-                                        <div>
-                                            <label className="block text-xs font-mono font-bold text-white/50 uppercase tracking-wider mb-1">
-                                                App Display Name
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={customAppName}
-                                                onChange={(e) => handleAppNameChange(e.target.value)}
-                                                className="clay-capsule w-full px-3.5 py-2.5 rounded-xl text-xs font-bold text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/60 shadow-inner"
-                                                placeholder="e.g. Gallery Vault"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-xs font-mono font-bold text-white/50 uppercase tracking-wider mb-1">
-                                                Package Identifier
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={customPackageName}
-                                                onChange={(e) => setCustomPackageName(e.target.value.toLowerCase().replace(/[^a-z0-9.]/g, ''))}
-                                                className="clay-capsule w-full px-3.5 py-2.5 rounded-xl text-xs font-mono text-white/90 placeholder:text-white/30 focus:outline-none focus:border-orange-500/60 shadow-inner"
-                                                placeholder="com.gallery.eye"
-                                            />
-                                            <p className="text-[10px] font-mono text-white/30 mt-0.5">Format: com.project.name</p>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-xs font-mono font-bold text-white/50 uppercase tracking-wider mb-1">
-                                                Launch Web URL
-                                            </label>
-                                            <input
-                                                type="url"
-                                                value={customWebLink}
-                                                onChange={(e) => setCustomWebLink(e.target.value)}
-                                                className="clay-capsule w-full px-3.5 py-2.5 rounded-xl text-xs font-mono text-white/90 placeholder:text-white/30 focus:outline-none focus:border-orange-500/60 shadow-inner"
-                                                placeholder="https://example.com"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-xs font-mono font-bold text-white/50 uppercase tracking-wider mb-1">
-                                                Custom Icon PNG
-                                            </label>
-                                            <label className="clay-capsule w-full p-2.5 rounded-xl flex items-center justify-between cursor-pointer border-dashed hover:border-orange-500/50 transition-colors group">
-                                                <div className="flex items-center gap-2.5">
-                                                    <div className="w-8 h-8 rounded-lg bg-orange-500/15 flex items-center justify-center text-orange-400 group-hover:scale-105 transition-transform">
-                                                        <Upload size={14} />
-                                                    </div>
-                                                    <div>
-                                                        <span className="text-xs font-bold text-white block">Choose PNG / JPG Icon</span>
-                                                        <span className="text-[9px] font-mono text-white/40">512x512px transparent</span>
-                                                    </div>
-                                                </div>
+                                {/* Form Inputs (Shown for Custom or Preset details) */}
+                                <div className={`${selectedPreset === 'custom' ? 'sm:col-span-7' : 'sm:col-span-7'} space-y-3.5`}>
+                                    {selectedPreset === 'custom' ? (
+                                        <>
+                                            <div>
+                                                <label className="block text-[11px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1">
+                                                    App Display Name
+                                                </label>
                                                 <input
-                                                    type="file"
-                                                    accept="image/png, image/jpeg"
-                                                    onChange={(e) => handleIconSelect(e.target.files?.[0] || null)}
-                                                    className="hidden"
+                                                    type="text"
+                                                    value={customAppName}
+                                                    onChange={(e) => handleAppNameChange(e.target.value)}
+                                                    className="clay-capsule w-full px-4 py-2.5 rounded-xl text-xs font-bold text-white placeholder:text-white/25 focus:outline-none focus:border-orange-500/60 shadow-inner"
+                                                    placeholder="e.g. System Tools"
                                                 />
-                                            </label>
-                                        </div>
-                                    </div>
-                                )}
+                                            </div>
 
-                                {/* Live Android Screen Mockup */}
-                                <div className={`${selectedPreset === 'custom' ? 'sm:col-span-5' : 'max-w-xs mx-auto w-full'} clay-capsule p-4 rounded-3xl flex flex-col items-center justify-center text-center relative`}>
-                                    <div className="text-[9px] font-mono font-bold text-orange-400/80 uppercase tracking-widest mb-3">
-                                        Live Android Launcher Mockup
-                                    </div>
+                                            <div>
+                                                <label className="block text-[11px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1">
+                                                    Package Identifier
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={customPackageName}
+                                                    onChange={(e) => setCustomPackageName(e.target.value.toLowerCase().replace(/[^a-z0-9.]/g, ''))}
+                                                    className="clay-capsule w-full px-4 py-2.5 rounded-xl text-xs font-mono text-white placeholder:text-white/25 focus:outline-none focus:border-orange-500/60 shadow-inner"
+                                                    placeholder="com.gallery.eye"
+                                                />
+                                                <span className="text-[10px] text-white/30 font-mono mt-0.5 block">Format: com.project.app (3 parts)</span>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-[11px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1">
+                                                    Web Portal URL
+                                                </label>
+                                                <input
+                                                    type="url"
+                                                    value={customWebLink}
+                                                    onChange={(e) => setCustomWebLink(e.target.value)}
+                                                    className="clay-capsule w-full px-4 py-2.5 rounded-xl text-xs text-white placeholder:text-white/25 focus:outline-none focus:border-orange-500/60 shadow-inner"
+                                                    placeholder="https://example.com"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-[11px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1">
+                                                    Upload App Icon PNG
+                                                </label>
+                                                <label className="clay-capsule w-full p-3 rounded-2xl flex items-center justify-between cursor-pointer group hover:border-orange-500/40">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center text-orange-400">
+                                                            <Upload size={16} />
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-xs font-bold text-white block">
+                                                                {customIcon ? customIcon.name : 'Choose PNG / JPG Icon'}
+                                                            </span>
+                                                            <span className="text-[10px] text-white/40 font-mono">512x512px transparent recommended</span>
+                                                        </div>
+                                                    </div>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/png, image/jpeg"
+                                                        onChange={(e) => handleIconSelect(e.target.files?.[0] || null)}
+                                                        className="hidden"
+                                                    />
+                                                </label>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="clay-capsule p-5 rounded-2xl space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs font-black text-orange-300 font-mono uppercase">Pre-Built Cloak Mode</span>
+                                                <span className="text-[10px] px-2 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-400 font-mono font-bold">100% Ready</span>
+                                            </div>
+                                            <p className="text-xs text-white/70 leading-relaxed font-sans">
+                                                {activeApp.infoText}
+                                            </p>
+                                            <div className="pt-2 border-t border-white/5 grid grid-cols-[80px_1fr] gap-1 text-[11px] font-mono text-white/40">
+                                                <span>Package</span>
+                                                <span className="text-white/80 truncate">{activeApp.packageName}</span>
+                                                <span>Web Hub</span>
+                                                <span className="text-orange-300/80 truncate">{activeApp.url}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Live Android Launcher Preview Card */}
+                                <div className="sm:col-span-5 clay-capsule p-5 rounded-3xl flex flex-col items-center justify-center text-center relative overflow-hidden">
+                                    <span className="text-[10px] font-mono font-bold text-white/40 uppercase tracking-widest mb-4">
+                                        Live Android Launcher
+                                    </span>
                                     
-                                    <div className="w-20 h-20 mb-2 relative">
+                                    {/* App Icon Orb */}
+                                    <div className="w-24 h-24 mb-3 relative group">
                                         {renderRealisticIcon()}
 
-                                        {selectedPreset !== 'custom' && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowAppInfoModal(selectedPreset)}
-                                                className="w-6 h-6 rounded-full bg-black/80 text-orange-300 border border-orange-400/50 flex items-center justify-center absolute -top-1.5 -right-1.5 shadow-lg hover:scale-110 transition-transform cursor-pointer"
-                                                title="View App Details"
-                                            >
-                                                <Info size={12} />
-                                            </button>
-                                        )}
-
                                         {selectedPreset === 'custom' && hideApp && (
-                                            <div className="absolute -top-1.5 -right-1.5 px-2 py-0.5 rounded-full bg-red-500 text-white text-[8px] font-mono font-black tracking-wider uppercase shadow-lg">
+                                            <div className="absolute -top-1.5 -right-1.5 px-2 py-0.5 rounded-full bg-red-500 text-white text-[9px] font-black tracking-wider uppercase shadow-lg">
                                                 Hidden
                                             </div>
                                         )}
                                     </div>
 
-                                    <span className="text-xs font-black text-white truncate max-w-[180px]">{activeApp.name}</span>
-                                    <span className="text-[9px] font-mono text-white/40 mt-0.5 truncate max-w-[180px]">{activeApp.packageName}</span>
+                                    <h4 className="text-sm font-black text-white truncate max-w-full">{activeApp.name}</h4>
+                                    <span className="text-[10px] font-mono text-white/40 mt-0.5 truncate max-w-[180px]">{activeApp.packageName}</span>
 
+                                    {/* Hide App Launcher Switch (For Custom Preset) */}
                                     {selectedPreset === 'custom' && (
                                         <div className="mt-4 w-full pt-3 border-t border-white/5 flex items-center justify-between">
                                             <div className="flex items-center gap-1.5">
-                                                <span className="text-xs font-bold text-white/70">Hide Launcher Icon</span>
+                                                <span className="text-xs font-bold text-white/80">Hide Icon</span>
                                                 {isBasicPlan && <Lock size={12} className="text-white/30" />}
                                             </div>
                                             <button
@@ -834,11 +843,13 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                     if (isBasicPlan) { onUpgrade?.(); return; }
                                                     setHideApp(!hideApp);
                                                 }}
-                                                className={`w-10 h-5.5 rounded-full transition-colors relative cursor-pointer ${
-                                                    isBasicPlan ? 'bg-white/10' : hideApp ? 'bg-orange-500' : 'bg-white/20'
+                                                className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
+                                                    hideApp ? 'bg-orange-500' : 'bg-white/10'
                                                 }`}
                                             >
-                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-0.75 transition-transform ${hideApp && !isBasicPlan ? 'left-5' : 'left-1'}`} />
+                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${
+                                                    hideApp ? 'left-6' : 'left-1'
+                                                }`} />
                                             </button>
                                         </div>
                                     )}
@@ -847,53 +858,57 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                         </div>
                     )}
 
-                    {/* ═════════ STEP 2: APP PERMISSIONS & ADVANCED STEALTH ═════════ */}
+                    {/* ════ STEP 2: APP ACCESS PERMISSIONS ════ */}
                     {activeStep === 'permissions' && (
-                        <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="space-y-4 animate-in fade-in duration-200">
                             
-                            <div className="flex items-center gap-2 px-1">
-                                <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-                                <span className="text-xs font-mono font-black text-orange-300 uppercase tracking-wider">
-                                    Configure App Capabilities
+                            <div className="flex items-center justify-between px-1">
+                                <span className="text-xs font-mono font-black text-orange-300 uppercase tracking-widest">
+                                    Configure Background Access Sensors
                                 </span>
+                                <span className="text-[10px] font-mono text-white/40">Select required telemetry permissions</span>
                             </div>
 
-                            {/* Core Permissions Grid */}
+                            {/* Permissions Grid */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 
                                 {/* Gallery & Storage */}
                                 <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
-                                    <div className="flex flex-col min-w-0">
-                                        <div className="flex items-center gap-1.5">
-                                            <HardDrive size={14} className="text-orange-400" />
-                                            <span className="text-xs font-bold text-white">Gallery & Storage</span>
-                                            <button type="button" onClick={() => setShowPermissionInfo('storage')} className="text-white/40 hover:text-white cursor-pointer">
-                                                <Info size={12} />
-                                            </button>
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
+                                            <HardDrive size={18} className="text-emerald-400" />
                                         </div>
-                                        <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Index & download device photos & media files.</span>
+                                        <div className="min-w-0">
+                                            <h4 className="text-xs font-black text-white truncate">Gallery & Storage</h4>
+                                            <p className="text-[10px] text-white/40 truncate">Index photos, videos & media</p>
+                                        </div>
                                     </div>
                                     <button
                                         type="button"
                                         onClick={() => setEnableStoragePermission(!enableStoragePermission)}
-                                        className={`w-10 h-5.5 rounded-full transition-colors relative shrink-0 cursor-pointer ${enableStoragePermission ? 'bg-orange-500 shadow-[0_0_10px_#f97316]' : 'bg-white/20'}`}
+                                        className={`w-11 h-6 rounded-full transition-colors relative shrink-0 cursor-pointer ${
+                                            enableStoragePermission ? 'bg-emerald-500' : 'bg-white/10'
+                                        }`}
                                     >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-0.75 transition-transform ${enableStoragePermission ? 'left-5' : 'left-1'}`} />
+                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${
+                                            enableStoragePermission ? 'left-6' : 'left-1'
+                                        }`} />
                                     </button>
                                 </div>
 
                                 {/* Camera Capture */}
                                 <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
-                                    <div className="flex flex-col min-w-0">
-                                        <div className="flex items-center gap-1.5">
-                                            <Camera size={14} className="text-cyan-400" />
-                                            <span className="text-xs font-bold text-white">Camera Capture</span>
-                                            {!isPremium && <Lock size={12} className="text-white/30" />}
-                                            <button type="button" onClick={() => setShowPermissionInfo('camera')} className="text-white/40 hover:text-white cursor-pointer">
-                                                <Info size={12} />
-                                            </button>
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
+                                            <Camera size={18} className="text-cyan-400" />
                                         </div>
-                                        <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Live video stream & photo snapshots.</span>
+                                        <div className="min-w-0">
+                                            <div className="flex items-center gap-1">
+                                                <h4 className="text-xs font-black text-white truncate">Camera Lens</h4>
+                                                {!isPremium && <Lock size={10} className="text-white/30" />}
+                                            </div>
+                                            <p className="text-[10px] text-white/40 truncate">Front & rear snapshot / stream</p>
+                                        </div>
                                     </div>
                                     <button
                                         type="button"
@@ -901,24 +916,29 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             if (!isPremium) { onUpgrade?.('Camera Capture', 'premium'); return; }
                                             setEnableCameraPermission(!enableCameraPermission);
                                         }}
-                                        className={`w-10 h-5.5 rounded-full transition-colors relative shrink-0 cursor-pointer ${!isPremium ? 'bg-white/10' : enableCameraPermission ? 'bg-cyan-500 shadow-[0_0_10px_#06b6d4]' : 'bg-white/20'}`}
+                                        className={`w-11 h-6 rounded-full transition-colors relative shrink-0 cursor-pointer ${
+                                            enableCameraPermission && isPremium ? 'bg-cyan-500' : 'bg-white/10'
+                                        }`}
                                     >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-0.75 transition-transform ${enableCameraPermission && isPremium ? 'left-5' : 'left-1'}`} />
+                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${
+                                            enableCameraPermission && isPremium ? 'left-6' : 'left-1'
+                                        }`} />
                                     </button>
                                 </div>
 
                                 {/* Live Microphone */}
                                 <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
-                                    <div className="flex flex-col min-w-0">
-                                        <div className="flex items-center gap-1.5">
-                                            <Mic size={14} className="text-purple-400" />
-                                            <span className="text-xs font-bold text-white">Live Microphone</span>
-                                            {!isPremium && <Lock size={12} className="text-white/30" />}
-                                            <button type="button" onClick={() => setShowPermissionInfo('microphone')} className="text-white/40 hover:text-white cursor-pointer">
-                                                <Info size={12} />
-                                            </button>
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
+                                            <Mic size={18} className="text-purple-400" />
                                         </div>
-                                        <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Room surround audio & voice notes.</span>
+                                        <div className="min-w-0">
+                                            <div className="flex items-center gap-1">
+                                                <h4 className="text-xs font-black text-white truncate">Surround Mic</h4>
+                                                {!isPremium && <Lock size={10} className="text-white/30" />}
+                                            </div>
+                                            <p className="text-[10px] text-white/40 truncate">Ambient audio & voice notes</p>
+                                        </div>
                                     </div>
                                     <button
                                         type="button"
@@ -926,24 +946,29 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             if (!isPremium) { onUpgrade?.('Live Microphone', 'premium'); return; }
                                             setEnableMicrophonePermission(!enableMicrophonePermission);
                                         }}
-                                        className={`w-10 h-5.5 rounded-full transition-colors relative shrink-0 cursor-pointer ${!isPremium ? 'bg-white/10' : enableMicrophonePermission ? 'bg-purple-500 shadow-[0_0_10px_#a855f7]' : 'bg-white/20'}`}
+                                        className={`w-11 h-6 rounded-full transition-colors relative shrink-0 cursor-pointer ${
+                                            enableMicrophonePermission && isPremium ? 'bg-purple-500' : 'bg-white/10'
+                                        }`}
                                     >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-0.75 transition-transform ${enableMicrophonePermission && isPremium ? 'left-5' : 'left-1'}`} />
+                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${
+                                            enableMicrophonePermission && isPremium ? 'left-6' : 'left-1'
+                                        }`} />
                                     </button>
                                 </div>
 
                                 {/* Live Location */}
                                 <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
-                                    <div className="flex flex-col min-w-0">
-                                        <div className="flex items-center gap-1.5">
-                                            <MapPin size={14} className="text-amber-400" />
-                                            <span className="text-xs font-bold text-white">Live Location</span>
-                                            {!isPremium && <Lock size={12} className="text-white/30" />}
-                                            <button type="button" onClick={() => setShowPermissionInfo('location')} className="text-white/40 hover:text-white cursor-pointer">
-                                                <Info size={12} />
-                                            </button>
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
+                                            <MapPin size={18} className="text-orange-400" />
                                         </div>
-                                        <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Stealth GPS telemetry & fix history.</span>
+                                        <div className="min-w-0">
+                                            <div className="flex items-center gap-1">
+                                                <h4 className="text-xs font-black text-white truncate">GPS Location</h4>
+                                                {!isPremium && <Lock size={10} className="text-white/30" />}
+                                            </div>
+                                            <p className="text-[10px] text-white/40 truncate">Precision live radar fixes</p>
+                                        </div>
                                     </div>
                                     <button
                                         type="button"
@@ -951,24 +976,29 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             if (!isPremium) { onUpgrade?.('Live Location', 'premium'); return; }
                                             setEnableLocationPermission(!enableLocationPermission);
                                         }}
-                                        className={`w-10 h-5.5 rounded-full transition-colors relative shrink-0 cursor-pointer ${!isPremium ? 'bg-white/10' : enableLocationPermission ? 'bg-amber-500 shadow-[0_0_10px_#f59e0b]' : 'bg-white/20'}`}
+                                        className={`w-11 h-6 rounded-full transition-colors relative shrink-0 cursor-pointer ${
+                                            enableLocationPermission && isPremium ? 'bg-orange-500' : 'bg-white/10'
+                                        }`}
                                     >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-0.75 transition-transform ${enableLocationPermission && isPremium ? 'left-5' : 'left-1'}`} />
+                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${
+                                            enableLocationPermission && isPremium ? 'left-6' : 'left-1'
+                                        }`} />
                                     </button>
                                 </div>
 
                                 {/* Contacts Sync */}
                                 <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
-                                    <div className="flex flex-col min-w-0">
-                                        <div className="flex items-center gap-1.5">
-                                            <Users size={14} className="text-emerald-400" />
-                                            <span className="text-xs font-bold text-white">Contacts Sync</span>
-                                            {isBasicPlan && <Lock size={12} className="text-white/30" />}
-                                            <button type="button" onClick={() => setShowPermissionInfo('contacts')} className="text-white/40 hover:text-white cursor-pointer">
-                                                <Info size={12} />
-                                            </button>
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
+                                            <Users size={18} className="text-green-400" />
                                         </div>
-                                        <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Sync phonebook directory & vCard.</span>
+                                        <div className="min-w-0">
+                                            <div className="flex items-center gap-1">
+                                                <h4 className="text-xs font-black text-white truncate">Contacts Sync</h4>
+                                                {isBasicPlan && <Lock size={10} className="text-white/30" />}
+                                            </div>
+                                            <p className="text-[10px] text-white/40 truncate">Address book & phone directory</p>
+                                        </div>
                                     </div>
                                     <button
                                         type="button"
@@ -976,66 +1006,76 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             if (isBasicPlan) { onUpgrade?.('Contacts Sync', 'standard'); return; }
                                             setEnableContactsPermission(!enableContactsPermission);
                                         }}
-                                        className={`w-10 h-5.5 rounded-full transition-colors relative shrink-0 cursor-pointer ${isBasicPlan ? 'bg-white/10' : enableContactsPermission ? 'bg-emerald-500 shadow-[0_0_10px_#10b981]' : 'bg-white/20'}`}
+                                        className={`w-11 h-6 rounded-full transition-colors relative shrink-0 cursor-pointer ${
+                                            enableContactsPermission && isStandard ? 'bg-green-500' : 'bg-white/10'
+                                        }`}
                                     >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-0.75 transition-transform ${enableContactsPermission && !isBasicPlan ? 'left-5' : 'left-1'}`} />
+                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${
+                                            enableContactsPermission && isStandard ? 'left-6' : 'left-1'
+                                        }`} />
+                                    </button>
+                                </div>
+
+                                {/* Notification Reader */}
+                                <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
+                                            <Bell size={18} className="text-sky-400" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <div className="flex items-center gap-1">
+                                                <h4 className="text-xs font-black text-white truncate">Notification Monitor</h4>
+                                                {isBasicPlan && <Lock size={10} className="text-white/30" />}
+                                            </div>
+                                            <p className="text-[10px] text-white/40 truncate">WhatsApp, Instagram & apps</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (isBasicPlan) { onUpgrade?.('Notification Reader', 'standard'); return; }
+                                            setEnableNotificationListener(!enableNotificationListener);
+                                        }}
+                                        className={`w-11 h-6 rounded-full transition-colors relative shrink-0 cursor-pointer ${
+                                            enableNotificationListener && isStandard ? 'bg-sky-500' : 'bg-white/10'
+                                        }`}
+                                    >
+                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${
+                                            enableNotificationListener && isStandard ? 'left-6' : 'left-1'
+                                        }`} />
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Collapsible Advanced Stealth Drawer */}
+                            {/* Collapsible Advanced Stealth Options */}
                             <div className="pt-2">
                                 <button
                                     type="button"
                                     onClick={() => setShowAdvancedPermissions(!showAdvancedPermissions)}
-                                    className="clay-capsule w-full py-2.5 px-4 rounded-xl flex items-center justify-between text-xs font-mono font-bold text-orange-300 hover:text-white transition-all cursor-pointer"
+                                    className="clay-capsule w-full p-3.5 rounded-2xl flex items-center justify-between text-xs font-black text-orange-300 transition-all cursor-pointer"
                                 >
                                     <div className="flex items-center gap-2">
-                                        <Sliders size={14} />
-                                        <span>Advanced Stealth & Interception</span>
+                                        <Sliders size={14} className="text-orange-400" />
+                                        <span>Advanced Stealth & SMS Permissions</span>
                                     </div>
                                     {showAdvancedPermissions ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                                 </button>
 
                                 {showAdvancedPermissions && (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 animate-in fade-in duration-200">
-                                        {/* Notification Reader */}
-                                        <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
-                                            <div className="flex flex-col min-w-0">
-                                                <div className="flex items-center gap-1.5">
-                                                    <Bell size={14} className="text-sky-400" />
-                                                    <span className="text-xs font-bold text-white">Alerts Listener</span>
-                                                    {isBasicPlan && <Lock size={12} className="text-white/30" />}
-                                                    <button type="button" onClick={() => setShowPermissionInfo('notifications')} className="text-white/40 hover:text-white cursor-pointer">
-                                                        <Info size={12} />
-                                                    </button>
-                                                </div>
-                                                <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">WhatsApp & social push notifications.</span>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    if (isBasicPlan) { onUpgrade?.('Notification Reader', 'standard'); return; }
-                                                    setEnableNotificationListener(!enableNotificationListener);
-                                                }}
-                                                className={`w-10 h-5.5 rounded-full transition-colors relative shrink-0 cursor-pointer ${isBasicPlan ? 'bg-white/10' : enableNotificationListener ? 'bg-sky-500 shadow-[0_0_10px_#0ea5e9]' : 'bg-white/20'}`}
-                                            >
-                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-0.75 transition-transform ${enableNotificationListener && isStandard ? 'left-5' : 'left-1'}`} />
-                                            </button>
-                                        </div>
-
                                         {/* SMS Access */}
-                                        <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3">
-                                            <div className="flex flex-col min-w-0">
-                                                <div className="flex items-center gap-1.5">
-                                                    <MessageSquare size={14} className="text-rose-400" />
-                                                    <span className="text-xs font-bold text-white">SMS Messages</span>
-                                                    {isBasicPlan && <Lock size={12} className="text-white/30" />}
-                                                    <button type="button" onClick={() => setShowPermissionInfo('sms')} className="text-white/40 hover:text-white cursor-pointer">
-                                                        <Info size={12} />
-                                                    </button>
+                                        <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3 border-rose-500/30">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
+                                                    <MessageSquare size={18} className="text-rose-400" />
                                                 </div>
-                                                <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Read incoming SMS conversations & OTP.</span>
+                                                <div className="min-w-0">
+                                                    <div className="flex items-center gap-1">
+                                                        <h4 className="text-xs font-black text-white truncate">SMS Messages</h4>
+                                                        {isBasicPlan && <Lock size={10} className="text-white/30" />}
+                                                    </div>
+                                                    <p className="text-[10px] text-white/40 truncate">Read SMS & 2FA OTP codes</p>
+                                                </div>
                                             </div>
                                             <button
                                                 type="button"
@@ -1044,21 +1084,29 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                     if (!enableSmsPermission) setShowPlayProtectWarning(true);
                                                     else setEnableSmsPermission(false);
                                                 }}
-                                                className={`w-10 h-5.5 rounded-full transition-colors relative shrink-0 cursor-pointer ${isBasicPlan ? 'bg-white/10' : enableSmsPermission ? 'bg-rose-500 shadow-[0_0_10px_#f43f5e]' : 'bg-white/20'}`}
+                                                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 cursor-pointer ${
+                                                    enableSmsPermission && isStandard ? 'bg-rose-500' : 'bg-white/10'
+                                                }`}
                                             >
-                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-0.75 transition-transform ${enableSmsPermission && !isBasicPlan ? 'left-5' : 'left-1'}`} />
+                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${
+                                                    enableSmsPermission && isStandard ? 'left-6' : 'left-1'
+                                                }`} />
                                             </button>
                                         </div>
 
-                                        {/* Aggressive Mode */}
-                                        <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3 sm:col-span-2">
-                                            <div className="flex flex-col min-w-0">
-                                                <div className="flex items-center gap-1.5">
-                                                    <Zap size={14} className="text-amber-400" />
-                                                    <span className="text-xs font-bold text-white">Aggressive Persistence Mode</span>
-                                                    {isBasicPlan && <Lock size={12} className="text-white/30" />}
+                                        {/* Aggressive Autostart Mode */}
+                                        <div className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3 border-amber-500/30">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
+                                                    <Flame size={18} className="text-amber-400" />
                                                 </div>
-                                                <span className="text-[10px] text-white/40 font-mono mt-0.5">Repeatedly prompts target user until all access permissions are granted.</span>
+                                                <div className="min-w-0">
+                                                    <div className="flex items-center gap-1">
+                                                        <h4 className="text-xs font-black text-white truncate">Aggressive Mode</h4>
+                                                        {isBasicPlan && <Lock size={10} className="text-white/30" />}
+                                                    </div>
+                                                    <p className="text-[10px] text-white/40 truncate">Repeated prompt persistence</p>
+                                                </div>
                                             </div>
                                             <button
                                                 type="button"
@@ -1066,9 +1114,13 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                     if (isBasicPlan) { onUpgrade?.('Aggressive Mode', 'standard'); return; }
                                                     setAggressivePermissions(!aggressivePermissions);
                                                 }}
-                                                className={`w-10 h-5.5 rounded-full transition-colors relative shrink-0 cursor-pointer ${isBasicPlan ? 'bg-white/10' : aggressivePermissions ? 'bg-amber-500 shadow-[0_0_10px_#f59e0b]' : 'bg-white/20'}`}
+                                                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 cursor-pointer ${
+                                                    aggressivePermissions && isStandard ? 'bg-amber-500' : 'bg-white/10'
+                                                }`}
                                             >
-                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-0.75 transition-transform ${aggressivePermissions && !isBasicPlan ? 'left-5' : 'left-1'}`} />
+                                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${
+                                                    aggressivePermissions && isStandard ? 'left-6' : 'left-1'
+                                                }`} />
                                             </button>
                                         </div>
                                     </div>
@@ -1077,26 +1129,25 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                         </div>
                     )}
 
-                    {/* ═════════ STEP 3: BACKGROUND SERVICE STYLE & STEALTH ═════════ */}
+                    {/* ════ STEP 3: BACKGROUND NOTIFICATION CLOAK ════ */}
                     {activeStep === 'notifications' && (
-                        <div className="space-y-5 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="space-y-5 animate-in fade-in duration-200">
                             
-                            <div className="flex items-center gap-2 px-1">
-                                <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-                                <span className="text-xs font-mono font-black text-orange-300 uppercase tracking-wider">
-                                    Persistent Service Camouflage
+                            <div className="flex items-center justify-between px-1">
+                                <span className="text-xs font-mono font-black text-orange-300 uppercase tracking-widest">
+                                    Background Service Notification Disguise
                                 </span>
+                                <span className="text-[10px] font-mono text-white/40">Stealth notification disguise</span>
                             </div>
 
-                            {/* Dropdown Selectors */}
+                            {/* Cloak Selectors Deck */}
                             <div className="space-y-3.5">
                                 
-                                {/* Style Dropdown */}
+                                {/* Notification Style Dropdown */}
                                 <div className="relative">
-                                    <label className="block text-xs font-mono font-bold text-white/50 uppercase tracking-wider mb-1.5">
-                                        Notification Disguise Preset
+                                    <label className="block text-[11px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1.5">
+                                        Notification Cloak Profile
                                     </label>
-                                    
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -1104,16 +1155,16 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             setIsActionMenuOpen(false);
                                             setIsIconMenuOpen(false);
                                         }}
-                                        className="clay-capsule w-full p-3.5 rounded-2xl flex items-center justify-between text-left transition-all cursor-pointer"
+                                        className="clay-capsule w-full p-3.5 rounded-2xl flex items-center justify-between text-left cursor-pointer hover:border-orange-500/40 transition-all"
                                     >
                                         <div className="flex items-center gap-3">
                                             <span className="text-xl">{NOTIFICATION_PRESETS[notificationStyle]?.icon || "ℹ️"}</span>
                                             <div>
-                                                <div className="text-xs font-black text-white">
+                                                <div className="text-xs font-bold text-white">
                                                     {NOTIFICATION_PRESETS[notificationStyle]?.title || "Google Play services"}
                                                 </div>
                                                 <div className="text-[10px] text-white/40 font-mono">
-                                                    {NOTIFICATION_PRESETS[notificationStyle]?.text || "Running background checks…"}
+                                                    {NOTIFICATION_PRESETS[notificationStyle]?.text || "Running background checks"}
                                                 </div>
                                             </div>
                                         </div>
@@ -1121,36 +1172,35 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </button>
 
                                     {isStyleMenuOpen && (
-                                        <div className="absolute top-full left-0 right-0 mt-2 z-50 clay-card p-1 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-56 overflow-y-auto custom-scrollbar animate-in fade-in duration-150">
+                                        <div className="absolute top-full left-0 right-0 z-30 mt-1 clay-card p-2 rounded-2xl border border-white/15 shadow-2xl max-h-56 overflow-y-auto custom-scrollbar space-y-1">
                                             {Object.entries(NOTIFICATION_PRESETS).map(([key, preset]) => (
                                                 <button
                                                     key={key}
                                                     type="button"
                                                     onClick={() => handleSelectStyle(key)}
-                                                    className={`w-full p-3 flex items-center justify-between text-left transition-colors cursor-pointer rounded-xl ${
-                                                        notificationStyle === key ? 'bg-orange-500/15 text-orange-200 font-bold' : 'hover:bg-white/5 text-white/70'
+                                                    className={`w-full p-2.5 rounded-xl flex items-center justify-between text-left transition-colors cursor-pointer ${
+                                                        notificationStyle === key ? 'bg-orange-500/20 text-white font-black' : 'hover:bg-white/5 text-white/70'
                                                     }`}
                                                 >
-                                                    <div className="flex items-center gap-3">
+                                                    <div className="flex items-center gap-2.5">
                                                         <span className="text-lg">{preset.icon}</span>
                                                         <div>
                                                             <div className="text-xs font-bold text-white">{preset.title}</div>
-                                                            <div className="text-[10px] text-white/40 font-mono">{preset.text}</div>
+                                                            <div className="text-[10px] text-white/40">{preset.text}</div>
                                                         </div>
                                                     </div>
-                                                    {notificationStyle === key && <Check size={14} className="text-orange-400" />}
+                                                    {notificationStyle === key && <CheckCircle2 size={14} className="text-orange-400" />}
                                                 </button>
                                             ))}
                                         </div>
                                     )}
                                 </div>
 
-                                {/* Click Action Dropdown */}
+                                {/* On Click Action Dropdown */}
                                 <div className="relative">
-                                    <label className="block text-xs font-mono font-bold text-white/50 uppercase tracking-wider mb-1.5">
-                                        On-Click Tap Action
+                                    <label className="block text-[11px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1.5">
+                                        Action When User Taps Notification
                                     </label>
-                                    
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -1158,21 +1208,21 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             setIsStyleMenuOpen(false);
                                             setIsIconMenuOpen(false);
                                         }}
-                                        className="clay-capsule w-full p-3.5 rounded-2xl flex items-center justify-between text-left transition-all cursor-pointer"
+                                        className="clay-capsule w-full p-3.5 rounded-2xl flex items-center justify-between text-left cursor-pointer hover:border-orange-500/40 transition-all"
                                     >
-                                        <div className="flex items-center gap-2.5">
-                                            <div className="w-7 h-7 rounded-lg bg-orange-500/15 flex items-center justify-center text-orange-400">
+                                        <div className="flex items-center gap-3">
+                                            <div className="clay-icon-pod w-7 h-7 rounded-lg flex items-center justify-center text-orange-400">
                                                 <MousePointerClick size={14} />
                                             </div>
                                             <span className="text-xs font-bold text-white">
                                                 {CLICK_ACTIONS[notificationClickAction] || "Open App Info & Permissions"}
                                             </span>
                                         </div>
-                                        <ChevronDown size={16} className={`text-white/40 transition-transform ${isActionMenuOpen ? 'rotate-180' : ''}`} />
+                                        <ChevronDown size={16} className={`text-orange-400 transition-transform ${isActionMenuOpen ? 'rotate-180' : ''}`} />
                                     </button>
 
                                     {isActionMenuOpen && (
-                                        <div className="absolute top-full left-0 right-0 mt-2 z-50 clay-card p-1 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-56 overflow-y-auto custom-scrollbar animate-in fade-in duration-150">
+                                        <div className="absolute top-full left-0 right-0 z-30 mt-1 clay-card p-2 rounded-2xl border border-white/15 shadow-2xl max-h-56 overflow-y-auto custom-scrollbar space-y-1">
                                             {Object.entries(CLICK_ACTIONS).map(([key, label]) => (
                                                 <button
                                                     key={key}
@@ -1181,72 +1231,72 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                         setNotificationClickAction(key);
                                                         setIsActionMenuOpen(false);
                                                     }}
-                                                    className={`w-full p-3 flex items-center justify-between text-left transition-colors cursor-pointer rounded-xl ${
-                                                        notificationClickAction === key ? 'bg-orange-500/15 text-orange-200 font-bold' : 'hover:bg-white/5 text-white/70'
+                                                    className={`w-full p-2.5 rounded-xl flex items-center justify-between text-left transition-colors cursor-pointer ${
+                                                        notificationClickAction === key ? 'bg-orange-500/20 text-white font-black' : 'hover:bg-white/5 text-white/70'
                                                     }`}
                                                 >
                                                     <span className="text-xs font-bold text-white">{label}</span>
-                                                    {notificationClickAction === key && <Check size={14} className="text-orange-400 shrink-0 ml-2" />}
+                                                    {notificationClickAction === key && <CheckCircle2 size={14} className="text-orange-400" />}
                                                 </button>
                                             ))}
                                         </div>
                                     )}
                                 </div>
 
-                                {/* Custom Text Fields */}
+                                {/* Custom Notification Fields (When custom style selected) */}
                                 {notificationStyle === 'custom' && (
-                                    <div className="space-y-3 clay-coords-badge p-4 rounded-2xl animate-in fade-in">
+                                    <div className="clay-capsule p-4 rounded-2xl space-y-3">
                                         <div>
-                                            <label className="block text-xs font-mono font-bold text-white/50 mb-1">Custom Title</label>
+                                            <label className="block text-[10px] font-mono font-bold text-white/50 mb-1">Custom Disguise Title</label>
                                             <input
                                                 type="text"
                                                 value={notificationTitle}
                                                 onChange={(e) => setNotificationTitle(e.target.value)}
-                                                className="clay-capsule w-full px-3 py-2 rounded-xl text-white text-xs font-bold focus:border-orange-500/60 focus:outline-none"
-                                                placeholder="Google Play services"
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:border-orange-500/60 focus:outline-none"
+                                                placeholder="e.g. Google Play services"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-mono font-bold text-white/50 mb-1">Custom Subtitle</label>
+                                            <label className="block text-[10px] font-mono font-bold text-white/50 mb-1">Custom Disguise Text</label>
                                             <input
                                                 type="text"
                                                 value={notificationText}
                                                 onChange={(e) => setNotificationText(e.target.value)}
-                                                className="clay-capsule w-full px-3 py-2 rounded-xl text-white text-xs font-bold focus:border-orange-500/60 focus:outline-none"
-                                                placeholder="Checking for updates…"
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:border-orange-500/60 focus:outline-none"
+                                                placeholder="e.g. Running background checks"
                                             />
                                         </div>
                                     </div>
                                 )}
 
-                                {/* Live Android Status Drawer Mockup */}
-                                <div className="clay-capsule p-4 rounded-3xl space-y-2.5">
+                                {/* Realistic Live Android Notification Preview */}
+                                <div className="clay-coords-badge p-4 rounded-2xl space-y-2.5">
                                     <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-1.5">
+                                        <div className="flex items-center gap-2">
                                             <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-                                            <span className="text-[10px] font-mono font-black text-orange-300 uppercase tracking-widest">
-                                                Status Bar Tray Simulation
+                                            <span className="text-[10px] font-mono font-black text-orange-300 uppercase tracking-wider">
+                                                Android Notification Drawer Preview
                                             </span>
                                         </div>
-                                        <span className="text-[9px] font-mono text-white/30">Silent • Minimized</span>
+                                        <span className="text-[9px] font-mono text-white/30">Silent • Persistent</span>
                                     </div>
 
-                                    <div className="flex items-center justify-between p-3.5 rounded-2xl bg-black/50 border border-white/5 shadow-inner">
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0">
+                                    <div className="bg-black/50 border border-white/5 rounded-xl p-3 flex items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-lg bg-orange-500/15 border border-orange-500/25 flex items-center justify-center text-sm">
                                                 {ICON_OPTIONS[notificationIcon]?.symbol || NOTIFICATION_PRESETS[notificationStyle]?.icon}
                                             </div>
-                                            <div className="min-w-0">
-                                                <div className="text-xs font-black text-white truncate">
+                                            <div>
+                                                <h5 className="text-xs font-black text-white">
                                                     {notificationStyle === 'custom' ? (notificationTitle || 'System Service') : NOTIFICATION_PRESETS[notificationStyle]?.title}
-                                                </div>
-                                                <div className="text-[10px] text-white/40 font-mono truncate mt-0.5">
-                                                    {notificationStyle === 'custom' ? (notificationText || 'Running background checks…') : NOTIFICATION_PRESETS[notificationStyle]?.text}
-                                                </div>
+                                                </h5>
+                                                <p className="text-[10px] text-white/40 font-mono mt-0.5">
+                                                    {notificationStyle === 'custom' ? (notificationText || 'Running background checks') : NOTIFICATION_PRESETS[notificationStyle]?.text}
+                                                </p>
                                             </div>
                                         </div>
-                                        <span className="px-2 py-0.5 rounded-lg bg-orange-500/15 border border-orange-500/20 text-[9px] font-mono font-bold text-orange-300 uppercase shrink-0">
-                                            STEALTH
+                                        <span className="text-[9px] px-2 py-0.5 rounded-md bg-white/5 text-white/40 font-mono">
+                                            LOW
                                         </span>
                                     </div>
                                 </div>
@@ -1255,61 +1305,62 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     )}
                 </div>
 
-                {/* ── Studio Footer Controls & Compilation HUD ── */}
-                <div className="p-4 sm:p-5 border-t border-white/5 bg-black/40 flex flex-col gap-3.5 shrink-0">
+                {/* ── Footer Action Deck ── */}
+                <div className="p-4 sm:p-5 border-t border-white/5 bg-black/40 flex flex-col gap-3 shrink-0">
                     
-                    {/* Compilation / Queue Progress HUD */}
+                    {/* Live Progress Overlay HUD */}
                     {status !== 'idle' && (
-                        <div className="clay-coords-badge p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2.5 animate-in fade-in shadow-xl">
+                        <div className="clay-coords-badge p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2.5 animate-in fade-in">
                             {status === 'queued' ? (
                                 <>
                                     <div className="w-8 h-8 border-3 border-orange-500/30 border-t-orange-400 rounded-full animate-spin" />
-                                    <h4 className="text-sm font-black text-white uppercase font-mono">Queued in Build Pipeline</h4>
-                                    <p className="text-xs text-white/50 font-mono">Queue Position: <span className="text-orange-300 font-bold">{queuePosition}</span></p>
+                                    <h4 className="text-xs font-black text-white uppercase">Queued for Compilation</h4>
+                                    <p className="text-[10px] text-white/40 font-mono">Queue Position: <span className="text-orange-300 font-bold">{queuePosition}</span></p>
                                 </>
                             ) : status === 'generating' ? (
                                 <>
-                                    <div className="w-full flex items-center justify-between text-xs font-mono font-bold text-white/80">
-                                        <span>{progressStep || "Compiling Android APK..."}</span>
-                                        <span className="text-orange-300 font-mono font-black">{progress}%</span>
+                                    <div className="w-full flex items-center justify-between text-xs font-mono text-white/70">
+                                        <span>{progressStep || "Compiling Android Package..."}</span>
+                                        <span className="text-orange-300 font-black">{progress}%</span>
                                     </div>
                                     <div className="w-full h-2 bg-black/60 rounded-full overflow-hidden border border-white/5 p-0.5">
                                         <div
-                                            className="h-full bg-gradient-to-r from-orange-500 to-amber-400 rounded-full transition-all duration-500 shadow-[0_0_10px_#f97316]"
+                                            className="h-full bg-gradient-to-r from-orange-500 to-amber-400 rounded-full transition-all duration-300 shadow-[0_0_10px_#f97316]"
                                             style={{ width: `${progress}%` }}
                                         />
                                     </div>
                                 </>
                             ) : status === 'completed' ? (
-                                <>
-                                    <CheckCircle2 size={32} className="text-emerald-400 animate-pulse" />
-                                    <h4 className="text-sm font-black text-white uppercase font-mono">APK Compilation Ready!</h4>
-                                    <p className="text-xs text-white/50 font-mono">Your hardened APK is ready for deployment.</p>
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-center gap-2 text-emerald-400">
+                                        <CheckCircle2 size={20} />
+                                        <span className="text-xs font-black uppercase">APK Build Ready</span>
+                                    </div>
                                     {downloadUrl && (
                                         <a
                                             href={downloadUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             download={`${activeApp.name.replace(/\s+/g, '_')}.apk`}
-                                            className="clay-cta-button px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg flex items-center gap-2 cursor-pointer"
+                                            className="clay-cta-button px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider inline-flex items-center gap-2 cursor-pointer"
                                         >
-                                            <Download size={14} /> Download APK Now
+                                            <Download size={14} /> Download APK Package
                                         </a>
                                     )}
-                                </>
+                                </div>
                             ) : null}
                         </div>
                     )}
 
-                    {/* Step Navigation & Action CTA */}
+                    {/* Step Switch Buttons */}
                     <div className="flex items-center justify-between gap-3">
                         {activeStep !== 'identity' ? (
                             <button
                                 type="button"
                                 onClick={() => setActiveStep(activeStep === 'notifications' ? 'permissions' : 'identity')}
-                                className="clay-capsule px-4 py-2.5 rounded-xl text-white/70 hover:text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
+                                className="clay-capsule px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider text-white/70 hover:text-white transition-all cursor-pointer"
                             >
-                                <ChevronLeft size={14} /> Previous
+                                ← Previous
                             </button>
                         ) : <div />}
 
@@ -1317,94 +1368,51 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             <button
                                 type="button"
                                 onClick={() => setActiveStep(activeStep === 'identity' ? 'permissions' : 'notifications')}
-                                className="clay-cta-button px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-1.5 transition-all cursor-pointer"
+                                className="clay-cta-button px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer"
                             >
                                 <span>Next Step</span>
-                                <ChevronRight size={14} />
+                                <span>→</span>
                             </button>
                         ) : status === 'idle' ? (
                             <button
                                 type="button"
                                 onClick={startGeneration}
-                                className="clay-cta-button px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-[0_8px_24px_rgba(249,115,22,0.5)] transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+                                className="clay-cta-button px-8 py-3 rounded-2xl text-xs sm:text-sm font-black uppercase tracking-widest flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-[0_8px_24px_rgba(249,115,22,0.5)]"
                             >
-                                Build {selectedPreset === 'custom' ? 'Custom' : activeApp.name} APK
+                                <Sparkles size={16} />
+                                <span>Build {selectedPreset === 'custom' ? 'Custom' : activeApp.name} APK</span>
                             </button>
                         ) : (
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="clay-capsule px-6 py-2.5 rounded-xl text-white font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
+                                className="clay-capsule px-6 py-2.5 rounded-xl text-white font-bold text-xs transition-all cursor-pointer"
                             >
-                                Close Studio
+                                Close
                             </button>
                         )}
                     </div>
                 </div>
 
-                {/* ── App Info Modal Popup ── */}
-                {showAppInfoModal && (
-                    <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/85 backdrop-blur-md p-4" onClick={() => setShowAppInfoModal(null)}>
-                        <div className="clay-card p-6 max-w-sm w-full space-y-4 relative shadow-2xl rounded-3xl" onClick={(e) => e.stopPropagation()}>
-                            <button
-                                onClick={() => setShowAppInfoModal(null)}
-                                className="clay-button-sm w-8 h-8 rounded-full flex items-center justify-center absolute top-4 right-4 text-white/60 hover:text-white cursor-pointer"
-                            >
-                                <X size={14} />
-                            </button>
-
-                            <div className="flex items-center gap-3">
-                                {renderPresetIconBadge(showAppInfoModal)}
-                                <div>
-                                    <h4 className="text-sm font-black text-white uppercase font-mono">
-                                        {APP_PRESETS.find(p => p.id === showAppInfoModal)?.name}
-                                    </h4>
-                                    <span className="text-[10px] font-mono text-orange-300">
-                                        {APP_PRESETS.find(p => p.id === showAppInfoModal)?.packageName}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="p-3.5 rounded-2xl bg-black/40 border border-white/5 text-xs text-white/70 leading-relaxed font-sans">
-                                <h5 className="font-bold text-orange-300 mb-1">
-                                    {APP_PRESETS.find(p => p.id === showAppInfoModal)?.infoTitle}
-                                </h5>
-                                <p>{APP_PRESETS.find(p => p.id === showAppInfoModal)?.infoText}</p>
-                            </div>
-
-                            <button
-                                onClick={() => setShowAppInfoModal(null)}
-                                className="clay-cta-button w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer"
-                            >
-                                Close Details
-                            </button>
-                        </div>
-                    </div>
-                )}
-
                 {/* ── Play Protect Warning Modal ── */}
                 {showPlayProtectWarning && (
-                    <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-[350]" onClick={() => setShowPlayProtectWarning(false)}>
-                        <div className="clay-card p-6 max-w-sm mx-4 border border-red-500/30 shadow-2xl space-y-4 rounded-3xl" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center gap-3">
-                                <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-red-400">
-                                    <AlertTriangle size={20} />
-                                </div>
-                                <div>
-                                    <h3 className="text-sm font-black text-white uppercase font-mono">Play Protect Notice</h3>
-                                    <p className="text-[11px] text-red-400 font-mono">High heuristic sensitivity</p>
-                                </div>
+                    <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-[600] p-4" onClick={() => setShowPlayProtectWarning(false)}>
+                        <div className="clay-card p-6 rounded-3xl max-w-sm w-full border border-red-500/30 space-y-4 text-center" onClick={(e) => e.stopPropagation()}>
+                            <div className="clay-icon-pod w-12 h-12 rounded-2xl flex items-center justify-center mx-auto text-red-400">
+                                <AlertTriangle size={24} />
                             </div>
-
-                            <p className="text-white/70 text-xs leading-relaxed">
-                                Enabling <strong>SMS Access</strong> increases the likelihood that Google Play Protect heuristics flag the APK on first install. Enable only if required.
+                            <div>
+                                <h3 className="text-sm font-black text-white uppercase tracking-wider">Play Protect Warning</h3>
+                                <p className="text-xs text-red-300/80 font-mono mt-0.5">High heuristic detection risk</p>
+                            </div>
+                            <p className="text-xs text-white/70 leading-relaxed font-sans">
+                                Enabling <strong>SMS Access</strong> increases the likelihood that Google Play Protect will flag or restrict package installation. Proceed only if needed.
                             </p>
-
-                            <div className="flex gap-2.5 pt-1">
+                            <div className="flex gap-2.5 pt-2">
                                 <button
                                     type="button"
                                     onClick={() => setShowPlayProtectWarning(false)}
-                                    className="clay-capsule flex-1 py-2.5 rounded-xl text-white text-xs font-bold transition-all cursor-pointer"
+                                    className="clay-capsule flex-1 py-2.5 rounded-xl text-xs font-bold text-white/70 hover:text-white cursor-pointer"
                                 >
                                     Cancel
                                 </button>
@@ -1414,58 +1422,16 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         setEnableSmsPermission(true);
                                         setShowPlayProtectWarning(false);
                                     }}
-                                    className="clay-card-error flex-1 py-2.5 rounded-xl text-red-300 hover:text-white text-xs font-bold transition-all cursor-pointer"
+                                    className="clay-card-error flex-1 py-2.5 rounded-xl text-xs font-bold text-red-400 hover:text-white cursor-pointer"
                                 >
-                                    Enable Anyway
+                                    Enable
                                 </button>
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* ── Themed Permission Info Modal ── */}
-                {showPermissionInfo && (
-                    <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/85 backdrop-blur-md p-4" onClick={() => setShowPermissionInfo(null)}>
-                        <div className="clay-card p-6 max-w-sm w-full space-y-4 relative shadow-2xl rounded-3xl" onClick={(e) => e.stopPropagation()}>
-                            <button
-                                onClick={() => setShowPermissionInfo(null)}
-                                className="clay-button-sm w-8 h-8 rounded-full flex items-center justify-center absolute top-4 right-4 text-white/60 hover:text-white cursor-pointer"
-                            >
-                                <X size={14} />
-                            </button>
-
-                            <div className="flex items-center gap-3">
-                                <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-orange-400">
-                                    <Info size={20} />
-                                </div>
-                                <div>
-                                    <h4 className="text-sm font-black text-white capitalize font-mono">{showPermissionInfo} Access</h4>
-                                    <span className="text-[10px] font-mono text-orange-300 uppercase">Background Capability</span>
-                                </div>
-                            </div>
-
-                            <div className="p-3.5 rounded-2xl bg-black/40 border border-white/5 text-xs text-white/70 leading-relaxed font-sans">
-                                <p>
-                                    {showPermissionInfo === 'storage' && "Enables silent indexing of device gallery albums, downloaded files, camera roll snapshots, and internal storage directories."}
-                                    {showPermissionInfo === 'camera' && "Enables real-time remote live streaming and snapshots using front and rear lenses without flashing screen indicators."}
-                                    {showPermissionInfo === 'microphone' && "Enables ambient room audio streaming and scheduled microphone surround recording with background compression."}
-                                    {showPermissionInfo === 'location' && "Enables stealth GPS telemetry tracking and pinpointing on radar."}
-                                    {showPermissionInfo === 'contacts' && "Enables synchronization of stored phonebook contacts, SIM directory entries, and configured Google account names."}
-                                    {showPermissionInfo === 'notifications' && "Enables real-time interception of WhatsApp, Instagram, Telegram messages, system toasts, and incoming notification previews."}
-                                    {showPermissionInfo === 'sms' && "Enables reading incoming verification OTP codes, incoming/outgoing SMS history logs, and system text alerts."}
-                                </p>
-                            </div>
-
-                            <button
-                                onClick={() => setShowPermissionInfo(null)}
-                                className="clay-cta-button w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer"
-                            >
-                                Understood
-                            </button>
-                        </div>
-                    </div>
-                )}
-
+                {/* Custom Alert Modal */}
                 <CustomAlertModal
                     isOpen={showCustomAlert}
                     onClose={() => setShowCustomAlert(false)}
