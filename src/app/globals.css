@@ -461,3 +461,101 @@ body {
   box-shadow: inset 1px 1px 2px rgba(255, 255, 255, 0.1), 2px 2px 6px rgba(0, 0, 0, 0.3);
 }
 
+/* ─── UIVERSE ULTRA TACTILE 3D DESIGN SUITE ─── */
+
+.uiverse-card {
+  background: #15181e;
+  border-radius: 2rem;
+  box-shadow: 
+    14px 14px 28px #0a0b0e,
+    -10px -10px 24px #20242e,
+    inset 1px 1px 2px rgba(255, 255, 255, 0.08),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.uiverse-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    18px 18px 36px #08090b,
+    -12px -12px 28px #242934,
+    inset 1px 1px 2px rgba(255, 255, 255, 0.12);
+}
+
+.uiverse-inset {
+  background: #111317;
+  border-radius: 1.5rem;
+  box-shadow: 
+    inset 6px 6px 12px #08090c,
+    inset -4px -4px 10px #1c1f26,
+    0 1px 0 rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.5);
+}
+
+.uiverse-btn-convex {
+  background: linear-gradient(145deg, #1b1e25, #13151a);
+  box-shadow: 
+    6px 6px 14px #0a0b0e,
+    -4px -4px 10px #222630,
+    inset 1px 1px 1px rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.uiverse-btn-convex:active, .uiverse-btn-convex.active {
+  background: #121418;
+  box-shadow: 
+    inset 4px 4px 8px #08090c,
+    inset -3px -3px 6px #1c2027;
+  transform: scale(0.97);
+}
+
+.uiverse-btn-glow {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #c2410c 100%);
+  box-shadow: 
+    0 10px 25px rgba(249, 115, 22, 0.45),
+    6px 6px 14px #08090c,
+    -4px -4px 10px rgba(255, 255, 255, 0.1),
+    inset 2px 2px 4px rgba(255, 255, 255, 0.4),
+    inset -2px -2px 4px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  transition: all 0.25s ease;
+}
+
+.uiverse-btn-glow:hover {
+  box-shadow: 
+    0 14px 35px rgba(249, 115, 22, 0.65),
+    8px 8px 18px #060709,
+    -4px -4px 12px rgba(255, 255, 255, 0.15),
+    inset 2px 2px 4px rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.uiverse-btn-glow:active {
+  box-shadow: 
+    inset 4px 4px 8px rgba(0, 0, 0, 0.6),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.2);
+  transform: scale(0.97);
+}
+
+.uiverse-icon-convex {
+  background: linear-gradient(145deg, #1f232b, #121419);
+  box-shadow: 
+    5px 5px 12px #090a0d,
+    -4px -4px 10px #232731,
+    inset 1px 1px 2px rgba(255, 255, 255, 0.12),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.uiverse-switch {
+  background: #0f1115;
+  box-shadow: 
+    inset 3px 3px 6px #08090b,
+    inset -2px -2px 5px #1a1c22;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+
