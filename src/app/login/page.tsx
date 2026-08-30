@@ -182,7 +182,13 @@ function GalleryPreview() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-2">
                 {photos.map((p, idx) => (
                     <div key={idx} className="group/photo relative rounded-2xl overflow-hidden border border-white/15 bg-black/60 aspect-[16/10] sm:aspect-[16/11] shadow-lg transition-all duration-500 hover:border-amber-400/60 hover:shadow-[0_10px_30px_rgba(245,158,11,0.25)] flex flex-col justify-between">
-                        <Image src={p.url} alt={p.name} fill sizes="(max-width: 640px) 100vw, 50vw" className="object-cover group-hover/photo:scale-110 transition-transform duration-700" />
+                        <img 
+                            src={p.url} 
+                            alt={p.name} 
+                            loading="eager" 
+                            decoding="async" 
+                            className="absolute inset-0 w-full h-full object-cover group-hover/photo:scale-110 transition-transform duration-700 pointer-events-none" 
+                        />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent opacity-85 group-hover/photo:opacity-95 transition-opacity" />
                         
                         {/* Top Badges */}

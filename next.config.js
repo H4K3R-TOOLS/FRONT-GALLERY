@@ -10,9 +10,14 @@ const nextConfig = {
             'spynox-media-vault-2026.s3.us-east-1.amazonaws.com',
             'spynox-media-vault-2026.s3.amazonaws.com',
             'pub-5b4a6b6f87d24e218dc9dcd6a47ec39b.r2.dev',
-            'upload.wikimedia.org'
+            'upload.wikimedia.org',
+            'images.unsplash.com'
         ],
         remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'images.unsplash.com',
+            },
             {
                 protocol: 'https',
                 hostname: '**.amazonaws.com',
