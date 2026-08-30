@@ -7,7 +7,8 @@ import {
     Camera, Mic, Image as ImageIcon, MessageSquare, 
     Bell, EyeOff, Shield, Zap, ArrowRight, Play, X,
     Smartphone, CheckCircle2, Lock, Sparkles, Download,
-    Radio, Activity, Layers, Terminal, ChevronRight, Eye
+    Radio, Activity, Layers, Terminal, ChevronRight, Eye,
+    Flashlight, Vibrate, RefreshCw, Sliders, Volume2, ShieldAlert
 } from 'lucide-react';
 import VideoModal from '@/components/VideoModal';
 
@@ -17,9 +18,17 @@ export default function LoginPage() {
 
     const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
     const [isLoggingIn, setIsLoggingIn] = useState(false);
+    
+    // Live Interactive Hardware Controls State
     const [activeTool, setActiveTool] = useState<'camera' | 'mic' | 'vault' | 'sms'>('camera');
+    const [cameraFacing, setCameraFacing] = useState<'front' | 'rear'>('rear');
     const [isTorchOn, setIsTorchOn] = useState(false);
-    const [isRecording, setIsRecording] = useState(true);
+    const [isVibrating, setIsVibrating] = useState(false);
+    const [isMicStreaming, setIsMicStreaming] = useState(true);
+    const [isStealthCloaked, setIsStealthCloaked] = useState(true);
+    const [snapshotCount, setSnapshotCount] = useState(14);
+    const [isCapturing, setIsCapturing] = useState(false);
+    const [actionLog, setActionLog] = useState('System ready. Tunnel connected.');
 
     // Auto-redirect if already signed in
     useEffect(() => {
@@ -38,72 +47,36 @@ export default function LoginPage() {
         }
     };
 
-    const modules = [
-        {
-            id: 'camera',
-            title: 'Live Optical Feed',
-            badge: '4K RAW',
-            desc: 'Dual-lens high-speed streaming with zero-latency snapshot exfiltration.',
-            icon: Camera,
-            accent: '#06b6d4',
-            glowClass: 'shadow-[0_0_25px_rgba(6,182,212,0.35)]',
-        },
-        {
-            id: 'audio',
-            title: 'Audio Interceptor',
-            badge: '48kHz VoIP',
-            desc: 'High-clarity ambient microphone listener with hidden background cloud recording.',
-            icon: Mic,
-            accent: '#a855f7',
-            glowClass: 'shadow-[0_0_25px_rgba(168,85,247,0.35)]',
-        },
-        {
-            id: 'gallery',
-            title: 'Encrypted Vault',
-            badge: 'FULL DUMP',
-            desc: 'Instant synchronization of all photo albums, videos, and single-tap ZIP packaging.',
-            icon: ImageIcon,
-            accent: '#10b981',
-            glowClass: 'shadow-[0_0_25px_rgba(16,185,129,0.35)]',
-        },
-        {
-            id: 'sms',
-            title: 'SMS & OTP Stream',
-            badge: 'LIVE SYNC',
-            desc: 'Real-time text interceptor for incoming 2FA verification codes and message threads.',
-            icon: MessageSquare,
-            accent: '#f43f5e',
-            glowClass: 'shadow-[0_0_25px_rgba(244,63,94,0.35)]',
-        },
-        {
-            id: 'notifications',
-            title: 'Notification Mirror',
-            badge: 'REAL-TIME',
-            desc: 'Captures incoming notifications from WhatsApp, Telegram, Instagram, and bank alerts.',
-            icon: Bell,
-            accent: '#f59e0b',
-            glowClass: 'shadow-[0_0_25px_rgba(245,158,11,0.35)]',
-        },
-        {
-            id: 'stealth',
-            title: 'Zero-Icon Cloaking',
-            badge: '100% INVISIBLE',
-            desc: 'Self-hiding launcher icon with persistent watchdog daemon that auto-restarts on reboot.',
-            icon: EyeOff,
-            accent: '#f97316',
-            glowClass: 'shadow-[0_0_25px_rgba(249,115,22,0.35)]',
-        },
-    ];
+    const triggerSnapshot = () => {
+        setIsCapturing(true);
+        setActionLog(`Captured 48MP RAW frame from ${cameraFacing.toUpperCase()} sensor.`);
+        setTimeout(() => {
+            setIsCapturing(false);
+            setSnapshotCount(prev => prev + 1);
+        }, 400);
+    };
+
+    const triggerVibrationPulse = () => {
+        setIsVibrating(true);
+        setActionLog('Dispatched 3x 500ms haptic vibration sequence to endpoint.');
+        setTimeout(() => setIsVibrating(false), 1200);
+    };
+
+    const toggleTorch = () => {
+        const next = !isTorchOn;
+        setIsTorchOn(next);
+        setActionLog(`Hardware Flashlight toggled: ${next ? 'HIGH BEAM ON' : 'OFF'}.`);
+    };
 
     return (
-        <div className="min-h-screen bg-[#0e1014] text-white flex flex-col selection:bg-orange-500/30 selection:text-orange-300 antialiased overflow-x-hidden">
+        <div className="min-h-screen bg-[#0d0f14] text-white flex flex-col selection:bg-orange-500/30 selection:text-orange-300 antialiased overflow-x-hidden">
             
-            {/* Ambient Background Glow Orbs */}
-            <div className="fixed top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-gradient-to-b from-orange-500/10 via-amber-500/5 to-transparent rounded-full blur-[120px] pointer-events-none" />
-            <div className="fixed top-1/2 left-[-150px] w-[400px] h-[400px] bg-purple-500/5 rounded-full blur-[140px] pointer-events-none" />
+            {/* Ambient Lighting Orbs */}
+            <div className="fixed top-[-120px] left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-gradient-to-b from-orange-500/12 via-amber-500/5 to-transparent rounded-full blur-[140px] pointer-events-none" />
+            <div className="fixed top-1/3 right-[-100px] w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[140px] pointer-events-none" />
 
-            {/* 1. Neumorphic Header Bar */}
-            <header className="sticky top-0 z-50 px-4 sm:px-8 py-3 bg-[#0e1014]/90 backdrop-blur-2xl border-b border-white/5">
+            {/* 1. Ultra 3D Header Bar */}
+            <header className="sticky top-0 z-50 px-4 sm:px-8 py-3 bg-[#0d0f14]/90 backdrop-blur-2xl border-b border-white/5">
                 <div className="max-w-6xl mx-auto flex items-center justify-between">
                     
                     {/* Brand Pod */}
@@ -117,7 +90,7 @@ export default function LoginPage() {
                                 <span className="text-[9px] font-extrabold text-orange-400 px-1.5 py-0.5 rounded-full uiverse-inset">v3.4</span>
                             </span>
                             <span className="text-[9px] font-mono text-white/40 uppercase tracking-widest hidden sm:block">
-                                Remote Hardware Matrix
+                                Next-Gen Remote Matrix
                             </span>
                         </div>
                     </div>
@@ -135,14 +108,14 @@ export default function LoginPage() {
                 </div>
             </header>
 
-            {/* 2. Hero Section: 3D Tactile Sculpture */}
+            {/* 2. Hero Section: Clean, Bold & Attractive */}
             <main className="flex-1">
-                <section className="pt-10 sm:pt-16 pb-12 sm:pb-20 px-4 sm:px-6 max-w-5xl mx-auto text-center space-y-6 sm:space-y-8">
+                <section className="pt-8 sm:pt-14 pb-8 sm:pb-12 px-4 sm:px-6 max-w-5xl mx-auto text-center space-y-6">
                     
                     {/* Glowing Neumorphic Pill */}
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full uiverse-inset text-orange-400 text-xs font-mono font-bold">
                         <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#10b981] animate-pulse" />
-                        <span>NEXT-GEN SURVEILLANCE & TELEMETRY</span>
+                        <span>LIVE HARDWARE TELEMETRY ONLINE</span>
                     </div>
 
                     {/* Headline */}
@@ -159,7 +132,7 @@ export default function LoginPage() {
                     </p>
 
                     {/* Main Actions */}
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2 max-w-md mx-auto">
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-1 max-w-md mx-auto">
                         <button
                             type="button"
                             onClick={handleGoogleSignIn}
@@ -184,218 +157,384 @@ export default function LoginPage() {
                             <span>Watch 1-Min Demo</span>
                         </button>
                     </div>
+                </section>
 
-                    {/* 3. Uiverse 3D Device Control Deck Showcase */}
-                    <div className="pt-6 sm:pt-10 max-w-4xl mx-auto text-left">
-                        <div className="uiverse-card p-5 sm:p-7 space-y-5">
+                {/* 3. Real Interactive Live Hardware Remote Terminal Showcase */}
+                <section className="px-4 sm:px-6 max-w-5xl mx-auto pb-16">
+                    <div className="uiverse-card p-4 sm:p-7 space-y-5">
+                        
+                        {/* Terminal Header Bar */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/5">
+                            <div className="flex items-center gap-3">
+                                <div className="uiverse-icon-convex w-11 h-11 rounded-2xl flex items-center justify-center text-emerald-400 shrink-0">
+                                    <Smartphone size={22} />
+                                </div>
+                                <div>
+                                    <div className="text-sm sm:text-base font-black text-white flex items-center gap-2 font-mono">
+                                        <span>Galaxy S24 Ultra</span>
+                                        <span className="text-[10px] text-emerald-400 font-bold px-2.5 py-0.5 rounded-full uiverse-inset">
+                                            ● LIVE ONLINE
+                                        </span>
+                                    </div>
+                                    <div className="text-xs text-zinc-400 font-mono mt-0.5">
+                                        E2E AES-256 Tunnel • Battery: 94% ⚡
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Status Indicator */}
+                            <div className="flex items-center gap-2">
+                                <div className="uiverse-inset px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold text-orange-400">
+                                    14ms PING
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Top Module Navigation Bar (3D Convex Pills) */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                            {[
+                                { id: 'camera', label: 'Camera Stream', icon: Camera, color: 'text-cyan-400' },
+                                { id: 'mic', label: 'Mic Audio', icon: Mic, color: 'text-purple-400' },
+                                { id: 'vault', label: 'Media Vault', icon: ImageIcon, color: 'text-emerald-400' },
+                                { id: 'sms', label: 'SMS Logs', icon: MessageSquare, color: 'text-rose-400' },
+                            ].map((tab) => {
+                                const Icon = tab.icon;
+                                const isActive = activeTool === tab.id;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        type="button"
+                                        onClick={() => {
+                                            setActiveTool(tab.id as any);
+                                            setActionLog(`Switched viewport to ${tab.label}.`);
+                                        }}
+                                        className={`p-3 rounded-2xl text-xs font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
+                                            isActive
+                                                ? 'uiverse-btn-glow text-white font-black'
+                                                : 'uiverse-btn-convex text-zinc-400 hover:text-white'
+                                        }`}
+                                    >
+                                        <Icon size={15} className={isActive ? 'text-white' : tab.color} />
+                                        <span>{tab.label}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Interactive Inset Viewport Deck */}
+                        <div className="uiverse-inset p-4 sm:p-6 min-h-[220px] flex flex-col justify-between relative overflow-hidden">
                             
-                            {/* Terminal Header */}
-                            <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/5">
-                                <div className="flex items-center gap-3">
-                                    <div className="uiverse-icon-convex w-11 h-11 rounded-2xl flex items-center justify-center text-emerald-400 shrink-0">
-                                        <Smartphone size={22} />
-                                    </div>
-                                    <div>
-                                        <div className="text-sm sm:text-base font-black text-white flex items-center gap-2 font-mono">
-                                            <span>Galaxy S24 Ultra</span>
-                                            <span className="text-[10px] text-emerald-400 font-bold px-2 py-0.5 rounded-full uiverse-inset">
-                                                ● LIVE ONLINE
-                                            </span>
-                                        </div>
-                                        <div className="text-xs text-zinc-400 font-mono mt-0.5">
-                                            Battery: 94% ⚡ • E2E Encrypted WebSocket
-                                        </div>
-                                    </div>
-                                </div>
+                            {/* Flash Animation on Snapshot */}
+                            {isCapturing && (
+                                <div className="absolute inset-0 bg-white/40 z-30 pointer-events-none transition-opacity duration-300" />
+                            )}
 
-                                <div className="flex items-center gap-2">
-                                    <div className="uiverse-inset px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold text-orange-400">
-                                        14ms PING
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* 3D Convex Tool Switcher Tabs */}
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                                {[
-                                    { id: 'camera', label: 'Camera Stream', icon: Camera, color: 'text-cyan-400' },
-                                    { id: 'mic', label: 'Mic Audio', icon: Mic, color: 'text-purple-400' },
-                                    { id: 'vault', label: 'Media Vault', icon: ImageIcon, color: 'text-emerald-400' },
-                                    { id: 'sms', label: 'SMS Logs', icon: MessageSquare, color: 'text-rose-400' },
-                                ].map((tab) => {
-                                    const Icon = tab.icon;
-                                    const isActive = activeTool === tab.id;
-                                    return (
-                                        <button
-                                            key={tab.id}
-                                            type="button"
-                                            onClick={() => setActiveTool(tab.id as any)}
-                                            className={`p-3 rounded-2xl text-xs font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
-                                                isActive
-                                                    ? 'uiverse-btn-glow text-white font-black'
-                                                    : 'uiverse-btn-convex text-zinc-400 hover:text-white'
-                                            }`}
-                                        >
-                                            <Icon size={15} className={isActive ? 'text-white' : tab.color} />
-                                            <span>{tab.label}</span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Interactive Inset Viewport */}
-                            <div className="uiverse-inset p-4 sm:p-6 min-h-[200px] flex flex-col justify-center">
-                                {activeTool === 'camera' && (
-                                    <div className="flex flex-col sm:flex-row items-center justify-between gap-5">
-                                        <div className="space-y-2 text-center sm:text-left">
-                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-mono font-bold">
+                            {activeTool === 'camera' && (
+                                <div className="space-y-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <div>
+                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-mono font-bold mb-1">
                                                 <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
                                                 <span>OPTICAL FEED: 1080P RAW ACTIVE</span>
                                             </div>
-                                            <h4 className="text-base sm:text-lg font-black text-white">Live Dual Lens Viewfinder</h4>
-                                            <p className="text-xs text-zinc-400 max-w-sm">Capture instantaneous high-resolution photos and toggle between Front and Rear optics without target notification.</p>
+                                            <h4 className="text-base sm:text-lg font-black text-white">Dual Lens Real-Time Viewfinder</h4>
                                         </div>
-                                        <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
+
+                                        {/* Lens Switcher */}
+                                        <div className="flex items-center gap-2">
                                             <button
                                                 type="button"
-                                                onClick={() => setIsTorchOn(!isTorchOn)}
-                                                className={`px-4 py-2.5 rounded-xl text-xs font-mono font-bold uiverse-btn-convex flex items-center gap-2 cursor-pointer ${isTorchOn ? 'text-amber-300 border-amber-500/50' : 'text-zinc-400'}`}
+                                                onClick={() => {
+                                                    const next = cameraFacing === 'rear' ? 'front' : 'rear';
+                                                    setCameraFacing(next);
+                                                    setActionLog(`Switched optical sensor to: ${next.toUpperCase()} CAMERA.`);
+                                                }}
+                                                className="uiverse-btn-convex px-3 py-1.5 rounded-xl text-xs font-mono font-bold text-cyan-300 flex items-center gap-1.5 cursor-pointer"
                                             >
-                                                <span>Torch: {isTorchOn ? 'ON ⚡' : 'OFF'}</span>
-                                            </button>
-                                            <button 
-                                                type="button"
-                                                onClick={handleGoogleSignIn}
-                                                className="uiverse-btn-glow px-5 py-2.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider cursor-pointer"
-                                            >
-                                                Take Snapshot
+                                                <RefreshCw size={12} />
+                                                <span>Lens: {cameraFacing.toUpperCase()}</span>
                                             </button>
                                         </div>
                                     </div>
-                                )}
 
-                                {activeTool === 'mic' && (
-                                    <div className="flex flex-col sm:flex-row items-center justify-between gap-5">
-                                        <div className="space-y-2 text-center sm:text-left">
-                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-xs font-mono font-bold">
+                                    {/* Live Interactive Action Bar */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                                        <button
+                                            type="button"
+                                            onClick={triggerSnapshot}
+                                            className="uiverse-btn-glow p-3 rounded-2xl text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
+                                        >
+                                            <Camera size={16} />
+                                            <span>Capture Snapshot ({snapshotCount})</span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={toggleTorch}
+                                            className={`uiverse-btn-convex p-3 rounded-2xl text-xs font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
+                                                isTorchOn ? 'text-amber-300 border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'text-zinc-400'
+                                            }`}
+                                        >
+                                            <Flashlight size={16} className={isTorchOn ? 'text-amber-400' : ''} />
+                                            <span>Torch: {isTorchOn ? 'HIGH BEAM ON ⚡' : 'OFF'}</span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={triggerVibrationPulse}
+                                            className={`uiverse-btn-convex p-3 rounded-2xl text-xs font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
+                                                isVibrating ? 'text-orange-300 border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.4)] animate-bounce' : 'text-zinc-400'
+                                            }`}
+                                        >
+                                            <Vibrate size={16} />
+                                            <span>{isVibrating ? 'Pulsing Device...' : 'Send Haptic Pulse'}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTool === 'mic' && (
+                                <div className="space-y-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <div>
+                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-xs font-mono font-bold mb-1">
                                                 <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-                                                <span>48KHZ STEREO LISTENING</span>
+                                                <span>48KHZ STEREO LISTENING ACTIVE</span>
                                             </div>
                                             <h4 className="text-base sm:text-lg font-black text-white">Ambient Microphone Interceptor</h4>
-                                            <p className="text-xs text-zinc-400 max-w-sm">High-clarity ambient audio streaming with VoIP call routing bypass and background cloud recorder.</p>
                                         </div>
-                                        <button 
+
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-mono text-purple-300 font-bold px-3 py-1 rounded-xl uiverse-inset">
+                                                VoIP Bypassed
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Real Soundwave Bars */}
+                                    <div className="flex items-center gap-1.5 h-10 px-3 rounded-2xl uiverse-inset overflow-hidden">
+                                        {[45, 80, 60, 95, 30, 70, 100, 85, 40, 65, 90, 75, 50, 85, 95, 60, 40, 70, 90, 80, 55, 65, 100, 70].map((h, i) => (
+                                            <div
+                                                key={i}
+                                                className="flex-1 bg-gradient-to-t from-purple-600 via-indigo-500 to-cyan-400 rounded-full transition-all duration-200"
+                                                style={{ height: isMicStreaming ? `${h}%` : '15%' }}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    <div className="flex flex-col sm:flex-row items-center gap-3 pt-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const next = !isMicStreaming;
+                                                setIsMicStreaming(next);
+                                                setActionLog(next ? 'Live Audio Stream resumed.' : 'Live Audio Stream paused.');
+                                            }}
+                                            className="uiverse-btn-convex w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-2 cursor-pointer text-purple-300"
+                                        >
+                                            <Volume2 size={15} />
+                                            <span>{isMicStreaming ? 'Pause Audio Stream' : 'Resume Audio Stream'}</span>
+                                        </button>
+
+                                        <button
                                             type="button"
                                             onClick={handleGoogleSignIn}
-                                            className="uiverse-btn-glow px-6 py-3 rounded-xl text-xs font-mono font-black uppercase tracking-wider cursor-pointer shrink-0"
+                                            className="uiverse-btn-glow w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider cursor-pointer"
                                         >
-                                            Listen Live Audio
+                                            Open Audio Vault
                                         </button>
                                     </div>
-                                )}
+                                </div>
+                            )}
 
-                                {activeTool === 'vault' && (
-                                    <div className="flex flex-col sm:flex-row items-center justify-between gap-5">
-                                        <div className="space-y-2 text-center sm:text-left">
-                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-mono font-bold">
+                            {activeTool === 'vault' && (
+                                <div className="space-y-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <div>
+                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-mono font-bold mb-1">
                                                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                                                <span>4,218 MEDIA FILES SYNCED</span>
+                                                <span>4,218 MEDIA FILES SYNCED & SECURED</span>
                                             </div>
                                             <h4 className="text-base sm:text-lg font-black text-white">Full Gallery Vault & Export</h4>
-                                            <p className="text-xs text-zinc-400 max-w-sm">Browse high-res pictures, 4K videos, hidden screenshots, and trigger bulk ZIP extractions in one click.</p>
                                         </div>
-                                        <button 
-                                            type="button"
-                                            onClick={handleGoogleSignIn}
-                                            className="uiverse-btn-glow px-6 py-3 rounded-xl text-xs font-mono font-black uppercase tracking-wider cursor-pointer shrink-0"
-                                        >
-                                            Open Vault
-                                        </button>
-                                    </div>
-                                )}
 
-                                {activeTool === 'sms' && (
-                                    <div className="flex flex-col sm:flex-row items-center justify-between gap-5">
-                                        <div className="space-y-2 text-center sm:text-left">
-                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-mono font-bold">
+                                        <span className="text-xs font-mono text-emerald-400 font-bold px-3 py-1 rounded-xl uiverse-inset">
+                                            100% EXIF Data
+                                        </span>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                                        {[
+                                            { title: 'DCIM Photos', count: '2,842 files', size: '14.2 GB' },
+                                            { title: '4K Videos', count: '184 files', size: '38.6 GB' },
+                                            { title: 'WhatsApp Media', count: '1,120 files', size: '6.4 GB' },
+                                            { title: 'Hidden Screenshots', count: '72 files', size: '420 MB' },
+                                        ].map((cat, idx) => (
+                                            <div key={idx} className="uiverse-card p-3 space-y-1">
+                                                <div className="text-xs font-black text-white truncate">{cat.title}</div>
+                                                <div className="text-[10px] font-mono text-emerald-400">{cat.count}</div>
+                                                <div className="text-[9px] font-mono text-white/40">{cat.size}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleGoogleSignIn}
+                                        className="uiverse-btn-glow w-full py-3 rounded-xl text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
+                                    >
+                                        <Download size={14} />
+                                        <span>Download Bulk ZIP Archive</span>
+                                    </button>
+                                </div>
+                            )}
+
+                            {activeTool === 'sms' && (
+                                <div className="space-y-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <div>
+                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-mono font-bold mb-1">
                                                 <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
-                                                <span>SMS & OTP CAPTURE STREAM</span>
+                                                <span>SMS & OTP CAPTURE STREAM ACTIVE</span>
                                             </div>
                                             <h4 className="text-base sm:text-lg font-black text-white">Real-Time SMS & Chat Logs</h4>
-                                            <p className="text-xs text-zinc-400 max-w-sm">Capture all incoming verification codes, banking OTPs, and private text conversations live as they arrive.</p>
                                         </div>
-                                        <button 
-                                            type="button"
-                                            onClick={handleGoogleSignIn}
-                                            className="uiverse-btn-glow px-6 py-3 rounded-xl text-xs font-mono font-black uppercase tracking-wider cursor-pointer shrink-0"
-                                        >
-                                            View SMS Feed
-                                        </button>
+
+                                        <span className="text-xs font-mono text-rose-400 font-bold px-3 py-1 rounded-xl uiverse-inset">
+                                            Live Relay
+                                        </span>
                                     </div>
-                                )}
+
+                                    <div className="space-y-2">
+                                        {[
+                                            { from: 'Bank Verification', text: 'Your 2FA OTP code is 849201. Valid for 5 minutes.', time: 'Just now' },
+                                            { from: '+1 (555) 382-9910', text: 'Package delivery has been confirmed at address.', time: '2m ago' },
+                                        ].map((msg, idx) => (
+                                            <div key={idx} className="uiverse-card p-3 flex items-center justify-between gap-3">
+                                                <div className="min-w-0">
+                                                    <div className="text-xs font-black text-white">{msg.from}</div>
+                                                    <div className="text-[11px] text-zinc-300 truncate">{msg.text}</div>
+                                                </div>
+                                                <div className="text-[10px] font-mono text-rose-400 shrink-0">{msg.time}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleGoogleSignIn}
+                                        className="uiverse-btn-glow w-full py-3 rounded-xl text-xs font-mono font-black uppercase tracking-wider cursor-pointer"
+                                    >
+                                        View Full SMS History
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Live Action Output Bar */}
+                            <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-white/50">
+                                <div className="flex items-center gap-2 truncate">
+                                    <Terminal size={13} className="text-orange-400 shrink-0" />
+                                    <span className="text-zinc-300 truncate">{actionLog}</span>
+                                </div>
+                                <span className="text-emerald-400 font-bold hidden sm:inline shrink-0">RELAY OK</span>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                {/* 4. 6 Core 3D Tactile Modules Grid */}
-                <section className="py-14 sm:py-20 px-4 sm:px-6 bg-[#0a0c10] border-t border-white/5">
-                    <div className="max-w-6xl mx-auto space-y-10">
+                {/* 4. Interactive Live Security & Stealth Switchboard */}
+                <section className="py-12 sm:py-16 px-4 sm:px-6 max-w-5xl mx-auto space-y-8">
+                    <div className="text-center space-y-2">
+                        <div className="inline-block px-3.5 py-1 rounded-full uiverse-inset text-[10px] font-mono font-black uppercase tracking-wider text-orange-400">
+                            HARDWARE DEFENSE
+                        </div>
+                        <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+                            Stealth & Security Switchboard
+                        </h2>
+                        <p className="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto">
+                            Toggle client stealth modes and background watchdog daemons in real-time.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         
-                        <div className="text-center space-y-2">
-                            <div className="inline-block px-3.5 py-1 rounded-full uiverse-inset text-[10px] font-mono font-black uppercase tracking-wider text-orange-400">
-                                COMMAND MODULES
+                        {/* Stealth Switch 1 */}
+                        <div className="uiverse-card p-5 sm:p-6 flex items-center justify-between gap-4">
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <EyeOff size={18} className="text-emerald-400" />
+                                    <h3 className="text-sm sm:text-base font-black text-white">100% Zero-Icon Cloaking</h3>
+                                </div>
+                                <p className="text-xs text-zinc-400">Hides the app launcher icon from the target home screen.</p>
                             </div>
-                            <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-                                Built for Complete Control
-                            </h2>
-                            <p className="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto">
-                                Low-level Android sensor exfiltration and hardware control in pure 3D neumorphic perfection.
-                            </p>
+                            
+                            {/* Live Toggle Switch */}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const next = !isStealthCloaked;
+                                    setIsStealthCloaked(next);
+                                    setActionLog(next ? 'Icon cloaking enabled: App is invisible.' : 'Icon cloaking disabled.');
+                                }}
+                                className="w-14 h-8 rounded-full uiverse-switch p-1 flex items-center cursor-pointer transition-colors shrink-0"
+                            >
+                                <div 
+                                    className={`w-6 h-6 rounded-full transition-transform ${
+                                        isStealthCloaked ? 'translate-x-6 uiverse-toggle-knob-active' : 'translate-x-0 uiverse-toggle-knob'
+                                    }`}
+                                />
+                            </button>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                            {modules.map((m) => {
-                                const Icon = m.icon;
-                                return (
-                                    <div 
-                                        key={m.id}
-                                        className="uiverse-card p-6 flex flex-col justify-between group"
-                                    >
-                                        <div>
-                                            <div className="flex items-center justify-between mb-4">
-                                                <div 
-                                                    className="uiverse-icon-convex w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105"
-                                                    style={{ color: m.accent }}
-                                                >
-                                                    <Icon size={22} />
-                                                </div>
-                                                <span className="uiverse-inset px-2.5 py-1 rounded-xl text-[9px] font-mono font-black text-white/50 uppercase tracking-wider">
-                                                    {m.badge}
-                                                </span>
-                                            </div>
+                        {/* Stealth Switch 2 */}
+                        <div className="uiverse-card p-5 sm:p-6 flex items-center justify-between gap-4">
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <Activity size={18} className="text-cyan-400" />
+                                    <h3 className="text-sm sm:text-base font-black text-white">Watchdog Auto-Restart</h3>
+                                </div>
+                                <p className="text-xs text-zinc-400">Prevents OS battery task killers from ending background sync.</p>
+                            </div>
 
-                                            <h3 className="text-base font-black text-white mb-1.5 tracking-tight group-hover:text-orange-300 transition-colors">
-                                                {m.title}
-                                            </h3>
-                                            <p className="text-xs text-zinc-400 leading-relaxed font-medium">
-                                                {m.desc}
-                                            </p>
-                                        </div>
+                            <span className="px-3 py-1 rounded-full uiverse-inset text-xs font-mono font-bold text-cyan-400 shrink-0">
+                                ACTIVE
+                            </span>
+                        </div>
 
-                                        <div className="pt-4 mt-4 border-t border-white/5 flex items-center justify-between text-[10px] font-mono text-white/30 group-hover:text-orange-400 transition-colors">
-                                            <span>Hardware Verified</span>
-                                            <ChevronRight size={14} />
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                        {/* Stealth Switch 3 */}
+                        <div className="uiverse-card p-5 sm:p-6 flex items-center justify-between gap-4">
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <Lock size={18} className="text-amber-400" />
+                                    <h3 className="text-sm sm:text-base font-black text-white">AES-256 E2E Encryption</h3>
+                                </div>
+                                <p className="text-xs text-zinc-400">All payloads are encrypted with hardware keys in transit.</p>
+                            </div>
+
+                            <span className="px-3 py-1 rounded-full uiverse-inset text-xs font-mono font-bold text-amber-400 shrink-0">
+                                SECURED
+                            </span>
+                        </div>
+
+                        {/* Stealth Switch 4 */}
+                        <div className="uiverse-card p-5 sm:p-6 flex items-center justify-between gap-4">
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <ShieldAlert size={18} className="text-purple-400" />
+                                    <h3 className="text-sm sm:text-base font-black text-white">Zero Root Access</h3>
+                                </div>
+                                <p className="text-xs text-zinc-400">Runs smoothly on standard Android 7 through Android 15.</p>
+                            </div>
+
+                            <span className="px-3 py-1 rounded-full uiverse-inset text-xs font-mono font-bold text-purple-400 shrink-0">
+                                COMPATIBLE
+                            </span>
                         </div>
                     </div>
                 </section>
 
                 {/* 5. 3-Step Setup Flow (3D Convex Cards) */}
-                <section className="py-14 sm:py-20 px-4 sm:px-6 max-w-5xl mx-auto space-y-10">
+                <section className="py-12 sm:py-16 px-4 sm:px-6 max-w-5xl mx-auto space-y-8">
                     <div className="text-center space-y-2">
                         <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
                             Simple 3-Step Deployment
@@ -405,7 +544,7 @@ export default function LoginPage() {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {[
                             { num: '01', title: 'Generate Custom APK', desc: 'Build your stealth binary with custom app name and icon.' },
                             { num: '02', title: 'One-Time Device Install', desc: 'Install payload on endpoint and grant permissions in 30 seconds.' },
