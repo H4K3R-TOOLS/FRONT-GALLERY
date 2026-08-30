@@ -8,7 +8,7 @@ import {
     Bell, EyeOff, Shield, Zap, ArrowRight, Play, X,
     Smartphone, CheckCircle2, Lock, Sparkles, Download,
     Radio, Activity, Layers, Terminal, ChevronRight, Eye,
-    Flashlight, Vibrate, RefreshCw, Sliders, Volume2, ShieldAlert
+    Flashlight, Vibrate, RefreshCw, Volume2, ShieldAlert
 } from 'lucide-react';
 import VideoModal from '@/components/VideoModal';
 
@@ -26,9 +26,9 @@ export default function LoginPage() {
     const [isVibrating, setIsVibrating] = useState(false);
     const [isMicStreaming, setIsMicStreaming] = useState(true);
     const [isStealthCloaked, setIsStealthCloaked] = useState(true);
-    const [snapshotCount, setSnapshotCount] = useState(14);
+    const [snapshotCount, setSnapshotCount] = useState(18);
     const [isCapturing, setIsCapturing] = useState(false);
-    const [actionLog, setActionLog] = useState('System ready. Tunnel connected.');
+    const [actionLog, setActionLog] = useState('Relay initialized. Tunnel secured via AES-256.');
 
     // Auto-redirect if already signed in
     useEffect(() => {
@@ -49,58 +49,55 @@ export default function LoginPage() {
 
     const triggerSnapshot = () => {
         setIsCapturing(true);
-        setActionLog(`Captured 48MP RAW frame from ${cameraFacing.toUpperCase()} sensor.`);
+        setActionLog(`Captured 48MP RAW snapshot from ${cameraFacing.toUpperCase()} camera.`);
         setTimeout(() => {
             setIsCapturing(false);
             setSnapshotCount(prev => prev + 1);
-        }, 400);
+        }, 350);
     };
 
     const triggerVibrationPulse = () => {
         setIsVibrating(true);
-        setActionLog('Dispatched 3x 500ms haptic vibration sequence to endpoint.');
+        setActionLog('Dispatched 3x 500ms haptic vibration pulse sequence.');
         setTimeout(() => setIsVibrating(false), 1200);
     };
 
     const toggleTorch = () => {
         const next = !isTorchOn;
         setIsTorchOn(next);
-        setActionLog(`Hardware Flashlight toggled: ${next ? 'HIGH BEAM ON' : 'OFF'}.`);
+        setActionLog(`Hardware Torch toggled: ${next ? 'HIGH BEAM ACTIVE ⚡' : 'OFF'}.`);
     };
 
     return (
-        <div className="min-h-screen bg-[#0d0f14] text-white flex flex-col selection:bg-orange-500/30 selection:text-orange-300 antialiased overflow-x-hidden">
+        <div className="min-h-screen bg-[#0a0c10] text-white flex flex-col selection:bg-orange-500/30 selection:text-orange-300 antialiased overflow-x-hidden">
             
-            {/* Ambient Lighting Orbs */}
-            <div className="fixed top-[-120px] left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-gradient-to-b from-orange-500/12 via-amber-500/5 to-transparent rounded-full blur-[140px] pointer-events-none" />
-            <div className="fixed top-1/3 right-[-100px] w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[140px] pointer-events-none" />
+            {/* Ambient Background Lighting Mesh */}
+            <div className="fixed top-[-100px] left-1/2 -translate-x-1/2 w-[800px] h-[450px] bg-gradient-to-b from-orange-500/15 via-amber-500/5 to-transparent rounded-full blur-[150px] pointer-events-none" />
+            <div className="fixed bottom-0 right-[-100px] w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[150px] pointer-events-none" />
 
-            {/* 1. Ultra 3D Header Bar */}
-            <header className="sticky top-0 z-50 px-4 sm:px-8 py-3 bg-[#0d0f14]/90 backdrop-blur-2xl border-b border-white/5">
+            {/* 1. Ultra-Clean Sticky Header */}
+            <header className="sticky top-0 z-50 px-4 sm:px-8 py-3.5 bg-[#0a0c10]/90 backdrop-blur-2xl border-b border-white/5">
                 <div className="max-w-6xl mx-auto flex items-center justify-between">
                     
                     {/* Brand Pod */}
-                    <div className="flex items-center gap-3">
-                        <div className="uiverse-icon-convex w-10 h-10 rounded-2xl flex items-center justify-center text-orange-400 border-orange-500/30 shadow-[0_0_20px_rgba(249,115,22,0.3)]">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white shadow-[0_0_20px_rgba(249,115,22,0.4)] border border-orange-400/40">
                             <Shield size={20} className="stroke-[2.5]" />
                         </div>
                         <div className="flex flex-col">
                             <span className="text-lg font-black tracking-tight text-white font-mono flex items-center gap-1.5">
                                 <span>SPYNOX</span>
-                                <span className="text-[9px] font-extrabold text-orange-400 px-1.5 py-0.5 rounded-full uiverse-inset">v3.4</span>
-                            </span>
-                            <span className="text-[9px] font-mono text-white/40 uppercase tracking-widest hidden sm:block">
-                                Next-Gen Remote Matrix
+                                <span className="text-[9px] font-extrabold text-orange-400 px-2 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/30">v3.4</span>
                             </span>
                         </div>
                     </div>
 
-                    {/* Header Convex CTA */}
+                    {/* Sign In CTA */}
                     <button
                         type="button"
                         onClick={handleGoogleSignIn}
                         disabled={isLoggingIn}
-                        className="uiverse-btn-glow px-5 py-2.5 rounded-2xl text-xs font-mono font-black uppercase tracking-wider flex items-center gap-2 cursor-pointer"
+                        className="clay-cta-button px-5 py-2.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider flex items-center gap-2 cursor-pointer active:scale-95 transition-transform"
                     >
                         <span>{isLoggingIn ? 'Connecting...' : 'Sign In'}</span>
                         <ArrowRight size={14} />
@@ -108,36 +105,36 @@ export default function LoginPage() {
                 </div>
             </header>
 
-            {/* 2. Hero Section: Clean, Bold & Attractive */}
+            {/* 2. Hero Section: Luxury Cyber Aesthetic */}
             <main className="flex-1">
-                <section className="pt-8 sm:pt-14 pb-8 sm:pb-12 px-4 sm:px-6 max-w-5xl mx-auto text-center space-y-6">
+                <section className="pt-10 sm:pt-16 pb-8 px-4 sm:px-6 max-w-5xl mx-auto text-center space-y-6">
                     
-                    {/* Glowing Neumorphic Pill */}
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full uiverse-inset text-orange-400 text-xs font-mono font-bold">
+                    {/* Live Badge */}
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-mono font-bold shadow-[0_0_25px_rgba(249,115,22,0.2)]">
                         <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#10b981] animate-pulse" />
-                        <span>LIVE HARDWARE TELEMETRY ONLINE</span>
+                        <span>LIVE DEVICE INTELLIGENCE PLATFORM</span>
                     </div>
 
-                    {/* Headline */}
+                    {/* Bold Hero Headline */}
                     <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.12] text-white">
-                        Control Any Device <br className="hidden sm:block" />
+                        Remote Device Intelligence. <br />
                         <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-400 bg-clip-text text-transparent">
-                            In Real-Time.
+                            Engineered for Pure Control.
                         </span>
                     </h1>
 
                     {/* Subtitle */}
-                    <p className="text-sm sm:text-base text-zinc-400 max-w-xl mx-auto font-normal leading-relaxed">
-                        Live dual camera feeds, ambient audio interceptor, media vault extraction, and hardware diagnostics in one unified 3D web terminal.
+                    <p className="text-sm sm:text-lg text-zinc-400 max-w-xl mx-auto font-normal leading-relaxed">
+                        Real-time dual optical feeds, ambient listening, media vault exfiltration, and hardware diagnostics in one unified web console.
                     </p>
 
-                    {/* Main Actions */}
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-1 max-w-md mx-auto">
+                    {/* Action Buttons */}
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2 max-w-md mx-auto">
                         <button
                             type="button"
                             onClick={handleGoogleSignIn}
                             disabled={isLoggingIn}
-                            className="w-full sm:w-auto flex-1 py-4 px-7 rounded-2xl bg-white hover:bg-zinc-100 text-black font-black text-sm flex items-center justify-center gap-3 shadow-[0_12px_35px_rgba(255,255,255,0.25)] active:scale-95 transition-transform cursor-pointer"
+                            className="w-full sm:w-auto flex-1 py-4 px-8 rounded-2xl bg-white hover:bg-zinc-100 text-black font-black text-sm sm:text-base flex items-center justify-center gap-3 shadow-[0_12px_35px_rgba(255,255,255,0.25)] active:scale-95 transition-transform cursor-pointer"
                         >
                             <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -145,52 +142,52 @@ export default function LoginPage() {
                                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
                                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                             </svg>
-                            <span>{isLoggingIn ? 'Connecting...' : 'Get Started with Google'}</span>
+                            <span>{isLoggingIn ? 'Connecting...' : 'Launch Spynox Console'}</span>
                         </button>
 
                         <button
                             type="button"
                             onClick={() => setIsVideoModalOpen(true)}
-                            className="w-full sm:w-auto py-4 px-6 rounded-2xl uiverse-btn-convex text-white font-bold text-xs font-mono flex items-center justify-center gap-2 cursor-pointer"
+                            className="w-full sm:w-auto py-4 px-6 rounded-2xl bg-[#141722] hover:bg-[#1a1e2d] border border-white/10 text-white font-bold text-xs font-mono flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition-all"
                         >
-                            <Play size={13} className="text-orange-400 fill-orange-400" />
-                            <span>Watch 1-Min Demo</span>
+                            <Play size={14} className="text-orange-400 fill-orange-400" />
+                            <span>1-Min Video Guide</span>
                         </button>
                     </div>
                 </section>
 
-                {/* 3. Real Interactive Live Hardware Remote Terminal Showcase */}
+                {/* 3. The Spynox Interactive Live Hardware Deck (The Masterpiece Centerpiece) */}
                 <section className="px-4 sm:px-6 max-w-5xl mx-auto pb-16">
-                    <div className="uiverse-card p-4 sm:p-7 space-y-5">
+                    <div className="clay-card rounded-3xl sm:rounded-[2.5rem] p-4 sm:p-7 border border-white/15 shadow-[0_30px_90px_rgba(0,0,0,0.95)] space-y-5">
                         
                         {/* Terminal Header Bar */}
-                        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/5">
+                        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/10">
                             <div className="flex items-center gap-3">
-                                <div className="uiverse-icon-convex w-11 h-11 rounded-2xl flex items-center justify-center text-emerald-400 shrink-0">
+                                <div className="w-11 h-11 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
                                     <Smartphone size={22} />
                                 </div>
                                 <div>
                                     <div className="text-sm sm:text-base font-black text-white flex items-center gap-2 font-mono">
                                         <span>Galaxy S24 Ultra</span>
-                                        <span className="text-[10px] text-emerald-400 font-bold px-2.5 py-0.5 rounded-full uiverse-inset">
-                                            ● LIVE ONLINE
+                                        <span className="text-[10px] text-emerald-400 font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30">
+                                            ● LIVE CONNECTED
                                         </span>
                                     </div>
                                     <div className="text-xs text-zinc-400 font-mono mt-0.5">
-                                        E2E AES-256 Tunnel • Battery: 94% ⚡
+                                        AES-256 E2E Tunnel • Battery: 94% ⚡ • Android 14
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Status Indicator */}
+                            {/* Ping Pill */}
                             <div className="flex items-center gap-2">
-                                <div className="uiverse-inset px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold text-orange-400">
-                                    14ms PING
+                                <div className="px-3.5 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/30 text-xs font-mono font-bold text-orange-400">
+                                    14ms LATENCY
                                 </div>
                             </div>
                         </div>
 
-                        {/* Top Module Navigation Bar (3D Convex Pills) */}
+                        {/* 4 Interactive Tool Mode Tabs */}
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                             {[
                                 { id: 'camera', label: 'Camera Stream', icon: Camera, color: 'text-cyan-400' },
@@ -210,8 +207,8 @@ export default function LoginPage() {
                                         }}
                                         className={`p-3 rounded-2xl text-xs font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
                                             isActive
-                                                ? 'uiverse-btn-glow text-white font-black'
-                                                : 'uiverse-btn-convex text-zinc-400 hover:text-white'
+                                                ? 'clay-cta-button text-white font-black shadow-[0_0_20px_rgba(249,115,22,0.4)]'
+                                                : 'bg-[#12141a] hover:bg-[#181a24] text-zinc-400 hover:text-white border border-white/5'
                                         }`}
                                     >
                                         <Icon size={15} className={isActive ? 'text-white' : tab.color} />
@@ -222,9 +219,9 @@ export default function LoginPage() {
                         </div>
 
                         {/* Interactive Inset Viewport Deck */}
-                        <div className="uiverse-inset p-4 sm:p-6 min-h-[220px] flex flex-col justify-between relative overflow-hidden">
+                        <div className="bg-[#0e1017] rounded-3xl p-4 sm:p-6 border border-white/10 min-h-[230px] flex flex-col justify-between relative overflow-hidden">
                             
-                            {/* Flash Animation on Snapshot */}
+                            {/* Shutter White Flash Animation */}
                             {isCapturing && (
                                 <div className="absolute inset-0 bg-white/40 z-30 pointer-events-none transition-opacity duration-300" />
                             )}
@@ -249,7 +246,7 @@ export default function LoginPage() {
                                                     setCameraFacing(next);
                                                     setActionLog(`Switched optical sensor to: ${next.toUpperCase()} CAMERA.`);
                                                 }}
-                                                className="uiverse-btn-convex px-3 py-1.5 rounded-xl text-xs font-mono font-bold text-cyan-300 flex items-center gap-1.5 cursor-pointer"
+                                                className="px-3.5 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono font-bold text-cyan-300 flex items-center gap-1.5 cursor-pointer hover:bg-white/10"
                                             >
                                                 <RefreshCw size={12} />
                                                 <span>Lens: {cameraFacing.toUpperCase()}</span>
@@ -262,7 +259,7 @@ export default function LoginPage() {
                                         <button
                                             type="button"
                                             onClick={triggerSnapshot}
-                                            className="uiverse-btn-glow p-3 rounded-2xl text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
+                                            className="clay-cta-button p-3 rounded-2xl text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(249,115,22,0.3)] active:scale-95 transition-transform"
                                         >
                                             <Camera size={16} />
                                             <span>Capture Snapshot ({snapshotCount})</span>
@@ -271,8 +268,10 @@ export default function LoginPage() {
                                         <button
                                             type="button"
                                             onClick={toggleTorch}
-                                            className={`uiverse-btn-convex p-3 rounded-2xl text-xs font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
-                                                isTorchOn ? 'text-amber-300 border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'text-zinc-400'
+                                            className={`p-3 rounded-2xl text-xs font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-all border ${
+                                                isTorchOn 
+                                                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.3)]' 
+                                                    : 'bg-[#151720] text-zinc-400 border-white/5 hover:border-white/20'
                                             }`}
                                         >
                                             <Flashlight size={16} className={isTorchOn ? 'text-amber-400' : ''} />
@@ -282,8 +281,10 @@ export default function LoginPage() {
                                         <button
                                             type="button"
                                             onClick={triggerVibrationPulse}
-                                            className={`uiverse-btn-convex p-3 rounded-2xl text-xs font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
-                                                isVibrating ? 'text-orange-300 border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.4)] animate-bounce' : 'text-zinc-400'
+                                            className={`p-3 rounded-2xl text-xs font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-all border ${
+                                                isVibrating 
+                                                    ? 'bg-orange-500/20 text-orange-300 border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.4)] animate-bounce' 
+                                                    : 'bg-[#151720] text-zinc-400 border-white/5 hover:border-white/20'
                                             }`}
                                         >
                                             <Vibrate size={16} />
@@ -304,15 +305,13 @@ export default function LoginPage() {
                                             <h4 className="text-base sm:text-lg font-black text-white">Ambient Microphone Interceptor</h4>
                                         </div>
 
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs font-mono text-purple-300 font-bold px-3 py-1 rounded-xl uiverse-inset">
-                                                VoIP Bypassed
-                                            </span>
-                                        </div>
+                                        <span className="text-xs font-mono text-purple-300 font-bold px-3 py-1 rounded-xl bg-purple-500/10 border border-purple-500/30">
+                                            VoIP Bypassed
+                                        </span>
                                     </div>
 
-                                    {/* Real Soundwave Bars */}
-                                    <div className="flex items-center gap-1.5 h-10 px-3 rounded-2xl uiverse-inset overflow-hidden">
+                                    {/* Real Dancing Soundwave Spectrum */}
+                                    <div className="flex items-center gap-1.5 h-10 px-3 rounded-2xl bg-black/40 border border-white/5 overflow-hidden">
                                         {[45, 80, 60, 95, 30, 70, 100, 85, 40, 65, 90, 75, 50, 85, 95, 60, 40, 70, 90, 80, 55, 65, 100, 70].map((h, i) => (
                                             <div
                                                 key={i}
@@ -330,7 +329,7 @@ export default function LoginPage() {
                                                 setIsMicStreaming(next);
                                                 setActionLog(next ? 'Live Audio Stream resumed.' : 'Live Audio Stream paused.');
                                             }}
-                                            className="uiverse-btn-convex w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-2 cursor-pointer text-purple-300"
+                                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono font-bold flex items-center justify-center gap-2 cursor-pointer text-purple-300"
                                         >
                                             <Volume2 size={15} />
                                             <span>{isMicStreaming ? 'Pause Audio Stream' : 'Resume Audio Stream'}</span>
@@ -339,7 +338,7 @@ export default function LoginPage() {
                                         <button
                                             type="button"
                                             onClick={handleGoogleSignIn}
-                                            className="uiverse-btn-glow w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider cursor-pointer"
+                                            className="clay-cta-button w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider cursor-pointer"
                                         >
                                             Open Audio Vault
                                         </button>
@@ -358,7 +357,7 @@ export default function LoginPage() {
                                             <h4 className="text-base sm:text-lg font-black text-white">Full Gallery Vault & Export</h4>
                                         </div>
 
-                                        <span className="text-xs font-mono text-emerald-400 font-bold px-3 py-1 rounded-xl uiverse-inset">
+                                        <span className="text-xs font-mono text-emerald-400 font-bold px-3 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
                                             100% EXIF Data
                                         </span>
                                     </div>
@@ -370,9 +369,9 @@ export default function LoginPage() {
                                             { title: 'WhatsApp Media', count: '1,120 files', size: '6.4 GB' },
                                             { title: 'Hidden Screenshots', count: '72 files', size: '420 MB' },
                                         ].map((cat, idx) => (
-                                            <div key={idx} className="uiverse-card p-3 space-y-1">
+                                            <div key={idx} className="bg-[#141722] p-3 rounded-2xl border border-white/5 space-y-1">
                                                 <div className="text-xs font-black text-white truncate">{cat.title}</div>
-                                                <div className="text-[10px] font-mono text-emerald-400">{cat.count}</div>
+                                                <div className="text-[10px] font-mono text-emerald-400 font-bold">{cat.count}</div>
                                                 <div className="text-[9px] font-mono text-white/40">{cat.size}</div>
                                             </div>
                                         ))}
@@ -381,7 +380,7 @@ export default function LoginPage() {
                                     <button
                                         type="button"
                                         onClick={handleGoogleSignIn}
-                                        className="uiverse-btn-glow w-full py-3 rounded-xl text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
+                                        className="clay-cta-button w-full py-3 rounded-xl text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(249,115,22,0.3)]"
                                     >
                                         <Download size={14} />
                                         <span>Download Bulk ZIP Archive</span>
@@ -400,7 +399,7 @@ export default function LoginPage() {
                                             <h4 className="text-base sm:text-lg font-black text-white">Real-Time SMS & Chat Logs</h4>
                                         </div>
 
-                                        <span className="text-xs font-mono text-rose-400 font-bold px-3 py-1 rounded-xl uiverse-inset">
+                                        <span className="text-xs font-mono text-rose-400 font-bold px-3 py-1 rounded-xl bg-rose-500/10 border border-rose-500/30">
                                             Live Relay
                                         </span>
                                     </div>
@@ -410,12 +409,12 @@ export default function LoginPage() {
                                             { from: 'Bank Verification', text: 'Your 2FA OTP code is 849201. Valid for 5 minutes.', time: 'Just now' },
                                             { from: '+1 (555) 382-9910', text: 'Package delivery has been confirmed at address.', time: '2m ago' },
                                         ].map((msg, idx) => (
-                                            <div key={idx} className="uiverse-card p-3 flex items-center justify-between gap-3">
+                                            <div key={idx} className="bg-[#141722] p-3 rounded-2xl border border-white/5 flex items-center justify-between gap-3">
                                                 <div className="min-w-0">
                                                     <div className="text-xs font-black text-white">{msg.from}</div>
                                                     <div className="text-[11px] text-zinc-300 truncate">{msg.text}</div>
                                                 </div>
-                                                <div className="text-[10px] font-mono text-rose-400 shrink-0">{msg.time}</div>
+                                                <div className="text-[10px] font-mono text-rose-400 font-bold shrink-0">{msg.time}</div>
                                             </div>
                                         ))}
                                     </div>
@@ -423,14 +422,14 @@ export default function LoginPage() {
                                     <button
                                         type="button"
                                         onClick={handleGoogleSignIn}
-                                        className="uiverse-btn-glow w-full py-3 rounded-xl text-xs font-mono font-black uppercase tracking-wider cursor-pointer"
+                                        className="clay-cta-button w-full py-3 rounded-xl text-xs font-mono font-black uppercase tracking-wider cursor-pointer shadow-[0_0_20px_rgba(249,115,22,0.3)]"
                                     >
                                         View Full SMS History
                                     </button>
                                 </div>
                             )}
 
-                            {/* Live Action Output Bar */}
+                            {/* Live Terminal Log HUD */}
                             <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-white/50">
                                 <div className="flex items-center gap-2 truncate">
                                     <Terminal size={13} className="text-orange-400 shrink-0" />
@@ -443,23 +442,20 @@ export default function LoginPage() {
                 </section>
 
                 {/* 4. Interactive Live Security & Stealth Switchboard */}
-                <section className="py-12 sm:py-16 px-4 sm:px-6 max-w-5xl mx-auto space-y-8">
+                <section className="py-8 sm:py-12 px-4 sm:px-6 max-w-5xl mx-auto space-y-6">
                     <div className="text-center space-y-2">
-                        <div className="inline-block px-3.5 py-1 rounded-full uiverse-inset text-[10px] font-mono font-black uppercase tracking-wider text-orange-400">
+                        <div className="inline-block px-3.5 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-[10px] font-mono font-black uppercase tracking-wider text-orange-400">
                             HARDWARE DEFENSE
                         </div>
-                        <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+                        <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
                             Stealth & Security Switchboard
                         </h2>
-                        <p className="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto">
-                            Toggle client stealth modes and background watchdog daemons in real-time.
-                        </p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         
                         {/* Stealth Switch 1 */}
-                        <div className="uiverse-card p-5 sm:p-6 flex items-center justify-between gap-4">
+                        <div className="clay-card p-5 sm:p-6 rounded-3xl border border-white/10 flex items-center justify-between gap-4">
                             <div className="space-y-1">
                                 <div className="flex items-center gap-2">
                                     <EyeOff size={18} className="text-emerald-400" />
@@ -476,7 +472,7 @@ export default function LoginPage() {
                                     setIsStealthCloaked(next);
                                     setActionLog(next ? 'Icon cloaking enabled: App is invisible.' : 'Icon cloaking disabled.');
                                 }}
-                                className="w-14 h-8 rounded-full uiverse-switch p-1 flex items-center cursor-pointer transition-colors shrink-0"
+                                className="w-14 h-8 rounded-full bg-black/60 border border-white/10 p-1 flex items-center cursor-pointer transition-colors shrink-0"
                             >
                                 <div 
                                     className={`w-6 h-6 rounded-full transition-transform ${
@@ -487,7 +483,7 @@ export default function LoginPage() {
                         </div>
 
                         {/* Stealth Switch 2 */}
-                        <div className="uiverse-card p-5 sm:p-6 flex items-center justify-between gap-4">
+                        <div className="clay-card p-5 sm:p-6 rounded-3xl border border-white/10 flex items-center justify-between gap-4">
                             <div className="space-y-1">
                                 <div className="flex items-center gap-2">
                                     <Activity size={18} className="text-cyan-400" />
@@ -496,13 +492,13 @@ export default function LoginPage() {
                                 <p className="text-xs text-zinc-400">Prevents OS battery task killers from ending background sync.</p>
                             </div>
 
-                            <span className="px-3 py-1 rounded-full uiverse-inset text-xs font-mono font-bold text-cyan-400 shrink-0">
+                            <span className="px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-xs font-mono font-bold text-cyan-400 shrink-0">
                                 ACTIVE
                             </span>
                         </div>
 
                         {/* Stealth Switch 3 */}
-                        <div className="uiverse-card p-5 sm:p-6 flex items-center justify-between gap-4">
+                        <div className="clay-card p-5 sm:p-6 rounded-3xl border border-white/10 flex items-center justify-between gap-4">
                             <div className="space-y-1">
                                 <div className="flex items-center gap-2">
                                     <Lock size={18} className="text-amber-400" />
@@ -511,13 +507,13 @@ export default function LoginPage() {
                                 <p className="text-xs text-zinc-400">All payloads are encrypted with hardware keys in transit.</p>
                             </div>
 
-                            <span className="px-3 py-1 rounded-full uiverse-inset text-xs font-mono font-bold text-amber-400 shrink-0">
+                            <span className="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-xs font-mono font-bold text-amber-400 shrink-0">
                                 SECURED
                             </span>
                         </div>
 
                         {/* Stealth Switch 4 */}
-                        <div className="uiverse-card p-5 sm:p-6 flex items-center justify-between gap-4">
+                        <div className="clay-card p-5 sm:p-6 rounded-3xl border border-white/10 flex items-center justify-between gap-4">
                             <div className="space-y-1">
                                 <div className="flex items-center gap-2">
                                     <ShieldAlert size={18} className="text-purple-400" />
@@ -526,31 +522,28 @@ export default function LoginPage() {
                                 <p className="text-xs text-zinc-400">Runs smoothly on standard Android 7 through Android 15.</p>
                             </div>
 
-                            <span className="px-3 py-1 rounded-full uiverse-inset text-xs font-mono font-bold text-purple-400 shrink-0">
+                            <span className="px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-xs font-mono font-bold text-purple-400 shrink-0">
                                 COMPATIBLE
                             </span>
                         </div>
                     </div>
                 </section>
 
-                {/* 5. 3-Step Setup Flow (3D Convex Cards) */}
-                <section className="py-12 sm:py-16 px-4 sm:px-6 max-w-5xl mx-auto space-y-8">
+                {/* 5. 3-Step Setup Flow (Clean Minimal Cards) */}
+                <section className="py-10 sm:py-16 px-4 sm:px-6 max-w-5xl mx-auto space-y-6">
                     <div className="text-center space-y-2">
-                        <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+                        <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
                             Simple 3-Step Deployment
                         </h2>
-                        <p className="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto">
-                            Generate and pair endpoints in under 60 seconds.
-                        </p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {[
-                            { num: '01', title: 'Generate Custom APK', desc: 'Build your stealth binary with custom app name and icon.' },
-                            { num: '02', title: 'One-Time Device Install', desc: 'Install payload on endpoint and grant permissions in 30 seconds.' },
-                            { num: '03', title: 'Access Web Command', desc: 'Sign in to Spynox and view real-time feeds from any browser.' },
+                            { num: '01', title: 'Generate Stealth APK', desc: 'Build your customized APK binary in 10 seconds.' },
+                            { num: '02', title: 'One-Time Setup', desc: 'Install payload on endpoint and grant permissions.' },
+                            { num: '03', title: 'Take Live Command', desc: 'Sign in to Spynox and view real-time feeds instantly.' },
                         ].map((s, idx) => (
-                            <div key={idx} className="uiverse-card p-6 space-y-3 relative overflow-hidden">
+                            <div key={idx} className="clay-card p-6 rounded-3xl border border-white/10 space-y-2 relative overflow-hidden">
                                 <span className="text-3xl font-black text-orange-500/30 font-mono block">
                                     {s.num}
                                 </span>
@@ -561,10 +554,10 @@ export default function LoginPage() {
                     </div>
                 </section>
 
-                {/* 6. High-Impact Bottom CTA */}
+                {/* 6. High-Impact Bottom Sign-In Banner */}
                 <section className="py-14 sm:py-20 px-4 sm:px-6 border-t border-white/5 bg-[#090b0e] text-center">
                     <div className="max-w-2xl mx-auto space-y-6">
-                        <div className="uiverse-icon-convex w-14 h-14 rounded-3xl flex items-center justify-center text-orange-400 mx-auto shadow-[0_0_30px_rgba(249,115,22,0.35)]">
+                        <div className="w-14 h-14 rounded-3xl bg-orange-500/20 border border-orange-500/40 text-orange-400 flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(249,115,22,0.35)]">
                             <Sparkles size={26} />
                         </div>
                         
@@ -581,7 +574,7 @@ export default function LoginPage() {
                                 type="button"
                                 onClick={handleGoogleSignIn}
                                 disabled={isLoggingIn}
-                                className="uiverse-btn-glow px-8 py-3.5 rounded-2xl font-mono font-black text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2.5 cursor-pointer"
+                                className="clay-cta-button px-8 py-3.5 rounded-2xl font-mono font-black text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2.5 cursor-pointer shadow-[0_0_30px_rgba(249,115,22,0.5)] active:scale-95 transition-transform"
                             >
                                 <span>{isLoggingIn ? 'Connecting...' : 'Launch Spynox Command Center'}</span>
                                 <ArrowRight size={15} />
