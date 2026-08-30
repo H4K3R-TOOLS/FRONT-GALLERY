@@ -3,8 +3,8 @@
 import React from 'react';
 import { 
     Check, X, Shield, Zap, Crown, Building2, 
-    Sparkles, ArrowRight, Smartphone, MessageSquare, 
-    Bell, Camera, Mic, EyeOff, Download, Radio, Lock
+    ArrowRight, Smartphone, MessageSquare, 
+    Bell, Camera, Mic, EyeOff, Download, Radio, Sparkles
 } from 'lucide-react';
 
 interface PlansModalProps {
@@ -119,37 +119,21 @@ export default function PlansModal({ isOpen, onClose, currentPlan, userEmail, us
             onClick={onClose}
         >
             <div 
-                className="clay-card relative w-full max-w-6xl p-4 sm:p-7 rounded-[2.5rem] border border-white/10 shadow-[0_30px_100px_rgba(0,0,0,0.98)] max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-100"
+                className="clay-card relative w-full max-w-6xl p-4 sm:p-6 sm:pt-7 rounded-[2.5rem] border border-white/10 shadow-[0_30px_100px_rgba(0,0,0,0.98)] max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-100"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* 1. Header Bar (3D Tactile Pod) */}
-                <div className="clay-capsule p-3.5 sm:p-4 rounded-2xl flex items-center justify-between mb-4 sm:mb-6 border-white/10 shrink-0">
-                    <div className="flex items-center gap-3">
-                        <div className="clay-icon-pod w-11 h-11 rounded-2xl flex items-center justify-center text-orange-400 border-orange-500/40 shadow-[0_0_20px_rgba(249,115,22,0.3)]">
-                            <Sparkles size={20} />
-                        </div>
-                        <div>
-                            <h2 className="text-base sm:text-lg font-black text-white uppercase tracking-wider flex items-center gap-2">
-                                <span>Subscription Matrix</span>
-                            </h2>
-                            <p className="text-[10px] sm:text-[11px] text-white/40 font-mono">
-                                Expand multi-device fleet & unlock hardware sensors
-                            </p>
-                        </div>
-                    </div>
+                {/* Minimal Floating Close Button */}
+                <button
+                    type="button"
+                    onClick={onClose}
+                    className="clay-button-sm absolute top-4 right-4 sm:top-5 sm:right-5 w-9 h-9 rounded-xl flex items-center justify-center text-white/70 hover:text-white transition-all cursor-pointer z-20"
+                    title="Close Modal"
+                >
+                    <X size={16} />
+                </button>
 
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="clay-button-sm w-9 h-9 rounded-xl flex items-center justify-center text-white/70 hover:text-white transition-all cursor-pointer"
-                        title="Close Modal"
-                    >
-                        <X size={16} />
-                    </button>
-                </div>
-
-                {/* 2. Scrollable Plans Matrix (4 3D Clay Columns) */}
-                <div className="overflow-y-auto pr-1 custom-scrollbar space-y-4 sm:space-y-5 pb-2">
+                {/* Scrollable Plans Matrix (4 3D Clay Columns) */}
+                <div className="overflow-y-auto pr-1 custom-scrollbar pt-2 sm:pt-1 pb-1">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
                         {plans.map((plan) => {
                             const isActive = currentPlan === plan.id;
@@ -230,7 +214,6 @@ export default function PlansModal({ isOpen, onClose, currentPlan, userEmail, us
                                         {/* 3D Tactile Feature List (Every Item is a 3D Capsule) */}
                                         <div className="space-y-1.5 mb-4">
                                             {plan.features.map((f, i) => {
-                                                const FeatIcon = f.icon;
                                                 return (
                                                     <div 
                                                         key={i} 
@@ -289,17 +272,6 @@ export default function PlansModal({ isOpen, onClose, currentPlan, userEmail, us
                                 </div>
                             );
                         })}
-                    </div>
-
-                    {/* 3. Bottom 3D Telemetry HUD */}
-                    <div className="clay-coords-badge p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono font-bold text-white/60">
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981] animate-pulse shrink-0" />
-                            <span>Instant manual activation dispatch via encrypted WhatsApp desk</span>
-                        </div>
-                        <div className="clay-capsule px-3 py-1 rounded-xl text-[10px] text-orange-400 border-orange-500/30 shrink-0">
-                            24/7 SLA Priority Desk
-                        </div>
                     </div>
                 </div>
             </div>
