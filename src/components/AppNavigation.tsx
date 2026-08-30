@@ -528,7 +528,7 @@ export default function AppNavigation({
                         className="flex items-center shrink-0 group cursor-pointer active:scale-95 transition-transform focus:outline-none"
                     >
                         <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl shrink-0 aspect-square flex items-center justify-center relative overflow-hidden transition-all duration-300 group-hover:scale-105 border ${logoGlowClass}`}>
-                            <img src="/gallery-eye-logo.jpg" alt="Gallery Eye" className="w-full h-full object-cover z-10 block" />
+                            <img src="/gallery-eye-logo.jpg" alt="Spynox" className="w-full h-full object-cover z-10 block" />
                         </div>
                     </button>
 

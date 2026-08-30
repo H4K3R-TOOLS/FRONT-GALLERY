@@ -19,7 +19,7 @@ export default function PlansModal({ isOpen, onClose, currentPlan, userEmail, us
     if (!isOpen) return null;
 
     const getWhatsAppLink = (planName: string, price: string) => {
-        const msg = `🔐 *Gallery Eye — Plan Upgrade*\n\n📧 Email: ${userEmail}\n🆔 UUID: ${userUuid}\n📋 Plan: ${planName} (${price})\n\nI'd like to upgrade to the ${planName} plan. Please process my request! 🙏✨`;
+        const msg = `🔐 *Spynox — Plan Upgrade*\n\n📧 Email: ${userEmail}\n🆔 UUID: ${userUuid}\n📋 Plan: ${planName} (${price})\n\nI'd like to upgrade to the ${planName} plan. Please process my request! 🙏✨`;
         return `https://wa.me/923460257488?text=${encodeURIComponent(msg)}`;
     };
 

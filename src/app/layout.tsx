@@ -26,25 +26,25 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
     metadataBase: new URL('https://spynox.xyz'),
     title: {
-        default: 'Gallery Eye — Ultimate Remote Command Center & Device Control Suite',
-        template: '%s | Gallery Eye'
+        default: 'Spynox — Ultimate Remote Command Center & Device Intelligence Suite',
+        template: '%s | Spynox'
     },
-    description: 'All-in-one secure remote administration and command center. Manage Remote Camera, SMS Logs, Contacts, Audio Notes, Flashlight, Vibration, and Encrypted Vaults across all devices with equal precision and speed.',
+    description: 'All-in-one secure remote administration and telemetry center. Real-time Remote Camera, SMS Logs, Contacts, Live Audio, Flashlight, Vibration, and Encrypted Vaults across all connected endpoints.',
     keywords: [
-        'Gallery Eye', 'Spynox', 'Remote Command Center', 'Android Remote Access', 'Remote Camera Monitoring', 
+        'Spynox', 'Remote Command Center', 'Android Remote Access', 'Remote Camera Monitoring', 
         'Live Audio Recording', 'SMS Logs Management', 'Remote Contacts Vault', 'Flashlight Controller', 
         'Encrypted Media Vault', 'Device Telemetry Suite', 'Multi-Device Management', 'Secure Remote Suite'
     ],
-    authors: [{ name: 'Gallery Eye Team' }],
-    creator: 'Gallery Eye Security',
-    publisher: 'Gallery Eye Technologies',
-    applicationName: 'Gallery Eye Suite',
+    authors: [{ name: 'Spynox Team' }],
+    creator: 'Spynox Security',
+    publisher: 'Spynox Technologies',
+    applicationName: 'Spynox Suite',
     category: 'Technology & Security',
     alternates: {
         canonical: 'https://spynox.xyz',
         languages: {
             'en-US': 'https://spynox.xyz',
-            'x-default': 'https://h4k3r-gallery.vercel.app',
+            'x-default': 'https://spynox.xyz',
         },
     },
     robots: {
@@ -67,8 +67,8 @@ export const metadata: Metadata = {
         type: 'website',
         locale: 'en_US',
         url: 'https://spynox.xyz',
-        siteName: 'Gallery Eye Command Suite',
-        title: 'Gallery Eye — Ultimate Remote Command Center & All-in-One Suite',
+        siteName: 'Spynox Command Suite',
+        title: 'Spynox — Ultimate Remote Command Center & All-in-One Suite',
         description: 'Complete remote administration across all endpoints: Remote Camera, SMS Logs, Contacts, Live Audio Notes, Flashlight, and Encrypted Media Vault.',
         images: [
             {
@@ -76,16 +76,16 @@ export const metadata: Metadata = {
                 width: 1200,
                 height: 630,
                 type: 'image/jpeg',
-                alt: 'Gallery Eye Command Center — Remote Camera, SMS, Audio, Contacts & Media Suite',
+                alt: 'Spynox Command Center — Remote Camera, SMS, Audio, Contacts & Media Suite',
             }
         ],
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Gallery Eye — Ultimate Remote Command Center Suite',
+        title: 'Spynox — Ultimate Remote Command Center Suite',
         description: 'Manage Remote Camera, SMS Logs, Contacts, Audio Notes, Flashlight, and Encrypted Media Vault across all connected devices.',
         images: ['/og-image.jpg'],
-        creator: '@galleryeye_app',
+        creator: '@spynox_app',
     },
 }
 
@@ -110,7 +110,7 @@ export default async function RootLayout({
                         __html: JSON.stringify({
                             "@context": "https://schema.org",
                             "@type": "WebApplication",
-                            "name": "Gallery Eye Command Center",
+                            "name": "Spynox Command Center",
                             "url": "https://spynox.xyz",
                             "applicationCategory": "SecurityApplication, UtilitiesApplication",
                             "operatingSystem": "Android, Web, Windows, iOS, macOS",
@@ -124,7 +124,7 @@ export default async function RootLayout({
                             },
                             "author": {
                                 "@type": "Organization",
-                                "name": "Gallery Eye Security & Sync",
+                                "name": "Spynox Security & Sync",
                                 "url": "https://spynox.xyz"
                             },
                             "aggregateRating": {

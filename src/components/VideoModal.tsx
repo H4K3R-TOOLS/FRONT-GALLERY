@@ -121,7 +121,7 @@ const VideoModal = ({ videoId, label = "Watch Tutorial", variant = 'thumbnail' }
                         <div className="px-5 sm:px-7 py-3 border-t border-white/5 bg-black/40 flex items-center justify-between text-[11px] font-mono text-white/40">
                             <span className="flex items-center gap-1.5 text-rose-300">
                                 <Film size={13} />
-                                <span>Gallery Eye Setup Walkthrough</span>
+                                <span>Spynox Setup Walkthrough</span>
                             </span>
                             <span>High-Definition • 1080p</span>
                         </div>
