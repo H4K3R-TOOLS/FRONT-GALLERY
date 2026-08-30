@@ -26,10 +26,10 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
     metadataBase: new URL('https://spynox.xyz'),
     title: {
-        default: 'Spynox — Ultimate Remote Command Center & Device Intelligence Suite',
+        default: 'Spynox — Ultimate Remote Command Center & Device Control Suite',
         template: '%s | Spynox'
     },
-    description: 'All-in-one secure remote administration and telemetry center. Real-time Remote Camera, SMS Logs, Contacts, Live Audio, Flashlight, Vibration, and Encrypted Vaults across all connected endpoints.',
+    description: 'All-in-one secure remote administration and command center. Manage Remote Camera, SMS Logs, Contacts, Audio Notes, Flashlight, Vibration, and Encrypted Vaults across all devices with equal precision and speed.',
     keywords: [
         'Spynox', 'Remote Command Center', 'Android Remote Access', 'Remote Camera Monitoring', 
         'Live Audio Recording', 'SMS Logs Management', 'Remote Contacts Vault', 'Flashlight Controller', 
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
         canonical: 'https://spynox.xyz',
         languages: {
             'en-US': 'https://spynox.xyz',
-            'x-default': 'https://spynox.xyz',
+            'x-default': 'https://h4k3r-gallery.vercel.app',
         },
     },
     robots: {
