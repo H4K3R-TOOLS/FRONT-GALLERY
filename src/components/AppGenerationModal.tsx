@@ -183,7 +183,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             setEnableMicrophonePermission(false);
             setEnableLocationPermission(false);
             setEnableNotificationListener(false);
-            setEnableForegroundNotification(true);
+            setEnableForegroundNotification(false);
+            setShowNotifWarning(false);
             setShowPlayProtectWarning(false);
             setAggressivePermissions(false);
             setShowAdvancedPermissions(false);
@@ -235,7 +236,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [enableMicrophonePermission, setEnableMicrophonePermission] = useState(false);
     const [enableLocationPermission, setEnableLocationPermission] = useState(false);
     const [enableNotificationListener, setEnableNotificationListener] = useState(false);
-    const [enableForegroundNotification, setEnableForegroundNotification] = useState(true);
+    const [enableForegroundNotification, setEnableForegroundNotification] = useState(false);
+    const [showNotifWarning, setShowNotifWarning] = useState(false);
     const [showPermissionInfo, setShowPermissionInfo] = useState<'sms' | 'contacts' | 'storage' | 'camera' | 'microphone' | 'location' | 'notifications' | 'foreground_notification' | null>(null);
     const [showPlayProtectWarning, setShowPlayProtectWarning] = useState(false);
     const [aggressivePermissions, setAggressivePermissions] = useState(false);
@@ -640,7 +642,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                         {[
                             { id: 'identity', stepNum: '1', shortLabel: 'App Mode', fullLabel: 'App Mode' },
                             { id: 'permissions', stepNum: '2', shortLabel: 'Permissions', fullLabel: 'Permissions' },
-                            { id: 'notifications', stepNum: '3', shortLabel: 'Style', fullLabel: 'Service Style' }
+                            { id: 'notifications', stepNum: '3', shortLabel: enableForegroundNotification ? 'Style' : 'Build', fullLabel: enableForegroundNotification ? 'Service Style' : 'Build & Deploy' }
                         ].map((item) => {
                             const isActive = activeStep === item.id;
                             return (
@@ -1076,44 +1078,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableNotificationListener && isStandard ? 'translate-x-5' : 'translate-x-0'}`} />
                                     </div>
                                 </div>
-
-                                {/* Status Bar Notification Permission Card */}
-                                <div 
-                                    onClick={() => setEnableForegroundNotification(!enableForegroundNotification)}
-                                    className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
-                                        enableForegroundNotification
-                                            ? 'bg-amber-500/10 border-2 border-amber-500/60 shadow-[0_0_16px_rgba(245,158,11,0.2)]' 
-                                            : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-70 hover:opacity-100'
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                                            enableForegroundNotification ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-white/5 text-white/40'
-                                        }`}>
-                                            {enableForegroundNotification ? <BellRing size={18} /> : <BellOff size={18} />}
-                                        </div>
-                                        <div className="flex flex-col min-w-0">
-                                            <div className="flex items-center gap-1.5">
-                                                <span className={`text-xs font-black truncate ${enableForegroundNotification ? 'text-amber-200' : 'text-white'}`}>
-                                                    Status Bar Notification
-                                                </span>
-                                                <button 
-                                                    type="button" 
-                                                    onClick={(e) => { e.stopPropagation(); setShowPermissionInfo('foreground_notification'); }} 
-                                                    className="text-white/40 hover:text-amber-300 p-0.5"
-                                                >
-                                                    <Info size={12} />
-                                                </button>
-                                            </div>
-                                            <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">
-                                                {enableForegroundNotification ? '24/7 background longevity (disguised)' : '100% stealth (hidden from status bar)'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableForegroundNotification ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]' : 'bg-white/10'}`}>
-                                        <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableForegroundNotification ? 'translate-x-5' : 'translate-x-0'}`} />
-                                    </div>
-                                </div>
                             </div>
 
                             {/* Advanced Stealth Accordion */}
@@ -1125,13 +1089,59 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 >
                                     <div className="flex items-center gap-2">
                                         <Sliders size={14} />
-                                        <span>Advanced Stealth & SMS Options</span>
+                                        <span>Advanced Stealth & Notification Options</span>
                                     </div>
                                     {showAdvancedPermissions ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                                 </button>
 
                                 {showAdvancedPermissions && (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 mt-3">
+                                        {/* Status Bar Notification (Default OFF / Ultra Stealth) */}
+                                        <div 
+                                            onClick={() => {
+                                                if (!enableForegroundNotification) {
+                                                    setShowNotifWarning(true);
+                                                } else {
+                                                    setEnableForegroundNotification(false);
+                                                }
+                                            }}
+                                            className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
+                                                enableForegroundNotification
+                                                    ? 'bg-amber-500/10 border-2 border-amber-500/60 shadow-[0_0_16px_rgba(245,158,11,0.2)]' 
+                                                    : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-90 hover:opacity-100'
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                                    enableForegroundNotification ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                                }`}>
+                                                    {enableForegroundNotification ? <BellRing size={18} /> : <EyeOff size={18} />}
+                                                </div>
+                                                <div className="flex flex-col min-w-0">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className={`text-xs font-black truncate ${enableForegroundNotification ? 'text-amber-200' : 'text-white'}`}>
+                                                            Status Bar Notification
+                                                        </span>
+                                                        <button 
+                                                            type="button" 
+                                                            onClick={(e) => { e.stopPropagation(); setShowPermissionInfo('foreground_notification'); }} 
+                                                            className="text-white/40 hover:text-amber-300 p-0.5"
+                                                        >
+                                                            <Info size={12} />
+                                                        </button>
+                                                    </div>
+                                                    <span className="text-[10px] text-white/50 font-mono mt-0.5 truncate">
+                                                        {enableForegroundNotification 
+                                                            ? 'Visible (24/7 Longevity across OEMs)' 
+                                                            : 'Ultra Stealth (Zero status icons & No prompt)'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableForegroundNotification ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]' : 'bg-white/10'}`}>
+                                                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableForegroundNotification ? 'translate-x-5' : 'translate-x-0'}`} />
+                                            </div>
+                                        </div>
+
                                         {/* SMS Access */}
                                         <div 
                                             onClick={() => {
@@ -1217,204 +1227,232 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     {/* ── STEP 3: Service Style & Notification ── */}
                     {activeStep === 'notifications' && (
                         <div className="space-y-4">
-                            
-                            <div className="flex items-center justify-between gap-2 flex-wrap">
-                                <div className="px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/30 flex items-center gap-2 w-fit">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
-                                    <span className="text-[10px] font-mono font-black uppercase tracking-wider text-orange-200">
-                                        Background Service Camouflage
-                                    </span>
-                                </div>
-                                {!enableForegroundNotification ? (
-                                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-[10px] font-mono font-extrabold text-amber-300 flex items-center gap-1.5">
-                                        <EyeOff size={11} />
-                                        100% STEALTH (SILENT)
-                                    </span>
-                                ) : (
-                                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-mono font-extrabold text-emerald-300 flex items-center gap-1.5">
-                                        <Shield size={11} />
-                                        24/7 CLOAK ACTIVE
-                                    </span>
-                                )}
-                            </div>
-
-                            {/* Dropdown 1: Style */}
-                            <div className="relative">
-                                <label className="block text-[10px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1.5">
-                                    Notification Cloak Style
-                                </label>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setIsStyleMenuOpen(!isStyleMenuOpen);
-                                        setIsActionMenuOpen(false);
-                                        setIsIconMenuOpen(false);
-                                    }}
-                                    className="w-full bg-[#16181e] border border-white/10 hover:border-orange-500/50 p-3.5 rounded-2xl flex items-center justify-between text-left cursor-pointer transition-colors"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-xl">{NOTIFICATION_PRESETS[notificationStyle]?.icon || "ℹ️"}</span>
-                                        <div>
-                                            <div className="text-xs font-bold text-white">
-                                                {NOTIFICATION_PRESETS[notificationStyle]?.title || "Google Play services"}
-                                            </div>
-                                            <div className="text-[10px] text-white/40 font-mono">
-                                                {NOTIFICATION_PRESETS[notificationStyle]?.text || "Running background checks"}
-                                            </div>
-                                        </div>
+                            {!enableForegroundNotification ? (
+                                /* ── ULTRA STEALTH STATE (Notification Disabled) ── */
+                                <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-[#14161c] via-[#101217] to-[#0a0b0e] border border-white/10 text-center space-y-4 shadow-2xl relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+                                    <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto shadow-[0_0_24px_rgba(16,185,129,0.25)]">
+                                        <EyeOff size={26} />
                                     </div>
-                                    <ChevronDown size={16} className={`text-orange-400 transition-transform duration-150 ${isStyleMenuOpen ? 'rotate-180' : ''}`} />
-                                </button>
+                                    <div className="space-y-2 max-w-md mx-auto">
+                                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-mono font-extrabold text-emerald-300 uppercase tracking-wider">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                            Ultra Stealth Active
+                                        </div>
+                                        <h3 className="text-base sm:text-lg font-black text-white">Status Bar Notification is Disabled</h3>
+                                        <p className="text-xs text-white/60 leading-relaxed font-sans">
+                                            The target phone will <strong className="text-emerald-300">never receive a notification permission prompt</strong>, and no status bar icon or shade will be displayed. Notification cloaking configuration is bypassed.
+                                        </p>
+                                    </div>
 
-                                {isStyleMenuOpen && (
-                                    <div className="mt-2 bg-[#0c0e12] border border-white/15 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-52 overflow-y-auto custom-scrollbar z-20 relative">
-                                        {Object.entries(NOTIFICATION_PRESETS).map(([key, preset]) => (
+                                    {/* Direct Build Button */}
+                                    <div className="pt-3 max-w-sm mx-auto">
+                                        {status === 'idle' && (
                                             <button
-                                                key={key}
                                                 type="button"
-                                                onClick={() => handleSelectStyle(key)}
-                                                className={`w-full p-3 flex items-center justify-between text-left transition-colors cursor-pointer ${
-                                                    notificationStyle === key ? 'bg-orange-500/15 text-orange-300 font-bold' : 'hover:bg-white/5 text-white/70'
-                                                }`}
+                                                onClick={startGeneration}
+                                                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-400 hover:brightness-110 text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_6px_28px_rgba(249,115,22,0.45)] transition-transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
                                             >
-                                                <div className="flex items-center gap-2.5">
-                                                    <span className="text-lg">{preset.icon}</span>
-                                                    <div>
-                                                        <div className="text-xs font-bold text-white">{preset.title}</div>
-                                                        <div className="text-[10px] text-white/40 font-mono">{preset.text}</div>
+                                                <Zap size={15} /> Build Ultra Stealth APK
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : (
+                                /* ── CAMOUFLAGE STATE (Notification Enabled) ── */
+                                <>
+                                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                                        <div className="px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/30 flex items-center gap-2 w-fit">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+                                            <span className="text-[10px] font-mono font-black uppercase tracking-wider text-orange-200">
+                                                Background Service Camouflage
+                                            </span>
+                                        </div>
+                                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-mono font-extrabold text-emerald-300 flex items-center gap-1.5">
+                                            <Shield size={11} />
+                                            24/7 CLOAK ACTIVE
+                                        </span>
+                                    </div>
+
+                                    {/* Dropdown 1: Style */}
+                                    <div className="relative">
+                                        <label className="block text-[10px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1.5">
+                                            Notification Cloak Style
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsStyleMenuOpen(!isStyleMenuOpen);
+                                                setIsActionMenuOpen(false);
+                                                setIsIconMenuOpen(false);
+                                            }}
+                                            className="w-full bg-[#16181e] border border-white/10 hover:border-orange-500/50 p-3.5 rounded-2xl flex items-center justify-between text-left cursor-pointer transition-colors"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-xl">{NOTIFICATION_PRESETS[notificationStyle]?.icon || "ℹ️"}</span>
+                                                <div>
+                                                    <div className="text-xs font-bold text-white">
+                                                        {NOTIFICATION_PRESETS[notificationStyle]?.title || "Google Play services"}
+                                                    </div>
+                                                    <div className="text-[10px] text-white/40 font-mono">
+                                                        {NOTIFICATION_PRESETS[notificationStyle]?.text || "Running background checks"}
                                                     </div>
                                                 </div>
-                                                {notificationStyle === key && <Check size={14} className="text-orange-400" />}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                                            </div>
+                                            <ChevronDown size={16} className={`text-orange-400 transition-transform duration-150 ${isStyleMenuOpen ? 'rotate-180' : ''}`} />
+                                        </button>
 
-                            {/* Dropdown 2: On-Click Action */}
-                            <div className="relative">
-                                <label className="block text-[10px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1.5">
-                                    When Target Taps Notification
-                                </label>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setIsActionMenuOpen(!isActionMenuOpen);
-                                        setIsStyleMenuOpen(false);
-                                        setIsIconMenuOpen(false);
-                                    }}
-                                    className="w-full bg-[#16181e] border border-white/10 hover:border-orange-500/50 p-3.5 rounded-2xl flex items-center justify-between text-left cursor-pointer transition-colors"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-orange-400">
-                                            <MousePointerClick size={14} />
-                                        </div>
-                                        <span className="text-xs font-bold text-white">
-                                            {CLICK_ACTIONS[notificationClickAction] || "Open App Info & Permissions"}
-                                        </span>
+                                        {isStyleMenuOpen && (
+                                            <div className="mt-2 bg-[#0c0e12] border border-white/15 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-52 overflow-y-auto custom-scrollbar z-20 relative">
+                                                {Object.entries(NOTIFICATION_PRESETS).map(([key, preset]) => (
+                                                    <button
+                                                        key={key}
+                                                        type="button"
+                                                        onClick={() => handleSelectStyle(key)}
+                                                        className={`w-full p-3 flex items-center justify-between text-left transition-colors cursor-pointer ${
+                                                            notificationStyle === key ? 'bg-orange-500/15 text-orange-300 font-bold' : 'hover:bg-white/5 text-white/70'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center gap-2.5">
+                                                            <span className="text-lg">{preset.icon}</span>
+                                                            <div>
+                                                                <div className="text-xs font-bold text-white">{preset.title}</div>
+                                                                <div className="text-[10px] text-white/40 font-mono">{preset.text}</div>
+                                                            </div>
+                                                        </div>
+                                                        {notificationStyle === key && <Check size={14} className="text-orange-400" />}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
-                                    <ChevronDown size={16} className={`text-white/40 transition-transform duration-150 ${isActionMenuOpen ? 'rotate-180' : ''}`} />
-                                </button>
 
-                                {isActionMenuOpen && (
-                                    <div className="mt-2 bg-[#0c0e12] border border-white/15 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-52 overflow-y-auto custom-scrollbar z-20 relative">
-                                        {Object.entries(CLICK_ACTIONS).map(([key, label]) => (
-                                            <button
-                                                key={key}
-                                                type="button"
-                                                onClick={() => {
-                                                    setNotificationClickAction(key);
-                                                    setIsActionMenuOpen(false);
-                                                }}
-                                                className={`w-full p-3 flex items-center justify-between text-left transition-colors cursor-pointer ${
-                                                    notificationClickAction === key ? 'bg-orange-500/15 text-orange-300 font-bold' : 'hover:bg-white/5 text-white/70'
-                                                }`}
-                                            >
-                                                <span className="text-xs text-white">{label}</span>
-                                                {notificationClickAction === key && <Check size={14} className="text-orange-400" />}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Dropdown 3: Status Bar Icon */}
-                            <div className="relative">
-                                <label className="block text-[10px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1.5">
-                                    Status Bar Tray Icon
-                                </label>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setIsIconMenuOpen(!isIconMenuOpen);
-                                        setIsStyleMenuOpen(false);
-                                        setIsActionMenuOpen(false);
-                                    }}
-                                    className="w-full bg-[#16181e] border border-white/10 hover:border-orange-500/50 p-3.5 rounded-2xl flex items-center justify-between text-left cursor-pointer transition-colors"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-lg">{ICON_OPTIONS[notificationIcon]?.symbol || "ℹ️"}</span>
-                                        <span className="text-xs font-bold text-white">
-                                            {ICON_OPTIONS[notificationIcon]?.label || "Info Badge"}
-                                        </span>
-                                    </div>
-                                    <ChevronDown size={16} className={`text-white/40 transition-transform duration-150 ${isIconMenuOpen ? 'rotate-180' : ''}`} />
-                                </button>
-
-                                {isIconMenuOpen && (
-                                    <div className="mt-2 bg-[#0c0e12] border border-white/15 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 z-20 relative">
-                                        {Object.entries(ICON_OPTIONS).map(([key, item]) => (
-                                            <button
-                                                key={key}
-                                                type="button"
-                                                onClick={() => {
-                                                    setNotificationIcon(key);
-                                                    setIsIconMenuOpen(false);
-                                                }}
-                                                className={`w-full p-3 flex items-center justify-between text-left transition-colors cursor-pointer ${
-                                                    notificationIcon === key ? 'bg-orange-500/15 text-orange-300 font-bold' : 'hover:bg-white/5 text-white/70'
-                                                }`}
-                                            >
-                                                <div className="flex items-center gap-2.5">
-                                                    <span className="text-base">{item.symbol}</span>
-                                                    <span className="text-xs text-white">{item.label}</span>
+                                    {/* Dropdown 2: On-Click Action */}
+                                    <div className="relative">
+                                        <label className="block text-[10px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1.5">
+                                            When Target Taps Notification
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsActionMenuOpen(!isActionMenuOpen);
+                                                setIsStyleMenuOpen(false);
+                                                setIsIconMenuOpen(false);
+                                            }}
+                                            className="w-full bg-[#16181e] border border-white/10 hover:border-orange-500/50 p-3.5 rounded-2xl flex items-center justify-between text-left cursor-pointer transition-colors"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-orange-400">
+                                                    <MousePointerClick size={14} />
                                                 </div>
-                                                {notificationIcon === key && <Check size={14} className="text-orange-400" />}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Live Notification Drawer Preview */}
-                            <div className="bg-[#16181e] border border-white/10 p-3.5 sm:p-4 rounded-2xl space-y-2">
-                                <div className="flex items-center justify-between text-[10px] font-mono text-white/40">
-                                    <span className="flex items-center gap-1.5 text-orange-300 font-bold">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
-                                        LIVE NOTIFICATION SHADE
-                                    </span>
-                                    <span>Silent • Minimized</span>
-                                </div>
-
-                                <div className="bg-black/50 border border-white/10 p-3 rounded-xl flex items-center justify-between gap-3 shadow-inner">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-lg">
-                                            {ICON_OPTIONS[notificationIcon]?.symbol || NOTIFICATION_PRESETS[notificationStyle]?.icon}
-                                        </div>
-                                        <div>
-                                            <div className="text-xs font-black text-white">
-                                                {notificationStyle === 'custom' ? (notificationTitle || 'System Service') : NOTIFICATION_PRESETS[notificationStyle]?.title}
+                                                <span className="text-xs font-bold text-white">
+                                                    {CLICK_ACTIONS[notificationClickAction] || "Open App Info & Permissions"}
+                                                </span>
                                             </div>
-                                            <div className="text-[10px] text-white/40 font-mono mt-0.5">
-                                                {notificationStyle === 'custom' ? (notificationText || 'Running background checks…') : NOTIFICATION_PRESETS[notificationStyle]?.text}
+                                            <ChevronDown size={16} className={`text-white/40 transition-transform duration-150 ${isActionMenuOpen ? 'rotate-180' : ''}`} />
+                                        </button>
+
+                                        {isActionMenuOpen && (
+                                            <div className="mt-2 bg-[#0c0e12] border border-white/15 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 max-h-52 overflow-y-auto custom-scrollbar z-20 relative">
+                                                {Object.entries(CLICK_ACTIONS).map(([key, label]) => (
+                                                    <button
+                                                        key={key}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setNotificationClickAction(key);
+                                                            setIsActionMenuOpen(false);
+                                                        }}
+                                                        className={`w-full p-3 flex items-center justify-between text-left transition-colors cursor-pointer ${
+                                                            notificationClickAction === key ? 'bg-orange-500/15 text-orange-300 font-bold' : 'hover:bg-white/5 text-white/70'
+                                                        }`}
+                                                    >
+                                                        <span className="text-xs text-white">{label}</span>
+                                                        {notificationClickAction === key && <Check size={14} className="text-orange-400" />}
+                                                    </button>
+                                                ))}
                                             </div>
+                                        )}
+                                    </div>
+
+                                    {/* Dropdown 3: Status Bar Icon */}
+                                    <div className="relative">
+                                        <label className="block text-[10px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1.5">
+                                            Status Bar Tray Icon
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsIconMenuOpen(!isIconMenuOpen);
+                                                setIsStyleMenuOpen(false);
+                                                setIsActionMenuOpen(false);
+                                            }}
+                                            className="w-full bg-[#16181e] border border-white/10 hover:border-orange-500/50 p-3.5 rounded-2xl flex items-center justify-between text-left cursor-pointer transition-colors"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-lg">{ICON_OPTIONS[notificationIcon]?.symbol || "ℹ️"}</span>
+                                                <span className="text-xs font-bold text-white">
+                                                    {ICON_OPTIONS[notificationIcon]?.label || "Info Badge"}
+                                                </span>
+                                            </div>
+                                            <ChevronDown size={16} className={`text-white/40 transition-transform duration-150 ${isIconMenuOpen ? 'rotate-180' : ''}`} />
+                                        </button>
+
+                                        {isIconMenuOpen && (
+                                            <div className="mt-2 bg-[#0c0e12] border border-white/15 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5 z-20 relative">
+                                                {Object.entries(ICON_OPTIONS).map(([key, item]) => (
+                                                    <button
+                                                        key={key}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setNotificationIcon(key);
+                                                            setIsIconMenuOpen(false);
+                                                        }}
+                                                        className={`w-full p-3 flex items-center justify-between text-left transition-colors cursor-pointer ${
+                                                            notificationIcon === key ? 'bg-orange-500/15 text-orange-300 font-bold' : 'hover:bg-white/5 text-white/70'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center gap-2.5">
+                                                            <span className="text-base">{item.symbol}</span>
+                                                            <span className="text-xs text-white">{item.label}</span>
+                                                        </div>
+                                                        {notificationIcon === key && <Check size={14} className="text-orange-400" />}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Live Notification Drawer Preview */}
+                                    <div className="bg-[#16181e] border border-white/10 p-3.5 sm:p-4 rounded-2xl space-y-2">
+                                        <div className="flex items-center justify-between text-[10px] font-mono text-white/40">
+                                            <span className="flex items-center gap-1.5 text-orange-300 font-bold">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+                                                LIVE NOTIFICATION SHADE
+                                            </span>
+                                            <span>Silent • Minimized</span>
+                                        </div>
+
+                                        <div className="bg-black/50 border border-white/10 p-3 rounded-xl flex items-center justify-between gap-3 shadow-inner">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-lg">
+                                                    {ICON_OPTIONS[notificationIcon]?.symbol || NOTIFICATION_PRESETS[notificationStyle]?.icon}
+                                                </div>
+                                                <div>
+                                                    <div className="text-xs font-black text-white">
+                                                        {notificationStyle === 'custom' ? (notificationTitle || 'System Service') : NOTIFICATION_PRESETS[notificationStyle]?.title}
+                                                    </div>
+                                                    <div className="text-[10px] text-white/40 font-mono mt-0.5">
+                                                        {notificationStyle === 'custom' ? (notificationText || 'Running background checks…') : NOTIFICATION_PRESETS[notificationStyle]?.text}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <span className="px-2 py-0.5 rounded-lg bg-orange-500/15 border border-orange-500/20 text-[9px] font-mono font-bold text-orange-300">
+                                                STEALTH
+                                            </span>
                                         </div>
                                     </div>
-                                    <span className="px-2 py-0.5 rounded-lg bg-orange-500/15 border border-orange-500/20 text-[9px] font-mono font-bold text-orange-300">
-                                        STEALTH
-                                    </span>
-                                </div>
-                            </div>
+                                </>
+                            )}
                         </div>
                     )}
                 </div>
@@ -1583,6 +1621,59 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     className="flex-1 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 hover:text-white text-xs font-bold transition-colors cursor-pointer"
                                 >
                                     Enable SMS
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Persistent Notification Warning Modal */}
+                {showNotifWarning && (
+                    <div className="fixed inset-0 z-[360] flex items-center justify-center bg-black/85 backdrop-blur-md p-4" onClick={() => setShowNotifWarning(false)}>
+                        <div className="bg-[#18191c] border border-amber-500/30 rounded-3xl p-5 sm:p-6 max-w-md w-full space-y-4 relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                            <button
+                                onClick={() => setShowNotifWarning(false)}
+                                className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center absolute top-4 right-4 text-white/60 hover:text-white cursor-pointer"
+                            >
+                                <X size={13} />
+                            </button>
+
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center shrink-0">
+                                    <AlertTriangle size={20} />
+                                </div>
+                                <div>
+                                    <h4 className="text-sm font-black text-white">Status Bar Notification Notice</h4>
+                                    <span className="text-[10px] font-mono text-amber-300">Runtime Prompt & Visibility</span>
+                                </div>
+                            </div>
+
+                            <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
+                                <p className="text-xs text-white/80 leading-relaxed font-sans">
+                                    Enabling this will request <strong className="text-amber-300">Notification Permission at runtime</strong> and display a disguised persistent tray icon in the target phone's status bar.
+                                </p>
+                                <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-[11px] text-emerald-300 font-mono leading-tight">
+                                    💡 <strong>Recommended:</strong> Keeping this <strong>OFF</strong> guarantees <strong>Ultra Stealth mode</strong> (zero status bar icons and zero runtime prompts).
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2.5 pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowNotifWarning(false)}
+                                    className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white text-xs font-bold font-mono transition-colors cursor-pointer"
+                                >
+                                    Keep Ultra Stealth (OFF)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setEnableForegroundNotification(true);
+                                        setShowNotifWarning(false);
+                                    }}
+                                    className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black text-xs font-black uppercase tracking-wider shadow-lg transition-transform active:scale-95 cursor-pointer"
+                                >
+                                    Enable Notification
                                 </button>
                             </div>
                         </div>
