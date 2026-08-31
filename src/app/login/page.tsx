@@ -815,10 +815,6 @@ export default function LoginPage() {
         }
     }, [authStatus, session, router]);
 
-    const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-    const heroY = useTransform(scrollYProgress, [0, 1], [0, 140]);
-    const heroOpacity = useTransform(scrollYProgress, [0, 0.65], [1, 0]);
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault(); setError(''); setIsLoading(true);
 
