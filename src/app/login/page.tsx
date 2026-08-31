@@ -4,27 +4,9 @@ import { signIn, useSession } from 'next-auth/react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
 
 /* ═══════ HELPER & INTERACTIVE COMPONENTS ═══════ */
-
-/* Mouse-following ambient glow */
-function CursorGlow() {
-    const [pos, setPos] = useState({ x: -500, y: -500 });
-    useEffect(() => {
-        const h = (e: MouseEvent) => setPos({ x: e.clientX, y: e.clientY });
-        window.addEventListener('mousemove', h, { passive: true });
-        return () => window.removeEventListener('mousemove', h);
-    }, []);
-    return (
-        <div className="fixed pointer-events-none z-0 hidden md:block" style={{
-            left: pos.x - 300, top: pos.y - 300, width: 600, height: 600, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(212,165,116,0.035) 0%, rgba(232,150,109,0.01) 50%, transparent 70%)',
-            transition: 'left 0.12s ease-out, top 0.12s ease-out',
-        }} />
-    );
-}
-
 
 /* Sticky nav appearing on scroll (Bottom on mobile to prevent marquee overlap & top-12 on desktop) */
 function StickyNav({ onScrollTo, onOpenLoginModal }: { onScrollTo: (id: string) => void; onOpenLoginModal: () => void }) {
@@ -42,7 +24,7 @@ function StickyNav({ onScrollTo, onOpenLoginModal }: { onScrollTo: (id: string) 
                     initial={{ y: -60, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -60, opacity: 0 }}
-                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.25 }}
                     className="fixed top-11 sm:top-12 left-1/2 -translate-x-1/2 z-[100] sticky-nav-glass rounded-full px-3.5 sm:px-4 py-1.5 flex items-center justify-between gap-3 sm:gap-6 shadow-[0_10px_40px_rgba(0,0,0,0.95)] border border-white/15 max-w-[95vw] whitespace-nowrap"
                 >
                     <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
@@ -61,7 +43,7 @@ function StickyNav({ onScrollTo, onOpenLoginModal }: { onScrollTo: (id: string) 
                     <button
                         type="button"
                         onClick={onOpenLoginModal}
-                        className="px-4 py-1.5 rounded-full text-[11px] sm:text-xs font-extrabold bg-gradient-to-r from-[#d4a574] via-[#e8966d] to-[#d4a574] text-[#1c1917] shadow-md hover:scale-105 active:scale-95 transition-all flex-shrink-0"
+                        className="px-4 py-1.5 rounded-full text-[11px] sm:text-xs font-extrabold bg-gradient-to-r from-orange-500 via-amber-400 to-orange-500 text-black shadow-md hover:scale-105 active:scale-95 transition-all flex-shrink-0 cursor-pointer"
                     >
                         Enter App
                     </button>
@@ -91,46 +73,14 @@ function Counter({ target, suffix = '', prefix = '' }: { target: number; suffix?
     return <span ref={ref}>{prefix}{count}{suffix}</span>;
 }
 
-/* Scroll-reveal wrapper (margin 250px so elements reveal early during fast up/down scroll with zero blank screens) */
-function Reveal({ children, delay = 0, className = '' }: { children: React.ReactNode; delay?: number; className?: string }) {
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '250px' }}
-            transition={{ duration: 0.55, delay: Math.min(delay, 0.1), ease: [0.22, 1, 0.36, 1] }}
-            className={className}
-        >{children}</motion.div>
-
-    );
+/* Zero-lag static wrapper (always 100% visible on scroll with zero fading/blanking) */
+function Reveal({ children, className = '' }: { children: React.ReactNode; delay?: number; className?: string }) {
+    return <div className={className}>{children}</div>;
 }
 
-/* 3D magnetic tilt card (Disabled on touch/mobile devices to eliminate GPU repaints and black screen flash on scroll) */
+/* Static card wrapper (zero 3D mouse wiggling or CPU GPU tilt thrashing) */
 function MagneticCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-    const ref = useRef<HTMLDivElement>(null);
-    const [style, setStyle] = useState({});
-    const [isMouseDevice, setIsMouseDevice] = useState(false);
-
-    useEffect(() => {
-        if (typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches) {
-            setIsMouseDevice(true);
-        }
-    }, []);
-
-    const onMove = useCallback((e: React.MouseEvent) => {
-        if (!isMouseDevice || !ref.current) return;
-        const r = ref.current.getBoundingClientRect();
-        const rx = ((e.clientY - r.top - r.height / 2) / (r.height / 2)) * -4.5;
-        const ry = ((e.clientX - r.left - r.width / 2) / (r.width / 2)) * 4.5;
-        setStyle({ transform: `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.015,1.015,1.015)` });
-    }, [isMouseDevice]);
-
-    const onLeave = useCallback(() => {
-        if (!isMouseDevice) return;
-        setStyle({ transform: 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1,1,1)' });
-    }, [isMouseDevice]);
-
-    return <div ref={ref} onMouseMove={onMove} onMouseLeave={onLeave} className={className} style={{ ...style, transition: 'transform 0.4s cubic-bezier(0.22,1,0.36,1)' }}>{children}</div>;
+    return <div className={className}>{children}</div>;
 }
 
 /* ═══════ BESPOKE TOOL VISUAL PREVIEWS ═══════ */
@@ -967,7 +917,6 @@ export default function LoginPage() {
 
             {/* Global effects */}
             <div className="grain-overlay" />
-            <CursorGlow />
             <StickyNav onScrollTo={scrollTo} onOpenLoginModal={() => setShowLoginModal(true)} />
 
             {/* ═══ CYBER-LUXURY TOP HEADER & MARQUEE STRIP (MOVED FULL UPWARD TO NAVBAR LEVEL) ═══ */}
@@ -1000,11 +949,11 @@ export default function LoginPage() {
 
 
             {/* ═══ HERO ═══ */}
-            <section ref={heroRef} className="relative z-10 min-h-[90dvh] flex flex-col items-center justify-start pt-10 sm:pt-24 pb-24 px-5 overflow-hidden">
-                <motion.div style={{ y: heroY, opacity: heroOpacity }} className="flex flex-col items-center text-center max-w-4xl mx-auto">
+            <section ref={heroRef} className="relative z-10 min-h-[85dvh] flex flex-col items-center justify-start pt-10 sm:pt-20 pb-20 px-5 overflow-hidden">
+                <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
 
                     {/* Rotating gradient border logo */}
-                    <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }} className="relative mb-3 sm:mb-8">
+                    <div className="relative mb-3 sm:mb-8">
                         <div className="relative w-[96px] h-[96px] sm:w-[116px] sm:h-[116px]">
                             <div className="absolute inset-0 rounded-[2.2rem] animate-spin-slow" style={{ background: 'conic-gradient(from 0deg, #f97316, #e8966d, #b88ae8, #6ea8e8, #10b981, #f59e0b, #f97316)' }} />
                             <div className="absolute inset-0 rounded-[2.2rem] animate-spin-slow blur-xl opacity-50" style={{ background: 'conic-gradient(from 0deg, #f97316, #e8966d, #b88ae8, #6ea8e8, #10b981, #f59e0b, #f97316)' }} />
@@ -1012,23 +961,23 @@ export default function LoginPage() {
                                 <Image src="/gallery-eye-logo.jpg" alt="Spynox" width={110} height={110} className="w-full h-full object-cover" priority />
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
 
                     {/* Powerful & Easy-to-Understand Headline */}
-                    <motion.h1 initial={{ opacity: 0, y: 36 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }} className="text-[clamp(2.6rem,7vw,5.8rem)] font-extrabold tracking-[-0.04em] leading-[1.04]">
+                    <h1 className="text-[clamp(2.6rem,7vw,5.8rem)] font-extrabold tracking-[-0.04em] leading-[1.04]">
                         Full Mobile Access.
                         <br className="hidden sm:block" />
                         <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-purple-400 bg-clip-text text-transparent animate-gradient-text">
                             Right From Your Browser.
                         </span>
-                    </motion.h1>
+                    </h1>
 
-                    <motion.p initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.35, ease: [0.22, 1, 0.36, 1] }} className="text-sm sm:text-base md:text-lg text-zinc-300 mt-5 max-w-2xl leading-relaxed font-normal">
+                    <p className="text-sm sm:text-base md:text-lg text-zinc-300 mt-5 max-w-2xl leading-relaxed font-normal">
                         Access and control entire Android phones remotely. Instantly view stored photos, stream live camera, read private SMS threads, record microphone, and track notifications — powered by Spynox OS.
-                    </motion.p>
+                    </p>
 
-                    {/* Massive, Highlighted & Unique Luxury Buttons (Relative z-20 above background) */}
-                    <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col sm:flex-row items-center justify-center gap-5 mt-10 sm:mt-12 mb-12 relative z-20 w-full sm:w-auto">
+                    {/* Massive, Highlighted & Unique Luxury Buttons */}
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-5 mt-10 sm:mt-12 mb-12 relative z-20 w-full sm:w-auto">
                         <button
                             type="button"
                             onClick={() => setShowLoginModal(true)}
@@ -1049,8 +998,8 @@ export default function LoginPage() {
                             <span className="text-orange-400 font-extrabold">⚡</span>
                             <span>See Live Video Demo</span>
                         </button>
-                    </motion.div>
-                </motion.div>
+                    </div>
+                </div>
 
                 {/* Scroll indicator (Moved down to bottom-3 z-30 with pointer-events-none so never collides with buttons) */}
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.6 }} className="absolute bottom-3 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-30 pointer-events-none">
