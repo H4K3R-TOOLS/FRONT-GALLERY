@@ -126,11 +126,45 @@ export default function FileManagerView({
         });
     };
 
+    // Isolate state per device, load cached snapshot, and query if online
     useEffect(() => {
-        if (selectedDeviceId && isOnline) {
-            fetchDirectory(currentPath);
+        if (!selectedDeviceId) {
+            setEntries([]);
+            setRoots([]);
+            setCurrentPath('/storage/emulated/0');
+            setParentPath('');
+            return;
         }
-    }, [selectedDeviceId, isOnline]);
+
+        // 1. Immediately reset state and restore this device's cached directory snapshot
+        const cacheKey = `fm_cache_${userUuid}_${selectedDeviceId}`;
+        try {
+            const cached = localStorage.getItem(cacheKey);
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                setCurrentPath(parsed.currentPath || '/storage/emulated/0');
+                setParentPath(parsed.parentPath || '');
+                setEntries(parsed.entries || []);
+                setRoots(parsed.roots || []);
+                setTotalSpace(parsed.totalSpace || 0);
+                setFreeSpace(parsed.freeSpace || 0);
+                setIsAllFilesManager(parsed.isAllFilesManager ?? true);
+            } else {
+                setEntries([]);
+                setRoots([]);
+                setCurrentPath('/storage/emulated/0');
+                setParentPath('');
+            }
+        } catch {
+            setEntries([]);
+            setRoots([]);
+        }
+
+        // 2. If online, fetch fresh live directory
+        if (isOnline) {
+            fetchDirectory('/storage/emulated/0');
+        }
+    }, [selectedDeviceId, isOnline, userUuid]);
 
     // Handle ESC key to close preview and modals
     useEffect(() => {
@@ -154,15 +188,43 @@ export default function FileManagerView({
             setIsLoading(false);
             if (data.error) return;
 
-            setCurrentPath(data.currentPath || '/storage/emulated/0');
-            setParentPath(data.parentPath || '');
-            setEntries(data.entries || []);
-            setRoots(data.roots || []);
-            setTotalSpace(data.totalSpace || 0);
-            setFreeSpace(data.freeSpace || 0);
-            setIsAllFilesManager(data.isAllFilesManager ?? true);
+            // Strict Device Isolation: reject directory response if meant for a different device!
+            if (data.deviceId && selectedDeviceId && data.deviceId !== selectedDeviceId) {
+                return;
+            }
+
+            const newCurrent = data.currentPath || '/storage/emulated/0';
+            const newParent = data.parentPath || '';
+            const newEntries = data.entries || [];
+            const newRoots = data.roots || [];
+            const newTotal = data.totalSpace || 0;
+            const newFree = data.freeSpace || 0;
+            const newIsAllFiles = data.isAllFilesManager ?? true;
+
+            setCurrentPath(newCurrent);
+            setParentPath(newParent);
+            setEntries(newEntries);
+            setRoots(newRoots);
+            setTotalSpace(newTotal);
+            setFreeSpace(newFree);
+            setIsAllFilesManager(newIsAllFiles);
             setSelectedPaths(new Set());
             setIsSelectMode(false);
+
+            // Persist per-device cache
+            if (selectedDeviceId && userUuid) {
+                try {
+                    localStorage.setItem(`fm_cache_${userUuid}_${selectedDeviceId}`, JSON.stringify({
+                        currentPath: newCurrent,
+                        parentPath: newParent,
+                        entries: newEntries,
+                        roots: newRoots,
+                        totalSpace: newTotal,
+                        freeSpace: newFree,
+                        isAllFilesManager: newIsAllFiles
+                    }));
+                } catch {}
+            }
         };
 
         const handleDownloadChunk = (data: any) => {
@@ -745,10 +807,21 @@ export default function FileManagerView({
                     {/* Quick Tools in Header */}
                     <div className="flex items-center gap-1 shrink-0">
                         {/* New Folder button */}
+                        {/* New Folder button */}
                         <button
-                            onClick={() => setShowNewFolderModal(true)}
-                            className="h-8.5 px-2 sm:px-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 flex items-center gap-1 text-xs font-bold transition-all cursor-pointer shrink-0"
-                            title="New Folder"
+                            onClick={() => {
+                                if (!isOnline) {
+                                    alert('Device is currently offline. Creating folders requires an active connection.');
+                                    return;
+                                }
+                                setShowNewFolderModal(true);
+                            }}
+                            className={`h-8.5 px-2 sm:px-2.5 rounded-xl flex items-center gap-1 text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                                isOnline 
+                                    ? 'bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300' 
+                                    : 'bg-white/[0.04] text-white/30 border border-white/[0.06]'
+                            }`}
+                            title={isOnline ? "New Folder" : "Device offline"}
                         >
                             <FolderPlus size={15} />
                             <span className="hidden md:inline text-[11px]">Folder</span>
@@ -756,9 +829,19 @@ export default function FileManagerView({
 
                         {/* Upload button */}
                         <button
-                            onClick={() => fileInputRef.current?.click()}
-                            className="h-8.5 px-2 sm:px-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 flex items-center gap-1 text-xs font-bold transition-all cursor-pointer shrink-0"
-                            title="Upload File"
+                            onClick={() => {
+                                if (!isOnline) {
+                                    alert('Device is currently offline. File upload requires an active connection.');
+                                    return;
+                                }
+                                fileInputRef.current?.click();
+                            }}
+                            className={`h-8.5 px-2 sm:px-2.5 rounded-xl flex items-center gap-1 text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                                isOnline 
+                                    ? 'bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300' 
+                                    : 'bg-white/[0.04] text-white/30 border border-white/[0.06]'
+                            }`}
+                            title={isOnline ? "Upload File" : "Device offline"}
                         >
                             <UploadCloud size={15} />
                             <span className="hidden md:inline text-[11px]">Upload</span>
@@ -796,17 +879,32 @@ export default function FileManagerView({
                         </button>
 
                         <button
-                            onClick={() => fetchDirectory(currentPath)}
-                            disabled={isLoading}
+                            onClick={() => {
+                                if (isOnline) fetchDirectory(currentPath);
+                            }}
+                            disabled={isLoading || !isOnline}
                             className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center text-white/60 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer ${
-                                isLoading ? 'animate-spin text-amber-400' : ''
+                                isLoading ? 'animate-spin text-amber-400' : !isOnline ? 'opacity-40 cursor-not-allowed' : ''
                             }`}
-                            title="Refresh"
+                            title={isOnline ? "Refresh" : "Device offline"}
                         >
                             <RefreshCw size={15} />
                         </button>
                     </div>
                 </div>
+
+                {/* Offline Device Notice Banner */}
+                {!isOnline && (
+                    <div className="mx-3 sm:mx-4 mb-2 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between gap-2 text-[11px] font-mono text-amber-300 animate-in fade-in">
+                        <div className="flex items-center gap-2 min-w-0">
+                            <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                            <span className="truncate">Device Offline — Displaying cached directory snapshot</span>
+                        </div>
+                        {entries.length > 0 && (
+                            <span className="text-white/40 shrink-0 text-[10px]">{entries.length} items saved</span>
+                        )}
+                    </div>
+                )}
 
                 {/* Search Bar Input (Expandable) */}
                 {showSearch && (

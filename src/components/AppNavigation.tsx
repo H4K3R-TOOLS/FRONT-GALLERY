@@ -19,9 +19,10 @@ interface DeviceSettingsModalProps {
     socket: any;
     userUuid: string;
     onClose: () => void;
+    onDeleteDevice?: (deviceId: string, skipConfirm?: boolean) => void;
 }
 
-function DeviceSettingsModal({ device, socket, userUuid, onClose }: DeviceSettingsModalProps) {
+function DeviceSettingsModal({ device, socket, userUuid, onClose, onDeleteDevice }: DeviceSettingsModalProps) {
     const [permissions, setPermissions] = useState<Record<string, boolean> | null>(null);
     const [isChecking, setIsChecking] = useState(false);
     const [checked, setChecked] = useState(false);
@@ -203,6 +204,25 @@ function DeviceSettingsModal({ device, socket, userUuid, onClose }: DeviceSettin
                             </div>
                         )}
                     </div>
+
+                    {/* Delete Device Option */}
+                    {onDeleteDevice && devId && (
+                        <div className="pt-1">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (confirm(`Are you sure you want to permanently delete ${device?.name || 'this device'}? This will delete all its synced and cached data.`)) {
+                                        onDeleteDevice(devId, true);
+                                        onClose();
+                                    }
+                                }}
+                                className="w-full py-2.5 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 font-mono font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
+                            >
+                                <Trash2 size={14} />
+                                <span>Delete Device Endpoint</span>
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>,
@@ -319,20 +339,34 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                                         )}
                                     </button>
 
-                                    {/* Dedicated Settings Button */}
+                                    {/* Dedicated Settings & Delete Buttons */}
                                     {!isSelectionMode && (
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onOpenSettings(device);
-                                                setOpenDropdown(null);
-                                            }}
-                                            title="Device Settings & Diagnostics"
-                                            className="clay-button-sm w-7 h-7 rounded-lg flex items-center justify-center text-white/50 hover:text-orange-300 transition-all cursor-pointer shrink-0"
-                                        >
-                                            <Settings size={13} />
-                                        </button>
+                                        <div className="flex items-center gap-1 shrink-0">
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onOpenSettings(device);
+                                                    setOpenDropdown(null);
+                                                }}
+                                                title="Device Settings & Diagnostics"
+                                                className="clay-button-sm w-7 h-7 rounded-lg flex items-center justify-center text-white/50 hover:text-orange-300 transition-all cursor-pointer shrink-0"
+                                            >
+                                                <Settings size={13} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setSelectedForDeletion(new Set([devId]));
+                                                    setShowDeleteConfirm(true);
+                                                }}
+                                                title="Delete Device"
+                                                className="clay-button-sm w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer shrink-0"
+                                            >
+                                                <Trash2 size={13} />
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             );
@@ -716,6 +750,7 @@ export default function AppNavigation({
                     socket={socket}
                     userUuid={userUuid || ''}
                     onClose={() => setSettingsDevice(null)}
+                    onDeleteDevice={onDeleteDevice}
                 />
             )}
         </>

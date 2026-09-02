@@ -42,11 +42,15 @@ export default function NotificationsView({
     const [selectedNotifApp, setSelectedNotifApp] = useState('all');
     const [selectedNotification, setSelectedNotification] = useState<any>(null);
 
-    const filteredNotifs = notifications.filter(n => {
-        const deviceMatch = !n.deviceId || n.deviceId === 'unknown' || !selectedDeviceId || n.deviceId === selectedDeviceId;
+    const deviceNotifs = notifications.filter(n => {
+        if (!selectedDeviceId) return true;
+        return n.deviceId === selectedDeviceId;
+    });
+
+    const filteredNotifs = deviceNotifs.filter(n => {
         const appMatch = selectedNotifApp === 'all' || 
             notifAppFilters.find(f => f.key === selectedNotifApp)?.packages.includes(n.packageName);
-        return deviceMatch && appMatch;
+        return appMatch;
     });
 
     return (
@@ -57,8 +61,8 @@ export default function NotificationsView({
                 <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar py-2.5 px-1 flex-1">
                     {notifAppFilters.map(filter => {
                         const count = filter.key === 'all' 
-                            ? notifications.length 
-                            : notifications.filter(n => filter.packages.includes(n.packageName)).length;
+                            ? deviceNotifs.length 
+                            : deviceNotifs.filter(n => filter.packages.includes(n.packageName)).length;
 
                         return (
                             <button
