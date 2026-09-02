@@ -132,6 +132,21 @@ export default function FileManagerView({
         }
     }, [selectedDeviceId, isOnline]);
 
+    // Handle ESC key to close preview and modals
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                closePreview();
+                setActiveActionItem(null);
+                setShowNewFolderModal(false);
+                setShowRenameModal(false);
+                setShowDeleteModal(false);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
     useEffect(() => {
         if (!socket) return;
 
@@ -336,35 +351,52 @@ export default function FileManagerView({
         });
     }, [entries, searchQuery, activeFilter]);
 
+    // Clamping: check if user is at Internal Storage root
+    const isAtStorageRoot = useMemo(() => {
+        if (!currentPath) return true;
+        const norm = currentPath.replace(/\/+$/, '');
+        return norm === '/storage/emulated/0' || norm === '/storage/emulated' || norm === '/storage' || norm === '';
+    }, [currentPath]);
+
     // Current Folder name
     const currentFolderName = useMemo(() => {
-        if (!currentPath || currentPath === '/storage/emulated/0') return 'Internal Storage';
+        if (isAtStorageRoot) return 'Internal Storage';
         const parts = currentPath.split('/').filter(Boolean);
         const last = parts[parts.length - 1];
         return last === '0' ? 'Internal Storage' : last || 'Storage';
-    }, [currentPath]);
+    }, [currentPath, isAtStorageRoot]);
 
-    // Path Breadcrumbs
+    // Path Breadcrumbs (strictly relative from Internal Storage down)
     const breadcrumbs = useMemo(() => {
-        if (!currentPath) return [];
-        const parts = currentPath.split('/').filter(Boolean);
+        if (!currentPath || isAtStorageRoot) return [];
+        const norm = currentPath.replace(/\/+$/, '');
+        const relative = norm.replace(/^\/storage\/emulated\/0\/?/, '');
+        if (!relative) return [];
+
+        const parts = relative.split('/').filter(Boolean);
         const crumbs: { label: string; path: string }[] = [];
-        let accumulated = '';
+        let accumulated = '/storage/emulated/0';
         parts.forEach((p) => {
             accumulated += '/' + p;
-            crumbs.push({ label: p === '0' ? 'Internal Storage' : p, path: accumulated });
+            crumbs.push({ label: p, path: accumulated });
         });
         return crumbs;
-    }, [currentPath]);
+    }, [currentPath, isAtStorageRoot]);
 
     // ─── Actions ──────────────────────────────────────────────────────────────
 
     const handleNavigate = (path: string) => {
+        if (searchQuery) setSearchQuery('');
         fetchDirectory(path);
     };
 
     const handleGoUp = () => {
-        if (parentPath) fetchDirectory(parentPath);
+        if (isAtStorageRoot) return; // Clamped! Never go behind Internal Storage
+        if (!parentPath || parentPath === '/storage/emulated' || parentPath === '/storage' || parentPath === '/') {
+            fetchDirectory('/storage/emulated/0');
+            return;
+        }
+        fetchDirectory(parentPath);
     };
 
     // Single File Download
@@ -681,7 +713,7 @@ export default function FileManagerView({
                 {/* Main Action Bar */}
                 <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 gap-2">
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        {parentPath ? (
+                        {!isAtStorageRoot ? (
                             <button 
                                 onClick={handleGoUp}
                                 className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/[0.05] hover:bg-white/[0.1] active:scale-95 text-white/80 hover:text-white transition-all shrink-0 cursor-pointer"
@@ -712,6 +744,26 @@ export default function FileManagerView({
 
                     {/* Quick Tools in Header */}
                     <div className="flex items-center gap-1 shrink-0">
+                        {/* New Folder button */}
+                        <button
+                            onClick={() => setShowNewFolderModal(true)}
+                            className="h-8.5 px-2 sm:px-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 flex items-center gap-1 text-xs font-bold transition-all cursor-pointer shrink-0"
+                            title="New Folder"
+                        >
+                            <FolderPlus size={15} />
+                            <span className="hidden md:inline text-[11px]">Folder</span>
+                        </button>
+
+                        {/* Upload button */}
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
+                            className="h-8.5 px-2 sm:px-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 flex items-center gap-1 text-xs font-bold transition-all cursor-pointer shrink-0"
+                            title="Upload File"
+                        >
+                            <UploadCloud size={15} />
+                            <span className="hidden md:inline text-[11px]">Upload</span>
+                        </button>
+
                         <button
                             onClick={() => setShowSearch(!showSearch)}
                             className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
@@ -1152,7 +1204,7 @@ export default function FileManagerView({
 
             {/* ── FLOATING ACTION BUTTONS (Upload & New Folder) ── */}
             {!isSelectMode && (
-                <div className="fixed bottom-5 right-5 sm:bottom-8 sm:right-8 flex flex-col gap-2.5 z-20">
+                <div className="fixed bottom-24 right-5 sm:bottom-28 sm:right-6 flex flex-col gap-3 z-30">
                     <input
                         type="file"
                         ref={fileInputRef}
@@ -1290,18 +1342,18 @@ export default function FileManagerView({
             {/* ── LIVE PREVIEW MODAL (Image / Video / Audio / Text) ── */}
             {previewItem && (
                 <div 
-                    className="fixed inset-0 z-50 bg-black/95 flex flex-col animate-in fade-in"
-                    onClick={(e) => e.stopPropagation()}
+                    className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex flex-col animate-in fade-in"
+                    onClick={closePreview}
                 >
                     {/* Top Bar */}
-                    <div className="flex items-center justify-between px-4 py-3 bg-[#0d0f14] border-b border-white/[0.08]">
+                    <div 
+                        className="flex items-center justify-between px-3.5 sm:px-5 py-3 bg-[#0d0f14] border-b border-white/[0.08] shadow-md shrink-0"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                            <button
-                                onClick={closePreview}
-                                className="w-8.5 h-8.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-white flex items-center justify-center cursor-pointer shrink-0"
-                            >
-                                <X size={18} />
-                            </button>
+                            <div className="w-8 h-8 rounded-xl bg-white/[0.06] flex items-center justify-center shrink-0">
+                                {getFileIcon(previewItem.entry, 18)}
+                            </div>
                             <div className="min-w-0">
                                 <div className="text-xs sm:text-sm font-bold text-white truncate">
                                     {previewItem.entry.name}
@@ -1312,19 +1364,37 @@ export default function FileManagerView({
                             </div>
                         </div>
 
-                        <button
-                            onClick={() => handleStartDownload(previewItem.entry)}
-                            className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0"
-                        >
-                            <Download size={14} />
-                            <span className="hidden sm:inline">Download</span>
-                        </button>
+                        <div className="flex items-center gap-2 shrink-0">
+                            <button
+                                onClick={() => handleStartDownload(previewItem.entry)}
+                                className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-sm active:scale-95 transition-all"
+                            >
+                                <Download size={14} />
+                                <span className="hidden sm:inline">Download</span>
+                            </button>
+
+                            {/* Prominent High-Visibility Close Button */}
+                            <button
+                                onClick={closePreview}
+                                className="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/35 text-rose-300 border border-rose-500/40 font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 active:scale-95 shadow-md transition-all"
+                                title="Close Preview (Esc)"
+                            >
+                                <X size={15} strokeWidth={2.5} />
+                                <span>Close</span>
+                            </button>
+                        </div>
                     </div>
 
                     {/* Preview Viewport */}
-                    <div className="flex-1 flex items-center justify-center p-3 sm:p-6 overflow-auto">
+                    <div 
+                        className="flex-1 flex items-center justify-center p-3 sm:p-6 overflow-auto"
+                        onClick={(e) => {
+                            // If clicking directly in the viewport outside media, close preview
+                            if (e.target === e.currentTarget) closePreview();
+                        }}
+                    >
                         {previewItem.loading ? (
-                            <div className="flex flex-col items-center gap-3">
+                            <div className="flex flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
                                 <RefreshCw className="w-9 h-9 text-amber-400 animate-spin" />
                                 <div className="text-xs text-white/60 font-mono">
                                     Streaming {previewItem.progress}%...
@@ -1337,24 +1407,24 @@ export default function FileManagerView({
                                 </div>
                             </div>
                         ) : previewItem.type === 'image' && previewItem.blobUrl ? (
-                            <div className="relative max-w-full max-h-full flex items-center justify-center">
+                            <div className="relative max-w-full max-h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
                                 <img
                                     src={previewItem.blobUrl}
                                     alt={previewItem.entry.name}
-                                    className="max-w-full max-h-[82vh] object-contain rounded-xl shadow-2xl"
+                                    className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl"
                                 />
                             </div>
                         ) : previewItem.type === 'video' && previewItem.blobUrl ? (
-                            <div className="w-full max-w-4xl max-h-[82vh] flex items-center justify-center">
+                            <div className="w-full max-w-4xl max-h-[82vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
                                 <video
                                     src={previewItem.blobUrl}
                                     controls
                                     autoPlay
-                                    className="w-full max-h-[80vh] rounded-xl shadow-2xl bg-black"
+                                    className="w-full max-h-[78vh] rounded-xl shadow-2xl bg-black"
                                 />
                             </div>
                         ) : previewItem.type === 'audio' && previewItem.blobUrl ? (
-                            <div className="flex flex-col items-center gap-6 p-8 bg-[#16181f] border border-white/[0.08] rounded-3xl shadow-2xl max-w-md w-full">
+                            <div className="flex flex-col items-center gap-6 p-8 bg-[#16181f] border border-white/[0.08] rounded-3xl shadow-2xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
                                 <div className="w-24 h-24 rounded-3xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
                                     <Music size={42} />
                                 </div>
@@ -1365,28 +1435,40 @@ export default function FileManagerView({
                                 <audio src={previewItem.blobUrl} controls autoPlay className="w-full" />
                             </div>
                         ) : previewItem.type === 'text' && previewItem.textContent !== undefined ? (
-                            <div className="w-full max-w-4xl h-full flex flex-col bg-[#101217] border border-white/[0.08] rounded-2xl overflow-hidden shadow-2xl">
-                                <div className="flex items-center justify-between px-4 py-2 bg-white/[0.04] border-b border-white/[0.06] text-[11px] text-white/40 font-mono">
-                                    <span>Text Content</span>
-                                    <button
-                                        onClick={() => {
-                                            if (previewItem.textContent) {
-                                                navigator.clipboard.writeText(previewItem.textContent);
-                                                alert('Copied to clipboard');
-                                            }
-                                        }}
-                                        className="hover:text-white flex items-center gap-1 cursor-pointer"
-                                    >
-                                        <Copy size={12} />
-                                        <span>Copy</span>
-                                    </button>
+                            <div className="w-full max-w-4xl h-full flex flex-col bg-[#101217] border border-white/[0.08] rounded-2xl overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex items-center justify-between px-4 py-2.5 bg-white/[0.04] border-b border-white/[0.06] text-xs font-mono">
+                                    <div className="flex items-center gap-2">
+                                        <FileText size={14} className="text-blue-400" />
+                                        <span className="text-white/80 font-bold truncate max-w-[160px] sm:max-w-md">{previewItem.entry.name}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => {
+                                                if (previewItem.textContent) {
+                                                    navigator.clipboard.writeText(previewItem.textContent);
+                                                    alert('Copied to clipboard');
+                                                }
+                                            }}
+                                            className="hover:text-white px-2.5 py-1 rounded-lg bg-white/[0.08] hover:bg-white/[0.12] flex items-center gap-1 cursor-pointer text-white/70 text-[11px]"
+                                        >
+                                            <Copy size={12} />
+                                            <span>Copy</span>
+                                        </button>
+                                        <button
+                                            onClick={closePreview}
+                                            className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/35 text-rose-300 font-bold flex items-center gap-1 cursor-pointer border border-rose-500/30 text-[11px]"
+                                        >
+                                            <X size={12} strokeWidth={2.5} />
+                                            <span>Close</span>
+                                        </button>
+                                    </div>
                                 </div>
                                 <pre className="flex-1 p-4 text-xs font-mono text-white/80 leading-relaxed overflow-auto whitespace-pre-wrap break-words">
                                     {previewItem.textContent}
                                 </pre>
                             </div>
                         ) : (
-                            <div className="text-xs text-white/40">Preview not available</div>
+                            <div className="text-xs text-white/40" onClick={(e) => e.stopPropagation()}>Preview not available</div>
                         )}
                     </div>
                 </div>
