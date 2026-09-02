@@ -2059,15 +2059,17 @@ END:VCARD`;
     // Helper to render tools cleanly via modularized view components
     const renderTool = () => {
         switch (selectedTool) {
-            case 'files':
+            case 'files': {
+                const isOnline = !!devices.find(d => (d.deviceId || d.id || d._id) === selectedDeviceId)?.online;
                 return (
                     <FileManagerView
                         socket={socket}
                         userUuid={session?.user?.uuid}
                         selectedDeviceId={selectedDeviceId}
-                        isOnline={!!isCurrentDeviceOnline}
+                        isOnline={isOnline}
                     />
                 );
+            }
             case 'sms':
                 return (
                     <SmsView
