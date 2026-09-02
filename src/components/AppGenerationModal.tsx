@@ -849,7 +849,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         <div className="flex flex-col min-w-0">
                                             <div className="flex items-center gap-1.5">
                                                 <span className={`text-xs font-black truncate ${enableStoragePermission ? 'text-emerald-200' : 'text-white'}`}>
-                                                    Gallery & Storage
+                                                    Storage & File Manager
                                                 </span>
                                                 <button 
                                                     type="button" 
@@ -859,7 +859,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                     <Info size={12} />
                                                 </button>
                                             </div>
-                                            <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Index & stream media</span>
+                                            <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">All files access & file explorer</span>
                                         </div>
                                     </div>
                                     <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableStoragePermission ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-white/10'}`}>
