@@ -158,16 +158,16 @@ export default function FileManagerView({
             if (complete || chunkIndex >= totalChunks - 1) {
                 // Assemble Base64 parts into Blob and download
                 try {
-                    const byteArrays: Uint8Array[] = [];
+                    const byteArrays: BlobPart[] = [];
                     for (let i = 0; i < totalChunks; i++) {
                         const b64 = chunks[i];
                         if (b64) {
                             const byteChars = atob(b64);
-                            const byteNums = new Array(byteChars.length);
+                            const byteNums = new Uint8Array(byteChars.length);
                             for (let j = 0; j < byteChars.length; j++) {
                                 byteNums[j] = byteChars.charCodeAt(j);
                             }
-                            byteArrays.push(new Uint8Array(byteNums));
+                            byteArrays.push(byteNums.buffer as ArrayBuffer);
                         }
                     }
                     const blob = new Blob(byteArrays);
