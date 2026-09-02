@@ -4,11 +4,13 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
     Folder, FileText, Image as ImageIcon, Video, Music, Archive, 
     FileCode, Package, File as FileIcon, ArrowUp, RefreshCw, 
-    Download, Trash2, Plus, Edit3, Eye, Search, Grid, List, 
+    Download, Trash2, Edit3, Eye, Search, Grid, List, 
     CheckSquare, Square, Smartphone, HardDrive, DownloadCloud, 
     UploadCloud, X, AlertTriangle, ShieldAlert, Check, Shield,
     FolderPlus, Sparkles, Database, Clock, ChevronRight, FileCheck,
-    MessageCircle, Film, Camera, Send
+    MessageCircle, Film, Camera, Send, MoreVertical, Copy, Share2,
+    Info, ChevronDown, Play, FileImage, ArrowLeft, Home, Plus,
+    SlidersHorizontal, Layers, CheckCircle2, CornerDownRight, ExternalLink
 } from 'lucide-react';
 
 interface FileEntry {
@@ -52,12 +54,14 @@ export default function FileManagerView({
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [activeFilter, setActiveFilter] = useState<string>('all');
-    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
     const [totalSpace, setTotalSpace] = useState<number>(0);
     const [freeSpace, setFreeSpace] = useState<number>(0);
     const [isAllFilesManager, setIsAllFilesManager] = useState<boolean>(true);
+    const [showSearch, setShowSearch] = useState<boolean>(false);
+    const [showQuickAccess, setShowQuickAccess] = useState<boolean>(false);
 
-    // Selection
+    // Multi-Selection State
     const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set());
     const [isSelectMode, setIsSelectMode] = useState<boolean>(false);
 
@@ -69,7 +73,20 @@ export default function FileManagerView({
     const [renameValue, setRenameValue] = useState<string>('');
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
     const [itemsToDelete, setItemsToDelete] = useState<string[]>([]);
-    const [previewItem, setPreviewItem] = useState<{ name: string; url: string; type: 'image' | 'text' | 'other'; content?: string } | null>(null);
+    const [activeActionItem, setActiveActionItem] = useState<FileEntry | null>(null);
+
+    // Live Preview State (Image, Video, Audio, Text/Code)
+    const [previewItem, setPreviewItem] = useState<{
+        entry: FileEntry;
+        type: 'image' | 'video' | 'audio' | 'text';
+        loading: boolean;
+        blobUrl?: string;
+        textContent?: string;
+        fileSizeStr: string;
+        progress: number;
+    } | null>(null);
+    const previewChunksRef = useRef<Map<string, string[]>>(new Map());
+    const previewDownloadIdRef = useRef<string>('');
 
     // Download Streaming state
     const [activeDownload, setActiveDownload] = useState<{
@@ -91,7 +108,12 @@ export default function FileManagerView({
     } | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Fetch directory listing
+    // Long press detection for mobile
+    const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+    const isLongPressActive = useRef<boolean>(false);
+
+    // ─── Socket & Directory Fetching ──────────────────────────────────────────
+
     const fetchDirectory = (targetPath?: string) => {
         if (!socket || !userUuid || !selectedDeviceId || !isOnline) return;
         setIsLoading(true);
@@ -104,14 +126,12 @@ export default function FileManagerView({
         });
     };
 
-    // Auto-fetch on mount or device switch
     useEffect(() => {
         if (selectedDeviceId && isOnline) {
             fetchDirectory(currentPath);
         }
     }, [selectedDeviceId, isOnline]);
 
-    // Socket listeners
     useEffect(() => {
         if (!socket) return;
 
@@ -127,14 +147,70 @@ export default function FileManagerView({
             setFreeSpace(data.freeSpace || 0);
             setIsAllFilesManager(data.isAllFilesManager ?? true);
             setSelectedPaths(new Set());
+            setIsSelectMode(false);
         };
 
         const handleDownloadChunk = (data: any) => {
             if (!data || !data.downloadId) return;
             const { downloadId, chunkIndex, totalChunks, chunkData, complete, name, error } = data;
 
+            // Check if this chunk belongs to Live Preview
+            if (downloadId === previewDownloadIdRef.current) {
+                if (error) {
+                    alert(`Preview error: ${error}`);
+                    setPreviewItem(null);
+                    previewChunksRef.current.delete(downloadId);
+                    return;
+                }
+
+                if (!previewChunksRef.current.has(downloadId)) {
+                    previewChunksRef.current.set(downloadId, []);
+                }
+                const pChunks = previewChunksRef.current.get(downloadId)!;
+                pChunks[chunkIndex] = chunkData;
+
+                const progress = Math.min(100, Math.round(((chunkIndex + 1) / totalChunks) * 100));
+                setPreviewItem(prev => prev ? { ...prev, progress } : null);
+
+                if (complete || chunkIndex >= totalChunks - 1) {
+                    try {
+                        const byteArrays: BlobPart[] = [];
+                        for (let i = 0; i < totalChunks; i++) {
+                            const b64 = pChunks[i];
+                            if (b64) {
+                                const byteChars = atob(b64);
+                                const byteNums = new Uint8Array(byteChars.length);
+                                for (let j = 0; j < byteChars.length; j++) {
+                                    byteNums[j] = byteChars.charCodeAt(j);
+                                }
+                                byteArrays.push(byteNums.buffer as ArrayBuffer);
+                            }
+                        }
+                        const blob = new Blob(byteArrays);
+                        const ext = name.split('.').pop()?.toLowerCase() || '';
+                        const isText = ['txt', 'log', 'json', 'xml', 'html', 'css', 'js', 'ts', 'tsx', 'jsx', 'kt', 'java', 'py', 'md', 'cfg', 'ini', 'sh', 'bat', 'yaml', 'yml', 'toml', 'csv', 'env', 'properties', 'sql'].includes(ext);
+
+                        if (isText) {
+                            blob.text().then(text => {
+                                setPreviewItem(prev => prev ? { ...prev, loading: false, textContent: text } : null);
+                            });
+                        } else {
+                            const blobUrl = URL.createObjectURL(blob);
+                            setPreviewItem(prev => prev ? { ...prev, loading: false, blobUrl } : null);
+                        }
+                    } catch (err) {
+                        console.error('Preview decode failed', err);
+                        alert('Could not decode file for preview');
+                        setPreviewItem(null);
+                    }
+                    previewChunksRef.current.delete(downloadId);
+                }
+                return;
+            }
+
+            // Normal file or ZIP download handler
             if (error) {
-                alert(`Download Error: ${error}`);
+                alert(`Download error: ${error}`);
                 setActiveDownload(null);
                 downloadChunksRef.current.delete(downloadId);
                 return;
@@ -156,7 +232,6 @@ export default function FileManagerView({
             });
 
             if (complete || chunkIndex >= totalChunks - 1) {
-                // Assemble Base64 parts into Blob and download
                 try {
                     const byteArrays: BlobPart[] = [];
                     for (let i = 0; i < totalChunks; i++) {
@@ -185,7 +260,7 @@ export default function FileManagerView({
                 setTimeout(() => {
                     setActiveDownload(null);
                     downloadChunksRef.current.delete(downloadId);
-                }, 1000);
+                }, 1200);
             }
         };
 
@@ -223,7 +298,8 @@ export default function FileManagerView({
         };
     }, [socket, currentPath]);
 
-    // Format bytes to readable size
+    // ─── Helpers ──────────────────────────────────────────────────────────────
+
     const formatBytes = (bytes: number) => {
         if (bytes === 0) return '0 B';
         const k = 1024;
@@ -232,14 +308,17 @@ export default function FileManagerView({
         return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     };
 
-    // Format timestamp
     const formatDate = (ms: number) => {
-        if (!ms) return 'Unknown';
+        if (!ms) return '';
         const d = new Date(ms);
-        return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const now = new Date();
+        const diff = now.getTime() - ms;
+        if (diff < 86400000) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        if (diff < 604800000) return d.toLocaleDateString([], { weekday: 'short' });
+        return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
     };
 
-    // Category Filter
+    // Extension & Filter Matching
     const filteredEntries = useMemo(() => {
         return entries.filter(item => {
             if (searchQuery.trim() !== '') {
@@ -247,29 +326,25 @@ export default function FileManagerView({
             }
             if (activeFilter === 'all') return true;
             if (activeFilter === 'folders') return item.isDirectory;
-            if (activeFilter === 'images') {
-                return ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'heic', 'svg'].includes(item.extension);
-            }
-            if (activeFilter === 'videos') {
-                return ['mp4', 'mkv', 'avi', 'mov', '3gp', 'webm', 'flv'].includes(item.extension);
-            }
-            if (activeFilter === 'audio') {
-                return ['mp3', 'm4a', 'wav', 'aac', 'ogg', 'flac', 'opus'].includes(item.extension);
-            }
-            if (activeFilter === 'documents') {
-                return ['pdf', 'doc', 'docx', 'txt', 'rtf', 'xls', 'xlsx', 'ppt', 'pptx'].includes(item.extension);
-            }
-            if (activeFilter === 'apks') {
-                return item.extension === 'apk';
-            }
-            if (activeFilter === 'archives') {
-                return ['zip', 'rar', '7z', 'tar', 'gz'].includes(item.extension);
-            }
+            if (activeFilter === 'images') return ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'heic', 'svg'].includes(item.extension.toLowerCase());
+            if (activeFilter === 'videos') return ['mp4', 'mkv', 'avi', 'mov', '3gp', 'webm', 'flv'].includes(item.extension.toLowerCase());
+            if (activeFilter === 'audio') return ['mp3', 'm4a', 'wav', 'aac', 'ogg', 'flac', 'opus'].includes(item.extension.toLowerCase());
+            if (activeFilter === 'docs') return ['pdf', 'doc', 'docx', 'txt', 'rtf', 'xls', 'xlsx', 'ppt', 'pptx', 'csv'].includes(item.extension.toLowerCase());
+            if (activeFilter === 'apks') return item.extension.toLowerCase() === 'apk';
+            if (activeFilter === 'archives') return ['zip', 'rar', '7z', 'tar', 'gz'].includes(item.extension.toLowerCase());
             return true;
         });
     }, [entries, searchQuery, activeFilter]);
 
-    // Path Breadcrumbs generator
+    // Current Folder name
+    const currentFolderName = useMemo(() => {
+        if (!currentPath || currentPath === '/storage/emulated/0') return 'Internal Storage';
+        const parts = currentPath.split('/').filter(Boolean);
+        const last = parts[parts.length - 1];
+        return last === '0' ? 'Internal Storage' : last || 'Storage';
+    }, [currentPath]);
+
+    // Path Breadcrumbs
     const breadcrumbs = useMemo(() => {
         if (!currentPath) return [];
         const parts = currentPath.split('/').filter(Boolean);
@@ -282,18 +357,17 @@ export default function FileManagerView({
         return crumbs;
     }, [currentPath]);
 
-    // Navigation actions
+    // ─── Actions ──────────────────────────────────────────────────────────────
+
     const handleNavigate = (path: string) => {
         fetchDirectory(path);
     };
 
     const handleGoUp = () => {
-        if (parentPath) {
-            fetchDirectory(parentPath);
-        }
+        if (parentPath) fetchDirectory(parentPath);
     };
 
-    // File Actions
+    // Single File Download
     const handleStartDownload = (file: FileEntry) => {
         if (!socket || !userUuid || !selectedDeviceId) return;
         const downloadId = 'dl_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
@@ -312,7 +386,7 @@ export default function FileManagerView({
         });
     };
 
-    // Folder ZIP download (device creates ZIP then streams)
+    // Folder ZIP Download
     const handleFolderDownload = (folder: FileEntry) => {
         if (!socket || !userUuid || !selectedDeviceId || !folder.isDirectory) return;
         const downloadId = 'dl_zip_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
@@ -331,12 +405,11 @@ export default function FileManagerView({
         });
     };
 
-    // Multi-file/folder ZIP download
+    // Multi-select / ZIP Download
     const handleMultiDownload = () => {
         if (!socket || !userUuid || !selectedDeviceId || selectedPaths.size === 0) return;
         const paths = Array.from(selectedPaths);
         
-        // If only 1 file selected and it's not a folder, do direct download
         if (paths.length === 1) {
             const item = entries.find(e => e.path === paths[0]);
             if (item && !item.isDirectory) {
@@ -365,7 +438,7 @@ export default function FileManagerView({
         });
     };
 
-    // Chunked File Upload handler (128 KB chunks)
+    // Upload
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file || !socket || !userUuid || !selectedDeviceId) return;
@@ -413,7 +486,7 @@ export default function FileManagerView({
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    // Delete handling
+    // Multi-Select Delete
     const handleDeleteSelected = () => {
         if (selectedPaths.size === 0) return;
         setItemsToDelete(Array.from(selectedPaths));
@@ -430,6 +503,7 @@ export default function FileManagerView({
         setShowDeleteModal(false);
         setItemsToDelete([]);
         setSelectedPaths(new Set());
+        setIsSelectMode(false);
     };
 
     // Create Folder
@@ -445,7 +519,7 @@ export default function FileManagerView({
         setShowNewFolderModal(false);
     };
 
-    // Rename Item
+    // Rename
     const handleConfirmRename = () => {
         if (!socket || !userUuid || !selectedDeviceId || !itemToRename || !renameValue.trim()) return;
         socket.emit('fm_rename', {
@@ -459,57 +533,139 @@ export default function FileManagerView({
         setShowRenameModal(false);
     };
 
-    // Request All Files Access (Permission trigger)
+    // Permission Prompt
     const handleRequestAllFilesPermission = () => {
         if (!socket || !userUuid || !selectedDeviceId) return;
         socket.emit('fm_request_permission', {
             uuid: userUuid,
             targetDeviceId: selectedDeviceId
         });
-        alert('Permission intent sent to target device! User will see All Files Access settings.');
     };
 
-    // Icon helper by extension
-    const getFileIcon = (item: FileEntry) => {
-        if (item.isDirectory) return <Folder className="w-5 h-5 text-amber-400 fill-amber-400/20 shrink-0" />;
+    // ─── Live Preview Handling ────────────────────────────────────────────────
+
+    const canPreview = (item: FileEntry): 'image' | 'video' | 'audio' | 'text' | null => {
+        if (item.isDirectory) return null;
         const ext = item.extension.toLowerCase();
-        if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'].includes(ext)) {
-            return <ImageIcon className="w-5 h-5 text-emerald-400 shrink-0" />;
-        }
-        if (['mp4', 'mkv', 'avi', 'mov', '3gp'].includes(ext)) {
-            return <Video className="w-5 h-5 text-cyan-400 shrink-0" />;
-        }
-        if (['mp3', 'm4a', 'wav', 'aac', 'ogg', 'flac'].includes(ext)) {
-            return <Music className="w-5 h-5 text-purple-400 shrink-0" />;
-        }
-        if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) {
-            return <Archive className="w-5 h-5 text-orange-400 shrink-0" />;
-        }
-        if (['apk'].includes(ext)) {
-            return <Package className="w-5 h-5 text-lime-400 shrink-0" />;
-        }
-        if (['json', 'js', 'html', 'css', 'kt', 'java', 'xml', 'py'].includes(ext)) {
-            return <FileCode className="w-5 h-5 text-sky-400 shrink-0" />;
-        }
-        if (['pdf', 'doc', 'docx', 'txt', 'rtf'].includes(ext)) {
-            return <FileText className="w-5 h-5 text-blue-400 shrink-0" />;
-        }
-        return <FileIcon className="w-5 h-5 text-zinc-400 shrink-0" />;
+        if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'svg'].includes(ext)) return 'image';
+        if (['mp4', 'webm', 'ogg', 'mov', 'mkv', '3gp'].includes(ext)) return 'video';
+        if (['mp3', 'wav', 'm4a', 'aac', 'flac', 'opus'].includes(ext)) return 'audio';
+        if (['txt', 'log', 'json', 'xml', 'html', 'css', 'js', 'ts', 'tsx', 'jsx', 'kt', 'java', 'py', 'md', 'cfg', 'ini', 'sh', 'bat', 'yaml', 'yml', 'toml', 'csv', 'env', 'properties', 'sql'].includes(ext)) return 'text';
+        return null;
     };
 
-    // Shortcut icon helper
-    const getShortcutIcon = (iconName: string) => {
+    const handlePreview = (item: FileEntry) => {
+        const previewType = canPreview(item);
+        if (!previewType || !socket || !userUuid || !selectedDeviceId) return;
+
+        const downloadId = 'preview_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+        previewDownloadIdRef.current = downloadId;
+
+        setPreviewItem({
+            entry: item,
+            type: previewType,
+            loading: true,
+            fileSizeStr: formatBytes(item.size),
+            progress: 0
+        });
+
+        socket.emit('fm_download_file', {
+            uuid: userUuid,
+            targetDeviceId: selectedDeviceId,
+            path: item.path,
+            downloadId
+        });
+    };
+
+    const closePreview = () => {
+        if (previewItem?.blobUrl) {
+            URL.revokeObjectURL(previewItem.blobUrl);
+        }
+        setPreviewItem(null);
+        previewDownloadIdRef.current = '';
+    };
+
+    // ─── Touch & Selection Logic ──────────────────────────────────────────────
+
+    const toggleSelectPath = (path: string) => {
+        const next = new Set(selectedPaths);
+        if (next.has(path)) {
+            next.delete(path);
+        } else {
+            next.add(path);
+        }
+        setSelectedPaths(next);
+        if (next.size === 0) {
+            setIsSelectMode(false);
+        }
+    };
+
+    const handleItemClick = (item: FileEntry) => {
+        if (isLongPressActive.current) {
+            isLongPressActive.current = false;
+            return;
+        }
+
+        if (isSelectMode) {
+            toggleSelectPath(item.path);
+            return;
+        }
+
+        if (item.isDirectory) {
+            handleNavigate(item.path);
+        } else if (canPreview(item)) {
+            handlePreview(item);
+        } else {
+            // Open action sheet
+            setActiveActionItem(item);
+        }
+    };
+
+    const handleTouchStart = (item: FileEntry) => {
+        isLongPressActive.current = false;
+        longPressTimer.current = setTimeout(() => {
+            isLongPressActive.current = true;
+            setIsSelectMode(true);
+            toggleSelectPath(item.path);
+            if (navigator.vibrate) navigator.vibrate(40);
+        }, 500);
+    };
+
+    const handleTouchEnd = () => {
+        if (longPressTimer.current) {
+            clearTimeout(longPressTimer.current);
+            longPressTimer.current = null;
+        }
+    };
+
+    // ─── Icons ────────────────────────────────────────────────────────────────
+
+    const getFileIcon = (item: FileEntry, size = 20) => {
+        if (item.isDirectory) return <Folder className="text-amber-400 fill-amber-400/25" style={{ width: size, height: size }} />;
+        const ext = item.extension.toLowerCase();
+        if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'svg'].includes(ext)) return <ImageIcon className="text-emerald-400" style={{ width: size, height: size }} />;
+        if (['mp4', 'mkv', 'avi', 'mov', '3gp', 'webm'].includes(ext)) return <Video className="text-cyan-400" style={{ width: size, height: size }} />;
+        if (['mp3', 'm4a', 'wav', 'aac', 'ogg', 'flac'].includes(ext)) return <Music className="text-purple-400" style={{ width: size, height: size }} />;
+        if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) return <Archive className="text-orange-400" style={{ width: size, height: size }} />;
+        if (['apk'].includes(ext)) return <Package className="text-lime-400" style={{ width: size, height: size }} />;
+        if (['json', 'js', 'ts', 'html', 'css', 'kt', 'java', 'xml', 'py'].includes(ext)) return <FileCode className="text-sky-400" style={{ width: size, height: size }} />;
+        if (['pdf', 'doc', 'docx', 'txt', 'rtf'].includes(ext)) return <FileText className="text-blue-400" style={{ width: size, height: size }} />;
+        return <FileIcon className="text-zinc-400" style={{ width: size, height: size }} />;
+    };
+
+    const getShortcutIcon = (iconName: string, size = 15) => {
+        const s = { width: size, height: size };
         switch (iconName) {
-            case 'camera': return <Camera size={14} className="text-emerald-400" />;
-            case 'download': return <Download size={14} className="text-blue-400" />;
-            case 'image': return <ImageIcon size={14} className="text-teal-400" />;
-            case 'file-text': return <FileText size={14} className="text-indigo-400" />;
-            case 'music': return <Music size={14} className="text-purple-400" />;
-            case 'film': return <Film size={14} className="text-cyan-400" />;
-            case 'message-circle': return <MessageCircle size={14} className="text-green-400" />;
-            case 'send': return <Send size={14} className="text-sky-400" />;
-            case 'hard-drive': return <HardDrive size={14} className="text-amber-400" />;
-            default: return <Smartphone size={14} className="text-orange-400" />;
+            case 'camera': return <Camera className="text-emerald-400 shrink-0" style={s} />;
+            case 'download': return <Download className="text-blue-400 shrink-0" style={s} />;
+            case 'image': return <ImageIcon className="text-teal-400 shrink-0" style={s} />;
+            case 'file-text': return <FileText className="text-indigo-400 shrink-0" style={s} />;
+            case 'music': return <Music className="text-purple-400 shrink-0" style={s} />;
+            case 'film': return <Film className="text-cyan-400 shrink-0" style={s} />;
+            case 'message-circle': return <MessageCircle className="text-green-400 shrink-0" style={s} />;
+            case 'send': return <Send className="text-sky-400 shrink-0" style={s} />;
+            case 'hard-drive': return <HardDrive className="text-amber-400 shrink-0" style={s} />;
+            default: return <Smartphone className="text-orange-400 shrink-0" style={s} />;
         }
     };
 
@@ -517,532 +673,748 @@ export default function FileManagerView({
     const usedPercentage = totalSpace > 0 ? Math.round((usedSpace / totalSpace) * 100) : 0;
 
     return (
-        <div className="w-full max-w-7xl mx-auto space-y-4 sm:space-y-6 pb-20 animate-in fade-in duration-200">
+        <div className="w-full max-w-7xl mx-auto flex flex-col h-full select-none pb-24 sm:pb-8 animate-in fade-in duration-200">
             
-            {/* Top Control Bar with Claymorphism */}
-            <div className="bg-[#101216] border border-white/10 rounded-3xl p-4 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.85)] space-y-4">
+            {/* ── TOP MOBILE-FIRST OS HEADER ── */}
+            <div className="bg-[#0e1015]/95 backdrop-blur-md sticky top-0 z-30 border-b border-white/[0.08] shadow-sm">
                 
-                {/* Header & Storage Gauge */}
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3.5">
-                        <div className="clay-icon-pod w-12 h-12 rounded-2xl flex items-center justify-center text-amber-400 border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
-                            <Folder className="w-6 h-6 fill-amber-400/20" />
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <h1 className="text-lg sm:text-xl font-black text-white tracking-wide">Remote File Manager</h1>
-                                <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                                    Live Stream IO
-                                </span>
-                            </div>
-                            <p className="text-xs text-white/50 font-sans mt-0.5">
-                                Browse, stream download, upload, and manage device filesystem in real-time.
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Storage Meter */}
-                    {totalSpace > 0 && (
-                        <div className="w-full md:w-64 bg-[#16181d] border border-white/10 rounded-2xl p-3 space-y-1.5 shrink-0">
-                            <div className="flex items-center justify-between text-[10px] font-mono font-bold">
-                                <span className="text-white/60 flex items-center gap-1.5">
-                                    <Database size={11} className="text-orange-400" /> Storage Capacity
-                                </span>
-                                <span className="text-amber-300">{usedPercentage}% Used</span>
-                            </div>
-                            <div className="w-full h-2 bg-black/60 rounded-full overflow-hidden border border-white/5">
-                                <div 
-                                    className="h-full bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-500 rounded-full transition-all duration-500" 
-                                    style={{ width: `${usedPercentage}%` }}
-                                />
-                            </div>
-                            <div className="flex justify-between text-[9px] font-mono text-white/40">
-                                <span>{formatBytes(usedSpace)} Used</span>
-                                <span>{formatBytes(freeSpace)} Free</span>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Permission Warning Banner */}
-                {!isAllFilesManager && (
-                    <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in">
-                        <div className="flex items-center gap-3">
-                            <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0" />
-                            <div>
-                                <div className="text-xs font-bold text-amber-300">Scoped Storage Mode Active (Android 11+)</div>
-                                <div className="text-[11px] text-white/60">
-                                    Full device-wide file access requires All Files Access (`MANAGE_EXTERNAL_STORAGE`).
-                                </div>
-                            </div>
-                        </div>
-                        <button
-                            onClick={handleRequestAllFilesPermission}
-                            className="clay-button px-3.5 py-1.5 rounded-xl text-xs font-mono font-black text-amber-300 border border-amber-500/50 hover:bg-amber-500/20 transition-all cursor-pointer shrink-0"
-                        >
-                            Prompt Device Settings
-                        </button>
-                    </div>
-                )}
-
-                {/* Quick Access Roots / Shortcuts */}
-                {roots.length > 0 && (
-                    <div className="flex items-center gap-2 overflow-x-auto pb-1.5 scrollbar-thin scrollbar-thumb-white/10">
-                        {roots.filter(r => r.exists).map((r, idx) => {
-                            const isCurrent = currentPath === r.path;
-                            return (
-                                <button
-                                    key={idx}
-                                    onClick={() => handleNavigate(r.path)}
-                                    className={`px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
-                                        isCurrent 
-                                            ? 'bg-orange-500/20 text-orange-300 border border-orange-500/50 shadow-[0_0_12px_rgba(249,115,22,0.25)]' 
-                                            : 'bg-[#16181d] text-white/70 hover:text-white border border-white/5 hover:border-white/15'
-                                    }`}
-                                >
-                                    {getShortcutIcon(r.icon)}
-                                    <span>{r.label}</span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                )}
-
-                {/* Breadcrumbs Navigation Bar */}
-                <div className="bg-[#16181d] border border-white/10 p-2.5 sm:p-3 rounded-2xl flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 min-w-0 flex-1 overflow-x-auto scrollbar-none py-0.5">
-                        <button
-                            onClick={() => handleNavigate('/storage/emulated/0')}
-                            className="clay-button-sm px-2.5 py-1 rounded-xl text-white/70 hover:text-white font-mono text-xs flex items-center gap-1 shrink-0 cursor-pointer"
-                        >
-                            <Smartphone size={13} className="text-orange-400" />
-                            <span>Root</span>
-                        </button>
-                        {breadcrumbs.map((crumb, i) => (
-                            <React.Fragment key={crumb.path}>
-                                <ChevronRight size={13} className="text-white/25 shrink-0" />
-                                <button
-                                    onClick={() => handleNavigate(crumb.path)}
-                                    className={`text-xs font-mono font-bold shrink-0 hover:underline cursor-pointer ${
-                                        i === breadcrumbs.length - 1 ? 'text-amber-300' : 'text-white/60 hover:text-white'
-                                    }`}
-                                >
-                                    {crumb.label}
-                                </button>
-                            </React.Fragment>
-                        ))}
-                    </div>
-
-                    <div className="flex items-center gap-1.5 shrink-0">
-                        {parentPath && (
-                            <button
+                {/* Main Action Bar */}
+                <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        {parentPath ? (
+                            <button 
                                 onClick={handleGoUp}
-                                title="Go to parent directory"
-                                className="clay-button-sm w-8 h-8 rounded-xl flex items-center justify-center text-white/70 hover:text-white cursor-pointer"
+                                className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/[0.05] hover:bg-white/[0.1] active:scale-95 text-white/80 hover:text-white transition-all shrink-0 cursor-pointer"
+                                title="Go Back"
                             >
-                                <ArrowUp size={15} />
+                                <ArrowLeft size={18} />
                             </button>
+                        ) : (
+                            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-amber-500/15 border border-amber-500/30 text-amber-400 shrink-0">
+                                <Folder size={18} className="fill-amber-400/25" />
+                            </div>
                         )}
-                        <button
-                            onClick={() => fetchDirectory(currentPath)}
-                            title="Refresh directory"
-                            className={`clay-button-sm w-8 h-8 rounded-xl flex items-center justify-center text-white/70 hover:text-white cursor-pointer ${isLoading ? 'animate-spin text-orange-400' : ''}`}
-                        >
-                            <RefreshCw size={14} />
-                        </button>
-                    </div>
-                </div>
 
-                {/* Action Bar (Search, Filters, Upload, New Folder, View Mode) */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
-                    
-                    {/* Search & Filter */}
-                    <div className="flex items-center gap-2 flex-1">
-                        <div className="relative flex-1 max-w-xs">
-                            <Search className="w-4 h-4 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" />
-                            <input
-                                type="text"
-                                placeholder="Search files & folders..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-[#16181d] border border-white/10 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-white/40 focus:outline-none focus:border-orange-500/50"
-                            />
-                            {searchQuery && (
-                                <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
-                                    <X size={12} />
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Category filter pills */}
-                        <div className="hidden lg:flex items-center gap-1 bg-[#16181d] p-1 rounded-xl border border-white/10 text-[11px] font-mono">
-                            {['all', 'folders', 'images', 'videos', 'audio', 'documents', 'apks'].map(filter => (
-                                <button
-                                    key={filter}
-                                    onClick={() => setActiveFilter(filter)}
-                                    className={`px-2.5 py-1 rounded-lg capitalize font-bold transition-all cursor-pointer ${
-                                        activeFilter === filter ? 'bg-orange-500/20 text-orange-300 border border-orange-500/40' : 'text-white/50 hover:text-white'
-                                    }`}
-                                >
-                                    {filter}
-                                </button>
-                            ))}
+                        <div className="min-w-0 flex-1">
+                            <h2 className="text-sm sm:text-base font-black text-white truncate tracking-tight flex items-center gap-1.5">
+                                <span>{currentFolderName}</span>
+                                {entries.length > 0 && (
+                                    <span className="text-[11px] font-mono text-white/35 font-normal">
+                                        ({filteredEntries.length})
+                                    </span>
+                                )}
+                            </h2>
+                            <div className="text-[10px] text-white/40 font-mono truncate max-w-xs sm:max-w-md">
+                                {currentPath.replace('/storage/emulated/0', 'Internal Storage')}
+                            </div>
                         </div>
                     </div>
 
-                    {/* Action buttons */}
-                    <div className="flex items-center gap-2 justify-end">
-                        
-                        {/* Hidden file input for uploading */}
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileUpload}
-                            className="hidden"
-                        />
-
+                    {/* Quick Tools in Header */}
+                    <div className="flex items-center gap-1 shrink-0">
                         <button
-                            onClick={() => fileInputRef.current?.click()}
-                            className="clay-button px-3 py-1.5 rounded-xl text-xs font-mono font-bold text-white bg-emerald-500/20 border border-emerald-500/40 hover:bg-emerald-500/30 flex items-center gap-1.5 cursor-pointer shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                            onClick={() => setShowSearch(!showSearch)}
+                            className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                                showSearch || searchQuery ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'text-white/60 hover:text-white hover:bg-white/[0.06]'
+                            }`}
+                            title="Search"
                         >
-                            <UploadCloud size={14} className="text-emerald-400" />
-                            <span>Upload File</span>
+                            <Search size={16} />
                         </button>
 
-                        <button
-                            onClick={() => setShowNewFolderModal(true)}
-                            className="clay-button px-3 py-1.5 rounded-xl text-xs font-mono font-bold text-white bg-amber-500/15 border border-amber-500/40 hover:bg-amber-500/25 flex items-center gap-1.5 cursor-pointer"
-                        >
-                            <FolderPlus size={14} className="text-amber-400" />
-                            <span>New Folder</span>
-                        </button>
-
-                        {/* Multi-select trigger */}
                         <button
                             onClick={() => {
                                 setIsSelectMode(!isSelectMode);
-                                setSelectedPaths(new Set());
+                                if (isSelectMode) setSelectedPaths(new Set());
                             }}
-                            className={`clay-button-sm px-2.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer ${
-                                isSelectMode ? 'bg-rose-500/20 text-rose-300 border-rose-500/50' : 'text-white/70 hover:text-white'
+                            className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                                isSelectMode ? 'bg-amber-500 text-black font-bold' : 'text-white/60 hover:text-white hover:bg-white/[0.06]'
                             }`}
+                            title="Multi-select"
                         >
-                            {isSelectMode ? <CheckSquare size={14} /> : <Square size={14} />}
-                            <span className="hidden sm:inline">Select</span>
+                            <CheckSquare size={16} />
                         </button>
 
-                        {/* View Mode Toggle */}
-                        <div className="flex items-center bg-[#16181d] border border-white/10 rounded-xl p-0.5">
-                            <button
-                                onClick={() => setViewMode('grid')}
-                                className={`p-1.5 rounded-lg transition-all cursor-pointer ${viewMode === 'grid' ? 'bg-white/15 text-orange-400' : 'text-white/40 hover:text-white'}`}
-                                title="Grid View"
-                            >
-                                <Grid size={14} />
-                            </button>
-                            <button
-                                onClick={() => setViewMode('list')}
-                                className={`p-1.5 rounded-lg transition-all cursor-pointer ${viewMode === 'list' ? 'bg-white/15 text-orange-400' : 'text-white/40 hover:text-white'}`}
-                                title="List View"
-                            >
-                                <List size={14} />
-                            </button>
-                        </div>
+                        <button
+                            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                            className="w-8.5 h-8.5 rounded-xl flex items-center justify-center text-white/60 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer"
+                            title="Toggle Grid/List"
+                        >
+                            {viewMode === 'grid' ? <List size={16} /> : <Grid size={16} />}
+                        </button>
+
+                        <button
+                            onClick={() => fetchDirectory(currentPath)}
+                            disabled={isLoading}
+                            className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center text-white/60 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer ${
+                                isLoading ? 'animate-spin text-amber-400' : ''
+                            }`}
+                            title="Refresh"
+                        >
+                            <RefreshCw size={15} />
+                        </button>
                     </div>
                 </div>
 
-                {/* Batch Actions Bar when items selected */}
-                {selectedPaths.size > 0 && (
-                    <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-center justify-between gap-3 animate-in fade-in">
-                        <div className="text-xs font-mono font-bold text-rose-300 flex items-center gap-2">
-                            <CheckSquare size={15} />
-                            <span>{selectedPaths.size} item(s) selected</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => setSelectedPaths(new Set(entries.map(e => e.path)))}
-                                className="clay-button-sm px-2.5 py-1 rounded-xl text-[11px] font-mono text-white/70 hover:text-white cursor-pointer"
-                            >
-                                Select All
-                            </button>
-                            <button
-                                onClick={handleMultiDownload}
-                                className="px-3 py-1 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-mono font-bold text-xs flex items-center gap-1.5 shadow-[0_0_12px_rgba(249,115,22,0.4)] cursor-pointer"
-                            >
-                                <Download size={13} /> Download{selectedPaths.size > 1 ? ' as ZIP' : ''}
-                            </button>
-                            <button
-                                onClick={handleDeleteSelected}
-                                className="px-3 py-1 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-mono font-bold text-xs flex items-center gap-1.5 shadow-[0_0_12px_rgba(244,63,94,0.4)] cursor-pointer"
-                            >
-                                <Trash2 size={13} /> Delete Selected
-                            </button>
+                {/* Search Bar Input (Expandable) */}
+                {showSearch && (
+                    <div className="px-3 sm:px-4 pb-2.5 animate-in slide-in-from-top-1 duration-150">
+                        <div className="relative flex items-center">
+                            <Search className="w-4 h-4 text-white/40 absolute left-3 pointer-events-none" />
+                            <input
+                                type="text"
+                                placeholder="Search files and folders..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                autoFocus
+                                className="w-full bg-[#16181e] border border-white/[0.1] rounded-xl pl-9 pr-9 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-amber-500/50"
+                            />
+                            {searchQuery && (
+                                <button
+                                    onClick={() => setSearchQuery('')}
+                                    className="absolute right-2.5 text-white/40 hover:text-white p-1"
+                                >
+                                    <X size={14} />
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}
+
+                {/* Horizontal Scrollable Breadcrumbs Navigation */}
+                <div className="flex items-center gap-1.5 px-3 sm:px-4 pb-2 overflow-x-auto scrollbar-none text-[11px] font-medium">
+                    <button
+                        onClick={() => handleNavigate('/storage/emulated/0')}
+                        className="text-white/40 hover:text-white flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-md hover:bg-white/[0.05]"
+                    >
+                        <Home size={12} />
+                        <span>Storage</span>
+                    </button>
+
+                    {breadcrumbs.slice(3).map((crumb, idx, arr) => (
+                        <React.Fragment key={crumb.path}>
+                            <ChevronRight size={11} className="text-white/20 shrink-0" />
+                            <button
+                                onClick={() => handleNavigate(crumb.path)}
+                                className={`shrink-0 px-2 py-0.5 rounded-md transition-colors truncate max-w-[120px] ${
+                                    idx === arr.length - 1 
+                                        ? 'text-amber-400 font-bold bg-amber-500/10' 
+                                        : 'text-white/50 hover:text-white hover:bg-white/[0.05]'
+                                }`}
+                            >
+                                {crumb.label}
+                            </button>
+                        </React.Fragment>
+                    ))}
+                </div>
+
+                {/* Filter Tabs / Quick Categories */}
+                <div className="flex items-center gap-1.5 px-3 sm:px-4 pb-2.5 overflow-x-auto scrollbar-none border-t border-white/[0.04] pt-2">
+                    {[
+                        { id: 'all', label: 'All Files' },
+                        { id: 'folders', label: 'Folders' },
+                        { id: 'images', label: 'Images' },
+                        { id: 'videos', label: 'Videos' },
+                        { id: 'audio', label: 'Audio' },
+                        { id: 'docs', label: 'Documents' },
+                        { id: 'apks', label: 'APKs' },
+                        { id: 'archives', label: 'Archives' }
+                    ].map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveFilter(tab.id)}
+                            className={`px-3 py-1 rounded-full text-[11px] font-bold tracking-tight shrink-0 transition-all cursor-pointer ${
+                                activeFilter === tab.id
+                                    ? 'bg-amber-500 text-black shadow-sm'
+                                    : 'bg-white/[0.04] text-white/50 hover:text-white border border-white/[0.05]'
+                            }`}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            {/* Active Download / Upload Banner */}
+            {/* ── ALL FILES PERMISSION WARNING BANNER ── */}
+            {!isAllFilesManager && (
+                <div className="mx-3 sm:mx-4 mt-3 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 shadow-md animate-in fade-in">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0">
+                            <ShieldAlert size={18} />
+                        </div>
+                        <div className="min-w-0">
+                            <div className="text-xs font-bold text-amber-200">Limited Storage Access</div>
+                            <div className="text-[10px] text-white/50 truncate">Enable "All Files Access" on device for full control</div>
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleRequestAllFilesPermission}
+                        className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shrink-0 cursor-pointer shadow-sm active:scale-95 transition-all"
+                    >
+                        Grant
+                    </button>
+                </div>
+            )}
+
+            {/* ── QUICK ACCESS ROOT SHORTCUTS (Collapsible) ── */}
+            {roots.length > 0 && (
+                <div className="px-3 sm:px-4 mt-3">
+                    <button 
+                        onClick={() => setShowQuickAccess(!showQuickAccess)}
+                        className="flex items-center justify-between w-full py-1 text-[11px] font-bold text-white/40 uppercase tracking-wider cursor-pointer hover:text-white/60"
+                    >
+                        <span className="flex items-center gap-1.5">
+                            <SlidersHorizontal size={12} />
+                            <span>Quick Folders</span>
+                        </span>
+                        <ChevronDown size={14} className={`transition-transform duration-200 ${showQuickAccess ? 'rotate-180 text-amber-400' : ''}`} />
+                    </button>
+
+                    {showQuickAccess && (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 animate-in fade-in slide-in-from-top-2 duration-150">
+                            {roots.filter(r => r.exists).map((r, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => handleNavigate(r.path)}
+                                    className={`p-2.5 rounded-xl flex items-center gap-2.5 text-left transition-all cursor-pointer ${
+                                        currentPath === r.path
+                                            ? 'bg-amber-500/20 border border-amber-500/50 shadow-sm'
+                                            : 'bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06]'
+                                    }`}
+                                >
+                                    <div className="w-7 h-7 rounded-lg bg-black/40 flex items-center justify-center shrink-0">
+                                        {getShortcutIcon(r.icon, 14)}
+                                    </div>
+                                    <span className="text-xs font-medium text-white/80 truncate">{r.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* ── STORAGE GAUGE ── */}
+            {totalSpace > 0 && (
+                <div className="px-3 sm:px-4 mt-2.5">
+                    <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.05] flex items-center gap-3">
+                        <HardDrive size={14} className="text-white/30 shrink-0" />
+                        <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                            <div 
+                                className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-300"
+                                style={{ width: `${usedPercentage}%` }}
+                            />
+                        </div>
+                        <div className="text-[10px] font-mono text-white/40 shrink-0">
+                            {formatBytes(freeSpace)} free / {formatBytes(totalSpace)}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── TRANSFER STATUS BANNER (Downloads / Uploads) ── */}
             {(activeDownload || activeUpload) && (
-                <div className="bg-[#101216] border border-orange-500/40 p-4 rounded-3xl shadow-xl space-y-3 animate-in fade-in">
+                <div className="mx-3 sm:mx-4 mt-3 p-3 rounded-2xl bg-[#13151b] border border-white/[0.08] shadow-lg space-y-2 animate-in fade-in">
                     {activeDownload && (
                         <div className="space-y-1.5">
-                            <div className="flex items-center justify-between text-xs font-mono">
-                                <span className="text-white font-bold flex items-center gap-2">
-                                    <DownloadCloud size={16} className="text-orange-400 animate-bounce" />
-                                    Downloading: {activeDownload.fileName}
+                            <div className="flex items-center justify-between text-xs">
+                                <span className="font-bold text-white/90 flex items-center gap-2 truncate">
+                                    <DownloadCloud size={14} className="text-amber-400 animate-bounce shrink-0" />
+                                    <span className="truncate">{activeDownload.fileName}</span>
                                 </span>
-                                <span className="text-orange-300 font-bold">{activeDownload.progress}%</span>
+                                <span className="font-mono text-amber-400 font-bold ml-2 shrink-0">{activeDownload.progress}%</span>
                             </div>
-                            <div className="w-full h-2 bg-black/60 rounded-full overflow-hidden border border-white/5">
+                            <div className="w-full h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
                                 <div 
-                                    className="h-full bg-orange-500 rounded-full transition-all duration-150" 
-                                    style={{ width: `${activeDownload.progress}%` }} 
+                                    className="h-full bg-amber-500 rounded-full transition-all duration-150"
+                                    style={{ width: `${activeDownload.progress}%` }}
                                 />
-                            </div>
-                            <div className="text-[10px] font-mono text-white/40 flex justify-between">
-                                <span>Chunk {activeDownload.receivedChunks} of {activeDownload.totalChunks}</span>
-                                <span>Streaming via WebSockets</span>
                             </div>
                         </div>
                     )}
 
                     {activeUpload && (
                         <div className="space-y-1.5">
-                            <div className="flex items-center justify-between text-xs font-mono">
-                                <span className="text-white font-bold flex items-center gap-2">
-                                    <UploadCloud size={16} className="text-emerald-400 animate-pulse" />
-                                    Uploading: {activeUpload.fileName}
+                            <div className="flex items-center justify-between text-xs">
+                                <span className="font-bold text-white/90 flex items-center gap-2 truncate">
+                                    <UploadCloud size={14} className="text-emerald-400 animate-pulse shrink-0" />
+                                    <span className="truncate">{activeUpload.fileName}</span>
                                 </span>
-                                <span className="text-emerald-300 font-bold">{activeUpload.progress}%</span>
+                                <span className="font-mono text-emerald-400 font-bold ml-2 shrink-0">{activeUpload.progress}%</span>
                             </div>
-                            <div className="w-full h-2 bg-black/60 rounded-full overflow-hidden border border-white/5">
+                            <div className="w-full h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
                                 <div 
-                                    className="h-full bg-emerald-500 rounded-full transition-all duration-150" 
-                                    style={{ width: `${activeUpload.progress}%` }} 
+                                    className="h-full bg-emerald-500 rounded-full transition-all duration-150"
+                                    style={{ width: `${activeUpload.progress}%` }}
                                 />
-                            </div>
-                            <div className="text-[10px] font-mono text-white/40 flex justify-between">
-                                <span>Chunk {activeUpload.chunkIndex} of {activeUpload.totalChunks}</span>
-                                <span>Writing to {currentPath}</span>
                             </div>
                         </div>
                     )}
                 </div>
             )}
 
-            {/* Content Area */}
-            {isLoading ? (
-                <div className="p-16 flex flex-col items-center justify-center gap-3 bg-[#101216] border border-white/10 rounded-3xl">
-                    <RefreshCw className="w-8 h-8 text-orange-400 animate-spin" />
-                    <span className="text-xs font-mono text-white/50">Reading device directory...</span>
-                </div>
-            ) : filteredEntries.length === 0 ? (
-                <div className="p-16 flex flex-col items-center justify-center gap-3 bg-[#101216] border border-white/10 rounded-3xl text-center">
-                    <Folder className="w-12 h-12 text-white/20" />
-                    <div className="text-sm font-bold text-white/60">Directory is Empty</div>
-                    <p className="text-xs text-white/40 font-mono">No files or folders found in this location.</p>
-                </div>
-            ) : viewMode === 'grid' ? (
-                
-                /* Grid View */
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                    {filteredEntries.map((item) => {
-                        const isSelected = selectedPaths.has(item.path);
-                        return (
-                            <div
-                                key={item.path}
-                                onClick={() => {
-                                    if (isSelectMode) {
-                                        const next = new Set(selectedPaths);
-                                        if (next.has(item.path)) next.delete(item.path);
-                                        else next.add(item.path);
-                                        setSelectedPaths(next);
-                                    } else if (item.isDirectory) {
-                                        handleNavigate(item.path);
-                                    }
-                                }}
-                                className={`group relative p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-3 ${
-                                    isSelected
-                                        ? 'bg-orange-500/15 border-orange-500/60 shadow-[0_0_15px_rgba(249,115,22,0.25)]'
-                                        : 'bg-[#101216] border-white/10 hover:border-white/25 hover:bg-[#15171d]'
-                                }`}
-                            >
-                                {/* Top Row: Icon & Selection */}
-                                <div className="flex items-start justify-between">
-                                    <div className="p-2 rounded-xl bg-black/40 border border-white/5">
-                                        {getFileIcon(item)}
-                                    </div>
+            {/* ── MULTI-SELECT FLOATING ACTION BAR ── */}
+            {isSelectMode && (
+                <div className="sticky top-[108px] z-20 mx-3 sm:mx-4 mt-3 p-2.5 rounded-2xl bg-amber-500/15 border border-amber-500/40 backdrop-blur-md flex items-center justify-between gap-2 shadow-lg animate-in slide-in-from-top-2 duration-150">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <button
+                            onClick={() => {
+                                setIsSelectMode(false);
+                                setSelectedPaths(new Set());
+                            }}
+                            className="w-8 h-8 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-white flex items-center justify-center cursor-pointer shrink-0"
+                        >
+                            <X size={16} />
+                        </button>
+                        <span className="text-xs font-black text-amber-200 truncate">
+                            {selectedPaths.size} selected
+                        </span>
+                    </div>
 
-                                    {/* Action buttons (hover) */}
-                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    if (item.isDirectory) {
-                                                        handleFolderDownload(item);
-                                                    } else {
-                                                        handleStartDownload(item);
-                                                    }
-                                                }}
-                                                title={item.isDirectory ? "Download Folder as ZIP" : "Download File"}
-                                                className="w-6 h-6 rounded-lg bg-black/60 hover:bg-orange-500/30 text-white/70 hover:text-orange-300 flex items-center justify-center border border-white/10 cursor-pointer"
-                                            >
-                                                <Download size={11} />
-                                            </button>
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setItemToRename(item);
-                                                setRenameValue(item.name);
-                                                setShowRenameModal(true);
-                                            }}
-                                            title="Rename"
-                                            className="w-6 h-6 rounded-lg bg-black/60 hover:bg-white/20 text-white/70 hover:text-white flex items-center justify-center border border-white/10 cursor-pointer"
-                                        >
-                                            <Edit3 size={11} />
-                                        </button>
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setItemsToDelete([item.path]);
-                                                setShowDeleteModal(true);
-                                            }}
-                                            title="Delete"
-                                            className="w-6 h-6 rounded-lg bg-black/60 hover:bg-rose-500/30 text-white/70 hover:text-rose-400 flex items-center justify-center border border-white/10 cursor-pointer"
-                                        >
-                                            <Trash2 size={11} />
-                                        </button>
-                                    </div>
-                                </div>
+                    <div className="flex items-center gap-1.5">
+                        <button
+                            onClick={() => {
+                                if (selectedPaths.size === filteredEntries.length) {
+                                    setSelectedPaths(new Set());
+                                } else {
+                                    setSelectedPaths(new Set(filteredEntries.map(e => e.path)));
+                                }
+                            }}
+                            className="px-2.5 py-1.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-[11px] font-bold text-white cursor-pointer"
+                        >
+                            {selectedPaths.size === filteredEntries.length ? 'Deselect' : 'Select All'}
+                        </button>
 
-                                {/* Filename & Metadata */}
-                                <div className="space-y-1">
-                                    <div className="text-xs font-bold text-white truncate group-hover:text-amber-300 transition-colors" title={item.name}>
-                                        {item.name}
-                                    </div>
-                                    <div className="text-[10px] font-mono text-white/40 flex items-center justify-between">
-                                        <span>{item.isDirectory ? `${item.itemCount || 0} items` : formatBytes(item.size)}</span>
-                                        <span className="uppercase text-[9px]">{item.extension || 'DIR'}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            ) : (
-                
-                /* List View */
-                <div className="bg-[#101216] border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs font-sans">
-                            <thead className="bg-black/50 border-b border-white/10 text-[10px] font-mono font-black text-white/50 uppercase tracking-wider">
-                                <tr>
-                                    <th className="p-3.5 pl-5">Name</th>
-                                    <th className="p-3.5">Size</th>
-                                    <th className="p-3.5">Type</th>
-                                    <th className="p-3.5">Date Modified</th>
-                                    <th className="p-3.5 pr-5 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5">
-                                {filteredEntries.map((item) => {
-                                    const isSelected = selectedPaths.has(item.path);
-                                    return (
-                                        <tr
-                                            key={item.path}
-                                            onClick={() => {
-                                                if (isSelectMode) {
-                                                    const next = new Set(selectedPaths);
-                                                    if (next.has(item.path)) next.delete(item.path);
-                                                    else next.add(item.path);
-                                                    setSelectedPaths(next);
-                                                } else if (item.isDirectory) {
-                                                    handleNavigate(item.path);
-                                                }
-                                            }}
-                                            className={`hover:bg-white/[0.03] transition-colors cursor-pointer ${
-                                                isSelected ? 'bg-orange-500/10' : ''
-                                            }`}
-                                        >
-                                            <td className="p-3.5 pl-5 flex items-center gap-3">
-                                                {getFileIcon(item)}
-                                                <span className="font-bold text-white truncate max-w-xs sm:max-w-md hover:text-amber-300">
-                                                    {item.name}
-                                                </span>
-                                            </td>
-                                            <td className="p-3.5 font-mono text-white/60">
-                                                {item.isDirectory ? `${item.itemCount || 0} items` : formatBytes(item.size)}
-                                            </td>
-                                            <td className="p-3.5 font-mono text-white/40 uppercase text-[10px]">
-                                                {item.extension || (item.isDirectory ? 'Folder' : 'File')}
-                                            </td>
-                                            <td className="p-3.5 font-mono text-white/40 text-[11px]">
-                                                {formatDate(item.lastModified)}
-                                            </td>
-                                            <td className="p-3.5 pr-5 text-right">
-                                                <div className="flex items-center justify-end gap-1.5">
-                                                    <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                if (item.isDirectory) {
-                                                                    handleFolderDownload(item);
-                                                                } else {
-                                                                    handleStartDownload(item);
-                                                                }
-                                                            }}
-                                                            title={item.isDirectory ? "Download as ZIP" : "Download"}
-                                                            className="clay-button-sm w-7 h-7 rounded-lg flex items-center justify-center text-white/70 hover:text-orange-400 cursor-pointer"
-                                                        >
-                                                            <Download size={13} />
-                                                        </button>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setItemToRename(item);
-                                                            setRenameValue(item.name);
-                                                            setShowRenameModal(true);
-                                                        }}
-                                                        title="Rename"
-                                                        className="clay-button-sm w-7 h-7 rounded-lg flex items-center justify-center text-white/70 hover:text-white cursor-pointer"
-                                                    >
-                                                        <Edit3 size={13} />
-                                                    </button>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setItemsToDelete([item.path]);
-                                                            setShowDeleteModal(true);
-                                                        }}
-                                                        title="Delete"
-                                                        className="clay-button-sm w-7 h-7 rounded-lg flex items-center justify-center text-white/70 hover:text-rose-400 cursor-pointer"
-                                                    >
-                                                        <Trash2 size={13} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+                        {selectedPaths.size > 0 && (
+                            <>
+                                <button
+                                    onClick={handleMultiDownload}
+                                    className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+                                    title="Download selected"
+                                >
+                                    <Download size={14} />
+                                    <span>ZIP</span>
+                                </button>
+                                <button
+                                    onClick={handleDeleteSelected}
+                                    className="px-3 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+                                    title="Delete selected"
+                                >
+                                    <Trash2 size={14} />
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
 
-            {/* New Folder Modal */}
-            {showNewFolderModal && (
-                <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in">
-                    <div className="bg-[#0f1115] border border-white/15 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-4 shadow-2xl animate-in zoom-in-95">
-                        <div className="flex items-center gap-3">
-                            <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-amber-400 border-amber-500/40">
-                                <FolderPlus size={18} />
+            {/* ── FILE / FOLDER BROWSER CONTENT ── */}
+            <div className="flex-1 mt-3 px-2 sm:px-4">
+                {isLoading ? (
+                    <div className="flex flex-col items-center justify-center py-24 gap-3">
+                        <RefreshCw className="w-8 h-8 text-amber-400 animate-spin" />
+                        <span className="text-xs text-white/40 font-mono">Scanning folder...</span>
+                    </div>
+                ) : filteredEntries.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-white/20">
+                            <Folder size={32} />
+                        </div>
+                        <div className="text-sm font-bold text-white/40">Folder is empty</div>
+                        <div className="text-xs text-white/20">Upload a file or create a folder to begin</div>
+                    </div>
+                ) : viewMode === 'list' ? (
+                    /* ── Mobile-Optimized List View ── */
+                    <div className="divide-y divide-white/[0.04] bg-[#111318]/60 border border-white/[0.06] rounded-2xl overflow-hidden shadow-sm">
+                        {filteredEntries.map((item) => {
+                            const isSelected = selectedPaths.has(item.path);
+                            const previewType = canPreview(item);
+
+                            return (
+                                <div
+                                    key={item.path}
+                                    onClick={() => handleItemClick(item)}
+                                    onTouchStart={() => handleTouchStart(item)}
+                                    onTouchEnd={handleTouchEnd}
+                                    onTouchCancel={handleTouchEnd}
+                                    className={`flex items-center gap-3 px-3.5 py-3 transition-colors cursor-pointer active:bg-white/[0.08] ${
+                                        isSelected 
+                                            ? 'bg-amber-500/15' 
+                                            : 'hover:bg-white/[0.03]'
+                                    }`}
+                                >
+                                    {/* Selection or Icon */}
+                                    {isSelectMode ? (
+                                        <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all ${
+                                            isSelected 
+                                                ? 'bg-amber-500 border-amber-500 text-black' 
+                                                : 'border-white/30 bg-black/20'
+                                        }`}>
+                                            {isSelected && <Check size={12} strokeWidth={3} />}
+                                        </div>
+                                    ) : (
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                                            item.isDirectory ? 'bg-amber-500/10' : 'bg-white/[0.04]'
+                                        }`}>
+                                            {getFileIcon(item, 20)}
+                                        </div>
+                                    )}
+
+                                    {/* Name & Details */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-xs sm:text-sm font-semibold text-white truncate">
+                                            {item.name}
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-white/35 font-mono">
+                                            <span>
+                                                {item.isDirectory 
+                                                    ? `${item.itemCount || 0} items` 
+                                                    : formatBytes(item.size)}
+                                            </span>
+                                            {item.lastModified > 0 && (
+                                                <>
+                                                    <span>•</span>
+                                                    <span>{formatDate(item.lastModified)}</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Preview badge if media */}
+                                    {!isSelectMode && previewType && (
+                                        <span className="hidden sm:inline-flex px-2 py-0.5 rounded-md bg-white/[0.05] text-[10px] text-white/40 font-mono">
+                                            {previewType}
+                                        </span>
+                                    )}
+
+                                    {/* Quick 3-Dots Action Button */}
+                                    {!isSelectMode && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setActiveActionItem(item);
+                                            }}
+                                            className="w-8 h-8 rounded-lg flex items-center justify-center text-white/30 hover:text-white hover:bg-white/[0.08] shrink-0 cursor-pointer"
+                                            title="Actions"
+                                        >
+                                            <MoreVertical size={16} />
+                                        </button>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    /* ── Mobile-Optimized Grid View ── */
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3">
+                        {filteredEntries.map((item) => {
+                            const isSelected = selectedPaths.has(item.path);
+                            return (
+                                <div
+                                    key={item.path}
+                                    onClick={() => handleItemClick(item)}
+                                    onTouchStart={() => handleTouchStart(item)}
+                                    onTouchEnd={handleTouchEnd}
+                                    onTouchCancel={handleTouchEnd}
+                                    className={`relative p-3 rounded-2xl flex flex-col items-center text-center gap-2 transition-all cursor-pointer active:scale-95 border ${
+                                        isSelected 
+                                            ? 'bg-amber-500/15 border-amber-500/50 shadow-md' 
+                                            : 'bg-[#111318]/60 hover:bg-white/[0.05] border-white/[0.05]'
+                                    }`}
+                                >
+                                    {isSelectMode && (
+                                        <div className={`absolute top-2 right-2 w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                            isSelected ? 'bg-amber-500 border-amber-500 text-black' : 'border-white/30 bg-black/40'
+                                        }`}>
+                                            {isSelected && <Check size={10} strokeWidth={3} />}
+                                        </div>
+                                    )}
+
+                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mt-1 ${
+                                        item.isDirectory ? 'bg-amber-500/10' : 'bg-white/[0.04]'
+                                    }`}>
+                                        {getFileIcon(item, 26)}
+                                    </div>
+
+                                    <div className="w-full">
+                                        <div className="text-xs font-semibold text-white truncate leading-tight">
+                                            {item.name}
+                                        </div>
+                                        <div className="text-[10px] text-white/35 font-mono mt-0.5">
+                                            {item.isDirectory ? `${item.itemCount || 0} items` : formatBytes(item.size)}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+
+            {/* ── FLOATING ACTION BUTTONS (Upload & New Folder) ── */}
+            {!isSelectMode && (
+                <div className="fixed bottom-5 right-5 sm:bottom-8 sm:right-8 flex flex-col gap-2.5 z-20">
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileUpload}
+                        className="hidden"
+                    />
+
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-12 h-12 rounded-2xl bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white flex items-center justify-center shadow-xl shadow-emerald-500/30 transition-all cursor-pointer"
+                        title="Upload File"
+                    >
+                        <UploadCloud size={22} />
+                    </button>
+
+                    <button
+                        onClick={() => setShowNewFolderModal(true)}
+                        className="w-12 h-12 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-black flex items-center justify-center shadow-xl shadow-amber-500/30 transition-all cursor-pointer font-bold"
+                        title="New Folder"
+                    >
+                        <FolderPlus size={22} />
+                    </button>
+                </div>
+            )}
+
+            {/* ── ACTION SHEET / CONTEXT MENU (Mobile Bottom Sheet) ── */}
+            {activeActionItem && (
+                <div 
+                    className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in"
+                    onClick={() => setActiveActionItem(null)}
+                >
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+                    
+                    <div 
+                        className="relative bg-[#16181f] border border-white/[0.1] rounded-t-3xl sm:rounded-3xl w-full sm:max-w-sm p-1.5 pb-8 sm:pb-3 shadow-2xl animate-in slide-in-from-bottom duration-200"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header preview */}
+                        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/[0.08]">
+                            <div className="w-10 h-10 rounded-xl bg-white/[0.05] flex items-center justify-center shrink-0">
+                                {getFileIcon(activeActionItem, 20)}
                             </div>
-                            <div>
-                                <h3 className="font-bold text-white text-sm">Create New Folder</h3>
-                                <p className="text-[10px] text-white/40 font-mono truncate max-w-[200px]">{currentPath}</p>
+                            <div className="min-w-0 flex-1">
+                                <div className="text-sm font-bold text-white truncate">
+                                    {activeActionItem.name}
+                                </div>
+                                <div className="text-[11px] text-white/40 font-mono">
+                                    {activeActionItem.isDirectory ? `${activeActionItem.itemCount || 0} items` : formatBytes(activeActionItem.size)}
+                                    {activeActionItem.lastModified > 0 && ` • ${formatDate(activeActionItem.lastModified)}`}
+                                </div>
                             </div>
                         </div>
+
+                        {/* Menu Options */}
+                        <div className="py-1">
+                            {canPreview(activeActionItem) && (
+                                <button
+                                    onClick={() => {
+                                        handlePreview(activeActionItem);
+                                        setActiveActionItem(null);
+                                    }}
+                                    className="w-full flex items-center gap-3.5 px-4 py-3 text-left hover:bg-white/[0.06] active:bg-white/[0.1] text-xs font-bold text-white/90 cursor-pointer"
+                                >
+                                    <Eye size={18} className="text-cyan-400 shrink-0" />
+                                    <span>Live Preview</span>
+                                </button>
+                            )}
+
+                            <button
+                                onClick={() => {
+                                    if (activeActionItem.isDirectory) {
+                                        handleFolderDownload(activeActionItem);
+                                    } else {
+                                        handleStartDownload(activeActionItem);
+                                    }
+                                    setActiveActionItem(null);
+                                }}
+                                className="w-full flex items-center gap-3.5 px-4 py-3 text-left hover:bg-white/[0.06] active:bg-white/[0.1] text-xs font-bold text-white/90 cursor-pointer"
+                            >
+                                <Download size={18} className="text-amber-400 shrink-0" />
+                                <span>{activeActionItem.isDirectory ? 'Download as ZIP' : 'Download File'}</span>
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    setItemToRename(activeActionItem);
+                                    setRenameValue(activeActionItem.name);
+                                    setShowRenameModal(true);
+                                    setActiveActionItem(null);
+                                }}
+                                className="w-full flex items-center gap-3.5 px-4 py-3 text-left hover:bg-white/[0.06] active:bg-white/[0.1] text-xs font-bold text-white/90 cursor-pointer"
+                            >
+                                <Edit3 size={18} className="text-white/60 shrink-0" />
+                                <span>Rename</span>
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    setIsSelectMode(true);
+                                    setSelectedPaths(new Set([activeActionItem.path]));
+                                    setActiveActionItem(null);
+                                }}
+                                className="w-full flex items-center gap-3.5 px-4 py-3 text-left hover:bg-white/[0.06] active:bg-white/[0.1] text-xs font-bold text-white/90 cursor-pointer"
+                            >
+                                <CheckSquare size={18} className="text-white/60 shrink-0" />
+                                <span>Select</span>
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    setItemsToDelete([activeActionItem.path]);
+                                    setShowDeleteModal(true);
+                                    setActiveActionItem(null);
+                                }}
+                                className="w-full flex items-center gap-3.5 px-4 py-3 text-left hover:bg-rose-500/10 active:bg-rose-500/20 text-xs font-bold text-rose-400 cursor-pointer"
+                            >
+                                <Trash2 size={18} className="text-rose-400 shrink-0" />
+                                <span>Delete</span>
+                            </button>
+                        </div>
+
+                        {/* Dismiss */}
+                        <div className="px-3 pt-1">
+                            <button
+                                onClick={() => setActiveActionItem(null)}
+                                className="w-full py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-xs font-bold text-white/60 hover:text-white cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── LIVE PREVIEW MODAL (Image / Video / Audio / Text) ── */}
+            {previewItem && (
+                <div 
+                    className="fixed inset-0 z-50 bg-black/95 flex flex-col animate-in fade-in"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {/* Top Bar */}
+                    <div className="flex items-center justify-between px-4 py-3 bg-[#0d0f14] border-b border-white/[0.08]">
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            <button
+                                onClick={closePreview}
+                                className="w-8.5 h-8.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-white flex items-center justify-center cursor-pointer shrink-0"
+                            >
+                                <X size={18} />
+                            </button>
+                            <div className="min-w-0">
+                                <div className="text-xs sm:text-sm font-bold text-white truncate">
+                                    {previewItem.entry.name}
+                                </div>
+                                <div className="text-[10px] text-white/40 font-mono">
+                                    {previewItem.fileSizeStr}
+                                </div>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => handleStartDownload(previewItem.entry)}
+                            className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0"
+                        >
+                            <Download size={14} />
+                            <span className="hidden sm:inline">Download</span>
+                        </button>
+                    </div>
+
+                    {/* Preview Viewport */}
+                    <div className="flex-1 flex items-center justify-center p-3 sm:p-6 overflow-auto">
+                        {previewItem.loading ? (
+                            <div className="flex flex-col items-center gap-3">
+                                <RefreshCw className="w-9 h-9 text-amber-400 animate-spin" />
+                                <div className="text-xs text-white/60 font-mono">
+                                    Streaming {previewItem.progress}%...
+                                </div>
+                                <div className="w-48 h-1.5 bg-white/[0.08] rounded-full overflow-hidden">
+                                    <div 
+                                        className="h-full bg-amber-500 rounded-full transition-all duration-150"
+                                        style={{ width: `${previewItem.progress}%` }}
+                                    />
+                                </div>
+                            </div>
+                        ) : previewItem.type === 'image' && previewItem.blobUrl ? (
+                            <div className="relative max-w-full max-h-full flex items-center justify-center">
+                                <img
+                                    src={previewItem.blobUrl}
+                                    alt={previewItem.entry.name}
+                                    className="max-w-full max-h-[82vh] object-contain rounded-xl shadow-2xl"
+                                />
+                            </div>
+                        ) : previewItem.type === 'video' && previewItem.blobUrl ? (
+                            <div className="w-full max-w-4xl max-h-[82vh] flex items-center justify-center">
+                                <video
+                                    src={previewItem.blobUrl}
+                                    controls
+                                    autoPlay
+                                    className="w-full max-h-[80vh] rounded-xl shadow-2xl bg-black"
+                                />
+                            </div>
+                        ) : previewItem.type === 'audio' && previewItem.blobUrl ? (
+                            <div className="flex flex-col items-center gap-6 p-8 bg-[#16181f] border border-white/[0.08] rounded-3xl shadow-2xl max-w-md w-full">
+                                <div className="w-24 h-24 rounded-3xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
+                                    <Music size={42} />
+                                </div>
+                                <div className="text-center">
+                                    <h4 className="text-sm font-bold text-white truncate max-w-xs">{previewItem.entry.name}</h4>
+                                    <p className="text-xs text-white/40 font-mono mt-1">{previewItem.fileSizeStr}</p>
+                                </div>
+                                <audio src={previewItem.blobUrl} controls autoPlay className="w-full" />
+                            </div>
+                        ) : previewItem.type === 'text' && previewItem.textContent !== undefined ? (
+                            <div className="w-full max-w-4xl h-full flex flex-col bg-[#101217] border border-white/[0.08] rounded-2xl overflow-hidden shadow-2xl">
+                                <div className="flex items-center justify-between px-4 py-2 bg-white/[0.04] border-b border-white/[0.06] text-[11px] text-white/40 font-mono">
+                                    <span>Text Content</span>
+                                    <button
+                                        onClick={() => {
+                                            if (previewItem.textContent) {
+                                                navigator.clipboard.writeText(previewItem.textContent);
+                                                alert('Copied to clipboard');
+                                            }
+                                        }}
+                                        className="hover:text-white flex items-center gap-1 cursor-pointer"
+                                    >
+                                        <Copy size={12} />
+                                        <span>Copy</span>
+                                    </button>
+                                </div>
+                                <pre className="flex-1 p-4 text-xs font-mono text-white/80 leading-relaxed overflow-auto whitespace-pre-wrap break-words">
+                                    {previewItem.textContent}
+                                </pre>
+                            </div>
+                        ) : (
+                            <div className="text-xs text-white/40">Preview not available</div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* ── CREATE FOLDER MODAL ── */}
+            {showNewFolderModal && (
+                <div 
+                    className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in"
+                    onClick={() => setShowNewFolderModal(false)}
+                >
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+                    <div 
+                        className="relative bg-[#16181f] border border-white/[0.1] rounded-t-3xl sm:rounded-3xl w-full sm:max-w-sm p-5 space-y-4 shadow-2xl animate-in slide-in-from-bottom"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center">
+                                <FolderPlus size={20} />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-bold text-white">Create New Folder</h3>
+                                <p className="text-[10px] text-white/40 font-mono truncate max-w-[200px]">
+                                    {currentPath.replace('/storage/emulated/0', 'Internal Storage')}
+                                </p>
+                            </div>
+                        </div>
+
                         <input
                             type="text"
                             placeholder="Folder Name"
@@ -1050,18 +1422,19 @@ export default function FileManagerView({
                             onChange={(e) => setNewFolderName(e.target.value)}
                             onKeyDown={(e) => { if (e.key === 'Enter') handleCreateFolder(); }}
                             autoFocus
-                            className="w-full bg-[#16181d] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                            className="w-full bg-white/[0.05] border border-white/[0.1] rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-amber-500"
                         />
+
                         <div className="flex items-center gap-2 pt-1">
                             <button
                                 onClick={() => setShowNewFolderModal(false)}
-                                className="bg-[#16181d] hover:bg-white/10 flex-1 py-2 rounded-xl text-white/60 font-mono text-xs cursor-pointer"
+                                className="flex-1 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-xs font-bold text-white/60 cursor-pointer"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleCreateFolder}
-                                className="bg-amber-500 hover:bg-amber-600 flex-1 py-2 rounded-xl text-black font-mono font-black text-xs cursor-pointer"
+                                className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs cursor-pointer shadow-md active:scale-95"
                             >
                                 Create
                             </button>
@@ -1070,37 +1443,46 @@ export default function FileManagerView({
                 </div>
             )}
 
-            {/* Rename Modal */}
+            {/* ── RENAME MODAL ── */}
             {showRenameModal && itemToRename && (
-                <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in">
-                    <div className="bg-[#0f1115] border border-white/15 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-4 shadow-2xl animate-in zoom-in-95">
+                <div 
+                    className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in"
+                    onClick={() => setShowRenameModal(false)}
+                >
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+                    <div 
+                        className="relative bg-[#16181f] border border-white/[0.1] rounded-t-3xl sm:rounded-3xl w-full sm:max-w-sm p-5 space-y-4 shadow-2xl animate-in slide-in-from-bottom"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <div className="flex items-center gap-3">
-                            <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-orange-400 border-orange-500/40">
+                            <div className="w-10 h-10 rounded-xl bg-white/[0.06] flex items-center justify-center text-white/60">
                                 <Edit3 size={18} />
                             </div>
-                            <div>
-                                <h3 className="font-bold text-white text-sm">Rename Item</h3>
-                                <p className="text-[10px] text-white/40 font-mono truncate max-w-[200px]">{itemToRename.name}</p>
+                            <div className="min-w-0 flex-1">
+                                <h3 className="text-sm font-bold text-white">Rename</h3>
+                                <p className="text-[10px] text-white/40 truncate">{itemToRename.name}</p>
                             </div>
                         </div>
+
                         <input
                             type="text"
                             value={renameValue}
                             onChange={(e) => setRenameValue(e.target.value)}
                             onKeyDown={(e) => { if (e.key === 'Enter') handleConfirmRename(); }}
                             autoFocus
-                            className="w-full bg-[#16181d] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500"
+                            className="w-full bg-white/[0.05] border border-white/[0.1] rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-amber-500"
                         />
+
                         <div className="flex items-center gap-2 pt-1">
                             <button
                                 onClick={() => setShowRenameModal(false)}
-                                className="bg-[#16181d] hover:bg-white/10 flex-1 py-2 rounded-xl text-white/60 font-mono text-xs cursor-pointer"
+                                className="flex-1 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-xs font-bold text-white/60 cursor-pointer"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleConfirmRename}
-                                className="bg-orange-500 hover:bg-orange-600 flex-1 py-2 rounded-xl text-black font-mono font-black text-xs cursor-pointer"
+                                className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs cursor-pointer shadow-md active:scale-95"
                             >
                                 Save
                             </button>
@@ -1109,32 +1491,39 @@ export default function FileManagerView({
                 </div>
             )}
 
-            {/* Delete Confirmation Modal */}
+            {/* ── DELETE CONFIRMATION MODAL ── */}
             {showDeleteModal && itemsToDelete.length > 0 && (
-                <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in">
-                    <div className="bg-[#0f1115] border border-rose-500/30 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-4 shadow-2xl animate-in zoom-in-95">
+                <div 
+                    className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in"
+                    onClick={() => setShowDeleteModal(false)}
+                >
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+                    <div 
+                        className="relative bg-[#16181f] border border-rose-500/20 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-sm p-5 space-y-4 shadow-2xl animate-in slide-in-from-bottom"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <div className="flex items-center gap-3">
-                            <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-rose-400 border-rose-500/40">
-                                <Trash2 size={18} />
+                            <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center">
+                                <Trash2 size={20} />
                             </div>
                             <div>
-                                <h3 className="font-bold text-white text-sm">Permanently Delete</h3>
-                                <p className="text-[10px] text-rose-400 font-mono">Irreversible Action</p>
+                                <h3 className="text-sm font-bold text-white">
+                                    Delete {itemsToDelete.length} item{itemsToDelete.length > 1 ? 's' : ''}?
+                                </h3>
+                                <p className="text-[10px] text-rose-400/80 font-mono">This action cannot be undone</p>
                             </div>
                         </div>
-                        <p className="text-xs text-white/70 font-sans leading-relaxed">
-                            Are you sure you want to delete <strong className="text-white">{itemsToDelete.length} item(s)</strong> from target device storage?
-                        </p>
+
                         <div className="flex items-center gap-2 pt-1">
                             <button
                                 onClick={() => setShowDeleteModal(false)}
-                                className="bg-[#16181d] hover:bg-white/10 flex-1 py-2 rounded-xl text-white/60 font-mono text-xs cursor-pointer"
+                                className="flex-1 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-xs font-bold text-white/60 cursor-pointer"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleConfirmDelete}
-                                className="bg-rose-500 hover:bg-rose-600 flex-1 py-2 rounded-xl text-white font-mono font-black text-xs cursor-pointer shadow-lg border border-rose-400/40"
+                                className="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs cursor-pointer shadow-md active:scale-95"
                             >
                                 Delete
                             </button>
