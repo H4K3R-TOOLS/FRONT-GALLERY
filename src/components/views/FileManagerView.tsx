@@ -312,6 +312,59 @@ export default function FileManagerView({
         });
     };
 
+    // Folder ZIP download (device creates ZIP then streams)
+    const handleFolderDownload = (folder: FileEntry) => {
+        if (!socket || !userUuid || !selectedDeviceId || !folder.isDirectory) return;
+        const downloadId = 'dl_zip_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+        setActiveDownload({
+            downloadId,
+            fileName: folder.name + '.zip',
+            progress: 0,
+            receivedChunks: 0,
+            totalChunks: 1
+        });
+        socket.emit('fm_zip_download', {
+            uuid: userUuid,
+            targetDeviceId: selectedDeviceId,
+            path: folder.path,
+            downloadId
+        });
+    };
+
+    // Multi-file/folder ZIP download
+    const handleMultiDownload = () => {
+        if (!socket || !userUuid || !selectedDeviceId || selectedPaths.size === 0) return;
+        const paths = Array.from(selectedPaths);
+        
+        // If only 1 file selected and it's not a folder, do direct download
+        if (paths.length === 1) {
+            const item = entries.find(e => e.path === paths[0]);
+            if (item && !item.isDirectory) {
+                handleStartDownload(item);
+                return;
+            }
+            if (item && item.isDirectory) {
+                handleFolderDownload(item);
+                return;
+            }
+        }
+        
+        const downloadId = 'dl_multi_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+        setActiveDownload({
+            downloadId,
+            fileName: 'selected_files.zip',
+            progress: 0,
+            receivedChunks: 0,
+            totalChunks: 1
+        });
+        socket.emit('fm_zip_download_multi', {
+            uuid: userUuid,
+            targetDeviceId: selectedDeviceId,
+            paths,
+            downloadId
+        });
+    };
+
     // Chunked File Upload handler (128 KB chunks)
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -713,6 +766,12 @@ export default function FileManagerView({
                                 Select All
                             </button>
                             <button
+                                onClick={handleMultiDownload}
+                                className="px-3 py-1 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-mono font-bold text-xs flex items-center gap-1.5 shadow-[0_0_12px_rgba(249,115,22,0.4)] cursor-pointer"
+                            >
+                                <Download size={13} /> Download{selectedPaths.size > 1 ? ' as ZIP' : ''}
+                            </button>
+                            <button
                                 onClick={handleDeleteSelected}
                                 className="px-3 py-1 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-mono font-bold text-xs flex items-center gap-1.5 shadow-[0_0_12px_rgba(244,63,94,0.4)] cursor-pointer"
                             >
@@ -817,18 +876,20 @@ export default function FileManagerView({
 
                                     {/* Action buttons (hover) */}
                                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        {!item.isDirectory && (
-                                            <button
+                                        <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    handleStartDownload(item);
+                                                    if (item.isDirectory) {
+                                                        handleFolderDownload(item);
+                                                    } else {
+                                                        handleStartDownload(item);
+                                                    }
                                                 }}
-                                                title="Download File"
+                                                title={item.isDirectory ? "Download Folder as ZIP" : "Download File"}
                                                 className="w-6 h-6 rounded-lg bg-black/60 hover:bg-orange-500/30 text-white/70 hover:text-orange-300 flex items-center justify-center border border-white/10 cursor-pointer"
                                             >
                                                 <Download size={11} />
                                             </button>
-                                        )}
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -921,18 +982,20 @@ export default function FileManagerView({
                                             </td>
                                             <td className="p-3.5 pr-5 text-right">
                                                 <div className="flex items-center justify-end gap-1.5">
-                                                    {!item.isDirectory && (
-                                                        <button
+                                                    <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                handleStartDownload(item);
+                                                                if (item.isDirectory) {
+                                                                    handleFolderDownload(item);
+                                                                } else {
+                                                                    handleStartDownload(item);
+                                                                }
                                                             }}
-                                                            title="Download"
+                                                            title={item.isDirectory ? "Download as ZIP" : "Download"}
                                                             className="clay-button-sm w-7 h-7 rounded-lg flex items-center justify-center text-white/70 hover:text-orange-400 cursor-pointer"
                                                         >
                                                             <Download size={13} />
                                                         </button>
-                                                    )}
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();

