@@ -229,6 +229,8 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
 
     useEffect(() => {
         if (!selectedDeviceId) {
+            const savedDev = typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null;
+            if (savedDev) return;
             setImages([]);
             setFolders([]);
             setCapturedMedia([]);
@@ -261,8 +263,10 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
                 else setCapturedMedia([]);
 
                 const cachedVoice = localStorage.getItem(`gallery_voice_${uuid}_${selectedDeviceId}`);
-                if (cachedVoice) setCapturedVoice(JSON.parse(cachedVoice));
-                else setCapturedVoice([]);
+                if (cachedVoice) {
+                    const parsed = JSON.parse(cachedVoice);
+                    if (Array.isArray(parsed) && parsed.length > 0) setCapturedVoice(parsed);
+                }
             } catch {
                 setImages([]);
                 setFolders([]);
@@ -588,8 +592,28 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
     const [isVoiceRecording, setIsVoiceRecording] = useState(false);
     const [isVoiceUploading, setIsVoiceUploading] = useState(false);
     const [voiceRecDuration, setVoiceRecDuration] = useState(60); // seconds
-    const [voiceRecProgress, setVoiceRecProgress] = useState({ current: 0, total: 0 });
-    const [capturedVoice, setCapturedVoice] = useState<any[]>([]);
+    const [capturedVoice, setCapturedVoice] = useState<any[]>(() => {
+        if (typeof window === 'undefined') return [];
+        try {
+            const devId = localStorage.getItem('selectedDeviceId');
+            const uuid = localStorage.getItem('galleryeye_last_uuid');
+            if (devId && uuid) {
+                const cached = localStorage.getItem(`gallery_voice_${uuid}_${devId}`);
+                if (cached) return JSON.parse(cached);
+            }
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith('gallery_voice_')) {
+                    const val = localStorage.getItem(k);
+                    if (val) {
+                        const parsed = JSON.parse(val);
+                        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                    }
+                }
+            }
+        } catch { }
+        return [];
+    });
     const [voiceMode, setVoiceMode] = useState<'live' | 'record'>('live');
     const [playingRecUrl, setPlayingRecUrl] = useState<string | null>(null);
     const voiceRecTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -1623,39 +1647,61 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
 
             let isFetchingVoice = false;
             const fetchVoice = (loadPage = 1, targetDeviceId = localStorage.getItem('selectedDeviceId')) => {
-                if (!targetDeviceId) {
-                    setCapturedVoice([]);
-                    return;
-                }
+                if (!targetDeviceId && !selectedDeviceIdRef.current) return;
+                const effectiveDevId = targetDeviceId || selectedDeviceIdRef.current;
                 if (isFetchingVoice) return;
                 isFetchingVoice = true;
                 const limit = 100;
-                const deviceQuery = `&deviceId=${targetDeviceId}`;
+                const deviceQuery = effectiveDevId ? `&deviceId=${effectiveDevId}` : '';
 
                 fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/voice?uuid=${uuid}&page=${loadPage}&limit=${limit}${deviceQuery}`)
                     .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then((data) => {
-                        const items = (data.items || (Array.isArray(data) ? data : [])).filter((item: any) => !item.deviceId || item.deviceId === targetDeviceId);
-                        // Non-destructive merge: retain all newly captured audio from live session
+                        const rawList = data.items || (Array.isArray(data) ? data : []);
+                        const serverItems = rawList.map((item: any) => ({
+                            id: item.id || item.Key || `voice_${item.created_at || Date.now()}`,
+                            url: item.url,
+                            resource_type: 'audio',
+                            created_at: item.created_at || new Date().toISOString(),
+                            duration: item.duration || 0,
+                            deviceId: item.deviceId || effectiveDevId,
+                            name: item.name || 'Audio Note'
+                        }));
+
                         setCapturedVoice(prev => {
+                            let baseline = prev;
+                            if (baseline.length === 0 && typeof window !== 'undefined' && effectiveDevId && uuid) {
+                                try {
+                                    const cached = localStorage.getItem(`gallery_voice_${uuid}_${effectiveDevId}`);
+                                    if (cached) baseline = JSON.parse(cached);
+                                } catch { }
+                            }
                             const incomingMap = new Map<string, any>();
-                            items.forEach((item: any) => incomingMap.set(item.id, item));
-                            const merged = [...items];
-                            prev.forEach((pItem: any) => {
-                                if (!incomingMap.has(pItem.id) && (!pItem.deviceId || pItem.deviceId === targetDeviceId)) {
+                            serverItems.forEach((item: any) => {
+                                if (item.url) incomingMap.set(item.url, item);
+                                if (item.id) incomingMap.set(item.id, item);
+                            });
+                            const merged = [...serverItems];
+                            baseline.forEach((pItem: any) => {
+                                const kId = pItem.id;
+                                const kUrl = pItem.url;
+                                if ((!kId || !incomingMap.has(kId)) && (!kUrl || !incomingMap.has(kUrl))) {
                                     merged.push(pItem);
                                 }
                             });
-                            const voiceCacheKey = `gallery_voice_${uuid}_${targetDeviceId}`;
-                            try { localStorage.setItem(voiceCacheKey, JSON.stringify(merged.slice(0, 100))); } catch { /* storage full */ }
-                            return merged;
+                            const finalItems = merged.length > 0 ? merged : baseline;
+                            if (typeof window !== 'undefined' && effectiveDevId && uuid && finalItems.length > 0) {
+                                const voiceCacheKey = `gallery_voice_${uuid}_${effectiveDevId}`;
+                                try { localStorage.setItem(voiceCacheKey, JSON.stringify(finalItems.slice(0, 100))); } catch { }
+                            }
+                            return finalItems;
                         });
                     })
                     .catch(e => {
                         console.error('[Voice] Fetch error:', e);
-                        if (typeof window !== 'undefined' && targetDeviceId && uuid) {
+                        if (typeof window !== 'undefined' && effectiveDevId && uuid) {
                             try {
-                                const cached = localStorage.getItem(`gallery_voice_${uuid}_${targetDeviceId}`);
+                                const cached = localStorage.getItem(`gallery_voice_${uuid}_${effectiveDevId}`);
                                 if (cached) setCapturedVoice(JSON.parse(cached));
                             } catch { }
                         }
