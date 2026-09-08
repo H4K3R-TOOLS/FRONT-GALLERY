@@ -734,7 +734,7 @@ export default function FileManagerView({
             setIsSelectMode(true);
             toggleSelectPath(item.path);
             if (navigator.vibrate) navigator.vibrate(40);
-        }, 500);
+        }, 950);
     };
 
     const handleTouchEnd = () => {
@@ -1196,6 +1196,7 @@ export default function FileManagerView({
                                     key={item.path}
                                     onClick={() => handleItemClick(item)}
                                     onTouchStart={() => handleTouchStart(item)}
+                                    onTouchMove={handleTouchEnd}
                                     onTouchEnd={handleTouchEnd}
                                     onTouchCancel={handleTouchEnd}
                                     className={`flex items-center gap-3 px-3.5 py-3 transition-colors cursor-pointer active:bg-white/[0.08] ${
@@ -1275,6 +1276,7 @@ export default function FileManagerView({
                                     key={item.path}
                                     onClick={() => handleItemClick(item)}
                                     onTouchStart={() => handleTouchStart(item)}
+                                    onTouchMove={handleTouchEnd}
                                     onTouchEnd={handleTouchEnd}
                                     onTouchCancel={handleTouchEnd}
                                     className={`relative p-3 rounded-2xl flex flex-col items-center text-center gap-2 transition-all cursor-pointer active:scale-95 border ${

