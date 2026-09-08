@@ -772,11 +772,6 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
 
             socket.on("sync_status", (data: any) => {
                 setIsStartingSync(false);
-                setSyncStatus((prev: any) => ({
-                    ...prev,
-                    [data.type]: data.status,
-                    error: data.error
-                }));
             });
 
             socket.on("folder_list", (data: any) => {
