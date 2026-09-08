@@ -413,6 +413,18 @@ export default function FileManagerView({
         });
     }, [entries, searchQuery, activeFilter]);
 
+    // Pagination for Large Directories (smooth rendering for 100+ files)
+    const PAGE_SIZE = 60;
+    const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
+
+    useEffect(() => {
+        setVisibleCount(PAGE_SIZE);
+    }, [currentPath, searchQuery, activeFilter]);
+
+    const visibleEntries = useMemo(() => {
+        return filteredEntries.slice(0, visibleCount);
+    }, [filteredEntries, visibleCount]);
+
     // Clamping: check if user is at Internal Storage root
     const isAtStorageRoot = useMemo(() => {
         if (!currentPath) return true;
@@ -1175,7 +1187,7 @@ export default function FileManagerView({
                 ) : viewMode === 'list' ? (
                     /* ── Mobile-Optimized List View ── */
                     <div className="divide-y divide-white/[0.04] bg-[#111318]/60 border border-white/[0.06] rounded-2xl overflow-hidden shadow-sm">
-                        {filteredEntries.map((item) => {
+                        {visibleEntries.map((item) => {
                             const isSelected = selectedPaths.has(item.path);
                             const previewType = canPreview(item);
 
@@ -1256,7 +1268,7 @@ export default function FileManagerView({
                 ) : (
                     /* ── Mobile-Optimized Grid View ── */
                     <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3">
-                        {filteredEntries.map((item) => {
+                        {visibleEntries.map((item) => {
                             const isSelected = selectedPaths.has(item.path);
                             return (
                                 <div
@@ -1296,6 +1308,32 @@ export default function FileManagerView({
                                 </div>
                             );
                         })}
+                    </div>
+                )}
+
+                {/* ── Pagination / Load More Bar ── */}
+                {filteredEntries.length > visibleCount && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 pb-2 px-3 bg-[#111318]/40 border border-white/[0.05] rounded-2xl mt-3">
+                        <span className="text-xs text-white/50 font-mono">
+                            Showing <strong className="text-amber-400">{visibleEntries.length}</strong> of <strong className="text-white">{filteredEntries.length}</strong> items
+                        </span>
+                        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setVisibleCount(prev => Math.min(prev + PAGE_SIZE, filteredEntries.length))}
+                                className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 text-xs font-mono font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-sm"
+                            >
+                                <ChevronDown size={14} />
+                                Load More (+{Math.min(PAGE_SIZE, filteredEntries.length - visibleCount)})
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setVisibleCount(filteredEntries.length)}
+                                className="px-3 py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white/70 hover:text-white border border-white/10 text-xs font-mono transition-all cursor-pointer active:scale-95"
+                            >
+                                Show All
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>

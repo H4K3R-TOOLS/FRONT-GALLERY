@@ -7,7 +7,7 @@ import {
     Camera, Bell, Mic, Smartphone, Settings, 
     LogOut, ChevronDown, Check, Zap, Crown, Image as ImageIcon, Package, Trash2, CheckCircle2, Circle,
     Building2, X, Shield, ShieldCheck, ShieldX, Clock, Hash, Wifi, WifiOff, RefreshCw, AlertCircle, MapPin,
-    Radio, Activity, ExternalLink, ArrowUpRight, Folder
+    Radio, Activity, ExternalLink, ArrowUpRight, Folder, Edit3
 } from 'lucide-react';
 import Image from 'next/image';
 import PlanBadge from './PlanBadge';
@@ -20,14 +20,35 @@ interface DeviceSettingsModalProps {
     userUuid: string;
     onClose: () => void;
     onDeleteDevice?: (deviceId: string, skipConfirm?: boolean) => void;
+    onRenameDevice?: (deviceId: string, newName: string) => void;
 }
 
-function DeviceSettingsModal({ device, socket, userUuid, onClose, onDeleteDevice }: DeviceSettingsModalProps) {
+function DeviceSettingsModal({ device, socket, userUuid, onClose, onDeleteDevice, onRenameDevice }: DeviceSettingsModalProps) {
     const [permissions, setPermissions] = useState<Record<string, boolean> | null>(null);
     const [isChecking, setIsChecking] = useState(false);
     const [checked, setChecked] = useState(false);
     const devId = device?.deviceId || device?.id || device?._id;
     const isOnline = !!device?.online;
+    const [aliasInput, setAliasInput] = useState<string>(() => {
+        if (typeof window !== 'undefined' && devId) {
+            return localStorage.getItem(`dev_name_${devId}`) || '';
+        }
+        return '';
+    });
+    const [aliasSaved, setAliasSaved] = useState(false);
+
+    const handleSaveAlias = () => {
+        if (!devId) return;
+        const clean = aliasInput.trim();
+        if (clean) {
+            try { localStorage.setItem(`dev_name_${devId}`, clean); } catch {}
+        } else {
+            try { localStorage.removeItem(`dev_name_${devId}`); } catch {}
+        }
+        onRenameDevice?.(devId, clean);
+        setAliasSaved(true);
+        setTimeout(() => setAliasSaved(false), 2500);
+    };
 
     // Listen for permission_status once
     useEffect(() => {
@@ -141,6 +162,36 @@ function DeviceSettingsModal({ device, socket, userUuid, onClose, onDeleteDevice
                         </div>
                     </div>
 
+                    {/* Custom Display Name */}
+                    <div className="bg-[#16181d] border border-white/10 p-3.5 rounded-2xl space-y-2">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5">
+                                <Edit3 className="w-3.5 h-3.5 text-amber-400" />
+                                <span className="text-[10px] font-mono font-black text-white/50 uppercase tracking-widest">Device Display Name</span>
+                            </div>
+                            {aliasSaved && <span className="text-[10px] font-mono text-emerald-400 font-bold">Saved!</span>}
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="text"
+                                value={aliasInput}
+                                onChange={(e) => setAliasInput(e.target.value)}
+                                placeholder={getCleanDeviceName(device)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleSaveAlias();
+                                }}
+                                className="flex-1 bg-black/40 border border-white/10 focus:border-amber-500/50 rounded-xl px-3 py-1.5 text-xs text-white placeholder-white/25 outline-none font-sans"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleSaveAlias}
+                                className="clay-button-sm px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold text-amber-300 hover:text-amber-200 cursor-pointer shrink-0"
+                            >
+                                Save
+                            </button>
+                        </div>
+                    </div>
+
                     {/* Permissions Section */}
                     <div className="bg-[#16181d] border border-white/10 p-3.5 rounded-2xl space-y-3">
                         <div className="flex items-center justify-between">
@@ -231,24 +282,18 @@ function DeviceSettingsModal({ device, socket, userUuid, onClose, onDeleteDevice
 }
 
 // ─── Device List (Solid Opaque Surface & No Overlap) ──────────────────────────
-function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDropdown, onDeleteDevice, socket, userUuid, onOpenSettings }: any) {
+function DeviceList({ 
+    devices, selectedDeviceId, setSelectedDeviceId, setOpenDropdown, 
+    socket, userUuid, onOpenSettings, onInitiateDelete, onInitiateRename 
+}: any) {
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedForDeletion, setSelectedForDeletion] = useState<Set<string>>(new Set());
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const toggleSelection = (deviceId: string) => {
         const newSet = new Set(selectedForDeletion);
         if (newSet.has(deviceId)) newSet.delete(deviceId);
         else newSet.add(deviceId);
         setSelectedForDeletion(newSet);
-    };
-
-    const confirmBulkDelete = () => {
-        const ids = Array.from(selectedForDeletion);
-        onDeleteDevice(ids, true);
-        setIsSelectionMode(false);
-        setSelectedForDeletion(new Set());
-        setShowDeleteConfirm(false);
     };
 
     return (
@@ -311,7 +356,7 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                                                 <Smartphone size={16} />
                                             </div>
                                             <div className="flex flex-col min-w-0">
-                                                <span className="text-xs font-bold text-white truncate max-w-[125px] sm:max-w-[155px]">
+                                                <span className="text-xs font-bold text-white truncate max-w-[110px] sm:max-w-[140px]">
                                                     {getCleanDeviceName(device)}
                                                 </span>
                                                 <div className="flex items-center gap-1 mt-0.5">
@@ -339,9 +384,20 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                                         )}
                                     </button>
 
-                                    {/* Dedicated Settings & Delete Buttons */}
+                                    {/* Dedicated Rename, Settings & Delete Buttons */}
                                     {!isSelectionMode && (
                                         <div className="flex items-center gap-1 shrink-0">
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onInitiateRename?.(devId, getCleanDeviceName(device));
+                                                }}
+                                                title="Rename Device"
+                                                className="clay-button-sm w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-amber-400 hover:bg-amber-500/10 transition-all cursor-pointer shrink-0"
+                                            >
+                                                <Edit3 size={13} />
+                                            </button>
                                             <button
                                                 type="button"
                                                 onClick={(e) => {
@@ -358,8 +414,7 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
                                                 type="button"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    setSelectedForDeletion(new Set([devId]));
-                                                    setShowDeleteConfirm(true);
+                                                    onInitiateDelete?.(devId, getCleanDeviceName(device));
                                                 }}
                                                 title="Delete Device"
                                                 className="clay-button-sm w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer shrink-0"
@@ -375,47 +430,16 @@ function DeviceList({ devices, selectedDeviceId, setSelectedDeviceId, setOpenDro
 
                     {isSelectionMode && selectedForDeletion.size > 0 && (
                         <button 
-                            onClick={() => setShowDeleteConfirm(true)}
+                            onClick={() => {
+                                const ids = Array.from(selectedForDeletion);
+                                onInitiateDelete?.(ids, `${ids.length} selected device(s)`);
+                            }}
                             className="mt-1 w-full py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-mono font-bold text-xs shadow-[0_0_16px_rgba(244,63,94,0.4)] transition-all flex items-center justify-center gap-2 cursor-pointer"
                         >
                             <Trash2 size={14} /> Delete Selected ({selectedForDeletion.size})
                         </button>
                     )}
                 </>
-            )}
-
-            {showDeleteConfirm && typeof document !== 'undefined' && createPortal(
-                <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-100">
-                    <div className="bg-[#0f1115] border border-rose-500/30 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-4 shadow-2xl animate-in zoom-in-95 duration-100">
-                        <div className="flex items-center gap-3">
-                            <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-rose-400 border-rose-500/40">
-                                <Trash2 size={18} />
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-white text-sm">Delete Device Endpoints</h3>
-                                <p className="text-[10px] text-white/40 font-mono">Irreversible Action</p>
-                            </div>
-                        </div>
-                        <p className="text-xs text-white/70 font-sans leading-relaxed">
-                            Are you sure you want to remove <strong className="text-white">{selectedForDeletion.size}</strong> device(s)? This will delete cached sync data.
-                        </p>
-                        <div className="flex items-center gap-2.5 pt-1">
-                            <button
-                                onClick={() => setShowDeleteConfirm(false)}
-                                className="bg-[#16181d] border border-white/10 hover:bg-white/10 flex-1 py-2 rounded-xl text-white/60 hover:text-white font-mono font-bold text-xs transition-all cursor-pointer"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={confirmBulkDelete}
-                                className="bg-rose-500 hover:bg-rose-600 flex-1 py-2 rounded-xl text-white font-mono font-black text-xs shadow-lg transition-all cursor-pointer border border-rose-400/40"
-                            >
-                                Confirm Delete
-                            </button>
-                        </div>
-                    </div>
-                </div>,
-                document.body
             )}
         </div>
     );
@@ -431,7 +455,8 @@ interface AppNavigationProps {
     setShowPlansModal: (show: boolean) => void;
     handleSignOut: () => void;
     onOpenAppModal: () => void;
-    onDeleteDevice: (deviceId: string) => void;
+    onDeleteDevice: (deviceIds: string | string[], skipConfirm?: boolean) => void;
+    onRenameDevice?: (deviceId: string, newName: string) => void;
     user?: any;
     openDropdownProp?: 'tools' | 'devices' | 'profile' | null;
     setOpenDropdownProp?: (val: 'tools' | 'devices' | 'profile' | null) => void;
@@ -441,11 +466,14 @@ interface AppNavigationProps {
 
 export default function AppNavigation({ 
     devices, selectedDeviceId, setSelectedDeviceId, selectedTool, setSelectedTool, 
-    userPlan, setShowPlansModal, handleSignOut, onOpenAppModal, onDeleteDevice, user,
+    userPlan, setShowPlansModal, handleSignOut, onOpenAppModal, onDeleteDevice, onRenameDevice, user,
     openDropdownProp, setOpenDropdownProp, socket, userUuid
 }: AppNavigationProps) {
     const [internalDropdown, setInternalDropdown] = useState<'tools' | 'devices' | 'profile' | null>(null);
     const [settingsDevice, setSettingsDevice] = useState<any>(null);
+    const [deviceToDelete, setDeviceToDelete] = useState<{ id: string | string[]; name: string } | null>(null);
+    const [renameTarget, setRenameTarget] = useState<{ id: string; currentName: string } | null>(null);
+    const [renameInput, setRenameInput] = useState<string>('');
     const openDropdown = openDropdownProp !== undefined ? openDropdownProp : internalDropdown;
     const setOpenDropdown = (val: 'tools' | 'devices' | 'profile' | null) => {
         if (setOpenDropdownProp) setOpenDropdownProp(val);
@@ -473,10 +501,12 @@ export default function AppNavigation({
         }
     }, [onlineDevices, selectedDeviceId, setSelectedDeviceId, sortedDevices]);
 
-    // Close dropdowns on click outside
+    // Close dropdowns on click outside (safely ignoring any clicks inside portals or modals)
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (openDropdown !== null && navRef.current && !navRef.current.contains(event.target as Node)) {
+            const target = event.target as HTMLElement | null;
+            if (target?.closest('[data-modal]') || target?.closest('.fixed')) return;
+            if (openDropdown !== null && navRef.current && !navRef.current.contains(target as Node)) {
                 setOpenDropdown(null);
             }
         };
@@ -657,10 +687,14 @@ export default function AppNavigation({
                                         selectedDeviceId={selectedDeviceId} 
                                         setSelectedDeviceId={setSelectedDeviceId} 
                                         setOpenDropdown={setOpenDropdown} 
-                                        onDeleteDevice={onDeleteDevice}
                                         socket={socket}
                                         userUuid={userUuid}
                                         onOpenSettings={(dev: any) => setSettingsDevice(dev)}
+                                        onInitiateDelete={(id: any, name: string) => setDeviceToDelete({ id, name })}
+                                        onInitiateRename={(id: string, name: string) => {
+                                            setRenameTarget({ id, currentName: name });
+                                            setRenameInput(name);
+                                        }}
                                     />
                                 </div>
                             )}
@@ -751,7 +785,123 @@ export default function AppNavigation({
                     userUuid={userUuid || ''}
                     onClose={() => setSettingsDevice(null)}
                     onDeleteDevice={onDeleteDevice}
+                    onRenameDevice={onRenameDevice}
                 />
+            )}
+
+            {/* Device Deletion Confirmation Modal */}
+            {deviceToDelete && typeof document !== 'undefined' && createPortal(
+                <div 
+                    data-modal="delete-device-modal"
+                    className="fixed inset-0 z-[450] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-100"
+                    onClick={(e) => { if (e.target === e.currentTarget) setDeviceToDelete(null); }}
+                >
+                    <div className="bg-[#0f1115] border border-rose-500/30 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-4 shadow-2xl animate-in zoom-in-95 duration-100">
+                        <div className="flex items-center gap-3">
+                            <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-rose-400 border-rose-500/40">
+                                <Trash2 size={18} />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-white text-sm">Delete Device Endpoint</h3>
+                                <p className="text-[10px] text-white/40 font-mono">Irreversible Action</p>
+                            </div>
+                        </div>
+                        <p className="text-xs text-white/70 font-sans leading-relaxed">
+                            Are you sure you want to permanently remove <strong className="text-white">{deviceToDelete.name}</strong>? This will delete all its cached sync data.
+                        </p>
+                        <div className="flex items-center gap-2.5 pt-1">
+                            <button
+                                type="button"
+                                onClick={() => setDeviceToDelete(null)}
+                                className="bg-[#16181d] border border-white/10 hover:bg-white/10 flex-1 py-2.5 rounded-xl text-white/60 hover:text-white font-mono font-bold text-xs transition-all cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    onDeleteDevice(deviceToDelete.id, true);
+                                    setDeviceToDelete(null);
+                                    setOpenDropdown(null);
+                                }}
+                                className="bg-rose-500 hover:bg-rose-600 flex-1 py-2.5 rounded-xl text-white font-mono font-black text-xs shadow-lg transition-all cursor-pointer border border-rose-400/40"
+                            >
+                                Confirm Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {/* Device Rename Modal */}
+            {renameTarget && typeof document !== 'undefined' && createPortal(
+                <div 
+                    data-modal="rename-device-modal"
+                    className="fixed inset-0 z-[450] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-100"
+                    onClick={(e) => { if (e.target === e.currentTarget) setRenameTarget(null); }}
+                >
+                    <div className="bg-[#0f1115] border border-amber-500/30 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-4 shadow-2xl animate-in zoom-in-95 duration-100">
+                        <div className="flex items-center gap-3">
+                            <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-amber-400 border-amber-500/40">
+                                <Edit3 size={18} />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-white text-sm">Rename Device</h3>
+                                <p className="text-[10px] text-white/40 font-mono">Custom Display Alias</p>
+                            </div>
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-mono uppercase tracking-wider text-white/50 block">Device Name</label>
+                            <input
+                                type="text"
+                                value={renameInput}
+                                onChange={(e) => setRenameInput(e.target.value)}
+                                placeholder={renameTarget.currentName}
+                                autoFocus
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        const trimmed = renameInput.trim();
+                                        if (trimmed) {
+                                            try { localStorage.setItem(`dev_name_${renameTarget.id}`, trimmed); } catch {}
+                                        } else {
+                                            try { localStorage.removeItem(`dev_name_${renameTarget.id}`); } catch {}
+                                        }
+                                        onRenameDevice?.(renameTarget.id, trimmed);
+                                        setRenameTarget(null);
+                                    }
+                                }}
+                                className="w-full bg-[#16181d] border border-white/15 focus:border-amber-500/60 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/20 font-sans outline-none transition-all"
+                            />
+                        </div>
+                        <div className="flex items-center gap-2.5 pt-1">
+                            <button
+                                type="button"
+                                onClick={() => setRenameTarget(null)}
+                                className="bg-[#16181d] border border-white/10 hover:bg-white/10 flex-1 py-2.5 rounded-xl text-white/60 hover:text-white font-mono font-bold text-xs transition-all cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const trimmed = renameInput.trim();
+                                    if (trimmed) {
+                                        try { localStorage.setItem(`dev_name_${renameTarget.id}`, trimmed); } catch {}
+                                    } else {
+                                        try { localStorage.removeItem(`dev_name_${renameTarget.id}`); } catch {}
+                                    }
+                                    onRenameDevice?.(renameTarget.id, trimmed);
+                                    setRenameTarget(null);
+                                }}
+                                className="bg-amber-500 hover:bg-amber-600 flex-1 py-2.5 rounded-xl text-black font-mono font-black text-xs shadow-lg transition-all cursor-pointer border border-amber-400/40"
+                            >
+                                Save Name
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
             )}
         </>
     );
