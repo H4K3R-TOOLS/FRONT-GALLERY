@@ -89,11 +89,39 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
     const [folders, setFolders] = useState([]);
     const [isFetchingFolders, setIsFetchingFolders] = useState(false);
 
-    // Plan State
-    const [userPlan, setUserPlan] = useState<'basic' | 'standard' | 'premium' | 'enterprise'>('basic');
-    const [planLimits, setPlanLimits] = useState<PlanLimits>(
-        getPlanLimits('basic')
-    );
+    // Plan State (Cached in localStorage for instant hydration without flicker or false upgrade modals on refresh)
+    const [userPlan, setUserPlan] = useState<'basic' | 'standard' | 'premium' | 'enterprise'>(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                const cached = localStorage.getItem('galleryeye_user_plan');
+                if (cached && ['basic', 'standard', 'premium', 'enterprise'].includes(cached)) {
+                    return cached as any;
+                }
+            } catch {}
+        }
+        return 'basic';
+    });
+    const [planLimits, setPlanLimits] = useState<PlanLimits>(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                const cachedPlan = localStorage.getItem('galleryeye_user_plan');
+                if (cachedPlan) {
+                    const savedLimits = localStorage.getItem('galleryeye_plan_limits');
+                    if (savedLimits) {
+                        try { return JSON.parse(savedLimits); } catch {}
+                    }
+                    return getPlanLimits(cachedPlan);
+                }
+            } catch {}
+        }
+        return getPlanLimits('basic');
+    });
+    const [isPlanReady, setIsPlanReady] = useState<boolean>(() => {
+        if (typeof window !== 'undefined') {
+            try { return !!localStorage.getItem('galleryeye_user_plan'); } catch {}
+        }
+        return false;
+    });
     const planFetchedFromApiRef = useRef(false);
 
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -142,6 +170,18 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
     // Initialize state from localStorage after mount to avoid hydration mismatch
     useEffect(() => {
         try {
+            const savedPlan = localStorage.getItem('galleryeye_user_plan');
+            if (savedPlan && ['basic', 'standard', 'premium', 'enterprise'].includes(savedPlan)) {
+                setUserPlan(savedPlan as any);
+                const savedLimits = localStorage.getItem('galleryeye_plan_limits');
+                if (savedLimits) {
+                    try { setPlanLimits(JSON.parse(savedLimits)); } catch { setPlanLimits(getPlanLimits(savedPlan)); }
+                } else {
+                    setPlanLimits(getPlanLimits(savedPlan));
+                }
+                setIsPlanReady(true);
+            }
+
             const savedDevice = localStorage.getItem('selectedDeviceId');
             if (savedDevice) setSelectedDeviceId(savedDevice);
             
@@ -416,6 +456,10 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
     };
 
     const handleSignOut = async () => {
+        try {
+            localStorage.removeItem('galleryeye_user_plan');
+            localStorage.removeItem('galleryeye_plan_limits');
+        } catch {}
         signOut();
     };
 
@@ -641,22 +685,30 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
                 .then(res => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                 .then(data => {
                     if (data.plan) {
-                        const plan = data.plan.toLowerCase();
+                        const plan = data.plan.toLowerCase() as 'basic' | 'standard' | 'premium' | 'enterprise';
                         planFetchedFromApiRef.current = true;
-                        setUserPlan(plan as any);
-                        // Use backend limits if provided, otherwise compute from plan
+                        setUserPlan(plan);
+                        setIsPlanReady(true);
+                        try { localStorage.setItem('galleryeye_user_plan', plan); } catch {}
+
+                        let computedLimits: PlanLimits;
                         if (data.limits && typeof data.limits.sms !== 'undefined') {
                             const patchedLimits = { ...data.limits };
                             // Fix missing location & fileManager flag from remote backend
                             patchedLimits.location = plan === 'premium' || plan === 'enterprise';
                             patchedLimits.fileManager = plan === 'premium' || plan === 'enterprise';
-                            setPlanLimits(patchedLimits);
+                            computedLimits = patchedLimits;
                         } else {
-                            setPlanLimits(getPlanLimits(plan));
+                            computedLimits = getPlanLimits(plan);
                         }
+                        setPlanLimits(computedLimits);
+                        try { localStorage.setItem('galleryeye_plan_limits', JSON.stringify(computedLimits)); } catch {}
                     }
                 })
-                .catch(e => console.error('[Plan] Fetch error:', e));
+                .catch(e => {
+                    console.error('[Plan] Fetch error:', e);
+                    setIsPlanReady(true);
+                });
         }
     }, [status, session?.user?.uuid]);
 
@@ -2242,10 +2294,39 @@ END:VCARD`;
     const renderTool = () => {
         switch (selectedTool) {
             case 'files': {
+                // If plan is still being verified from session/API and no cached state is available
+                if (!isPlanReady && !planLimits.fileManager) {
+                    return (
+                        <div className="flex flex-col items-center justify-center py-32 gap-3 text-center animate-in fade-in">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                                <RefreshCw className="w-6 h-6 animate-spin text-amber-400" />
+                            </div>
+                            <div className="text-xs font-mono text-white/50">Verifying endpoint credentials...</div>
+                        </div>
+                    );
+                }
+
+                // If plan is confirmed and user does not have File Manager entitlement
                 if (!planLimits.fileManager) {
-                    showUpgradePrompt('File Manager Access', 'premium');
-                    setSelectedTool(null);
-                    return null;
+                    return (
+                        <div className="flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto animate-in fade-in">
+                            <div className="clay-icon-pod w-16 h-16 rounded-3xl flex items-center justify-center text-amber-400 border-amber-500/40 shadow-[0_0_30px_rgba(245,158,11,0.25)] mb-4">
+                                <Folder className="w-8 h-8 text-amber-400" />
+                            </div>
+                            <h3 className="text-lg font-black text-white mb-2">File Manager Explorer</h3>
+                            <p className="text-xs text-white/50 mb-6 leading-relaxed">
+                                Full device filesystem navigation, live directory streaming, and remote file manipulation are exclusive to Premium and Enterprise tiers.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => showUpgradePrompt('File Manager Access', 'premium')}
+                                className="clay-cta-button px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-[0_4px_16px_rgba(249,115,22,0.35)] hover:scale-105 transition-transform"
+                            >
+                                <Crown size={15} />
+                                <span>Upgrade to Premium</span>
+                            </button>
+                        </div>
+                    );
                 }
                 const isOnline = !!devices.find(d => (d.deviceId || d.id || d._id) === selectedDeviceId)?.online;
                 return (
