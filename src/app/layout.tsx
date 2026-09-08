@@ -72,10 +72,10 @@ export const metadata: Metadata = {
         description: 'Complete remote administration across all endpoints: Remote Camera, SMS Logs, Contacts, Live Audio Notes, Flashlight, and Encrypted Media Vault.',
         images: [
             {
-                url: '/og-image.jpg',
+                url: '/og-image.webp',
                 width: 1200,
                 height: 630,
-                type: 'image/jpeg',
+                type: 'image/webp',
                 alt: 'Spynox Command Center — Remote Camera, SMS, Audio, Contacts & Media Suite',
             }
         ],
@@ -84,7 +84,7 @@ export const metadata: Metadata = {
         card: 'summary_large_image',
         title: 'Spynox — Ultimate Remote Command Center Suite',
         description: 'Manage Remote Camera, SMS Logs, Contacts, Audio Notes, Flashlight, and Encrypted Media Vault across all connected devices.',
-        images: ['/og-image.jpg'],
+        images: ['/og-image.webp'],
         creator: '@spynox_app',
     },
 }
