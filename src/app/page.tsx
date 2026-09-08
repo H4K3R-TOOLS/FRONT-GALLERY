@@ -907,15 +907,23 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
             socket.on("new_notification", (data: any) => {
                 const devId = data.deviceId;
                 const uuid = session?.user?.uuid;
+                const now = Date.now();
+                const validTime = data.postTime || data.timestamp || data.receivedAt || now;
+                const normalizedNotif = {
+                    ...data,
+                    postTime: validTime,
+                    timestamp: validTime,
+                    receivedAt: data.receivedAt || validTime
+                };
 
                 // Cache for originating device
                 if (devId && uuid) {
                     try {
                         const cacheKey = `galleryeye_notifications_${uuid}_${devId}`;
                         const prevCached = JSON.parse(localStorage.getItem(cacheKey) || '[]');
-                        const notifKey = data.id ? String(data.id) : `${data.packageName}_${data.title}_${data.text}_${data.timestamp || data.postTime || ''}`;
+                        const notifKey = data.id ? String(data.id) : `${data.packageName}_${data.title}_${data.text}_${validTime}`;
                         if (!prevCached.some((n: any) => (n.id ? String(n.id) : `${n.packageName}_${n.title}_${n.text}_${n.timestamp || n.postTime || ''}`) === notifKey)) {
-                            const updatedCached = [{ ...data, receivedAt: data.receivedAt || Date.now() }, ...prevCached].slice(0, 500);
+                            const updatedCached = [normalizedNotif, ...prevCached].slice(0, 500);
                             localStorage.setItem(cacheKey, JSON.stringify(updatedCached));
                         }
                     } catch {}
@@ -927,14 +935,14 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
                 }
 
                 setNotifications(prev => {
-                    const notifKey = data.id ? String(data.id) : `${data.packageName}_${data.title}_${data.text}_${data.timestamp || data.postTime || ''}`;
+                    const notifKey = data.id ? String(data.id) : `${data.packageName}_${data.title}_${data.text}_${validTime}`;
                     const isDuplicate = prev.some((n: any) => {
                         const k = n.id ? String(n.id) : `${n.packageName}_${n.title}_${n.text}_${n.timestamp || n.postTime || ''}`;
                         return k === notifKey;
                     });
                     if (isDuplicate) return prev;
 
-                    const updated = [{ ...data, receivedAt: data.receivedAt || Date.now() }, ...prev].slice(0, 500);
+                    const updated = [normalizedNotif, ...prev].slice(0, 500);
                     try { localStorage.setItem('galleryeye_notifications', JSON.stringify(updated)); } catch { }
                     return updated;
                 });
@@ -1560,7 +1568,8 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
         if (socket && isDeviceOnline) {
             socket.emit("get_sms", {
                 uuid,
-                targetDeviceId: effectiveTarget
+                targetDeviceId: effectiveTarget,
+                fullSync: true
             });
         }
     };

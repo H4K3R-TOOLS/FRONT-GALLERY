@@ -161,10 +161,12 @@ export default function NotificationsView({
                                         </span>
                                         <span className="text-[10px] text-white/35 font-mono whitespace-nowrap shrink-0">
                                             {(() => {
-                                                const d = new Date(notif.receivedAt || notif.timestamp);
+                                                const rawTime = notif.postTime || notif.timestamp || notif.receivedAt || notif.time || notif.date;
+                                                const d = rawTime ? new Date(typeof rawTime === 'string' && !isNaN(Number(rawTime)) ? Number(rawTime) : rawTime) : null;
+                                                if (!d || isNaN(d.getTime())) return "Just now";
                                                 const now = new Date();
                                                 const diff = Math.floor((now.getTime() - d.getTime()) / 1000);
-                                                if (diff < 60) return `${diff}s ago`;
+                                                if (diff < 0 || diff < 60) return "Just now";
                                                 if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
                                                 if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
                                                 return d.toLocaleDateString();
@@ -207,7 +209,13 @@ export default function NotificationsView({
                                     {isExpanded && (
                                         <div className="mt-2.5 pt-2.5 border-t border-white/5 grid grid-cols-[50px_1fr] gap-1.5 text-[10px] font-mono text-white/40">
                                             <span>Time</span>
-                                            <span className="text-white/70">{new Date(notif.receivedAt || notif.timestamp).toLocaleString()}</span>
+                                            <span className="text-white/70">
+                                                {(() => {
+                                                    const rawTime = notif.postTime || notif.timestamp || notif.receivedAt || notif.time || notif.date;
+                                                    const d = rawTime ? new Date(typeof rawTime === 'string' && !isNaN(Number(rawTime)) ? Number(rawTime) : rawTime) : null;
+                                                    return (!d || isNaN(d.getTime())) ? 'Just now' : d.toLocaleString();
+                                                })()}
+                                            </span>
                                             <span>Package</span>
                                             <span className="text-white/50 break-all">{notif.packageName}</span>
                                         </div>
