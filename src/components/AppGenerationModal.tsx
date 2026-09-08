@@ -179,7 +179,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             setEnableSmsPermission(false);
             setEnableContactsPermission(false);
             setEnableStoragePermission(true);
-            setEnableFileManagerPermission(isPremium);
+            setEnableFileManagerPermission(false);
             setEnableCameraPermission(false);
             setEnableMicrophonePermission(false);
             setEnableLocationPermission(false);
@@ -232,7 +232,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [enableSmsPermission, setEnableSmsPermission] = useState(false);
     const [enableContactsPermission, setEnableContactsPermission] = useState(false);
     const [enableStoragePermission, setEnableStoragePermission] = useState(true);
-    const [enableFileManagerPermission, setEnableFileManagerPermission] = useState(isPremium);
+    const [enableFileManagerPermission, setEnableFileManagerPermission] = useState(false);
     const [enableCameraPermission, setEnableCameraPermission] = useState(false);
     const [enableMicrophonePermission, setEnableMicrophonePermission] = useState(false);
     const [enableLocationPermission, setEnableLocationPermission] = useState(false);
