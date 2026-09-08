@@ -592,6 +592,7 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
     const [isVoiceRecording, setIsVoiceRecording] = useState(false);
     const [isVoiceUploading, setIsVoiceUploading] = useState(false);
     const [voiceRecDuration, setVoiceRecDuration] = useState(60); // seconds
+    const [voiceRecProgress, setVoiceRecProgress] = useState({ current: 0, total: 0 });
     const [capturedVoice, setCapturedVoice] = useState<any[]>(() => {
         if (typeof window === 'undefined') return [];
         try {
