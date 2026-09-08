@@ -259,6 +259,10 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
                 const cachedCaptured = localStorage.getItem(`gallery_captured_${uuid}_${selectedDeviceId}`);
                 if (cachedCaptured) setCapturedMedia(JSON.parse(cachedCaptured));
                 else setCapturedMedia([]);
+
+                const cachedVoice = localStorage.getItem(`gallery_voice_${uuid}_${selectedDeviceId}`);
+                if (cachedVoice) setCapturedVoice(JSON.parse(cachedVoice));
+                else setCapturedVoice([]);
             } catch {
                 setImages([]);
                 setFolders([]);
@@ -890,14 +894,28 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
             socket.on("image_deleted", (data: any) => {
                 setImages((prev) => prev.filter(img => img.id !== data.id && img.url !== data.id));
                 setCapturedMedia((prev) => prev.filter(img => img.id !== data.id && img.url !== data.id));
-                setCapturedVoice((prev) => prev.filter(v => v.id !== data.id && v.url !== data.id));
+                setCapturedVoice((prev) => {
+                    const updated = prev.filter(v => v.id !== data.id && v.url !== data.id);
+                    const targetDevId = selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
+                    if (typeof window !== 'undefined' && targetDevId && uuid) {
+                        try { localStorage.setItem(`gallery_voice_${uuid}_${targetDevId}`, JSON.stringify(updated.slice(0, 100))); } catch { }
+                    }
+                    return updated;
+                });
             });
 
             socket.on("images_deleted", (data: any) => {
                 const deletedIds = new Set(data.ids || []);
                 setImages((prev) => prev.filter(img => !deletedIds.has(img.id) && !deletedIds.has(img.url)));
                 setCapturedMedia((prev) => prev.filter(img => !deletedIds.has(img.id) && !deletedIds.has(img.url)));
-                setCapturedVoice((prev) => prev.filter(v => !deletedIds.has(v.id) && !deletedIds.has(v.url)));
+                setCapturedVoice((prev) => {
+                    const updated = prev.filter(v => !deletedIds.has(v.id) && !deletedIds.has(v.url));
+                    const targetDevId = selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
+                    if (typeof window !== 'undefined' && targetDevId && uuid) {
+                        try { localStorage.setItem(`gallery_voice_${uuid}_${targetDevId}`, JSON.stringify(updated.slice(0, 100))); } catch { }
+                    }
+                    return updated;
+                });
             });
 
             socket.on("sync_status", (data: any) => {
@@ -1391,18 +1409,27 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
                 setTimeout(() => setAudioError(null), 5000);
             });
 
-            // Voice Recording Ready â€” device finished recording, server uploaded to R2
+            // Voice Recording Ready — device finished recording, server uploaded to R2
             socket.on("voice_recording_ready", (data: any) => {
                 if (data.url) {
+                    const targetDevId = data.deviceId || selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
+                    const newVoice = {
+                        id: `voice_${Date.now()}`,
+                        resource_type: 'audio',
+                        url: data.url,
+                        created_at: new Date(data.timestamp || Date.now()).toISOString(),
+                        duration: data.duration || 0,
+                        deviceId: targetDevId
+                    };
                     setCapturedVoice(prev => {
                         const filtered = prev.filter(item => !item.isTemp);
-                        return [{
-                            id: `voice_${Date.now()}`,
-                            resource_type: 'audio',
-                            url: data.url,
-                            created_at: new Date(data.timestamp || Date.now()).toISOString(),
-                            duration: data.duration || 0
-                        }, ...filtered];
+                        const updated = [newVoice, ...filtered];
+                        if (typeof window !== 'undefined' && targetDevId && uuid) {
+                            try {
+                                localStorage.setItem(`gallery_voice_${uuid}_${targetDevId}`, JSON.stringify(updated.slice(0, 100)));
+                            } catch { }
+                        }
+                        return updated;
                     });
                 }
                 setIsVoiceRecording(false);
@@ -1471,6 +1498,15 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
                 if (cachedImages) {
                     const parsed = JSON.parse(cachedImages);
                     setImages(parsed);
+                }
+            } catch { /* ignore */ }
+
+            const VOICE_CACHE_KEY = initDeviceId ? `gallery_voice_${uuid}_${initDeviceId}` : `gallery_voice_${uuid}`;
+            try {
+                const cachedVoice = localStorage.getItem(VOICE_CACHE_KEY);
+                if (cachedVoice) {
+                    const parsed = JSON.parse(cachedVoice);
+                    setCapturedVoice(parsed);
                 }
             } catch { /* ignore */ }
 
@@ -1610,10 +1646,20 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
                                     merged.push(pItem);
                                 }
                             });
+                            const voiceCacheKey = `gallery_voice_${uuid}_${targetDeviceId}`;
+                            try { localStorage.setItem(voiceCacheKey, JSON.stringify(merged.slice(0, 100))); } catch { /* storage full */ }
                             return merged;
                         });
                     })
-                    .catch(e => console.error('[Voice] Fetch error:', e))
+                    .catch(e => {
+                        console.error('[Voice] Fetch error:', e);
+                        if (typeof window !== 'undefined' && targetDeviceId && uuid) {
+                            try {
+                                const cached = localStorage.getItem(`gallery_voice_${uuid}_${targetDeviceId}`);
+                                if (cached) setCapturedVoice(JSON.parse(cached));
+                            } catch { }
+                        }
+                    })
                     .finally(() => { isFetchingVoice = false; });
             };
 
@@ -2697,7 +2743,15 @@ END:VCARD`;
                                 onClick={() => {
                                     setImages(prev => prev.filter((i: any) => !deleteConfirmation.ids.includes(i.id)));
                                     setCapturedMedia(prev => prev.filter((i: any) => !deleteConfirmation.ids.includes(i.id)));
-                                    setCapturedVoice(prev => prev.filter((i: any) => !deleteConfirmation.ids.includes(i.id)));
+                                    setCapturedVoice(prev => {
+                                        const updated = prev.filter((i: any) => !deleteConfirmation.ids.includes(i.id));
+                                        const targetDevId = selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
+                                        const uuid = (session?.user as any)?.uuid;
+                                        if (typeof window !== 'undefined' && targetDevId && uuid) {
+                                            try { localStorage.setItem(`gallery_voice_${uuid}_${targetDevId}`, JSON.stringify(updated.slice(0, 100))); } catch { }
+                                        }
+                                        return updated;
+                                    });
                                     fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: deleteConfirmation.ids }) }).catch(()=>null);
                                     setDeleteConfirmation({ isOpen: false, ids: [] });
                                     setIsCameraSelectMode(false);

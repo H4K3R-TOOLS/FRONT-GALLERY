@@ -691,6 +691,18 @@ export default function FileManagerView({
         previewDownloadIdRef.current = '';
     };
 
+    // Close preview on Escape key press
+    useEffect(() => {
+        if (!previewItem) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                closePreview();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [previewItem]);
+
     // ─── Touch & Selection Logic ──────────────────────────────────────────────
 
     const toggleSelectPath = (path: string) => {
@@ -1371,7 +1383,7 @@ export default function FileManagerView({
             {/* ── ACTION SHEET / CONTEXT MENU (Mobile Bottom Sheet) ── */}
             {activeActionItem && (
                 <div 
-                    className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in"
+                    className="fixed inset-0 z-[700] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in"
                     onClick={() => setActiveActionItem(null)}
                 >
                     <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
@@ -1480,12 +1492,26 @@ export default function FileManagerView({
             {/* ── LIVE PREVIEW MODAL (Image / Video / Audio / Text) ── */}
             {previewItem && (
                 <div 
-                    className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex flex-col animate-in fade-in"
+                    className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-md flex flex-col animate-in fade-in select-none"
                     onClick={closePreview}
                 >
+                    {/* Dedicated Floating Quick-Close Button (Always on Top) */}
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            closePreview();
+                        }}
+                        className="fixed top-3.5 right-3.5 sm:top-4 sm:right-4 z-[10001] w-10 h-10 rounded-full bg-rose-600/90 hover:bg-rose-600 text-white flex items-center justify-center shadow-[0_0_20px_rgba(244,63,94,0.6)] border border-rose-400/50 active:scale-90 hover:scale-105 transition-all cursor-pointer"
+                        title="Close Preview (Esc)"
+                        aria-label="Close Preview"
+                    >
+                        <X size={20} strokeWidth={2.5} />
+                    </button>
+
                     {/* Top Bar */}
                     <div 
-                        className="flex items-center justify-between px-3.5 sm:px-5 py-3 bg-[#0d0f14] border-b border-white/[0.08] shadow-md shrink-0"
+                        className="flex items-center justify-between px-3.5 sm:px-5 py-3 pr-16 sm:pr-20 bg-[#0d0f14] border-b border-white/[0.08] shadow-md shrink-0"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -1505,16 +1531,16 @@ export default function FileManagerView({
                         <div className="flex items-center gap-2 shrink-0">
                             <button
                                 onClick={() => handleStartDownload(previewItem.entry)}
-                                className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-sm active:scale-95 transition-all"
+                                className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-sm active:scale-95 transition-all"
                             >
                                 <Download size={14} />
                                 <span className="hidden sm:inline">Download</span>
                             </button>
 
-                            {/* Prominent High-Visibility Close Button */}
+                            {/* Header Close Button */}
                             <button
                                 onClick={closePreview}
-                                className="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/35 text-rose-300 border border-rose-500/40 font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 active:scale-95 shadow-md transition-all"
+                                className="px-3.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white border border-rose-500/40 font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 active:scale-95 shadow-md transition-all hidden sm:flex"
                                 title="Close Preview (Esc)"
                             >
                                 <X size={15} strokeWidth={2.5} />
@@ -1558,6 +1584,7 @@ export default function FileManagerView({
                                     src={previewItem.blobUrl}
                                     controls
                                     autoPlay
+                                    playsInline
                                     className="w-full max-h-[78vh] rounded-xl shadow-2xl bg-black"
                                 />
                             </div>
@@ -1615,7 +1642,7 @@ export default function FileManagerView({
             {/* ── CREATE FOLDER MODAL ── */}
             {showNewFolderModal && (
                 <div 
-                    className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in"
+                    className="fixed inset-0 z-[700] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in"
                     onClick={() => setShowNewFolderModal(false)}
                 >
                     <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
@@ -1666,7 +1693,7 @@ export default function FileManagerView({
             {/* ── RENAME MODAL ── */}
             {showRenameModal && itemToRename && (
                 <div 
-                    className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in"
+                    className="fixed inset-0 z-[700] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in"
                     onClick={() => setShowRenameModal(false)}
                 >
                     <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
@@ -1714,7 +1741,7 @@ export default function FileManagerView({
             {/* ── DELETE CONFIRMATION MODAL ── */}
             {showDeleteModal && itemsToDelete.length > 0 && (
                 <div 
-                    className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in"
+                    className="fixed inset-0 z-[700] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in"
                     onClick={() => setShowDeleteModal(false)}
                 >
                     <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
