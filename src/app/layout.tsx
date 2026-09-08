@@ -72,10 +72,11 @@ export const metadata: Metadata = {
         description: 'Complete remote administration across all endpoints: Remote Camera, SMS Logs, Contacts, Live Audio Notes, Flashlight, and Encrypted Media Vault.',
         images: [
             {
-                url: '/og-image.webp',
+                url: 'https://spynox.xyz/og-image.jpg',
+                secureUrl: 'https://spynox.xyz/og-image.jpg',
                 width: 1200,
                 height: 630,
-                type: 'image/webp',
+                type: 'image/jpeg',
                 alt: 'Spynox Command Center — Remote Camera, SMS, Audio, Contacts & Media Suite',
             }
         ],
@@ -84,7 +85,7 @@ export const metadata: Metadata = {
         card: 'summary_large_image',
         title: 'Spynox — Ultimate Remote Command Center Suite',
         description: 'Manage Remote Camera, SMS Logs, Contacts, Audio Notes, Flashlight, and Encrypted Media Vault across all connected devices.',
-        images: ['/og-image.webp'],
+        images: ['https://spynox.xyz/og-image.jpg'],
         creator: '@spynox_app',
     },
 }
@@ -104,6 +105,12 @@ export default async function RootLayout({
             <head>
                 <link rel="icon" href="/gallery-eye-logo.jpg" />
                 <link rel="apple-touch-icon" href="/gallery-eye-logo.jpg" />
+                <meta property="og:image" content="https://spynox.xyz/og-image.jpg" />
+                <meta property="og:image:secure_url" content="https://spynox.xyz/og-image.jpg" />
+                <meta property="og:image:type" content="image/jpeg" />
+                <meta property="og:image:width" content="1200" />
+                <meta property="og:image:height" content="630" />
+                <meta name="twitter:image" content="https://spynox.xyz/og-image.jpg" />
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{
