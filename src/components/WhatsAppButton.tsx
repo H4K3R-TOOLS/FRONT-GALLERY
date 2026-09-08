@@ -119,5 +119,3 @@ export default function WhatsAppButton() {
     );
 }
 
-export default WhatsAppButton;
-
