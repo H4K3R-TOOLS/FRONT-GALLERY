@@ -50,14 +50,21 @@ export const authOptions: AuthOptions = {
                                     syncGoogleUserRecord(cleanEmail, user.name);
                                     throw new Error("GOOGLE_ACCOUNT_ONLY");
                                 }
-                                return user;
+                                return {
+                                    id: user.uuid || user._id || cleanEmail,
+                                    uuid: user.uuid || user._id || cleanEmail,
+                                    email: cleanEmail,
+                                    name: user.name || cleanEmail.split('@')[0],
+                                    plan: user.plan || 'basic',
+                                    provider: user.provider || 'credentials'
+                                };
                             }
                         } catch (e: any) {
                             if (e?.message === "GOOGLE_ACCOUNT_ONLY") throw e;
                             console.error("[NextAuth] Cloud fetch failed, using local auth:", e);
                         }
                         // Cloud failed but local password was valid — create a minimal user object
-                        return { id: cleanEmail, email: cleanEmail, name: localRecord.name || cleanEmail.split('@')[0] };
+                        return { id: cleanEmail, uuid: cleanEmail, email: cleanEmail, name: localRecord.name || cleanEmail.split('@')[0] };
                     }
 
                     // ═══ LAYER 2: NO LOCAL RECORD — Check cloud backend ═══
@@ -77,7 +84,14 @@ export const authOptions: AuthOptions = {
                             }
                             // Cloud accepted login — save locally with password hash for future local verification
                             await registerUserRecord(cleanEmail, 'credentials', user.name || cleanEmail.split('@')[0], password);
-                            return user;
+                            return {
+                                id: user.uuid || user._id || cleanEmail,
+                                uuid: user.uuid || user._id || cleanEmail,
+                                email: cleanEmail,
+                                name: user.name || cleanEmail.split('@')[0],
+                                plan: user.plan || 'basic',
+                                provider: user.provider || 'credentials'
+                            };
                         }
                     } else {
                         // Cloud rejected — check if it's a Google account error
@@ -128,7 +142,7 @@ export const authOptions: AuthOptions = {
                             const backendUser = await res.json();
                             if (backendUser && backendUser.uuid) {
                                 token.uuid = backendUser.uuid;
-                                token.id = backendUser.id;
+                                token.id = backendUser.uuid;
                                 token.plan = backendUser.plan || 'basic';
                             }
                         }
@@ -136,18 +150,46 @@ export const authOptions: AuthOptions = {
                         console.error("Failed to sync google user", e);
                     }
                 } else {
-                    token.id = user.id;
-                    token.uuid = user.uuid;
+                    const resolvedUuid = user.uuid || (user as any)._id || user.id;
+                    token.id = resolvedUuid;
+                    token.uuid = resolvedUuid;
                     token.plan = (user as any).plan || 'basic';
                 }
             }
+
+            // ═══ SELF-HEALING: If token has no uuid, query cloud backend by email ═══
+            if (!token.uuid && token.email) {
+                try {
+                    const res = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/login", {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            email: token.email,
+                            name: token.name,
+                            image: token.picture,
+                            provider: 'google'
+                        }),
+                        headers: { "Content-Type": "application/json" }
+                    });
+                    if (res.ok) {
+                        const backendUser = await res.json();
+                        if (backendUser && backendUser.uuid) {
+                            token.uuid = backendUser.uuid;
+                            token.id = backendUser.uuid;
+                            if (backendUser.plan) token.plan = backendUser.plan;
+                        }
+                    }
+                } catch (e) {
+                    console.error("[NextAuth] Token healing failed:", e);
+                }
+            }
+
             return token;
         },
         async session({ session, token }: any) {
             if (session.user) {
-                session.user.id = token.id;
-                session.user.uuid = token.uuid;
-                session.user.plan = token.plan;
+                session.user.id = token.uuid || token.id;
+                session.user.uuid = token.uuid || token.id;
+                session.user.plan = token.plan || 'basic';
             }
             return session;
         }

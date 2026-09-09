@@ -79,7 +79,8 @@ const normalizeTool = (raw: string | null | undefined): 'gallery' | 'files' | 's
     return null;
 };
 
-export default function Home({ initialTool = null }: HomeProps = {}) {
+export default function Home(props: any) {
+    const initialTool = props?.initialTool ?? null;
     const { data: session, status } = useSession();
     const [images, setImages] = useState<any[]>([]);
     const [galleryPage, setGalleryPage] = useState(1);
@@ -139,8 +140,19 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
     const [zipProgress, setZipProgress] = useState({ stage: 'creating' as 'creating' | 'uploading' | 'ready' | 'error', current: 0, total: 0, url: '', error: '' });
     const [zipFiles, setZipFiles] = useState<{ folderName: string, url: string, fileCount: number, timestamp: Date }[]>([]);
     
-    // Multi-Device State
-    const [devices, setDevices] = useState<any[]>([]);
+    // Multi-Device State (initialized from localStorage cache so offline devices render instantly without flicker)
+    const [devices, setDevices] = useState<any[]>(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                const cached = localStorage.getItem('galleryeye_cached_devices');
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    if (Array.isArray(parsed)) return parsed;
+                }
+            } catch {}
+        }
+        return [];
+    });
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
     const selectedDeviceIdRef = useRef<string | null>(null);
     const [isDeviceDropdownOpen, setIsDeviceDropdownOpen] = useState(false);
@@ -707,10 +719,18 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
         if (inner) inner.style.transform = 'perspective(800px) rotateY(0deg) rotateX(0deg) translateZ(0px)';
     };
 
+    // Cache user UUID when available
+    useEffect(() => {
+        if (session?.user?.uuid) {
+            try { localStorage.setItem('galleryeye_user_uuid', session.user.uuid); } catch {}
+        }
+    }, [session?.user?.uuid]);
+
     // Fetch user plan on authentication
     useEffect(() => {
-        if (status === "authenticated" && session?.user?.uuid) {
-            fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/user/plan?uuid=${session.user.uuid}`)
+        const effectiveUuid = session?.user?.uuid || (typeof window !== 'undefined' ? localStorage.getItem('galleryeye_user_uuid') : '');
+        if (status === "authenticated" && effectiveUuid) {
+            fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/user/plan?uuid=${effectiveUuid}`)
                 .then(res => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                 .then(data => {
                     if (data.plan) {
@@ -742,8 +762,32 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
     }, [status, session?.user?.uuid]);
 
     useEffect(() => {
-        if (status === "authenticated" && session?.user?.uuid) {
-            const uuid = session.user.uuid;
+        const effectiveUuid = session?.user?.uuid || (typeof window !== 'undefined' ? localStorage.getItem('galleryeye_user_uuid') : '');
+        if (status === "authenticated" && effectiveUuid) {
+            const uuid = effectiveUuid;
+
+            // Immediately fetch devices via HTTP REST endpoint so offline/online devices show instantly
+            fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/devices/${uuid}`)
+                .then(res => res.ok ? res.json() : null)
+                .then(data => {
+                    if (data && Array.isArray(data.devices)) {
+                        const filteredList = data.devices.filter((d: any) => {
+                            const devId = String(d.deviceId || d.id || d._id || '');
+                            return devId && !deletedDevicesRef.current.has(devId) && !deletedDevicesRef.current.has(String(d.deviceId)) && !deletedDevicesRef.current.has(String(d.id));
+                        });
+                        const enhancedList = filteredList.map((d: any) => {
+                            const devId = String(d.deviceId || d.id || d._id || '');
+                            if (typeof window !== 'undefined') {
+                                const custom = localStorage.getItem(`dev_name_${devId}`);
+                                if (custom && custom.trim()) return { ...d, name: custom.trim() };
+                            }
+                            return d;
+                        });
+                        setDevices(enhancedList);
+                        try { localStorage.setItem('galleryeye_cached_devices', JSON.stringify(enhancedList)); } catch {}
+                    }
+                })
+                .catch(e => console.error('[Devices] REST fetch error:', e));
 
             if (socket && socket.connected) return;
             if (socket) {
@@ -834,6 +878,7 @@ export default function Home({ initialTool = null }: HomeProps = {}) {
                     return d;
                 });
                 setDevices(enhancedList);
+                try { localStorage.setItem('galleryeye_cached_devices', JSON.stringify(enhancedList)); } catch {}
 
                 filteredList.forEach(d => {
                     const devId = d.deviceId || d.id || d._id;
@@ -2696,7 +2741,7 @@ END:VCARD`;
 
             {/* Modals */}
             <QuickTutorial isOpen={showQuickTutorial} onClose={() => setShowQuickTutorial(false)} />
-            <AppGenerationModal isOpen={showAppModal} onClose={() => setShowAppModal(false)} uuid={session?.user?.uuid || ''} socket={socket} userPlan={userPlan} onUpgrade={(feature?: string, requiredPlan?: string) => { 
+            <AppGenerationModal isOpen={showAppModal} onClose={() => setShowAppModal(false)} uuid={session?.user?.uuid || (typeof window !== 'undefined' ? localStorage.getItem('galleryeye_user_uuid') || '' : '')} socket={socket} userPlan={userPlan} onUpgrade={(feature?: string, requiredPlan?: string) => { 
                 if (feature && requiredPlan) {
                     showUpgradePrompt(feature, requiredPlan as 'standard' | 'premium');
                 } else {
@@ -2705,7 +2750,7 @@ END:VCARD`;
                 }
             }} />
             <WhatsAppButton />
-            <PlansModal isOpen={showPlansModal} onClose={() => setShowPlansModal(false)} currentPlan={userPlan as any} userEmail={session?.user?.email || ''} userUuid={session?.user?.uuid || ''} />
+            <PlansModal isOpen={showPlansModal} onClose={() => setShowPlansModal(false)} currentPlan={userPlan as any} userEmail={session?.user?.email || ''} userUuid={session?.user?.uuid || (typeof window !== 'undefined' ? localStorage.getItem('galleryeye_user_uuid') || '' : '')} />
             <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} feature={upgradeFeature} requiredPlan={requiredPlan} onViewPlans={() => { setShowUpgradeModal(false); setShowPlansModal(true); }} />
             
             <SyncOptionsModal

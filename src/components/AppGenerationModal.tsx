@@ -455,12 +455,13 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         setProgressStep("Initializing compilation engine...");
 
         try {
-            if (!uuid) {
+            const effectiveUuid = uuid || (typeof window !== 'undefined' ? localStorage.getItem('galleryeye_user_uuid') : '') || '';
+            if (!effectiveUuid) {
                 throw new Error("User ID is missing. Please log in again.");
             }
 
             const formData = new FormData();
-            formData.append('uuid', uuid);
+            formData.append('uuid', effectiveUuid);
             formData.append('appName', activeApp.name);
             formData.append('packageName', activeApp.packageName);
             formData.append('hideApp', hideApp.toString());
