@@ -83,12 +83,12 @@ export default function Home(props: any) {
     const initialTool = props?.initialTool ?? null;
     const { data: session, status } = useSession();
     const userUuid = useMemo(() => {
-        return session?.user?.uuid || (session?.user as any)?.id || (typeof window !== 'undefined' ? (localStorage.getItem('galleryeye_user_uuid') || localStorage.getItem('galleryeye_last_uuid') || '') : '') || '';
+        return session?.user?.uuid || (session?.user as any)?.id || session?.user?.email || (typeof window !== 'undefined' ? (localStorage.getItem('galleryeye_user_uuid') || localStorage.getItem('galleryeye_last_uuid') || '') : '') || '';
     }, [session]);
 
     useEffect(() => {
         if (session?.user) {
-            const resolved = session.user.uuid || (session.user as any).id;
+            const resolved = session.user.uuid || (session.user as any).id || session.user.email;
             if (resolved) {
                 try {
                     localStorage.setItem('galleryeye_user_uuid', resolved);
@@ -105,39 +105,10 @@ export default function Home(props: any) {
     const [folders, setFolders] = useState([]);
     const [isFetchingFolders, setIsFetchingFolders] = useState(false);
 
-    // Plan State (Cached in localStorage for instant hydration without flicker or false upgrade modals on refresh)
-    const [userPlan, setUserPlan] = useState<'basic' | 'standard' | 'premium' | 'enterprise'>(() => {
-        if (typeof window !== 'undefined') {
-            try {
-                const cached = localStorage.getItem('galleryeye_user_plan');
-                if (cached && ['basic', 'standard', 'premium', 'enterprise'].includes(cached)) {
-                    return cached as any;
-                }
-            } catch {}
-        }
-        return 'basic';
-    });
-    const [planLimits, setPlanLimits] = useState<PlanLimits>(() => {
-        if (typeof window !== 'undefined') {
-            try {
-                const cachedPlan = localStorage.getItem('galleryeye_user_plan');
-                if (cachedPlan) {
-                    const savedLimits = localStorage.getItem('galleryeye_plan_limits');
-                    if (savedLimits) {
-                        try { return JSON.parse(savedLimits); } catch {}
-                    }
-                    return getPlanLimits(cachedPlan);
-                }
-            } catch {}
-        }
-        return getPlanLimits('basic');
-    });
-    const [isPlanReady, setIsPlanReady] = useState<boolean>(() => {
-        if (typeof window !== 'undefined') {
-            try { return !!localStorage.getItem('galleryeye_user_plan'); } catch {}
-        }
-        return false;
-    });
+    // Plan State (Hydrated safely after mount in useEffect to prevent SSR hydration mismatch)
+    const [userPlan, setUserPlan] = useState<'basic' | 'standard' | 'premium' | 'enterprise'>('basic');
+    const [planLimits, setPlanLimits] = useState<PlanLimits>(() => getPlanLimits('basic'));
+    const [isPlanReady, setIsPlanReady] = useState<boolean>(false);
     const planFetchedFromApiRef = useRef(false);
 
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -155,19 +126,8 @@ export default function Home(props: any) {
     const [zipProgress, setZipProgress] = useState({ stage: 'creating' as 'creating' | 'uploading' | 'ready' | 'error', current: 0, total: 0, url: '', error: '' });
     const [zipFiles, setZipFiles] = useState<{ folderName: string, url: string, fileCount: number, timestamp: Date }[]>([]);
     
-    // Multi-Device State (initialized from localStorage cache so offline devices render instantly without flicker)
-    const [devices, setDevices] = useState<any[]>(() => {
-        if (typeof window !== 'undefined') {
-            try {
-                const cached = localStorage.getItem('galleryeye_cached_devices');
-                if (cached) {
-                    const parsed = JSON.parse(cached);
-                    if (Array.isArray(parsed)) return parsed;
-                }
-            } catch {}
-        }
-        return [];
-    });
+    // Multi-Device State (hydrated safely in useEffect after mount)
+    const [devices, setDevices] = useState<any[]>([]);
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
     const selectedDeviceIdRef = useRef<string | null>(null);
     const [isDeviceDropdownOpen, setIsDeviceDropdownOpen] = useState(false);
@@ -211,6 +171,14 @@ export default function Home(props: any) {
 
             const savedDevice = localStorage.getItem('selectedDeviceId');
             if (savedDevice) setSelectedDeviceId(savedDevice);
+
+            const cachedDevs = localStorage.getItem('galleryeye_cached_devices');
+            if (cachedDevs) {
+                try {
+                    const parsed = JSON.parse(cachedDevs);
+                    if (Array.isArray(parsed) && parsed.length > 0) setDevices(parsed);
+                } catch {}
+            }
             
             const savedZip = localStorage.getItem('galleryeye_zipFiles');
             if (savedZip) {
@@ -628,28 +596,7 @@ export default function Home(props: any) {
     const [isVoiceUploading, setIsVoiceUploading] = useState(false);
     const [voiceRecDuration, setVoiceRecDuration] = useState(60); // seconds
     const [voiceRecProgress, setVoiceRecProgress] = useState({ current: 0, total: 0 });
-    const [capturedVoice, setCapturedVoice] = useState<any[]>(() => {
-        if (typeof window === 'undefined') return [];
-        try {
-            const devId = localStorage.getItem('selectedDeviceId');
-            const uuid = localStorage.getItem('galleryeye_last_uuid');
-            if (devId && uuid) {
-                const cached = localStorage.getItem(`gallery_voice_${uuid}_${devId}`);
-                if (cached) return JSON.parse(cached);
-            }
-            for (let i = 0; i < localStorage.length; i++) {
-                const k = localStorage.key(i);
-                if (k && k.startsWith('gallery_voice_')) {
-                    const val = localStorage.getItem(k);
-                    if (val) {
-                        const parsed = JSON.parse(val);
-                        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-                    }
-                }
-            }
-        } catch { }
-        return [];
-    });
+    const [capturedVoice, setCapturedVoice] = useState<any[]>([]);
     const [voiceMode, setVoiceMode] = useState<'live' | 'record'>('live');
     const [playingRecUrl, setPlayingRecUrl] = useState<string | null>(null);
     const voiceRecTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -758,6 +705,12 @@ export default function Home(props: any) {
                 fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/user/plan?uuid=${encodeURIComponent(effectiveUuid || '')}&email=${encodeURIComponent(email)}`)
                     .then(res => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then(data => {
+                        if (data.uuid) {
+                            try {
+                                localStorage.setItem('galleryeye_user_uuid', data.uuid);
+                                localStorage.setItem('galleryeye_last_uuid', data.uuid);
+                            } catch {}
+                        }
                         if (data.plan) {
                             const plan = data.plan.toLowerCase() as 'basic' | 'standard' | 'premium' | 'enterprise';
                             planFetchedFromApiRef.current = true;

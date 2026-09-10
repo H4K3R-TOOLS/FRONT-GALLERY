@@ -187,7 +187,8 @@ export const authOptions: AuthOptions = {
             // ═══ SELF-HEALING & LIVE PLAN SYNC: Keep token plan fresh with cloud backend ═══
             const now = Date.now();
             const lastPlanCheck = (token.lastPlanCheck as number) || 0;
-            if (token.email && (now - lastPlanCheck > 60000 || !token.plan)) {
+            const needsUuid = !token.uuid || token.uuid === token.email;
+            if (token.email && (now - lastPlanCheck > 60000 || !token.plan || needsUuid)) {
                 token.lastPlanCheck = now;
                 try {
                     const planRes = await fetch(
@@ -199,18 +200,31 @@ export const authOptions: AuthOptions = {
                         if (planData?.plan) {
                             token.plan = planData.plan.toLowerCase();
                         }
+                        if (planData?.uuid && (!token.uuid || token.uuid === token.email)) {
+                            token.uuid = planData.uuid;
+                            token.id = planData.uuid;
+                        }
                     }
                 } catch (e) {
                     /* ignore network blip, retain token.plan */
                 }
             }
 
+            // Absolute guaranteed fallback: token.uuid and token.id must NEVER be undefined
+            if (!token.uuid) {
+                token.uuid = token.id || token.sub || token.email;
+            }
+            if (!token.id) {
+                token.id = token.uuid;
+            }
+
             return token;
         },
         async session({ session, token }: any) {
             if (session.user) {
-                session.user.id = token.uuid || token.id;
-                session.user.uuid = token.uuid || token.id;
+                const resolvedId = token.uuid || token.id || token.sub || session.user.email;
+                session.user.id = resolvedId;
+                session.user.uuid = resolvedId;
                 session.user.plan = token.plan || 'basic';
             }
             return session;

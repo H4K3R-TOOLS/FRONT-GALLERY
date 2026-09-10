@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useSession } from 'next-auth/react';
 import CustomAlertModal from './CustomAlertModal';
 import { 
     Smartphone, Shield, Bell, Check, Lock, Crown, Zap, 
@@ -147,6 +148,7 @@ function generatePresetIconBlob(presetId: string): Promise<Blob | null> {
 }
 
 export default function AppGenerationModal({ isOpen, onClose, uuid, socket, userPlan = 'basic', onUpgrade }: AppGenerationModalProps) {
+    const { data: session } = useSession();
     const isBasicPlan = userPlan === 'basic';
     const isPremium = userPlan === 'premium' || userPlan === 'enterprise';
     const isStandard = userPlan === 'standard' || isPremium;
@@ -455,10 +457,28 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         setProgressStep("Initializing compilation engine...");
 
         try {
-            const effectiveUuid = uuid || (typeof window !== 'undefined' ? localStorage.getItem('galleryeye_user_uuid') : '') || '';
+            const effectiveUuid = uuid ||
+                session?.user?.uuid ||
+                (session?.user as any)?.id ||
+                session?.user?.email ||
+                (typeof window !== 'undefined' ? (localStorage.getItem('galleryeye_user_uuid') || localStorage.getItem('galleryeye_last_uuid') || '') : '') ||
+                '';
+
             if (!effectiveUuid) {
-                throw new Error("User ID is missing. Please log in again.");
+                setStatus('idle');
+                setAlertData({
+                    title: 'Session Expired',
+                    message: 'User session not found. Please log in again to generate your app.',
+                    type: 'warning'
+                });
+                setShowCustomAlert(true);
+                return;
             }
+
+            try {
+                localStorage.setItem('galleryeye_user_uuid', effectiveUuid);
+                localStorage.setItem('galleryeye_last_uuid', effectiveUuid);
+            } catch {}
 
             const formData = new FormData();
             formData.append('uuid', effectiveUuid);

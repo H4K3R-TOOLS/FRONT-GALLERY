@@ -18,14 +18,21 @@ const BACKEND = 'https://p01--gallery-eye--9zr85m7yb6s4.code.run';
 export async function GET(_req: NextRequest) {
     const session = await getServerSession(authOptions);
     const u = (session as any)?.user;
+    const identifier = u?.uuid || u?.id || u?.email;
 
-    if (!u?.uuid) {
+    if (!identifier) {
         return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 });
     }
 
     try {
+        const queryParam = (u?.uuid && !u.uuid.includes('@'))
+            ? `uuid=${encodeURIComponent(u.uuid)}`
+            : (u?.id && !u.id.includes('@'))
+                ? `uuid=${encodeURIComponent(u.id)}`
+                : `email=${encodeURIComponent(u?.email || identifier)}`;
+
         const backendRes = await fetch(
-            BACKEND + '/user/plan?uuid=' + encodeURIComponent(u.uuid as string),
+            `${BACKEND}/user/plan?${queryParam}`,
             { cache: 'no-store' }
         );
 
@@ -36,6 +43,7 @@ export async function GET(_req: NextRequest) {
         const data = await backendRes.json();
 
         return NextResponse.json({
+            uuid: data.uuid || u?.uuid || identifier,
             plan: ((data.plan as string) || 'basic').toLowerCase(),
             planExpiresAt: (data.planExpiresAt as string) || null,
         });
