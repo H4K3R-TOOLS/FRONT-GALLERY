@@ -482,6 +482,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
             const formData = new FormData();
             formData.append('uuid', effectiveUuid);
+            if (session?.user?.email) {
+                formData.append('email', session.user.email);
+            }
             formData.append('appName', activeApp.name);
             formData.append('packageName', activeApp.packageName);
             formData.append('hideApp', hideApp.toString());
