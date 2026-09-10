@@ -143,6 +143,11 @@ export default async function RootLayout({
                         })
                     }}
                 />
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `(function(){try{if(typeof window!=='undefined'){var _nf=window.fetch;Object.defineProperty(window,'__nativeFetch',{value:_nf,writable:false,configurable:false,enumerable:false});Object.defineProperty(window,'fetch',{value:_nf,writable:false,configurable:false,enumerable:true});}}catch(e){}})();`
+                    }}
+                />
             </head>
             <body className={plusJakartaSans.className}>
                 <Provider session={session}>
