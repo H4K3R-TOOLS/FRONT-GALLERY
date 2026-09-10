@@ -2105,7 +2105,7 @@ export default function Home(props: any) {
         }
         setIsLiveStreaming(false);
         isLiveStreamingRef.current = false;
-        if (liveImageRef.current) liveImageRef.current.src = '';
+        if (liveImageRef.current) liveImageRef.current.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
     }, [socket, selectedDeviceId, session]);
 
     // Auto-stop active camera or audio streams whenever user switches tools / leaves camera or voice views

@@ -3,12 +3,11 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSession, signIn, signOut } from "next-auth/react";
 import VideoThumbnail from '@/components/VideoThumbnail';
-import { getCleanDeviceName } from '@/lib/deviceNameHelper';
 import {
     ShieldCheck, Users, Smartphone, HardDrive,
     Search, RefreshCw, LogOut, Check, X, Calendar,
     Crown, Building2, Zap, Package, Lock, AlertTriangle, CheckCircle2,
-    Radio, Sparkles, Trash2, Eye, Key, Image as ImageIcon, Video as VideoIcon, Clock,
+    Radio, Sparkles, Trash2, Eye, Key, Image as ImageIcon, Video as VideoIcon,
     Copy, CheckCheck
 } from 'lucide-react';
 
@@ -828,90 +827,16 @@ export default function AdminPage() {
                             </button>
                         </div>
 
-                        {/* Devices Grid */}
-                        {devicesLoading ? (
-                            <div className="p-10 text-center text-fg-2 font-mono text-xs clay-card rounded-3xl flex flex-col items-center justify-center gap-2">
-                                <RefreshCw size={20} className="animate-spin text-accent" />
-                                <span>Querying live hardware state...</span>
+                        {/* Realtime Fleet Status */}
+                        <div className="clay-card p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono">
+                            <div className="flex items-center gap-2">
+                                <span className={`w-2 h-2 rounded-full ${devices.some(d => d.online) ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-500'}`} />
+                                <span className="text-white/80 font-semibold">Live Hardware Telemetry Synchronized</span>
                             </div>
-                        ) : devices.length === 0 ? (
-                            <div className="p-10 text-center clay-card rounded-3xl text-fg-2 space-y-1">
-                                <Smartphone size={28} className="mx-auto text-fg-3" />
-                                <p className="text-xs font-semibold text-white">No endpoints registered in telemetry</p>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                {devices.map((d, idx) => {
-                                    const userOwner = users.find(u => u.uuid === d.uuid);
-                                    const isEnterpriseOwner = userOwner?.plan === 'enterprise';
-                                    return (
-                                        <div
-                                            key={`${d.deviceId || idx}_${d.uuid}`}
-                                            className={`clay-card p-4 rounded-2xl transition-all flex flex-col justify-between ${
-                                                isEnterpriseOwner
-                                                    ? 'border-purple-500/40 shadow-[0_0_15px_rgba(147,51,234,0.1)]'
-                                                    : d.online
-                                                        ? 'border-emerald-500/30'
-                                                        : 'hover:border-white/15'
-                                            }`}
-                                        >
-                                            <div>
-                                                <div className="flex items-start justify-between gap-2 mb-2.5">
-                                                    <div className="min-w-0">
-                                                        <h4 className="font-bold text-white text-xs sm:text-sm truncate flex items-center gap-1.5">
-                                                            <Smartphone size={14} className={d.online ? 'text-emerald-400' : 'text-zinc-500'} />
-                                                            <span>{getCleanDeviceName(d)}</span>
-                                                        </h4>
-                                                        <p className="text-[10px] text-fg-2 font-mono mt-0.5 truncate flex items-center gap-1">
-                                                            <span>ID: {d.deviceId?.substring(0, 14)}...</span>
-                                                            <button
-                                                                onClick={() => copyToClipboard(d.deviceId, `d_${idx}`)}
-                                                                className="text-fg-3 hover:text-white p-0.5"
-                                                                title="Copy Device ID"
-                                                            >
-                                                                {copiedId === `d_${idx}` ? <CheckCheck size={10} className="text-emerald-400" /> : <Copy size={10} />}
-                                                            </button>
-                                                        </p>
-                                                    </div>
-
-                                                    <div className="flex flex-col items-end gap-1 shrink-0">
-                                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider flex items-center gap-1 ${
-                                                            d.online
-                                                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                                                                : 'bg-zinc-800/80 text-zinc-400 border border-white/10'
-                                                        }`}>
-                                                            <span className={`w-1.5 h-1.5 rounded-full ${d.online ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-500'}`} />
-                                                            {d.online ? 'Online' : 'Offline'}
-                                                        </span>
-                                                        {isEnterpriseOwner && (
-                                                            <span className="px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-400/30 text-[8px] font-black uppercase">
-                                                                Enterprise
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                <div className="pt-2.5 border-t border-white/5 space-y-1.5 text-[11px]">
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-fg-3">Owner:</span>
-                                                        <span className="font-mono font-bold text-purple-300 truncate max-w-[150px]" title={userOwner?.email || d.uuid}>
-                                                            {userOwner?.email || d.uuid || 'Unknown'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-fg-3">Last Seen:</span>
-                                                        <span className="text-fg-2 font-mono text-[10px] flex items-center gap-1">
-                                                            <Clock size={10} />
-                                                            <span>{d.lastSeen ? new Date(d.lastSeen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}</span>
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
+                            <span className="text-fg-3 text-[11px]">
+                                {devicesLoading ? 'Polling endpoints...' : `${devices.filter(d => d.online).length} online / ${devices.length} registered`}
+                            </span>
+                        </div>
                     </div>
                 )}
 

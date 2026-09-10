@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
     Camera, Video, Square, RefreshCw, Maximize, Minimize, 
     CheckSquare, Download, Trash2, 
@@ -51,6 +51,30 @@ export default function CameraView({
     const [isCameraFullscreen, setIsCameraFullscreen] = useState(false);
     const [isCameraSelectMode, setIsCameraSelectMode] = useState(false);
     const [cameraSelectedItems, setCameraSelectedItems] = useState<Set<string>>(new Set());
+    const [isFrameReady, setIsFrameReady] = useState(false);
+
+    useEffect(() => {
+        if (!isLiveStreaming) {
+            setIsFrameReady(false);
+            return;
+        }
+
+        const img = liveImageRef.current;
+        if (!img) return;
+
+        const checkFrame = () => {
+            if (img.src && !img.src.includes('R0lGODlhAQABAIAAAAAAAP') && img.src.startsWith('data:image')) {
+                setIsFrameReady(true);
+            }
+        };
+
+        img.addEventListener('load', checkFrame);
+        checkFrame();
+
+        return () => {
+            img.removeEventListener('load', checkFrame);
+        };
+    }, [isLiveStreaming, liveImageRef]);
 
     const qualityOptions = [
         { val: 144, label: '144p' },
@@ -151,7 +175,33 @@ export default function CameraView({
 
                             {/* Viewport Content */}
                             {isLiveStreaming ? (
-                                <img ref={liveImageRef} className="w-full h-full object-contain relative z-10" alt="Live Viewfeed" />
+                                <>
+                                    {/* Buffering HUD State before first frame arrives (Eliminates broken image icon / alt glitch) */}
+                                    {!isFrameReady && (
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-[#06080d]">
+                                            <div className="relative w-16 h-16 flex items-center justify-center">
+                                                <div className="absolute inset-0 rounded-full border-2 border-orange-500/20 border-t-orange-500 animate-spin" />
+                                                <div className="clay-icon-pod w-11 h-11 rounded-full flex items-center justify-center">
+                                                    <Radio className="w-5 h-5 text-orange-400 animate-pulse" />
+                                                </div>
+                                            </div>
+                                            <span className="text-[11px] font-mono font-black text-orange-400 mt-3 tracking-widest uppercase animate-pulse">
+                                                Connecting Live Feed...
+                                            </span>
+                                            <span className="text-[9px] font-mono text-white/40 mt-0.5">
+                                                Synchronizing camera sensor frames
+                                            </span>
+                                        </div>
+                                    )}
+                                    <img 
+                                        ref={liveImageRef} 
+                                        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                                        className={`w-full h-full object-contain relative z-10 transition-opacity duration-200 ${
+                                            isFrameReady ? 'opacity-100' : 'opacity-0'
+                                        }`} 
+                                        alt="" 
+                                    />
+                                </>
                             ) : isRecording ? (
                                 <div className="absolute inset-0 flex items-center justify-center bg-red-500/[0.04] z-10">
                                     <div className="flex flex-col items-center gap-5">
