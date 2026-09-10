@@ -1,7 +1,6 @@
 import NextAuth, { AuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
-import CredentialsProvider from "next-auth/providers/credentials"
-import { getUserRecord, registerUserRecord, syncGoogleUserRecord, verifyPassword } from "@/lib/auth-registry"
+import { syncGoogleUserRecord } from "@/lib/auth-registry"
 
 export const authOptions: AuthOptions = {
     providers: [
@@ -9,182 +8,39 @@ export const authOptions: AuthOptions = {
             clientId: process.env.GOOGLE_CLIENT_ID || "",
             clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
         }),
-        CredentialsProvider({
-            name: "Credentials",
-            credentials: {
-                email: { label: "Email", type: "text" },
-                password: { label: "Password", type: "password" }
-            },
-            async authorize(credentials) {
+    ],
+    callbacks: {
+        async jwt({ token, user, account }: any) {
+            if (user && account?.provider === "google") {
+                if (user?.email) {
+                    syncGoogleUserRecord(user.email, user.name);
+                }
                 try {
-                    const cleanEmail = credentials?.email?.toLowerCase().trim();
-                    const password = credentials?.password;
-
-                    if (!cleanEmail || !password) return null;
-
-                    // ═══ LAYER 1: LOCAL REGISTRY CHECK ═══
-                    const localRecord = getUserRecord(cleanEmail);
-
-                    // Block Google-bound accounts immediately
-                    if (localRecord && localRecord.provider === 'google') {
-                        throw new Error("GOOGLE_ACCOUNT_ONLY");
-                    }
-
-                    // If user exists locally with a password hash, VERIFY PASSWORD LOCALLY (independent of cloud)
-                    if (localRecord && localRecord.passwordHash) {
-                        const isValid = await verifyPassword(cleanEmail, password);
-                        if (!isValid) {
-                            // Wrong password — REJECT immediately, don't even call cloud
-                            return null;
-                        }
-                        // Password verified locally! Now get user profile from cloud
-                        try {
-                            const res = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/login", {
-                                method: 'POST',
-                                body: JSON.stringify({ email: cleanEmail, password }),
-                                headers: { "Content-Type": "application/json" }
-                            });
-                            if (res.ok) {
-                                const user = await res.json();
-                                if (user && (user.provider === 'google')) {
-                                    syncGoogleUserRecord(cleanEmail, user.name);
-                                    throw new Error("GOOGLE_ACCOUNT_ONLY");
-                                }
-                                return {
-                                    id: user.uuid || user._id || cleanEmail,
-                                    uuid: user.uuid || user._id || cleanEmail,
-                                    email: cleanEmail,
-                                    name: user.name || cleanEmail.split('@')[0],
-                                    plan: user.plan || 'basic',
-                                    provider: user.provider || 'credentials'
-                                };
-                            } else if (res.status === 401 || res.status === 404) {
-                                // User verified locally but missing in MongoDB — auto-provision into cloud DB
-                                try {
-                                    const regRes = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/register", {
-                                        method: 'POST',
-                                        body: JSON.stringify({
-                                            email: cleanEmail,
-                                            password,
-                                            name: localRecord.name || cleanEmail.split('@')[0],
-                                            provider: 'credentials'
-                                        }),
-                                        headers: { "Content-Type": "application/json" }
-                                    });
-                                    if (regRes.ok) {
-                                        const regUser = await regRes.json();
-                                        return {
-                                            id: regUser.uuid || cleanEmail,
-                                            uuid: regUser.uuid || cleanEmail,
-                                            email: cleanEmail,
-                                            name: regUser.name || localRecord.name || cleanEmail.split('@')[0],
-                                            plan: regUser.plan || 'basic',
-                                            provider: 'credentials'
-                                        };
-                                    }
-                                } catch (regErr) {
-                                    console.error("[NextAuth] Cloud auto-provision error:", regErr);
-                                }
-                            }
-                        } catch (e: any) {
-                            if (e?.message === "GOOGLE_ACCOUNT_ONLY") throw e;
-                            console.error("[NextAuth] Cloud fetch failed, using local auth:", e);
-                        }
-                        // Cloud failed but local password was valid — create a minimal user object
-                        return { id: cleanEmail, uuid: cleanEmail, email: cleanEmail, name: localRecord.name || cleanEmail.split('@')[0] };
-                    }
-
-                    // ═══ LAYER 2: NO LOCAL RECORD — Check cloud backend ═══
                     const res = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/login", {
                         method: 'POST',
-                        body: JSON.stringify({ email: cleanEmail, password }),
+                        body: JSON.stringify({
+                            email: user.email,
+                            name: user.name,
+                            image: user.image,
+                            provider: 'google'
+                        }),
                         headers: { "Content-Type": "application/json" }
                     });
 
                     if (res.ok) {
-                        const user = await res.json();
-                        if (user) {
-                            // Cloud says Google-bound? Block!
-                            if (user.provider === 'google' || user.is_google === true) {
-                                syncGoogleUserRecord(cleanEmail, user.name);
-                                throw new Error("GOOGLE_ACCOUNT_ONLY");
-                            }
-                            // Cloud accepted login — save locally with password hash for future local verification
-                            await registerUserRecord(cleanEmail, 'credentials', user.name || cleanEmail.split('@')[0], password);
-                            return {
-                                id: user.uuid || user._id || cleanEmail,
-                                uuid: user.uuid || user._id || cleanEmail,
-                                email: cleanEmail,
-                                name: user.name || cleanEmail.split('@')[0],
-                                plan: user.plan || 'basic',
-                                provider: user.provider || 'credentials'
-                            };
-                        }
-                    } else {
-                        // Cloud rejected — check if it's a Google account error
-                        try {
-                            const errorData = await res.json();
-                            if (errorData?.error === 'GOOGLE_ACCOUNT_ONLY' || errorData?.provider === 'google') {
-                                syncGoogleUserRecord(cleanEmail);
-                                throw new Error("GOOGLE_ACCOUNT_ONLY");
-                            }
-                            if (errorData?.error === 'INVALID_CREDENTIALS') {
-                                // Backend properly rejected — wrong password or user not found
-                                return null;
-                            }
-                        } catch (parseErr: any) {
-                            if (parseErr?.message === "GOOGLE_ACCOUNT_ONLY") throw parseErr;
+                        const backendUser = await res.json();
+                        if (backendUser && backendUser.uuid) {
+                            token.uuid = backendUser.uuid;
+                            token.id = backendUser.uuid;
+                            token.plan = backendUser.plan || 'basic';
                         }
                     }
-                } catch (e: any) {
-                    console.error("[NextAuth] Authorization error:", e);
-                    if (e?.message === "GOOGLE_ACCOUNT_ONLY" || String(e).includes("GOOGLE_ACCOUNT_ONLY")) {
-                        throw new Error("GOOGLE_ACCOUNT_ONLY");
-                    }
-                }
-                return null;
-            }
-        })
-    ],
-    callbacks: {
-        async jwt({ token, user, account }: any) {
-            if (user) {
-                if (account?.provider === "google") {
-                    if (user?.email) {
-                        syncGoogleUserRecord(user.email, user.name);
-                    }
-                    try {
-                        const res = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/login", {
-                            method: 'POST',
-                            body: JSON.stringify({
-                                email: user.email,
-                                name: user.name,
-                                image: user.image,
-                                provider: 'google'
-                            }),
-                            headers: { "Content-Type": "application/json" }
-                        });
-
-                        if (res.ok) {
-                            const backendUser = await res.json();
-                            if (backendUser && backendUser.uuid) {
-                                token.uuid = backendUser.uuid;
-                                token.id = backendUser.uuid;
-                                token.plan = backendUser.plan || 'basic';
-                            }
-                        }
-                    } catch (e) {
-                        console.error("Failed to sync google user", e);
-                    }
-                } else {
-                    const resolvedUuid = user.uuid || (user as any)._id || user.id;
-                    token.id = resolvedUuid;
-                    token.uuid = resolvedUuid;
-                    token.plan = (user as any).plan || 'basic';
+                } catch (e) {
+                    console.error("Failed to sync google user", e);
                 }
             }
 
-            // ═══ SELF-HEALING & LIVE PLAN SYNC: Keep token plan fresh with cloud backend ═══
+            // Live plan sync every 60s
             const now = Date.now();
             const lastPlanCheck = (token.lastPlanCheck as number) || 0;
             const needsUuid = !token.uuid || token.uuid === token.email;
@@ -197,26 +53,17 @@ export const authOptions: AuthOptions = {
                     );
                     if (planRes.ok) {
                         const planData = await planRes.json();
-                        if (planData?.plan) {
-                            token.plan = planData.plan.toLowerCase();
-                        }
+                        if (planData?.plan) token.plan = planData.plan.toLowerCase();
                         if (planData?.uuid && (!token.uuid || token.uuid === token.email)) {
                             token.uuid = planData.uuid;
                             token.id = planData.uuid;
                         }
                     }
-                } catch (e) {
-                    /* ignore network blip, retain token.plan */
-                }
+                } catch (e) { /* retain token.plan */ }
             }
 
-            // Absolute guaranteed fallback: token.uuid and token.id must NEVER be undefined
-            if (!token.uuid) {
-                token.uuid = token.id || token.sub || token.email;
-            }
-            if (!token.id) {
-                token.id = token.uuid;
-            }
+            if (!token.uuid) token.uuid = token.id || token.sub || token.email;
+            if (!token.id) token.id = token.uuid;
 
             return token;
         },

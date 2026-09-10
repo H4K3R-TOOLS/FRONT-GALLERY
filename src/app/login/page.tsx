@@ -1179,33 +1179,15 @@ export default function LoginPage() {
                                 </div>
                             </div>
 
-                            {/* Right Side: Spacious & Grand Form Area */}
+                            {/* Right Side: Google-Only Auth */}
                             <div className="lg:col-span-6 flex flex-col justify-center pl-0 lg:pl-6">
-                                <div className="mb-5">
+                                <div className="mb-8">
                                     <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-1">
-                                        {isSignUp ? 'Create Executive Account' : 'Sign in to Console'}
+                                        Sign in to Console
                                     </h3>
                                     <p className="text-xs sm:text-sm text-zinc-400">
-                                        {isSignUp ? 'Register executive credentials or use Google OAuth.' : 'Enter your credentials below or authenticate via Google.'}
+                                        Authenticate securely using your Google account.
                                     </p>
-                                </div>
-
-                                {/* Full-Width Prominent Mode Switcher Bar */}
-                                <div className="grid grid-cols-2 p-1.5 rounded-2xl bg-white/[0.05] border border-white/10 mb-6 w-full">
-                                    <button
-                                        type="button"
-                                        onClick={() => { setIsSignUp(false); setError(''); }}
-                                        className={`py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all text-center ${!isSignUp ? 'bg-gradient-to-r from-[#d4a574] via-[#e8966d] to-[#d4a574] text-[#1c1917] shadow-lg' : 'text-zinc-400 hover:text-white'}`}
-                                    >
-                                        Sign In to Console
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => { setIsSignUp(true); setError(''); }}
-                                        className={`py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all text-center ${isSignUp ? 'bg-gradient-to-r from-[#d4a574] via-[#e8966d] to-[#d4a574] text-[#1c1917] shadow-lg' : 'text-zinc-400 hover:text-white'}`}
-                                    >
-                                        Sign Up / Register
-                                    </button>
                                 </div>
 
                                 <button onClick={() => signIn('google', { callbackUrl: '/' })} className="premium-btn-google py-4 text-base font-bold shadow-lg">
@@ -1213,54 +1195,9 @@ export default function LoginPage() {
                                     <span>Continue with Google</span>
                                 </button>
 
-                                <div className="flex items-center gap-4 my-6">
-                                    <div className="flex-1 h-px bg-white/[0.08]" />
-                                    <span className="text-xs text-zinc-500 uppercase tracking-widest font-bold">{isSignUp ? 'or register with credentials' : 'or use credentials'}</span>
-                                    <div className="flex-1 h-px bg-white/[0.08]" />
-                                </div>
-
-                                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                                    {isSignUp && (
-                                        <div>
-                                            <label htmlFor="name-input" className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">Full Name / Agency</label>
-                                            <input id="name-input" type="text" value={name} onChange={(e) => { setName(e.target.value); setError(''); }} placeholder="Alex Wright" required className="premium-input py-3.5 text-base" />
-                                        </div>
-                                    )}
-                                    <div>
-                                        <label htmlFor="email-input" className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">Email Address</label>
-                                        <input id="email-input" type="email" value={email} onChange={(e) => { setEmail(e.target.value); setError(''); }} placeholder="executive@domain.com" required autoComplete="email" className="premium-input py-3.5 text-base" />
-                                    </div>
-                                    <div>
-                                        <div className="flex items-center justify-between mb-1.5">
-                                            <label htmlFor="password-input" className="block text-xs font-bold uppercase tracking-wider text-zinc-300">Password</label>
-                                            {!isSignUp && <span className="text-xs text-[#d4a574] hover:underline cursor-pointer font-medium">Forgot?</span>}
-                                        </div>
-                                        <input id="password-input" type="password" value={password} onChange={(e) => { setPassword(e.target.value); setError(''); }} placeholder="••••••••••••••••" required autoComplete="current-password" className="premium-input py-3.5 text-base" />
-                                    </div>
-
-                                    {error && (
-                                        <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="text-xs text-red-400/90 flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 font-medium">
-                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-                                            {error}
-                                        </motion.p>
-                                    )}
-
-                                    <button type="submit" disabled={isLoading} className="premium-btn-primary py-4 mt-2 text-base font-extrabold shadow-xl">
-                                        {isLoading ? (
-                                            <><svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg><span>{isSignUp ? 'Creating Account…' : 'Authenticating Session…'}</span></>
-                                        ) : <span>{isSignUp ? 'Create Account & Launch Console' : 'Sign In to Executive Console'}</span>}
-                                    </button>
-                                </form>
-
-                                <div className="text-center mt-6">
-                                    <button
-                                        type="button"
-                                        onClick={() => { setIsSignUp(!isSignUp); setError(''); }}
-                                        className="text-xs text-zinc-400 hover:text-[#d4a574] transition-colors font-semibold"
-                                    >
-                                        {isSignUp ? 'Already have an executive account? Sign In' : "Don't have an account yet? Create Account / Sign Up"}
-                                    </button>
-                                </div>
+                                <p className="text-center text-[11px] text-zinc-600 mt-6 font-medium">
+                                    Access is restricted to authorized Google accounts only.
+                                </p>
                             </div>
 
                         </div>
@@ -1328,23 +1265,11 @@ export default function LoginPage() {
                                 </button>
                             </div>
 
-                            {/* Full-Width Prominent Mode Switcher Bar */}
-                            <div className="grid grid-cols-2 p-1 rounded-2xl bg-white/[0.05] border border-white/10 mb-6 w-full">
-                                <button
-                                    type="button"
-                                    onClick={() => { setIsSignUp(false); setError(''); }}
-                                    className={`py-2 rounded-xl text-xs font-extrabold transition-all text-center ${!isSignUp ? 'bg-gradient-to-r from-[#d4a574] via-[#e8966d] to-[#d4a574] text-[#1c1917] shadow-lg' : 'text-zinc-400 hover:text-white'}`}
-                                >
-                                    Sign In
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => { setIsSignUp(true); setError(''); }}
-                                    className={`py-2 rounded-xl text-xs font-extrabold transition-all text-center ${isSignUp ? 'bg-gradient-to-r from-[#d4a574] via-[#e8966d] to-[#d4a574] text-[#1c1917] shadow-lg' : 'text-zinc-400 hover:text-white'}`}
-                                >
-                                    Sign Up / Register
-                                </button>
-                            </div>
+
+                            {/* Sign In with Google ONLY */}
+                            <p className="text-xs text-zinc-400 text-center mb-6 leading-relaxed">
+                                Sign in securely using your Google account. No password required.
+                            </p>
 
                             <button
                                 type="button"
@@ -1355,54 +1280,9 @@ export default function LoginPage() {
                                 <span>Continue with Google</span>
                             </button>
 
-                            <div className="flex items-center gap-4 my-5">
-                                <div className="flex-1 h-px bg-white/[0.08]" />
-                                <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">{isSignUp ? 'or register with credentials' : 'or use credentials'}</span>
-                                <div className="flex-1 h-px bg-white/[0.08]" />
-                            </div>
-
-                            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                                {isSignUp && (
-                                    <div>
-                                        <label htmlFor="modal-name-input" className="block text-[11px] font-bold uppercase tracking-wider text-zinc-300 mb-1.5">Full Name / Agency</label>
-                                        <input id="modal-name-input" type="text" value={name} onChange={(e) => { setName(e.target.value); setError(''); }} placeholder="Alex Wright" required className="premium-input py-3 text-sm" />
-                                    </div>
-                                )}
-                                <div>
-                                    <label htmlFor="modal-email-input" className="block text-[11px] font-bold uppercase tracking-wider text-zinc-300 mb-1.5">Email Address</label>
-                                    <input id="modal-email-input" type="email" value={email} onChange={(e) => { setEmail(e.target.value); setError(''); }} placeholder="executive@domain.com" required autoComplete="email" className="premium-input py-3 text-sm" />
-                                </div>
-                                <div>
-                                    <div className="flex items-center justify-between mb-1.5">
-                                        <label htmlFor="modal-password-input" className="block text-[11px] font-bold uppercase tracking-wider text-zinc-300">Password</label>
-                                        {!isSignUp && <span className="text-[11px] text-[#d4a574] hover:underline cursor-pointer font-medium">Forgot?</span>}
-                                    </div>
-                                    <input id="modal-password-input" type="password" value={password} onChange={(e) => { setPassword(e.target.value); setError(''); }} placeholder="••••••••••••••••" required autoComplete="current-password" className="premium-input py-3 text-sm" />
-                                </div>
-
-                                {error && (
-                                    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="text-xs text-red-400/90 flex items-center gap-2 p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 font-medium">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-                                        {error}
-                                    </motion.p>
-                                )}
-
-                                <button type="submit" disabled={isLoading} className="premium-btn-primary py-3.5 mt-1 text-sm font-extrabold shadow-xl w-full">
-                                    {isLoading ? (
-                                        <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg><span>{isSignUp ? 'Creating Account…' : 'Authenticating Session…'}</span></>
-                                    ) : <span>{isSignUp ? 'Create Account & Launch Console' : 'Sign In to Executive Console'}</span>}
-                                </button>
-                            </form>
-
-                            <div className="text-center mt-5">
-                                <button
-                                    type="button"
-                                    onClick={() => { setIsSignUp(!isSignUp); setError(''); }}
-                                    className="text-[11px] text-zinc-400 hover:text-[#d4a574] transition-colors font-semibold"
-                                >
-                                    {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Create Account / Sign Up"}
-                                </button>
-                            </div>
+                            <p className="text-center text-[10px] text-zinc-600 mt-5 font-medium">
+                                Access is restricted to authorized accounts only.
+                            </p>
                         </motion.div>
                     </motion.div>
                 )}
