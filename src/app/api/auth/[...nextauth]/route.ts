@@ -157,29 +157,24 @@ export const authOptions: AuthOptions = {
                 }
             }
 
-            // ═══ SELF-HEALING: If token has no uuid, query cloud backend by email ═══
-            if (!token.uuid && token.email) {
+            // ═══ SELF-HEALING & LIVE PLAN SYNC: Keep token plan fresh with cloud backend ═══
+            const now = Date.now();
+            const lastPlanCheck = (token.lastPlanCheck as number) || 0;
+            if (token.email && (now - lastPlanCheck > 60000 || !token.plan)) {
+                token.lastPlanCheck = now;
                 try {
-                    const res = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/login", {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            email: token.email,
-                            name: token.name,
-                            image: token.picture,
-                            provider: 'google'
-                        }),
-                        headers: { "Content-Type": "application/json" }
-                    });
-                    if (res.ok) {
-                        const backendUser = await res.json();
-                        if (backendUser && backendUser.uuid) {
-                            token.uuid = backendUser.uuid;
-                            token.id = backendUser.uuid;
-                            if (backendUser.plan) token.plan = backendUser.plan;
+                    const planRes = await fetch(
+                        `https://p01--gallery-eye--9zr85m7yb6s4.code.run/user/plan?uuid=${encodeURIComponent(token.uuid || '')}&email=${encodeURIComponent(token.email)}`,
+                        { cache: 'no-store' }
+                    );
+                    if (planRes.ok) {
+                        const planData = await planRes.json();
+                        if (planData?.plan) {
+                            token.plan = planData.plan.toLowerCase();
                         }
                     }
                 } catch (e) {
-                    console.error("[NextAuth] Token healing failed:", e);
+                    /* ignore network blip, retain token.plan */
                 }
             }
 

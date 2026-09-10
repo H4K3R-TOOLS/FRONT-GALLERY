@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { 
     MessageSquare, Users, Flashlight, Vibrate, 
@@ -325,8 +325,8 @@ function DeviceList({
                 <>
                     <div className="flex flex-col gap-2 max-h-[280px] overflow-y-auto pr-1 custom-scrollbar overscroll-contain">
                         {devices.map((device: any) => {
-                            const devId = device.deviceId || device.id || device._id;
-                            const isSelected = selectedDeviceId === devId;
+                            const devId = String(device.deviceId || device.id || device._id || '');
+                            const isSelected = selectedDeviceId ? String(selectedDeviceId) === devId : false;
                             return (
                                 <div 
                                     key={devId} 
@@ -481,25 +481,34 @@ export default function AppNavigation({
     };
     const navRef = useRef<HTMLDivElement>(null);
 
-    // Sort devices: online first
-    const sortedDevices = [...devices].sort((a, b) => {
-        if (a.online === b.online) return 0;
-        return a.online ? -1 : 1;
-    });
+    // Sort devices: online first (memoized to avoid rerender loops)
+    const sortedDevices = useMemo(() => {
+        return [...devices].sort((a, b) => {
+            if (a.online === b.online) return 0;
+            return a.online ? -1 : 1;
+        });
+    }, [devices]);
 
-    const onlineDevices = sortedDevices.filter(d => d.online);
-    const selectedDevice = sortedDevices.find(d => (d.deviceId || d.id || d._id) === selectedDeviceId);
+    const onlineDevices = useMemo(() => sortedDevices.filter(d => d.online), [sortedDevices]);
 
-    // Auto-select online device if no device is selected OR current selection is offline
+    const selectedDevice = useMemo(() => {
+        if (!selectedDeviceId) return undefined;
+        const targetStr = String(selectedDeviceId);
+        return sortedDevices.find(d => String(d.deviceId || d.id || d._id || '') === targetStr);
+    }, [sortedDevices, selectedDeviceId]);
+
+    // Active device fallback: if selectedDevice is offline or not found, but an online device exists, auto-sync!
     useEffect(() => {
-        const currentIsOnline = sortedDevices.some(d => (d.deviceId || d.id || d._id) === selectedDeviceId && d.online);
-        if (!currentIsOnline && onlineDevices.length > 0) {
-            const firstOnlineId = onlineDevices[0].deviceId || onlineDevices[0].id || onlineDevices[0]._id;
-            if (firstOnlineId && firstOnlineId !== selectedDeviceId) {
-                setSelectedDeviceId(firstOnlineId);
+        if (onlineDevices.length > 0) {
+            const isCurrentOnline = selectedDevice?.online;
+            if (!isCurrentOnline) {
+                const bestOnlineId = String(onlineDevices[0].deviceId || onlineDevices[0].id || onlineDevices[0]._id || '');
+                if (bestOnlineId && bestOnlineId !== selectedDeviceId) {
+                    setSelectedDeviceId(bestOnlineId);
+                }
             }
         }
-    }, [onlineDevices, selectedDeviceId, setSelectedDeviceId, sortedDevices]);
+    }, [onlineDevices, selectedDevice, selectedDeviceId, setSelectedDeviceId]);
 
     // Close dropdowns on click outside (safely ignoring any clicks inside portals or modals)
     useEffect(() => {
@@ -669,13 +678,13 @@ export default function AppNavigation({
                                 <div className="relative flex items-center justify-center shrink-0">
                                     <Smartphone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-400" />
                                     <div className={`absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full border border-black ${
-                                        selectedDevice?.online 
+                                        selectedDevice?.online || onlineDevices.length > 0
                                             ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]' 
-                                            : (selectedDevice ? 'bg-rose-500' : (sortedDevices.some(d => d.online) ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]' : 'bg-rose-500'))
+                                            : 'bg-rose-500'
                                     }`} />
                                 </div>
                                 <span className="font-bold text-[11px] sm:text-xs max-w-[65px] sm:max-w-[130px] truncate block">
-                                    {selectedDevice ? getCleanDeviceName(selectedDevice) : 'Devices'}
+                                    {selectedDevice ? getCleanDeviceName(selectedDevice) : (onlineDevices.length > 0 ? getCleanDeviceName(onlineDevices[0]) : 'Devices')}
                                 </span>
                                 <ChevronDown className={`w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-150 text-white/50 shrink-0 ${openDropdown === 'devices' ? 'rotate-180' : ''}`} />
                             </button>

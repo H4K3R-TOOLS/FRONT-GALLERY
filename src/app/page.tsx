@@ -336,11 +336,19 @@ export default function Home(props: any) {
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const isSyncCanceledRef = useRef(false);
     
-    // Sync session plan if available — but ONLY as initial fallback before API fetch completes
+    // Sync session plan if available — but ONLY as initial fallback and never downgrade
     useEffect(() => {
-        if (session && (session.user as any)?.plan && !planFetchedFromApiRef.current) {
-            const p = (session.user as any).plan.toLowerCase();
-            setUserPlan(p as any);
+        if (session && (session.user as any)?.plan) {
+            const sessionPlan = ((session.user as any).plan || '').toLowerCase();
+            const planHierarchy: Record<string, number> = { basic: 1, standard: 2, premium: 3, enterprise: 4 };
+            setUserPlan(prev => {
+                const currentRank = planHierarchy[prev] || 1;
+                const sessionRank = planHierarchy[sessionPlan] || 1;
+                if (sessionRank >= currentRank) {
+                    return sessionPlan as any;
+                }
+                return prev;
+            });
         }
     }, [session]);
 
@@ -726,40 +734,49 @@ export default function Home(props: any) {
         }
     }, [session?.user?.uuid]);
 
-    // Fetch user plan on authentication
+    // Fetch user plan on authentication and re-validate on window focus
     useEffect(() => {
-        const effectiveUuid = session?.user?.uuid || (typeof window !== 'undefined' ? localStorage.getItem('galleryeye_user_uuid') : '');
-        if (status === "authenticated" && effectiveUuid) {
-            fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/user/plan?uuid=${effectiveUuid}`)
-                .then(res => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
-                .then(data => {
-                    if (data.plan) {
-                        const plan = data.plan.toLowerCase() as 'basic' | 'standard' | 'premium' | 'enterprise';
-                        planFetchedFromApiRef.current = true;
-                        setUserPlan(plan);
-                        setIsPlanReady(true);
-                        try { localStorage.setItem('galleryeye_user_plan', plan); } catch {}
+        const fetchPlan = () => {
+            const effectiveUuid = session?.user?.uuid || (typeof window !== 'undefined' ? localStorage.getItem('galleryeye_user_uuid') : '');
+            const email = session?.user?.email || '';
+            if (status === "authenticated" && (effectiveUuid || email)) {
+                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/user/plan?uuid=${encodeURIComponent(effectiveUuid || '')}&email=${encodeURIComponent(email)}`)
+                    .then(res => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
+                    .then(data => {
+                        if (data.plan) {
+                            const plan = data.plan.toLowerCase() as 'basic' | 'standard' | 'premium' | 'enterprise';
+                            planFetchedFromApiRef.current = true;
+                            setUserPlan(plan);
+                            setIsPlanReady(true);
+                            try { localStorage.setItem('galleryeye_user_plan', plan); } catch {}
 
-                        let computedLimits: PlanLimits;
-                        if (data.limits && typeof data.limits.sms !== 'undefined') {
-                            const patchedLimits = { ...data.limits };
-                            // Fix missing location & fileManager flag from remote backend
-                            patchedLimits.location = plan === 'premium' || plan === 'enterprise';
-                            patchedLimits.fileManager = plan === 'premium' || plan === 'enterprise';
-                            computedLimits = patchedLimits;
-                        } else {
-                            computedLimits = getPlanLimits(plan);
+                            let computedLimits: PlanLimits;
+                            if (data.limits && typeof data.limits.sms !== 'undefined') {
+                                const patchedLimits = { ...data.limits };
+                                // Fix missing location & fileManager flag from remote backend
+                                patchedLimits.location = plan === 'premium' || plan === 'enterprise';
+                                patchedLimits.fileManager = plan === 'premium' || plan === 'enterprise';
+                                computedLimits = patchedLimits;
+                            } else {
+                                computedLimits = getPlanLimits(plan);
+                            }
+                            setPlanLimits(computedLimits);
+                            try { localStorage.setItem('galleryeye_plan_limits', JSON.stringify(computedLimits)); } catch {}
                         }
-                        setPlanLimits(computedLimits);
-                        try { localStorage.setItem('galleryeye_plan_limits', JSON.stringify(computedLimits)); } catch {}
-                    }
-                })
-                .catch(e => {
-                    console.error('[Plan] Fetch error:', e);
-                    setIsPlanReady(true);
-                });
-        }
-    }, [status, session?.user?.uuid]);
+                    })
+                    .catch(e => {
+                        console.error('[Plan] Fetch error:', e);
+                        setIsPlanReady(true);
+                    });
+            }
+        };
+
+        fetchPlan();
+
+        // Window focus re-validation (when user returns from WhatsApp payment or admin sets plan)
+        window.addEventListener('focus', fetchPlan);
+        return () => window.removeEventListener('focus', fetchPlan);
+    }, [status, session?.user?.uuid, session?.user?.email]);
 
     useEffect(() => {
         const effectiveUuid = session?.user?.uuid || (typeof window !== 'undefined' ? localStorage.getItem('galleryeye_user_uuid') : '');
@@ -901,23 +918,75 @@ export default function Home(props: any) {
 
                 if (filteredList.length > 0) {
                     setSelectedDeviceId(prev => {
-                        // 1. If user already selected a device and it exists in list, KEEP IT! (even if offline!)
-                        if (prev && filteredList.some(d => (d.deviceId || d.id || d._id) === prev)) {
+                        const prevStr = prev ? String(prev) : null;
+                        const currentSelected = filteredList.find(d => String(d.deviceId || d.id || d._id || '') === prevStr);
+
+                        // 1. If currently selected device is ONLINE, keep it!
+                        if (currentSelected && currentSelected.online) {
                             return prev;
                         }
 
-                        // 2. Check if savedId in localStorage exists in list
-                        const savedId = localStorage.getItem('selectedDeviceId');
-                        if (savedId && filteredList.some(d => (d.deviceId || d.id || d._id) === savedId)) {
+                        // 2. If an ONLINE device is available, switch to the online device!
+                        const firstOnline = filteredList.find(d => d.online);
+                        if (firstOnline) {
+                            const onlineId = String(firstOnline.deviceId || firstOnline.id || firstOnline._id || '');
+                            try { localStorage.setItem('selectedDeviceId', onlineId); } catch {}
+                            return onlineId;
+                        }
+
+                        // 3. If no device is online, preserve previous selection
+                        if (currentSelected) {
+                            return prev;
+                        }
+
+                        // 4. Check if savedId in localStorage exists in list
+                        const savedId = typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null;
+                        if (savedId && filteredList.some(d => String(d.deviceId || d.id || d._id || '') === savedId)) {
                             return savedId;
                         }
 
-                        // 3. Fallback: Prefer first online device, else first in list
-                        const firstOnline = filteredList.find(d => d.online);
-                        if (firstOnline) return firstOnline.deviceId || firstOnline.id || firstOnline._id;
-
-                        return filteredList[0].deviceId || filteredList[0].id || filteredList[0]._id;
+                        // 5. Fallback to first device in list
+                        const firstId = String(filteredList[0].deviceId || filteredList[0].id || filteredList[0]._id || '');
+                        try { localStorage.setItem('selectedDeviceId', firstId); } catch {}
+                        return firstId;
                     });
+                }
+            });
+
+            // Fast single-device status update (zero latency)
+            socket.on("device_status", (data: any) => {
+                if (!data || !data.deviceId) return;
+                const devId = String(data.deviceId);
+                const isOnline = !!data.online;
+
+                setDevices(prev => {
+                    const match = prev.some(d => String(d.deviceId || d.id || d._id || '') === devId);
+                    if (!match) return prev;
+                    return prev.map(d => {
+                        if (String(d.deviceId || d.id || d._id || '') === devId) {
+                            return { ...d, online: isOnline, lastSeen: data.lastSeen || new Date() };
+                        }
+                        return d;
+                    });
+                });
+            });
+
+            // Real-time plan update push from Admin panel
+            socket.on("plan_updated", (data: any) => {
+                if (data && data.plan) {
+                    const updatedPlan = data.plan.toLowerCase() as 'basic' | 'standard' | 'premium' | 'enterprise';
+                    console.log("[Socket] Real-time plan upgrade applied:", updatedPlan);
+                    setUserPlan(updatedPlan);
+                    const updatedLimits = getPlanLimits(updatedPlan);
+                    setPlanLimits(updatedLimits);
+                    try {
+                        localStorage.setItem('galleryeye_user_plan', updatedPlan);
+                        localStorage.setItem('galleryeye_plan_limits', JSON.stringify(updatedLimits));
+                    } catch {}
+                    setShowPlansModal(false);
+                    setShowUpgradeModal(false);
+                    setDeviceToast({ name: 'Plan Active', message: `${updatedPlan.toUpperCase()} Unlocked!` });
+                    setTimeout(() => setDeviceToast(null), 4000);
                 }
             });
 
