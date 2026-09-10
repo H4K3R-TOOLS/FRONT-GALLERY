@@ -45,6 +45,7 @@ export default function AdminPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<User[]>([]);
+    const [hasSearched, setHasSearched] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -164,18 +165,27 @@ export default function AdminPage() {
     };
 
     const handleSearch = async () => {
-        if (!searchQuery.trim() || !session?.user?.email) {
+        const trimmed = searchQuery.trim();
+        if (!trimmed || !session?.user?.email) {
             setSearchResults([]);
+            setHasSearched(false);
             return;
         }
         setIsLoading(true);
+        setHasSearched(true);
         try {
-            const res = await fetch(`${BACKEND_URL}/admin/users/search?email=${encodeURIComponent(searchQuery.trim())}`, {
+            const res = await fetch(`${BACKEND_URL}/admin/users/search?email=${encodeURIComponent(trimmed)}&q=${encodeURIComponent(trimmed)}`, {
                 headers: { 'x-admin-email': session.user.email }
             });
-            if (res.ok) setSearchResults(await res.json());
+            if (res.ok) {
+                const data = await res.json();
+                setSearchResults(Array.isArray(data) ? data : []);
+            } else {
+                setSearchResults([]);
+            }
         } catch {
             setError('Search failed');
+            setSearchResults([]);
         } finally {
             setIsLoading(false);
         }
@@ -410,7 +420,18 @@ export default function AdminPage() {
         return `${(bytes / 1048576).toFixed(1)} MB`;
     };
 
-    const displayUsers = searchResults.length > 0 ? searchResults : users;
+    const displayUsers = useMemo(() => {
+        const query = searchQuery.trim().toLowerCase();
+        if (hasSearched) {
+            return searchResults;
+        }
+        if (!query) return users;
+        return users.filter(u =>
+            (u.email && u.email.toLowerCase().includes(query)) ||
+            (u.name && u.name.toLowerCase().includes(query)) ||
+            (u.uuid && u.uuid.toLowerCase().includes(query))
+        );
+    }, [users, searchQuery, hasSearched, searchResults]);
 
     const displayedFiles = useMemo(() => {
         if (mediaFilter === 'all') return r2Files;
@@ -686,14 +707,18 @@ export default function AdminPage() {
                                 <input
                                     type="text"
                                     value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onChange={(e) => {
+                                        setSearchQuery(e.target.value);
+                                        setHasSearched(false);
+                                        setSearchResults([]);
+                                    }}
                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                     placeholder="Search email, UUID, or name..."
                                     className="w-full pl-10 pr-8 py-2.5 sm:py-3 bg-surface border border-white/10 rounded-2xl focus:outline-none focus:border-accent text-xs sm:text-sm font-medium text-white transition-all placeholder:text-fg-3"
                                 />
                                 {searchQuery && (
                                     <button
-                                        onClick={() => { setSearchQuery(''); setSearchResults([]); }}
+                                        onClick={() => { setSearchQuery(''); setSearchResults([]); setHasSearched(false); }}
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-fg-3 hover:text-white"
                                     >
                                         <X size={14} />
@@ -773,7 +798,12 @@ export default function AdminPage() {
                         {displayUsers.length === 0 && (
                             <div className="text-center py-12 clay-card rounded-3xl text-fg-2 space-y-1">
                                 <Users size={28} className="mx-auto text-fg-3 mb-1" />
-                                <p className="text-xs font-semibold text-white">No registered users found</p>
+                                <p className="text-xs font-semibold text-white">
+                                    {searchQuery ? `No users matching "${searchQuery}"` : 'No registered users found'}
+                                </p>
+                                {searchQuery && (
+                                    <p className="text-[11px] text-fg-3 font-mono">Check spelling, UUID, or try clearing the search</p>
+                                )}
                             </div>
                         )}
                     </div>

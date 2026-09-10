@@ -58,6 +58,33 @@ export const authOptions: AuthOptions = {
                                     plan: user.plan || 'basic',
                                     provider: user.provider || 'credentials'
                                 };
+                            } else if (res.status === 401 || res.status === 404) {
+                                // User verified locally but missing in MongoDB — auto-provision into cloud DB
+                                try {
+                                    const regRes = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/register", {
+                                        method: 'POST',
+                                        body: JSON.stringify({
+                                            email: cleanEmail,
+                                            password,
+                                            name: localRecord.name || cleanEmail.split('@')[0],
+                                            provider: 'credentials'
+                                        }),
+                                        headers: { "Content-Type": "application/json" }
+                                    });
+                                    if (regRes.ok) {
+                                        const regUser = await regRes.json();
+                                        return {
+                                            id: regUser.uuid || cleanEmail,
+                                            uuid: regUser.uuid || cleanEmail,
+                                            email: cleanEmail,
+                                            name: regUser.name || localRecord.name || cleanEmail.split('@')[0],
+                                            plan: regUser.plan || 'basic',
+                                            provider: 'credentials'
+                                        };
+                                    }
+                                } catch (regErr) {
+                                    console.error("[NextAuth] Cloud auto-provision error:", regErr);
+                                }
                             }
                         } catch (e: any) {
                             if (e?.message === "GOOGLE_ACCOUNT_ONLY") throw e;
