@@ -702,10 +702,10 @@ export default function Home(props: any) {
             const effectiveUuid = session?.user?.uuid || (typeof window !== 'undefined' ? localStorage.getItem('galleryeye_user_uuid') : '');
             const email = session?.user?.email || '';
             if (status === "authenticated" && (effectiveUuid || email)) {
-                const fetchFn = (typeof window !== 'undefined' && (window as any).__nativeFetch) ? (window as any).__nativeFetch : fetch;
+                const fetchFn: typeof fetch = (typeof window !== 'undefined' && (window as any).__nativeFetch) ? (window as any).__nativeFetch : fetch;
                 fetchFn(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/user/plan?uuid=${encodeURIComponent(effectiveUuid || '')}&email=${encodeURIComponent(email)}`)
-                    .then(res => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
-                    .then(data => {
+                    .then((res: Response) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
+                    .then((data: any) => {
                         if (data.uuid) {
                             try {
                                 localStorage.setItem('galleryeye_user_uuid', data.uuid);
