@@ -10,7 +10,7 @@ export default function WhatsAppButton() {
     const phoneNumber = "923460257488";
     const message = "Hello, I need help with GalleryEye.";
     const directUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-    const groupUrl = "https://chat.whatsapp.com/Bjq8gDaLgYC6xGBZWN9eBg";
+    const groupUrl = "https://chat.whatsapp.com/Gqo2wNiAlbi8UwKLrkgOOa?s=cl&p=a&mlu=4&ilr=4";
 
     return (
         <>
@@ -18,13 +18,14 @@ export default function WhatsAppButton() {
             <button
                 type="button"
                 onClick={() => setIsOpen(true)}
-                className="fixed bottom-6 right-6 z-40 flex items-center justify-center w-13 h-13 sm:w-14 sm:h-14 bg-gradient-to-tr from-[#128C7E] to-[#25D366] rounded-2xl shadow-[0_8px_30px_rgba(37,211,102,0.4)] border border-emerald-400/30 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer"
-                title="Support & Community"
+                className="fixed bottom-6 right-5 sm:bottom-8 sm:right-8 z-40 flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-tr from-[#128C7E] to-[#25D366] rounded-2xl sm:rounded-3xl shadow-[0_10px_35px_rgba(37,211,102,0.45)] border-2 border-emerald-300/40 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer group"
+                title="WhatsApp Support & Community"
+                aria-label="WhatsApp Support & Community"
             >
+                <div className="absolute inset-0 rounded-2xl sm:rounded-3xl bg-emerald-400/20 animate-ping pointer-events-none opacity-40 group-hover:opacity-75" />
                 <svg
                     viewBox="0 0 24 24"
-                    width="28"
-                    height="28"
+                    className="w-7 h-7 sm:w-8 sm:h-8 transition-transform group-hover:scale-110 relative z-10"
                     fill="white"
                     xmlns="http://www.w3.org/2000/svg"
                 >
