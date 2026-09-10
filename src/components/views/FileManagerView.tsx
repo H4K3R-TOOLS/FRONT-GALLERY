@@ -115,12 +115,14 @@ export default function FileManagerView({
     // ─── Socket & Directory Fetching ──────────────────────────────────────────
 
     const fetchDirectory = (targetPath?: string) => {
-        if (!socket || !userUuid || !selectedDeviceId || !isOnline) return;
+        const effectiveUuid = userUuid || (typeof window !== 'undefined' ? (localStorage.getItem('galleryeye_user_uuid') || localStorage.getItem('galleryeye_last_uuid')) : '');
+        const effectiveDev = selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
+        if (!socket || !effectiveUuid || !effectiveDev) return;
         setIsLoading(true);
         const pathToSend = targetPath !== undefined ? targetPath : currentPath;
         socket.emit('fm_list_dir', {
-            uuid: userUuid,
-            targetDeviceId: selectedDeviceId,
+            uuid: effectiveUuid,
+            targetDeviceId: effectiveDev,
             path: pathToSend,
             search: searchQuery
         });
@@ -137,7 +139,8 @@ export default function FileManagerView({
         }
 
         // 1. Immediately reset state and restore this device's cached directory snapshot
-        const cacheKey = `fm_cache_${userUuid}_${selectedDeviceId}`;
+        const effectiveUuid = userUuid || (typeof window !== 'undefined' ? (localStorage.getItem('galleryeye_user_uuid') || localStorage.getItem('galleryeye_last_uuid')) : '');
+        const cacheKey = `fm_cache_${effectiveUuid}_${selectedDeviceId}`;
         try {
             const cached = localStorage.getItem(cacheKey);
             if (cached) {
@@ -160,10 +163,8 @@ export default function FileManagerView({
             setRoots([]);
         }
 
-        // 2. If online, fetch fresh live directory
-        if (isOnline) {
-            fetchDirectory('/storage/emulated/0');
-        }
+        // 2. Fetch fresh live directory
+        fetchDirectory('/storage/emulated/0');
     }, [selectedDeviceId, isOnline, userUuid]);
 
     // Handle ESC key to close preview and modals
@@ -186,11 +187,16 @@ export default function FileManagerView({
 
         const handleDirContents = (data: any) => {
             setIsLoading(false);
-            if (data.error) return;
+            if (data.error) {
+                console.warn('[FileManager] Directory fetch error:', data.error);
+                return;
+            }
 
             // Strict Device Isolation: reject directory response if meant for a different device!
-            if (data.deviceId && selectedDeviceId && data.deviceId !== selectedDeviceId) {
-                return;
+            if (data.deviceId && selectedDeviceId) {
+                const d1 = String(data.deviceId).trim().toLowerCase();
+                const d2 = String(selectedDeviceId).trim().toLowerCase();
+                if (d1 !== d2) return;
             }
 
             const newCurrent = data.currentPath || '/storage/emulated/0';
@@ -373,7 +379,7 @@ export default function FileManagerView({
             socket.off('fm_op_status', handleOpStatus);
             socket.off('fm_delete_status', handleDeleteStatus);
         };
-    }, [socket, currentPath]);
+    }, [socket, currentPath, selectedDeviceId, userUuid]);
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
 

