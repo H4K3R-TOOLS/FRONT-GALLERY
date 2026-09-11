@@ -796,14 +796,33 @@ export default function AdminPage() {
                         </div>
 
                         {displayUsers.length === 0 && (
-                            <div className="text-center py-12 clay-card rounded-3xl text-fg-2 space-y-1">
+                            <div className="text-center py-12 clay-card rounded-3xl text-fg-2 space-y-3">
                                 <Users size={28} className="mx-auto text-fg-3 mb-1" />
                                 <p className="text-xs font-semibold text-white">
-                                    {searchQuery ? `No users matching "${searchQuery}"` : 'No registered users found'}
+                                    {searchQuery ? `No active records matching "${searchQuery}"` : 'No registered users found'}
                                 </p>
-                                {searchQuery && (
-                                    <p className="text-[11px] text-fg-3 font-mono">Check spelling, UUID, or try clearing the search</p>
-                                )}
+                                {searchQuery && searchQuery.includes('@') ? (
+                                    <div className="pt-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => openEditModal({
+                                                email: searchQuery.toLowerCase().trim(),
+                                                name: searchQuery.split('@')[0],
+                                                plan: 'basic',
+                                                created_at: new Date()
+                                            } as any)}
+                                            className="px-5 py-2.5 bg-accent hover:bg-accent/80 text-white rounded-xl text-xs font-bold transition-all shadow-lg hover:scale-105 inline-flex items-center gap-2 cursor-pointer"
+                                        >
+                                            <Sparkles size={14} />
+                                            <span>Provision & Upgrade Plan for {searchQuery.trim()}</span>
+                                        </button>
+                                        <p className="text-[10px] text-fg-3 font-mono mt-2">
+                                            Assign plan now — user will automatically inherit this tier upon Google login
+                                        </p>
+                                    </div>
+                                ) : searchQuery ? (
+                                    <p className="text-[11px] text-fg-3 font-mono">Enter user's full email address (e.g. user@gmail.com) to provision</p>
+                                ) : null}
                             </div>
                         )}
                     </div>

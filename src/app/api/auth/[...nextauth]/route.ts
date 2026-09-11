@@ -16,7 +16,7 @@ export const authOptions: AuthOptions = {
                     syncGoogleUserRecord(user.email, user.name);
                 }
                 try {
-                    const res = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/login", {
+                    let res = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/login", {
                         method: 'POST',
                         body: JSON.stringify({
                             email: user.email,
@@ -26,6 +26,18 @@ export const authOptions: AuthOptions = {
                         }),
                         headers: { "Content-Type": "application/json" }
                     });
+                    if (!res.ok) {
+                        res = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/login", {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                email: user.email,
+                                name: user.name,
+                                image: user.image,
+                                provider: 'google'
+                            }),
+                            headers: { "Content-Type": "application/json" }
+                        });
+                    }
 
                     if (res.ok) {
                         const backendUser = await res.json();
