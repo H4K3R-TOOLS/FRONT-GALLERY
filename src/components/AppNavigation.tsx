@@ -602,7 +602,7 @@ export default function AppNavigation({
                         className="flex items-center shrink-0 group cursor-pointer active:scale-95 transition-transform focus:outline-none"
                     >
                         <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl shrink-0 aspect-square flex items-center justify-center relative overflow-hidden transition-all duration-300 group-hover:scale-105 border ${logoGlowClass}`}>
-                            <img src="/gallery-eye-logo.jpg" alt="Spynox" className="w-full h-full object-cover z-10 block" />
+                            <img src="/spynox-logo.png" alt="Spynox" className="w-full h-full object-contain p-0.5 z-10 block" />
                         </div>
                     </button>
 
@@ -744,7 +744,7 @@ export default function AppNavigation({
                                             {user?.image ? (
                                                 <img src={user.image} alt="Profile" className="w-full h-full object-cover" />
                                             ) : (
-                                                <img src="/gallery-eye-logo.jpg" alt="Profile" className="w-full h-full object-cover" />
+                                                <img src="/spynox-logo.png" alt="Profile" className="w-full h-full object-contain p-1" />
                                             )}
                                         </div>
                                         {user?.email ? (

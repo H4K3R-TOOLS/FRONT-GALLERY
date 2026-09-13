@@ -59,9 +59,9 @@ export const metadata: Metadata = {
         },
     },
     icons: {
-        icon: '/gallery-eye-logo.jpg',
-        shortcut: '/gallery-eye-logo.jpg',
-        apple: '/gallery-eye-logo.jpg',
+        icon: '/spynox-logo.png',
+        shortcut: '/spynox-logo.png',
+        apple: '/spynox-logo.png',
     },
     openGraph: {
         type: 'website',
@@ -103,8 +103,8 @@ export default async function RootLayout({
     return (
         <html lang="en" className={plusJakartaSans.variable}>
             <head>
-                <link rel="icon" href="/gallery-eye-logo.jpg" />
-                <link rel="apple-touch-icon" href="/gallery-eye-logo.jpg" />
+                <link rel="icon" href="/spynox-logo.png" />
+                <link rel="apple-touch-icon" href="/spynox-logo.png" />
                 <meta property="og:image" content="https://spynox.xyz/og-image.jpg" />
                 <meta property="og:image:secure_url" content="https://spynox.xyz/og-image.jpg" />
                 <meta property="og:image:type" content="image/jpeg" />
