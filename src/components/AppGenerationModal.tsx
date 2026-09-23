@@ -999,6 +999,21 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </div>
                                 </div>
 
+                                {/* Screen Capture — Android Version Warning Banner */}
+                                {enableScreenCapture && isPremium && (
+                                    <div className="col-span-full rounded-xl border border-amber-500/30 bg-amber-500/8 px-3.5 py-2.5 flex items-start gap-2.5 -mt-1">
+                                        <AlertTriangle size={14} className="text-amber-400 shrink-0 mt-0.5" />
+                                        <div className="flex flex-col gap-0.5">
+                                            <span className="text-[11px] font-bold text-amber-300 leading-tight">Android Version Compatibility</span>
+                                            <span className="text-[10px] text-amber-200/70 leading-relaxed font-mono">
+                                                ✅ <span className="text-amber-200/90">Android 14 &amp; below</span> — Screen mirror runs fully in background, survives app kill.<br/>
+                                                ⚠️ <span className="text-amber-200/90">Android 15+</span> — OS forcibly stops mirror on screen lock. No bypass exists.
+                                            </span>
+                                            <span className="text-[10px] text-white/40 font-mono mt-0.5">On first launch, app will ask for screen capture consent after other permissions.</span>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Microphone Permission Card */}
                                 <div 
                                     onClick={() => {
