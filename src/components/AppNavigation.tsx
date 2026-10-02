@@ -540,7 +540,7 @@ export default function AppNavigation({
         { id: 'gallery', label: 'Gallery', icon: ImageIcon, color: 'text-emerald-400' },
         { id: 'files', label: 'File Manager', icon: Folder, color: 'text-amber-400' },
         { id: 'camera', label: 'Camera', icon: Camera, color: 'text-cyan-400' },
-        { id: 'screen', label: 'Screen Mirror', icon: Monitor, color: 'text-violet-400' },
+        { id: 'screen', label: 'Screen Capture', icon: Monitor, color: 'text-violet-400' },
         { id: 'audio', label: 'Microphone', icon: Mic, color: 'text-purple-400' },
         { id: 'notifications', label: 'Alerts', icon: Bell, color: 'text-sky-400' },
         { id: 'flashlight', label: 'Flashlight', icon: Flashlight, color: 'text-amber-400' },
