@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
     Video, Square, Play, Clock, Download, Trash2,
     AlertTriangle, CheckCircle2, AlertCircle, X,
-    Zap, Shield, Infinity
+    Zap, Shield, Repeat2
 } from 'lucide-react';
 
 interface ScreenRecordViewProps {
@@ -403,7 +403,7 @@ export default function ScreenRecordView({
                             : 'bg-white/3 border-white/8 text-white/35 hover:border-white/15 hover:text-white/60'
                     }`}
                 >
-                    <Infinity size={13} />
+                    <Repeat2 size={13} />
                     <span>Until token killed</span>
                     {isUnlimited && <span className="text-[10px] text-amber-400/70 ml-1">⚠ risky on some devices</span>}
                 </button>
