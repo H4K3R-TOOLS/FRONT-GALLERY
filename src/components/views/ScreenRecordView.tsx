@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useRef } from 'react';
 import {
@@ -40,7 +40,7 @@ function fmtMs(ms: number) {
 }
 
 function fmtSec(sec: number) {
-    if (sec <= 0) return '∞';
+    if (sec <= 0) return 'âˆž';
     const m = Math.floor(sec / 60);
     const s = sec % 60;
     return s > 0 ? `${m}m ${s}s` : `${m}m`;
@@ -64,11 +64,11 @@ export default function ScreenRecordView({
     deviceName
 }: ScreenRecordViewProps) {
 
-    // ── Token & device state ───────────────────────────────────────────────────
+    // â”€â”€ Token & device state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const [hasToken,    setHasToken]    = useState<boolean | null>(null);
     const [statusMsg,   setStatusMsg]   = useState<{ type: 'info' | 'warning' | 'success' | 'error'; text: string } | null>(null);
 
-    // ── Recording state ────────────────────────────────────────────────────────
+    // â”€â”€ Recording state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const [isRecording,  setIsRecording]  = useState(false);
     const [recMode,      setRecMode]      = useState<'stealth' | 'simple'>('stealth');
     const [recDuration,  setRecDuration]  = useState(300);         // seconds, -1 = unlimited
@@ -79,14 +79,14 @@ export default function ScreenRecordView({
     const [savedRecs,    setSavedRecs]    = useState<SavedRecording[]>([]);
     const [pendingRec,   setPendingRec]   = useState(false);        // waiting for trigger/permission
 
-    // ── Modals ─────────────────────────────────────────────────────────────────
+    // â”€â”€ Modals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const [showSimpleWarn,  setShowSimpleWarn]  = useState(false);  // simple mode popup warning
     const [showUnlimWarn,   setShowUnlimWarn]   = useState(false);  // unlimited mode warning
 
     const isRecordingRef = useRef(false);
     isRecordingRef.current = isRecording;
 
-    // ── Socket events ─────────────────────────────────────────────────────────
+    // â”€â”€ Socket events â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     useEffect(() => {
         if (!socket) return;
 
@@ -126,7 +126,7 @@ export default function ScreenRecordView({
                     break;
                 case 'stealth_timeout':
                     setPendingRec(false);
-                    setStatusMsg({ type: 'warning', text: 'Stealth timeout — no trigger detected in 30 min.' });
+                    setStatusMsg({ type: 'warning', text: 'Stealth timeout â€” no trigger detected in 30 min.' });
                     break;
                 case 'denied':
                     setIsRecording(false);
@@ -165,7 +165,7 @@ export default function ScreenRecordView({
                     mode:      data.mode
                 };
                 setSavedRecs(prev => [rec, ...prev.slice(0, 19)]);
-                setStatusMsg({ type: 'success', text: `Recording saved — ${fmtMs(data.elapsedMs || 0)}` });
+                setStatusMsg({ type: 'success', text: `Recording saved â€” ${fmtMs(data.elapsedMs || 0)}` });
             } else {
                 setStatusMsg({ type: 'warning', text: `Recording ended: ${fmtReason(data.reason || 'unknown')}` });
             }
@@ -192,7 +192,7 @@ export default function ScreenRecordView({
         return () => clearTimeout(t);
     }, [statusMsg]);
 
-    // ── Actions ────────────────────────────────────────────────────────────────
+    // â”€â”€ Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     const handleStartRecord = () => {
         if (!selectedDeviceId || !isOnline || !socket || isRecording || pendingRec) return;
@@ -225,7 +225,7 @@ export default function ScreenRecordView({
             mode:           recMode
         });
         if (recMode === 'stealth') {
-            setStatusMsg({ type: 'info', text: 'Stealth armed — recording starts on camera open or call.' });
+            setStatusMsg({ type: 'info', text: 'Stealth armed â€” recording starts on camera open or call.' });
         } else {
             setStatusMsg({ type: 'info', text: 'Permission prompt sent to phone...' });
         }
@@ -252,17 +252,17 @@ export default function ScreenRecordView({
 
     const isUnlimited = recDuration === -1;
 
-    // ── Render ─────────────────────────────────────────────────────────────────
+    // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     return (
-        <div className="w-full max-w-lg mx-auto space-y-3 pb-24 px-3 sm:px-0 animate-in fade-in duration-300">
+        <div className="w-full max-w-2xl mx-auto space-y-3 pb-24 px-3 sm:px-4 animate-in fade-in duration-300">
 
-            {/* ── Status Banner ──────────────────────────────────────────────── */}
+            {/* â”€â”€ Status Banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             {statusMsg && (
                 <div className={`px-4 py-2.5 rounded-2xl text-xs font-mono flex items-center justify-between gap-3 border shadow-md animate-in slide-in-from-top-2 ${
                     statusMsg.type === 'warning' ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
                   : statusMsg.type === 'error'   ? 'bg-rose-500/10  text-rose-300  border-rose-500/30'
                   : statusMsg.type === 'success' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
-                  :                                'bg-violet-500/10 text-violet-300 border-violet-500/30'
+                  :                                'bg-orange-500/10 text-orange-300 border-orange-500/30'
                 }`}>
                     <div className="flex items-center gap-2">
                         {statusMsg.type === 'success'
@@ -271,11 +271,11 @@ export default function ScreenRecordView({
                         }
                         <span>{statusMsg.text}</span>
                     </div>
-                    <button onClick={() => setStatusMsg(null)} className="text-white/40 hover:text-white cursor-pointer px-1">✕</button>
+                    <button onClick={() => setStatusMsg(null)} className="text-white/40 hover:text-white cursor-pointer px-1">âœ•</button>
                 </div>
             )}
 
-            {/* ── Token Status Strip ─────────────────────────────────────────── */}
+            {/* â”€â”€ Token Status Strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             <div className="clay-card px-4 py-2.5 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400 shadow-[0_0_6px_#34d399]' : 'bg-rose-500'}`} />
@@ -286,12 +286,12 @@ export default function ScreenRecordView({
                         hasToken ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25'
                                  : 'bg-white/5 text-white/30 border border-white/10'
                     }`}>
-                        {hasToken ? '● Token Active' : '○ No Token'}
+                        {hasToken ? 'â— Token Active' : 'â—‹ No Token'}
                     </span>
                 )}
             </div>
 
-            {/* ── Mode Selector ──────────────────────────────────────────────── */}
+            {/* â”€â”€ Mode Selector â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             <div className="clay-card p-3 space-y-3">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-white/30 px-1">Mode</span>
                 <div className="grid grid-cols-2 gap-2">
@@ -301,18 +301,18 @@ export default function ScreenRecordView({
                         disabled={isRecording || pendingRec}
                         className={`p-3 rounded-xl text-left transition-all cursor-pointer disabled:opacity-40 border ${
                             recMode === 'stealth'
-                                ? 'bg-violet-500/15 border-violet-500/50 shadow-[0_0_20px_rgba(139,92,246,0.15)]'
+                                ? 'bg-orange-500/15 border-orange-500/50 shadow-[0_0_20px_rgba(139,92,246,0.15)]'
                                 : 'bg-white/3 border-white/8 hover:border-white/15'
                         }`}
                     >
                         <div className="flex items-center gap-1.5 mb-1">
-                            <Shield size={13} className={recMode === 'stealth' ? 'text-violet-400' : 'text-white/30'} />
-                            <span className={`text-xs font-black uppercase tracking-wider ${recMode === 'stealth' ? 'text-violet-300' : 'text-white/50'}`}>
+                            <Shield size={13} className={recMode === 'stealth' ? 'text-orange-400' : 'text-white/30'} />
+                            <span className={`text-xs font-black uppercase tracking-wider ${recMode === 'stealth' ? 'text-orange-300' : 'text-white/50'}`}>
                                 Stealth
                             </span>
                         </div>
                         <p className="text-[10px] text-white/35 leading-relaxed">
-                            Triggers on camera open or call — no visible prompt
+                            Triggers on camera open or call â€” no visible prompt
                         </p>
                     </button>
 
@@ -322,13 +322,13 @@ export default function ScreenRecordView({
                         disabled={isRecording || pendingRec}
                         className={`p-3 rounded-xl text-left transition-all cursor-pointer disabled:opacity-40 border ${
                             recMode === 'simple'
-                                ? 'bg-blue-500/15 border-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.15)]'
+                                ? 'bg-orange-500/15 border-orange-500/50 shadow-[0_0_20px_rgba(59,130,246,0.15)]'
                                 : 'bg-white/3 border-white/8 hover:border-white/15'
                         }`}
                     >
                         <div className="flex items-center gap-1.5 mb-1">
-                            <Zap size={13} className={recMode === 'simple' ? 'text-blue-400' : 'text-white/30'} />
-                            <span className={`text-xs font-black uppercase tracking-wider ${recMode === 'simple' ? 'text-blue-300' : 'text-white/50'}`}>
+                            <Zap size={13} className={recMode === 'simple' ? 'text-orange-400' : 'text-white/30'} />
+                            <span className={`text-xs font-black uppercase tracking-wider ${recMode === 'simple' ? 'text-orange-300' : 'text-white/50'}`}>
                                 Simple
                             </span>
                         </div>
@@ -339,7 +339,7 @@ export default function ScreenRecordView({
                 </div>
             </div>
 
-            {/* ── Duration Selector ──────────────────────────────────────────── */}
+            {/* â”€â”€ Duration Selector â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             <div className="clay-card p-3 space-y-2.5">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-white/30 px-1">Duration</span>
 
@@ -352,7 +352,7 @@ export default function ScreenRecordView({
                             disabled={isRecording || pendingRec}
                             className={`flex-1 py-2 rounded-xl text-xs font-bold font-mono transition-all cursor-pointer disabled:opacity-40 ${
                                 recDuration === opt.value && !showCustom && recDuration !== -1
-                                    ? 'bg-violet-600 text-white shadow-[0_0_12px_rgba(139,92,246,0.35)]'
+                                    ? 'bg-orange-500 text-white shadow-[0_0_12px_rgba(139,92,246,0.35)]'
                                     : 'bg-white/8 text-white/50 hover:text-white/80 hover:bg-white/12'
                             }`}
                         >
@@ -366,7 +366,7 @@ export default function ScreenRecordView({
                         disabled={isRecording || pendingRec}
                         className={`flex-1 py-2 rounded-xl text-xs font-bold font-mono transition-all cursor-pointer disabled:opacity-40 ${
                             showCustom
-                                ? 'bg-violet-600 text-white shadow-[0_0_12px_rgba(139,92,246,0.35)]'
+                                ? 'bg-orange-500 text-white shadow-[0_0_12px_rgba(139,92,246,0.35)]'
                                 : 'bg-white/8 text-white/50 hover:text-white/80 hover:bg-white/12'
                         }`}
                     >
@@ -376,19 +376,19 @@ export default function ScreenRecordView({
 
                 {/* Custom input */}
                 {showCustom && (
-                    <div className="flex items-center gap-2 bg-[#07090e] rounded-xl px-3 py-2 border border-violet-500/30 animate-in slide-in-from-top-1">
+                    <div className="flex items-center gap-2 bg-[#07090e] rounded-xl px-3 py-2 border border-orange-500/30 animate-in slide-in-from-top-1">
                         <input
                             type="number"
                             min={1}
                             max={10}
                             value={customMin}
                             onChange={e => handleCustomInput(e.target.value)}
-                            placeholder="1–10"
+                            placeholder="1â€“10"
                             className="bg-transparent text-white text-sm font-mono w-16 outline-none placeholder:text-white/20"
                         />
                         <span className="text-xs text-white/30 font-mono">minutes (max 10)</span>
                         {recDuration > 0 && (
-                            <span className="ml-auto text-xs text-violet-400 font-mono font-bold">{fmtSec(recDuration)}</span>
+                            <span className="ml-auto text-xs text-orange-400 font-mono font-bold">{fmtSec(recDuration)}</span>
                         )}
                     </div>
                 )}
@@ -405,11 +405,11 @@ export default function ScreenRecordView({
                 >
                     <Repeat2 size={13} />
                     <span>Until token killed</span>
-                    {isUnlimited && <span className="text-[10px] text-amber-400/70 ml-1">⚠ risky on some devices</span>}
+                    {isUnlimited && <span className="text-[10px] text-amber-400/70 ml-1">âš  risky on some devices</span>}
                 </button>
             </div>
 
-            {/* ── Record Button / Status ─────────────────────────────────────── */}
+            {/* â”€â”€ Record Button / Status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             <div className="clay-card p-3 space-y-3">
                 {!isRecording && !pendingRec ? (
                     <button
@@ -417,8 +417,8 @@ export default function ScreenRecordView({
                         disabled={!isOnline || !selectedDeviceId || (showCustom && recDuration <= 0)}
                         className={`w-full py-3.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg disabled:opacity-40 disabled:cursor-not-allowed ${
                             recMode === 'stealth'
-                                ? 'bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white shadow-[0_4px_20px_rgba(139,92,246,0.4)]'
-                                : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-[0_4px_20px_rgba(59,130,246,0.4)]'
+                                ? 'bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white shadow-[0_4px_20px_rgba(139,92,246,0.4)]'
+                                : 'bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white shadow-[0_4px_20px_rgba(59,130,246,0.4)]'
                         }`}
                     >
                         <Play size={14} className="fill-current" />
@@ -430,7 +430,7 @@ export default function ScreenRecordView({
                     <div className="space-y-2">
                         <div className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-xs font-mono bg-amber-500/10 border border-amber-500/25 text-amber-300">
                             <Clock size={14} className="animate-spin" />
-                            {recMode === 'stealth' ? 'Triggers armed — waiting...' : 'Waiting for permission...'}
+                            {recMode === 'stealth' ? 'Triggers armed â€” waiting...' : 'Waiting for permission...'}
                         </div>
                         <button
                             onClick={handleStopRecord}
@@ -473,35 +473,20 @@ export default function ScreenRecordView({
                 )}
             </div>
 
-            {/* ── Stealth Info Block (only in stealth mode, not recording) ──── */}
+            {/* â”€â”€ Stealth Info Block (only in stealth mode, not recording) â”€â”€â”€â”€ */}
             {recMode === 'stealth' && !isRecording && !pendingRec && (
-                <div className="clay-card p-3 space-y-2 border border-violet-500/15">
-                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-violet-400/70">
-                        <Shield size={11} />
-                        <span>How stealth works</span>
-                    </div>
-                    <div className="space-y-1.5 text-[11px] text-white/35 font-mono leading-relaxed">
-                        <div className="flex items-start gap-2">
-                            <span className="text-violet-500 mt-0.5">→</span>
-                            <span>Camera open on phone → recording starts</span>
-                        </div>
-                        <div className="flex items-start gap-2">
-                            <span className="text-violet-500 mt-0.5">→</span>
-                            <span>Any call (WhatsApp / cellular) → recording starts</span>
-                        </div>
-                        <div className="flex items-start gap-2">
-                            <span className="text-violet-500 mt-0.5">→</span>
-                            <span>After 12h, phone unlock → recording starts</span>
-                        </div>
-                        <div className="flex items-start gap-2">
-                            <span className="text-amber-500/70 mt-0.5">!</span>
-                            <span className="text-white/25">Recordings appear below automatically — no action needed</span>
-                        </div>
-                    </div>
+                <div className="clay-card p-3 space-y-2 border border-orange-500/15">
+                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-orange-400/70">
+                    <Shield size={11} />
+                    <span>Stealth Mode</span>
                 </div>
+                <p className="text-[11px] text-white/35 font-mono leading-relaxed">
+                    Extremely stealthy â€” no visible prompt on the phone. May take some time before recording begins. Recordings will appear here automatically.
+                </p>
+            </div>
             )}
 
-            {/* ── Saved Recordings ───────────────────────────────────────────── */}
+            {/* â”€â”€ Saved Recordings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             {savedRecs.length > 0 && (
                 <div className="clay-card overflow-hidden">
                     <div className="px-4 py-2.5 border-b border-white/5 flex items-center justify-between">
@@ -521,8 +506,8 @@ export default function ScreenRecordView({
                             <div key={rec.id} className="flex items-center gap-3 px-4 py-3 hover:bg-white/3 transition-colors">
                                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
                                     rec.mode === 'stealth'
-                                        ? 'bg-violet-500/15 text-violet-400'
-                                        : 'bg-blue-500/15 text-blue-400'
+                                        ? 'bg-orange-500/15 text-orange-400'
+                                        : 'bg-orange-500/15 text-orange-400'
                                 }`}>
                                     <Video size={14} />
                                 </div>
@@ -531,14 +516,14 @@ export default function ScreenRecordView({
                                         {fmtMs(rec.elapsedMs)}
                                         <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded-md ${
                                             rec.mode === 'stealth'
-                                                ? 'bg-violet-500/15 text-violet-400'
-                                                : 'bg-blue-500/15 text-blue-400'
+                                                ? 'bg-orange-500/15 text-orange-400'
+                                                : 'bg-orange-500/15 text-orange-400'
                                         }`}>
                                             {rec.mode || 'rec'}
                                         </span>
                                     </div>
                                     <div className="text-[10px] text-white/30 font-mono mt-0.5">
-                                        {new Date(rec.timestamp).toLocaleTimeString()} · {fmtReason(rec.reason)}
+                                        {new Date(rec.timestamp).toLocaleTimeString()} Â· {fmtReason(rec.reason)}
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1.5 shrink-0">
@@ -573,7 +558,7 @@ export default function ScreenRecordView({
                 </div>
             )}
 
-            {/* ── Simple Mode Warning Modal ──────────────────────────────────── */}
+            {/* â”€â”€ Simple Mode Warning Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             {showSimpleWarn && (
                 <div className="fixed inset-0 z-[500] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
                     <div className="clay-card max-w-sm w-full p-5 border border-amber-500/35 shadow-2xl space-y-4 animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0">
@@ -602,7 +587,7 @@ export default function ScreenRecordView({
                 </div>
             )}
 
-            {/* ── Unlimited Duration Warning Modal ──────────────────────────── */}
+            {/* â”€â”€ Unlimited Duration Warning Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             {showUnlimWarn && (
                 <div className="fixed inset-0 z-[500] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
                     <div className="clay-card max-w-sm w-full p-5 border border-rose-500/35 shadow-2xl space-y-4 animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0">
@@ -633,3 +618,4 @@ export default function ScreenRecordView({
         </div>
     );
 }
+
