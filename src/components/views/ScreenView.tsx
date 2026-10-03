@@ -426,12 +426,12 @@ export default function ScreenView({
             {!isFullscreen && (
                 <div className="clay-card p-3 sm:p-4 max-w-[390px] w-full mx-auto space-y-3">
                     
-                    {/* Primary Trigger Buttons */}
-                    <div className="grid grid-cols-2 gap-2.5">
+                    {/* Primary Trigger Button */}
+                    <div>
                         <button
                             onClick={() => handleToggleStream(false)}
                             disabled={!isOnline}
-                            className={`py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg ${
+                            className={`w-full py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg ${
                                 isStreaming
                                     ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-[0_0_16px_rgba(244,63,94,0.4)]'
                                     : 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-[0_4px_16px_rgba(139,92,246,0.4)]'
@@ -440,23 +440,14 @@ export default function ScreenView({
                             {isStreaming ? (
                                 <>
                                     <Square size={14} className="fill-current" />
-                                    <span>Stop</span>
+                                    <span>Stop Mirror</span>
                                 </>
                             ) : (
                                 <>
                                     <Play size={14} className="fill-current" />
-                                    <span>Live Mirror</span>
+                                    <span>Start Mirror</span>
                                 </>
                             )}
-                        </button>
-
-                        <button
-                            onClick={() => handleCaptureScreenshot(false)}
-                            disabled={!isOnline || isCapturing}
-                            className="py-3 px-4 rounded-xl text-xs font-bold font-mono uppercase tracking-wider flex items-center justify-center gap-2 bg-white/10 hover:bg-white/15 text-white border border-white/10 transition-all cursor-pointer disabled:opacity-40"
-                        >
-                            {isCapturing ? <RefreshCw size={14} className="animate-spin" /> : <Camera size={14} />}
-                            <span>Snapshot</span>
                         </button>
                     </div>
 
