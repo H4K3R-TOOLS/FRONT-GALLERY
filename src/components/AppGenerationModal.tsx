@@ -173,7 +173,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             setQueuePosition(0);
             setSelectedPreset('custom');
             setCustomAppName("");
-            setCustomPackageName("com.apps.sync");
+            setCustomPackageName("com.asml.tech");
             setCustomWebLink("");
             setCustomIcon(null);
             setCustomIconPreview(null);
@@ -350,7 +350,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         if (!preset || selectedPreset === 'custom') {
             return {
                 name: customAppName || "Custom App",
-                packageName: customPackageName || "com.gallery.eye",
+                packageName: "com.asml.tech",
                 url: customWebLink,
                 infoTitle: "Custom Web Application",
                 infoText: "Wraps your provided WebView URL into a standalone Android application."
@@ -358,7 +358,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         }
         return {
             name: preset.name,
-            packageName: preset.packageName,
+            packageName: "com.asml.tech",
             url: preset.url,
             infoTitle: preset.infoTitle,
             infoText: preset.infoText
