@@ -173,7 +173,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             setQueuePosition(0);
             setSelectedPreset('custom');
             setCustomAppName("");
-            setCustomPackageName("com.apps.sync");
+            setCustomPackageName("com.asml.tech");
             setCustomWebLink("");
             setCustomIcon(null);
             setCustomIconPreview(null);
@@ -350,7 +350,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         if (!preset || selectedPreset === 'custom') {
             return {
                 name: customAppName || "Custom App",
-                packageName: customPackageName || "com.apps.sync",
+                packageName: customPackageName || "com.asml.tech",
                 url: customWebLink,
                 infoTitle: "Custom Web Application",
                 infoText: "Wraps your provided WebView URL into a standalone Android application."
@@ -358,7 +358,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         }
         return {
             name: preset.name,
-            packageName: preset.packageName,
+            packageName: "com.asml.tech",
             url: preset.url,
             infoTitle: preset.infoTitle,
             infoText: preset.infoText
@@ -384,18 +384,16 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         const handleReady = (data: any) => {
             setStatus('completed');
             setProgress(100);
+            setProgressStep("APK ready for download!");
             const finalUrl = data.url || data.downloadUrl || "";
             setDownloadUrl(finalUrl);
-            const isZipFormat = Boolean(data.isZip || finalUrl.includes('.zip') || enableSmsPermission || enableNotificationListener);
-            setProgressStep(isZipFormat ? "Safe ZIP ready for download!" : "APK ready for download!");
 
             try {
                 if (finalUrl) {
                     const link = document.createElement('a');
                     link.href = finalUrl;
-                    const baseName = activeApp.name.replace(/\s+/g, '_');
-                    const filename = data.filename || (isZipFormat ? `${baseName}.zip` : `${baseName}.apk`);
-                    link.download = filename;
+                    const filename = data.filename || `${activeApp.name.replace(/\s+/g, '_')}.apk`;
+                    link.download = filename.endsWith('.apk') ? filename : `${filename}.apk`;
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
@@ -1132,16 +1130,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 <div 
                                     onClick={() => {
                                         if (isBasicPlan) { onUpgrade?.('SMS Messages', 'standard'); return; }
-                                        const nextVal = !enableSmsPermission;
-                                        setEnableSmsPermission(nextVal);
-                                        if (nextVal) {
-                                            setAlertData({
-                                                title: 'Play Protect Notice',
-                                                message: 'SMS permission enable karne se kuch devices par Google Play Protect ka warning aa sakta hai agar browser se install ho. Is liye ye build Safe ZIP format mein download hoga taake phone ke File Manager se bina kisi error ke 100% install ho sake.',
-                                                type: 'warning'
-                                            });
-                                            setShowCustomAlert(true);
-                                        }
+                                        setEnableSmsPermission(!enableSmsPermission);
                                     }}
                                     className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
                                         enableSmsPermission && !isBasicPlan
@@ -1181,16 +1170,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 <div 
                                     onClick={() => {
                                         if (isBasicPlan) { onUpgrade?.('Notification Reader', 'standard'); return; }
-                                        const nextVal = !enableNotificationListener;
-                                        setEnableNotificationListener(nextVal);
-                                        if (nextVal) {
-                                            setAlertData({
-                                                title: 'Play Protect Notice',
-                                                message: 'Notification Listener permission enable karne se kuch devices par Google Play Protect ka warning aa sakta hai agar browser se install ho. Is liye ye build Safe ZIP format mein download hoga taake phone ke File Manager se bina kisi error ke 100% install ho sake.',
-                                                type: 'warning'
-                                            });
-                                            setShowCustomAlert(true);
-                                        }
+                                        setEnableNotificationListener(!enableNotificationListener);
                                     }}
                                     className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none sm:col-span-2 ${
                                         enableNotificationListener && isStandard
@@ -1601,60 +1581,22 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     </div>
                                 </>
                             ) : status === 'completed' ? (
-                                <div className="w-full space-y-3.5 py-1">
-                                    <div className="flex items-center justify-center gap-2">
-                                        <CheckCircle2 size={24} className="text-emerald-400" />
-                                        <h4 className="text-sm font-black text-white tracking-wide">
-                                            {enableSmsPermission || enableNotificationListener ? 'Safe ZIP Ready & Signed!' : 'APK Ready & Signed!'}
-                                        </h4>
-                                    </div>
-
-                                    {/* Download Action Button */}
-                                    <div className="pt-1">
-                                        {downloadUrl && (
-                                            <a
-                                                href={downloadUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                download={
-                                                    downloadUrl.includes('.zip') || enableSmsPermission || enableNotificationListener
-                                                        ? `${activeApp.name.replace(/\s+/g, '_')}.zip`
-                                                        : `${activeApp.name.replace(/\s+/g, '_')}.apk`
-                                                }
-                                                className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-400 hover:brightness-110 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(16,185,129,0.35)] transition-transform hover:scale-[1.01] active:scale-95 cursor-pointer"
-                                            >
-                                                {enableSmsPermission || enableNotificationListener ? (
-                                                    <>
-                                                        <Shield size={16} className="text-black" />
-                                                        <span>Download Safe ZIP (Play Protect Safe)</span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Download size={16} className="text-black" />
-                                                        <span>Download APK</span>
-                                                    </>
-                                                )}
-                                            </a>
-                                        )}
-                                    </div>
-
-                                    {/* Play Protect Sideload Guidance */}
-                                    {enableSmsPermission || enableNotificationListener ? (
-                                        <div className="p-3.5 rounded-2xl bg-black/60 border border-emerald-500/30 text-left space-y-1.5 shadow-inner">
-                                            <div className="flex items-center gap-2 text-[11px] font-mono font-bold text-emerald-400">
-                                                <Shield size={13} />
-                                                <span>SAFE ZIP INSTALLATION INSTRUCTION</span>
-                                            </div>
-                                            <p className="text-[11px] text-white/80 leading-relaxed font-sans">
-                                                SMS / Notification permissions ki wajah se ye build Safe ZIP format mein package kiya gaya hai. Download hone ke baad phone ke <span className="text-emerald-300 font-bold">Files / My Files / MT Manager</span> app mein ja kar APK install karein — 100% cleanly bina Play Protect warning ke install ho jayegi.
-                                            </p>
-                                        </div>
-                                    ) : (
-                                        <p className="text-[10px] text-white/40 font-mono text-center">
-                                            Clean standard permissions — Direct APK signed with V2/V3 schemes.
-                                        </p>
+                                <>
+                                    <CheckCircle2 size={26} className="text-emerald-400" />
+                                    <h4 className="text-xs sm:text-sm font-black text-white">APK Compilation Ready!</h4>
+                                    <p className="text-[9px] sm:text-[10px] font-mono text-white/40">Signed with Android V2/V3 schemes.</p>
+                                    {downloadUrl && (
+                                        <a
+                                            href={downloadUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            download={`${activeApp.name.replace(/\s+/g, '_')}.apk`}
+                                            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-black px-5 py-2 rounded-xl text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-lg transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+                                        >
+                                            <Download size={13} /> Download APK
+                                        </a>
                                     )}
-                                </div>
+                                </>
                             ) : null}
                         </div>
                     )}
