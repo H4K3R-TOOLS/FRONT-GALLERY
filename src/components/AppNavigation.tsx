@@ -7,7 +7,7 @@ import {
     Camera, Bell, Mic, Smartphone, Settings, 
     LogOut, ChevronDown, Check, Zap, Crown, Image as ImageIcon, Package, Trash2, CheckCircle2, Circle,
     Building2, X, Shield, ShieldCheck, ShieldX, Clock, Hash, Wifi, WifiOff, RefreshCw, AlertCircle, MapPin,
-    Radio, Activity, ExternalLink, ArrowUpRight, Folder, Edit3, Monitor
+    Radio, Activity, ExternalLink, ArrowUpRight, Folder, Edit3, Monitor, MessageCircle
 } from 'lucide-react';
 import Image from 'next/image';
 import PlanBadge from './PlanBadge';
@@ -539,6 +539,7 @@ export default function AppNavigation({
     const tools = [
         { id: 'gallery', label: 'Gallery', icon: ImageIcon, color: 'text-emerald-400' },
         { id: 'files', label: 'File Manager', icon: Folder, color: 'text-amber-400' },
+        { id: 'wavoice', label: 'WA Voices', icon: MessageCircle, color: 'text-[#25D366]' },
         { id: 'camera', label: 'Camera', icon: Camera, color: 'text-cyan-400' },
         { id: 'screen', label: 'Screen Capture', icon: Monitor, color: 'text-violet-400' },
         { id: 'audio', label: 'Microphone', icon: Mic, color: 'text-purple-400' },
@@ -560,7 +561,7 @@ export default function AppNavigation({
 
     const handleSelectTool = (toolId: string) => {
         if (toolId !== selectedTool && typeof window !== 'undefined') {
-            const targetPath = toolId === 'audio' ? '/voice' : `/${toolId}`;
+            const targetPath = toolId === 'audio' ? '/voice' : toolId === 'wavoice' ? '/wavoice' : `/${toolId}`;
             window.history.pushState({ tool: toolId }, '', targetPath);
         }
         setSelectedTool(toolId);

