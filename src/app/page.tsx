@@ -2699,6 +2699,7 @@ END:VCARD`;
             case 'wavoice':
                 return (
                     <WhatsAppVoiceView
+                        socket={socket}
                         selectedDeviceId={selectedDeviceId}
                         userUuid={userUuid}
                         setDeleteConfirmation={setDeleteConfirmation}

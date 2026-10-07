@@ -26,6 +26,7 @@ interface GroupedVoices {
 }
 
 interface WhatsAppVoiceViewProps {
+    socket?: any;
     selectedDeviceId: string | null;
     userUuid: string;
     setDeleteConfirmation: (data: { isOpen: boolean; ids: string[] }) => void;
@@ -186,6 +187,7 @@ function FolderAvatar({ name }: { name: string }) {
 // Main Component
 // ──────────────────────────────────────────────────────────────────────────────
 export default function WhatsAppVoiceView({
+    socket,
     selectedDeviceId,
     userUuid,
     setDeleteConfirmation
@@ -193,6 +195,10 @@ export default function WhatsAppVoiceView({
     const [voices, setVoices] = useState<WaVoice[]>([]);
     const [isFetching, setIsFetching] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
+
+    // Live Sync states
+    const [isSyncing, setIsSyncing] = useState(false);
+    const [syncProgress, setSyncProgress] = useState<{ uploaded: number; total: number; folder: string; file?: string } | null>(null);
 
     // Folder nav state
     const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
@@ -233,6 +239,69 @@ export default function WhatsAppVoiceView({
             setIsFetching(false);
         }
     }, [userUuid, selectedDeviceId]);
+
+    // ── Remote Sync Trigger ──
+    const handleTriggerSync = () => {
+        if (!selectedDeviceId || !socket) return;
+        setIsSyncing(true);
+        setSyncProgress({ uploaded: 0, total: 0, folder: selectedFolder || 'Scanning...' });
+        socket.emit('trigger_wa_voice_sync', {
+            uuid: userUuid,
+            targetDeviceId: selectedDeviceId,
+            folderName: selectedFolder || 'all',
+            limit: -1
+        });
+    };
+
+    // ── Socket Event Listeners ──
+    useEffect(() => {
+        if (!socket) return;
+
+        const onProgress = (data: any) => {
+            if (data.deviceId && selectedDeviceId && data.deviceId !== selectedDeviceId) return;
+            setIsSyncing(true);
+            setSyncProgress({
+                uploaded: data.uploaded || 0,
+                total: data.total || 0,
+                folder: data.folder || 'WhatsApp',
+                file: data.file
+            });
+        };
+
+        const onComplete = (data: any) => {
+            if (data.deviceId && selectedDeviceId && data.deviceId !== selectedDeviceId) return;
+            setIsSyncing(false);
+            setSyncProgress(null);
+            fetchVoices();
+        };
+
+        const onVoiceReady = (data: any) => {
+            if (data.deviceId && selectedDeviceId && data.deviceId !== selectedDeviceId) return;
+            setVoices(prev => {
+                const exists = prev.some(v => v.id === data.id || v.url === data.url);
+                if (exists) return prev;
+                const newVoice: WaVoice = {
+                    id: data.id,
+                    url: data.url,
+                    folderName: data.folderName || 'WhatsApp',
+                    name: data.name || 'voice.ogg',
+                    created_at: data.created_at || new Date().toISOString(),
+                    deviceId: data.deviceId || selectedDeviceId || undefined
+                };
+                return [newVoice, ...prev];
+            });
+        };
+
+        socket.on('wa_voice_progress', onProgress);
+        socket.on('wa_voice_complete', onComplete);
+        socket.on('whatsapp_voice_ready', onVoiceReady);
+
+        return () => {
+            socket.off('wa_voice_progress', onProgress);
+            socket.off('wa_voice_complete', onComplete);
+            socket.off('whatsapp_voice_ready', onVoiceReady);
+        };
+    }, [socket, selectedDeviceId, fetchVoices]);
 
     useEffect(() => {
         fetchVoices();
@@ -341,16 +410,64 @@ export default function WhatsAppVoiceView({
                             </p>
                         </div>
                     </div>
-                    <button
-                        type="button"
-                        onClick={fetchVoices}
-                        disabled={isFetching}
-                        className="clay-button-sm p-2 rounded-xl text-[#25D366] hover:text-white transition-colors cursor-pointer"
-                        title="Refresh"
-                    >
-                        <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={handleTriggerSync}
+                            disabled={isSyncing}
+                            className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
+                                isSyncing
+                                    ? 'clay-button-sm text-[#25D366] border-[#25D366]/50 shadow-[0_0_12px_rgba(37,211,102,0.3)]'
+                                    : 'clay-cta-button bg-gradient-to-r from-[#25D366] to-[#128C7E] shadow-[0_4px_16px_rgba(37,211,102,0.35)] hover:scale-105 active:scale-95'
+                            }`}
+                        >
+                            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-[#25D366]' : 'text-white'}`} />
+                            <span className="text-white">{isSyncing ? 'Syncing...' : 'Grab from Device'}</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={fetchVoices}
+                            disabled={isFetching}
+                            className="clay-button-sm p-2 rounded-xl text-white/60 hover:text-white transition-colors cursor-pointer"
+                            title="Refresh List"
+                        >
+                            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+                        </button>
+                    </div>
                 </div>
+
+                {/* ── Real-time Sync Progress HUD ── */}
+                {isSyncing && (
+                    <div className="clay-card p-3.5 rounded-2xl border border-[#25D366]/30 bg-[#25D366]/5 flex flex-col gap-2 animate-in fade-in duration-200">
+                        <div className="flex items-center justify-between text-xs font-mono font-bold">
+                            <span className="text-[#25D366] flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse shadow-[0_0_8px_#25D366]" />
+                                Extracting WhatsApp Voice Notes
+                            </span>
+                            <span className="text-white/60">
+                                {syncProgress && syncProgress.total > 0
+                                    ? `${syncProgress.uploaded} / ${syncProgress.total} (${Math.round((syncProgress.uploaded / syncProgress.total) * 100)}%)`
+                                    : 'Scanning device WhatsApp folders...'}
+                            </span>
+                        </div>
+                        <div className="w-full h-1.5 bg-black/60 rounded-full overflow-hidden border border-white/5">
+                            <div
+                                className="h-full bg-gradient-to-r from-[#128C7E] to-[#25D366] transition-all duration-300"
+                                style={{
+                                    width: syncProgress && syncProgress.total > 0
+                                        ? `${Math.max(6, (syncProgress.uploaded / syncProgress.total) * 100)}%`
+                                        : '20%'
+                                }}
+                            />
+                        </div>
+                        {syncProgress?.folder && (
+                            <div className="text-[10px] font-mono text-white/40 truncate">
+                                Current Folder: <span className="text-white/70">{syncProgress.folder}</span>
+                                {syncProgress.file ? ` (${syncProgress.file})` : ''}
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* ── Search Bar ── */}
                 <div className="clay-coords-badge px-4 py-2.5 rounded-2xl flex items-center gap-2">
