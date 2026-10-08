@@ -19,6 +19,7 @@ interface WaVoice {
     size?: number;
     name: string;
     deviceId?: string;
+    isNew?: boolean;
 }
 
 interface GroupedVoices {
@@ -203,6 +204,7 @@ export default function WhatsAppVoiceView({
     // Folder nav state
     const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [filterNewOnly, setFilterNewOnly] = useState(false);
 
     // Playback state (only one plays at a time globally)
     const [playingId, setPlayingId] = useState<string | null>(null);
@@ -230,7 +232,8 @@ export default function WhatsAppVoiceView({
                 created_at: item.created_at,
                 size: item.size,
                 name: item.name || item.id?.split('/').pop() || 'voice.ogg',
-                deviceId: item.deviceId || selectedDeviceId
+                deviceId: item.deviceId || selectedDeviceId,
+                isNew: Boolean(item.isNew)
             }));
             setVoices(items);
         } catch (err: any) {
@@ -263,8 +266,8 @@ export default function WhatsAppVoiceView({
             setSyncProgress({
                 uploaded: data.uploaded || 0,
                 total: data.total || 0,
-                folder: data.folder || 'WhatsApp',
-                file: data.file
+                folder: data.folder || data.currentFolder || 'WhatsApp',
+                file: data.file || data.currentFile
             });
         };
 
@@ -286,7 +289,8 @@ export default function WhatsAppVoiceView({
                     folderName: data.folderName || 'WhatsApp',
                     name: data.name || 'voice.ogg',
                     created_at: data.created_at || new Date().toISOString(),
-                    deviceId: data.deviceId || selectedDeviceId || undefined
+                    deviceId: data.deviceId || selectedDeviceId || undefined,
+                    isNew: true
                 };
                 return [newVoice, ...prev];
             });
@@ -318,22 +322,35 @@ export default function WhatsAppVoiceView({
         return acc;
     }, {} as GroupedVoices);
 
+    const totalNewCount = voices.filter(v => v.isNew).length;
+
+    const clearAllNewBadges = () => {
+        setVoices(prev => prev.map(v => ({ ...v, isNew: false })));
+    };
+
     // Sort folders by message count desc
     const sortedFolders = Object.keys(grouped).sort(
         (a, b) => grouped[b].length - grouped[a].length
     );
 
-    // Filter folders by search
-    const filteredFolders = sortedFolders.filter(f =>
-        f.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // Filter folders by search and new filter
+    const filteredFolders = sortedFolders.filter(f => {
+        const matchesSearch = f.toLowerCase().includes(searchQuery.toLowerCase());
+        if (!matchesSearch) return false;
+        if (filterNewOnly) {
+            return (grouped[f] || []).some(v => v.isNew);
+        }
+        return true;
+    });
 
     // Current folder's voices sorted newest first
-    const currentVoices = selectedFolder
+    const currentVoicesRaw = selectedFolder
         ? [...(grouped[selectedFolder] || [])].sort(
             (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
           )
         : [];
+
+    const currentVoices = filterNewOnly ? currentVoicesRaw.filter(v => v.isNew) : currentVoicesRaw;
 
     // ── Delete handler ──
     const handleDelete = (ids: string[]) => {
@@ -469,21 +486,59 @@ export default function WhatsAppVoiceView({
                     </div>
                 )}
 
-                {/* ── Search Bar ── */}
-                <div className="clay-coords-badge px-4 py-2.5 rounded-2xl flex items-center gap-2">
-                    <Search className="w-4 h-4 text-white/30 shrink-0" />
-                    <input
-                        type="text"
-                        placeholder="Search chats..."
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        className="flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none font-sans"
-                    />
-                    {searchQuery && (
-                        <button type="button" onClick={() => setSearchQuery('')} className="text-white/40 hover:text-white cursor-pointer">
-                            <X size={14} />
+                {/* ── Search & Filter Chips ── */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <div className="clay-coords-badge flex-1 px-4 py-2.5 rounded-2xl flex items-center gap-2">
+                        <Search className="w-4 h-4 text-white/30 shrink-0" />
+                        <input
+                            type="text"
+                            placeholder="Search chats..."
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            className="flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none font-sans"
+                        />
+                        {searchQuery && (
+                            <button type="button" onClick={() => setSearchQuery('')} className="text-white/40 hover:text-white cursor-pointer">
+                                <X size={14} />
+                            </button>
+                        )}
+                    </div>
+                    {/* Filter Pills */}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => setFilterNewOnly(false)}
+                            className={`px-3 py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+                                !filterNewOnly
+                                    ? 'bg-white/10 text-white border border-white/20'
+                                    : 'text-white/40 hover:text-white'
+                            }`}
+                        >
+                            All ({voices.length})
                         </button>
-                    )}
+                        <button
+                            type="button"
+                            onClick={() => setFilterNewOnly(true)}
+                            className={`px-3 py-2 rounded-xl text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                                filterNewOnly
+                                    ? 'bg-[#25D366]/20 text-[#25D366] border border-[#25D366]/50 shadow-[0_0_12px_rgba(37,211,102,0.3)]'
+                                    : 'text-white/40 hover:text-white'
+                            }`}
+                        >
+                            <span className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse shadow-[0_0_6px_#25D366]" />
+                            New ({totalNewCount})
+                        </button>
+                        {totalNewCount > 0 && (
+                            <button
+                                type="button"
+                                onClick={clearAllNewBadges}
+                                className="px-2 py-2 rounded-xl text-[10px] font-mono text-white/40 hover:text-white/80 cursor-pointer"
+                                title="Clear New Badges"
+                            >
+                                Clear
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {/* ── Folder List ── */}
@@ -508,15 +563,16 @@ export default function WhatsAppVoiceView({
                             <MessageCircle className="w-10 h-10 text-[#25D366]/25" />
                         </div>
                         <p className="text-xs font-mono text-white/40 font-bold uppercase tracking-widest text-center">
-                            {searchQuery ? 'No chats match your search' : 'No WhatsApp voices grabbed yet.\nThe Android app will sync WA audio notes automatically.'}
+                            {filterNewOnly ? 'No new voices found' : searchQuery ? 'No chats match your search' : 'No WhatsApp voices grabbed yet.\nThe Android app will sync WA audio notes automatically.'}
                         </p>
                     </div>
                 ) : (
                     <div className="clay-card overflow-hidden rounded-[2rem]">
                         <div className="divide-y divide-white/5">
                             {filteredFolders.map((folderName, idx) => {
-                                const items = grouped[folderName];
+                                const items = grouped[folderName] || [];
                                 const latest = items[0];
+                                const folderNewCount = items.filter(v => v.isNew).length;
                                 return (
                                     <button
                                         key={folderName}
@@ -531,7 +587,7 @@ export default function WhatsAppVoiceView({
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center justify-between gap-2">
                                                 <span className="text-sm font-black text-white truncate">{folderName}</span>
-                                                <span className="text-[10px] font-mono text-white/30 shrink-0">{fmtDate(latest.created_at)}</span>
+                                                <span className="text-[10px] font-mono text-white/30 shrink-0">{latest ? fmtDate(latest.created_at) : ''}</span>
                                             </div>
                                             <div className="flex items-center gap-1.5 mt-0.5">
                                                 <Volume2 className="w-3 h-3 text-[#25D366]/60" />
@@ -543,7 +599,12 @@ export default function WhatsAppVoiceView({
 
                                         {/* Count Badge + Arrow */}
                                         <div className="flex items-center gap-2 shrink-0">
-                                            <div className="min-w-[22px] h-[22px] rounded-full bg-[#25D366] flex items-center justify-center px-1.5">
+                                            {folderNewCount > 0 && (
+                                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-[#25D366] text-black shadow-[0_0_8px_#25D366] animate-pulse">
+                                                    NEW +{folderNewCount}
+                                                </span>
+                                            )}
+                                            <div className="min-w-[22px] h-[22px] rounded-full bg-white/10 flex items-center justify-center px-1.5">
                                                 <span className="text-[10px] font-black text-white leading-none">{items.length}</span>
                                             </div>
                                             <ChevronRight className="w-4 h-4 text-white/20" />
@@ -660,7 +721,7 @@ export default function WhatsAppVoiceView({
                                                 : 'clay-capsule'
                                         }`}
                                     >
-                                        {/* Top Row: Icon + timestamp + actions */}
+                                        {/* Top Row: Icon + timestamp + NEW badge + actions */}
                                         <div className="flex items-center justify-between gap-2">
                                             <div className="flex items-center gap-2">
                                                 <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isPlaying ? 'bg-[#25D366]' : 'bg-[#25D366]/15 border border-[#25D366]/30'}`}>
@@ -669,6 +730,11 @@ export default function WhatsAppVoiceView({
                                                 <span className="text-[10px] font-mono text-white/40">
                                                     {fmtDate(voice.created_at)}
                                                 </span>
+                                                {voice.isNew && (
+                                                    <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-[#25D366] text-black shadow-[0_0_8px_rgba(37,211,102,0.8)] animate-pulse">
+                                                        NEW
+                                                    </span>
+                                                )}
                                             </div>
                                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <button
@@ -694,7 +760,12 @@ export default function WhatsAppVoiceView({
                                         <WaveAudioPlayer
                                             url={voice.url}
                                             isGlobalPlaying={isPlaying}
-                                            onPlayToggle={() => setPlayingId(isPlaying ? null : voice.id)}
+                                            onPlayToggle={() => {
+                                                if (voice.isNew) {
+                                                    setVoices(prev => prev.map(v => v.id === voice.id ? { ...v, isNew: false } : v));
+                                                }
+                                                setPlayingId(isPlaying ? null : voice.id);
+                                            }}
                                             onEnded={() => setPlayingId(null)}
                                         />
                                     </div>
