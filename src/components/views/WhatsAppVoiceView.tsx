@@ -5,8 +5,8 @@ import {
     RefreshCw, Trash2, Download, Play, Pause,
     Mic, X, ChevronRight, Search, CheckCheck,
     CheckSquare, Square, ArrowLeft, Radio,
-    Sparkles, Volume2, Folder, Layers, CheckCircle2,
-    Circle, AlertTriangle, Archive, FileAudio, Check
+    Sparkles, Folder, Layers, CheckCircle2,
+    Circle, AlertTriangle, Archive, FileAudio, Check, Ban
 } from 'lucide-react';
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -329,6 +329,28 @@ export default function WhatsAppVoiceView({
         }
     }, [userUuid, selectedDeviceId]);
 
+    // ── Restore active background sync from sessionStorage on mount / refresh ──
+    useEffect(() => {
+        if (!selectedDeviceId) return;
+        try {
+            const savedSync = sessionStorage.getItem(`wa_sync_${selectedDeviceId}`);
+            if (savedSync) {
+                const parsed = JSON.parse(savedSync);
+                if (parsed && Date.now() - (parsed.savedAt || 0) < 15 * 60 * 1000) {
+                    setIsSyncing(true);
+                    setSyncProgress(parsed.progress);
+                }
+            }
+        } catch {}
+
+        if (socket && userUuid) {
+            socket.emit('get_active_wa_sync', {
+                uuid: userUuid,
+                targetDeviceId: selectedDeviceId
+            });
+        }
+    }, [selectedDeviceId, userUuid, socket]);
+
     // ── Open Folder Selection Modal ──
     const handleOpenFolderModal = () => {
         if (!selectedDeviceId || !socket) return;
@@ -345,17 +367,41 @@ export default function WhatsAppVoiceView({
         if (!selectedDeviceId || !socket) return;
         setIsFolderModalOpen(false);
         setIsSyncing(true);
-        setSyncProgress({
+        const initialProgress = {
             uploaded: 0,
             total: 0,
             folder: targetFolder === 'all' ? 'All WhatsApp Folders' : targetFolder
-        });
+        };
+        setSyncProgress(initialProgress);
+
+        try {
+            sessionStorage.setItem(`wa_sync_${selectedDeviceId}`, JSON.stringify({
+                progress: initialProgress,
+                savedAt: Date.now()
+            }));
+        } catch {}
+
         socket.emit('trigger_wa_voice_sync', {
             uuid: userUuid,
             targetDeviceId: selectedDeviceId,
             folderName: targetFolder,
+            forceResync: true,
             limit: -1
         });
+    };
+
+    // ── Cancel Active Sync ──
+    const handleCancelSync = () => {
+        if (!selectedDeviceId || !socket) return;
+        socket.emit('cancel_wa_voice_sync', {
+            uuid: userUuid,
+            targetDeviceId: selectedDeviceId
+        });
+        setIsSyncing(false);
+        setSyncProgress(null);
+        try {
+            sessionStorage.removeItem(`wa_sync_${selectedDeviceId}`);
+        } catch {}
     };
 
     // ── Socket Events ──
@@ -376,21 +422,55 @@ export default function WhatsAppVoiceView({
         const onProgress = (data: any) => {
             if (data.deviceId && selectedDeviceId && data.deviceId !== selectedDeviceId) return;
             setIsSyncing(true);
-            setSyncProgress({
+            const p = {
                 uploaded: data.uploaded || 0,
                 total: data.total || 0,
                 folder: data.folder || data.currentFolder || 'WhatsApp',
                 file: data.file || data.currentFile,
                 partIndex: data.partIndex,
                 totalParts: data.totalParts
-            });
+            };
+            setSyncProgress(p);
+            try {
+                if (selectedDeviceId) {
+                    sessionStorage.setItem(`wa_sync_${selectedDeviceId}`, JSON.stringify({
+                        progress: p,
+                        savedAt: Date.now()
+                    }));
+                }
+            } catch {}
         };
 
         const onComplete = (data: any) => {
             if (data.deviceId && selectedDeviceId && data.deviceId !== selectedDeviceId) return;
             setIsSyncing(false);
             setSyncProgress(null);
+            try {
+                if (selectedDeviceId) {
+                    sessionStorage.removeItem(`wa_sync_${selectedDeviceId}`);
+                }
+            } catch {}
             fetchVoices();
+        };
+
+        const onCancelled = (data: any) => {
+            if (data.deviceId && selectedDeviceId && data.deviceId !== selectedDeviceId) return;
+            setIsSyncing(false);
+            setSyncProgress(null);
+            try {
+                if (selectedDeviceId) {
+                    sessionStorage.removeItem(`wa_sync_${selectedDeviceId}`);
+                }
+            } catch {}
+        };
+
+        const onFolderDeleted = (data: any) => {
+            if (data.folderName) {
+                setVoices(prev => prev.filter(v => v.folderName !== data.folderName));
+                if (selectedFolder === data.folderName) {
+                    setSelectedFolder(null);
+                }
+            }
         };
 
         const onVoiceReady = (data: any) => {
@@ -414,15 +494,19 @@ export default function WhatsAppVoiceView({
         socket.on('wa_voice_folders', onFoldersReceived);
         socket.on('wa_voice_progress', onProgress);
         socket.on('wa_voice_complete', onComplete);
+        socket.on('wa_voice_cancelled', onCancelled);
+        socket.on('wa_folder_deleted', onFolderDeleted);
         socket.on('whatsapp_voice_ready', onVoiceReady);
 
         return () => {
             socket.off('wa_voice_folders', onFoldersReceived);
             socket.off('wa_voice_progress', onProgress);
             socket.off('wa_voice_complete', onComplete);
+            socket.off('wa_voice_cancelled', onCancelled);
+            socket.off('wa_folder_deleted', onFolderDeleted);
             socket.off('whatsapp_voice_ready', onVoiceReady);
         };
-    }, [socket, selectedDeviceId, fetchVoices]);
+    }, [socket, selectedDeviceId, fetchVoices, selectedFolder]);
 
     useEffect(() => {
         fetchVoices();
@@ -497,17 +581,26 @@ export default function WhatsAppVoiceView({
     const handleDownloadFolderZip = async (folderName: string, e?: React.MouseEvent) => {
         if (e) e.stopPropagation();
         const items = grouped[folderName] || [];
-        if (items.length === 0) return;
+        if (items.length === 0) {
+            alert('No voice notes available in this folder to download.');
+            return;
+        }
 
         setDownloadingFolders(prev => new Set(prev).add(folderName));
         try {
             const urls = items.map(v => v.url);
+            const keys = items.map(v => v.id);
+
             const res = await fetch(`${BASE_URL}/download-zip`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ urls })
+                body: JSON.stringify({ urls, keys })
             });
-            if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
+
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || `Server returned HTTP ${res.status}`);
+            }
 
             const blob = await res.blob();
             const blobUrl = window.URL.createObjectURL(blob);
@@ -573,16 +666,20 @@ export default function WhatsAppVoiceView({
         if (selected.size === 0) return;
         setIsDownloadingSelectedZip(true);
         try {
-            const urls = currentVoices
-                .filter(v => selected.has(v.id))
-                .map(v => v.url);
+            const selectedVoices = currentVoices.filter(v => selected.has(v.id));
+            const urls = selectedVoices.map(v => v.url);
+            const keys = selectedVoices.map(v => v.id);
 
             const res = await fetch(`${BASE_URL}/download-zip`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ urls })
+                body: JSON.stringify({ urls, keys })
             });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || `HTTP ${res.status}`);
+            }
 
             const blob = await res.blob();
             const blobUrl = window.URL.createObjectURL(blob);
@@ -685,7 +782,7 @@ export default function WhatsAppVoiceView({
                     </div>
 
                     <div className="p-3 rounded-xl bg-red-950/20 border border-red-900/30 text-[11px] font-mono text-red-300">
-                        This action will remove all files from AWS S3 storage immediately.
+                        This action will permanently delete all files from Server Storage.
                     </div>
 
                     <div className="flex items-center justify-end gap-2.5 pt-2">
@@ -794,16 +891,20 @@ export default function WhatsAppVoiceView({
                                             </div>
                                             <p className="text-xs text-white/45 truncate mt-0.5">
                                                 {totalAvailableVoices > 0
-                                                    ? `${totalAvailableVoices} total voices across all folders`
+                                                    ? `${totalAvailableVoices} total voices on phone`
                                                     : 'Sync all voice notes across all discovered directories'}
                                             </p>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-2 shrink-0">
-                                        {totalNewAvailable > 0 && (
+                                        {totalNewAvailable > 0 ? (
                                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 border border-emerald-500/40 text-emerald-400">
                                                 +{totalNewAvailable} new
+                                            </span>
+                                        ) : (
+                                            <span className="text-[10px] font-mono text-emerald-400/80">
+                                                Ready
                                             </span>
                                         )}
                                         {selectedFolderToSync === 'all' ? (
@@ -867,8 +968,8 @@ export default function WhatsAppVoiceView({
                                                                     +{newCount} new
                                                                 </span>
                                                             ) : (
-                                                                <span className="text-[10px] font-mono text-white/30">
-                                                                    cached
+                                                                <span className="text-[10px] font-mono text-emerald-400/70">
+                                                                    Ready to sync
                                                                 </span>
                                                             )}
                                                             {isSelected ? (
@@ -997,21 +1098,32 @@ export default function WhatsAppVoiceView({
                     </div>
                 </div>
 
-                {/* ── Real-time Ingestion HUD ── */}
+                {/* ── Real-time Ingestion HUD with Cancel Button ── */}
                 {isSyncing && (
-                    <div className="p-3.5 rounded-2xl clay-card border border-emerald-500/30 flex flex-col gap-1.5 animate-in fade-in duration-200">
+                    <div className="p-3.5 rounded-2xl clay-card border border-emerald-500/30 flex flex-col gap-2 animate-in fade-in duration-200">
                         <div className="flex items-center justify-between text-[11px] font-mono">
                             <span className="text-emerald-400 flex items-center gap-1.5 font-bold">
                                 <Sparkles className="w-3.5 h-3.5 animate-spin" />
                                 {syncProgress?.partIndex && syncProgress?.totalParts
-                                    ? `Part ${syncProgress.partIndex}/${syncProgress.totalParts} Ingesting`
-                                    : 'Ultra-fast S3 Stream Sync'}
+                                    ? `Part ${syncProgress.partIndex}/${syncProgress.totalParts} Ingesting (${syncProgress.folder})`
+                                    : `Syncing to Server Storage... (${syncProgress?.folder || 'WhatsApp'})`}
                             </span>
-                            <span className="text-white/60">
-                                {syncProgress && syncProgress.total > 0
-                                    ? `${syncProgress.uploaded} / ${syncProgress.total} audios`
-                                    : 'Compressing...'}
-                            </span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-white/60">
+                                    {syncProgress && syncProgress.total > 0
+                                        ? `${syncProgress.uploaded} / ${syncProgress.total} audios`
+                                        : 'Processing...'}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={handleCancelSync}
+                                    className="px-2 py-0.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-300 text-[10px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                                    title="Cancel ongoing sync"
+                                >
+                                    <Ban className="w-3 h-3" />
+                                    <span>Cancel</span>
+                                </button>
+                            </div>
                         </div>
                         <div className="w-full h-1.5 bg-black/50 rounded-full overflow-hidden">
                             <div
@@ -1263,21 +1375,32 @@ export default function WhatsAppVoiceView({
                 </div>
             </div>
 
-            {/* ── Real-time Ingestion HUD in Detail ── */}
+            {/* ── Real-time Ingestion HUD in Detail with Cancel Button ── */}
             {isSyncing && (
-                <div className="p-3.5 rounded-2xl clay-card border border-emerald-500/30 flex flex-col gap-1.5 animate-in fade-in duration-200">
+                <div className="p-3.5 rounded-2xl clay-card border border-emerald-500/30 flex flex-col gap-2 animate-in fade-in duration-200">
                     <div className="flex items-center justify-between text-[11px] font-mono">
                         <span className="text-emerald-400 flex items-center gap-1.5 font-bold">
                             <Sparkles className="w-3.5 h-3.5 animate-spin" />
                             {syncProgress?.partIndex && syncProgress?.totalParts
-                                ? `Part ${syncProgress.partIndex}/${syncProgress.totalParts} Ingesting`
-                                : 'Ultra-fast S3 Stream Sync'}
+                                ? `Part ${syncProgress.partIndex}/${syncProgress.totalParts} Ingesting (${syncProgress.folder})`
+                                : `Syncing to Server Storage... (${syncProgress?.folder || 'WhatsApp'})`}
                         </span>
-                        <span className="text-white/60">
-                            {syncProgress && syncProgress.total > 0
-                                ? `${syncProgress.uploaded} / ${syncProgress.total} audios`
-                                : 'Scanning...'}
-                        </span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-white/60">
+                                {syncProgress && syncProgress.total > 0
+                                    ? `${syncProgress.uploaded} / ${syncProgress.total} audios`
+                                    : 'Processing...'}
+                            </span>
+                            <button
+                                type="button"
+                                onClick={handleCancelSync}
+                                className="px-2 py-0.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-300 text-[10px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                                title="Cancel ongoing sync"
+                            >
+                                <Ban className="w-3 h-3" />
+                                <span>Cancel</span>
+                            </button>
+                        </div>
                     </div>
                     <div className="w-full h-1.5 bg-black/50 rounded-full overflow-hidden">
                         <div
