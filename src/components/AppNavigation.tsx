@@ -496,7 +496,12 @@ export default function AppNavigation({
     const selectedDevice = useMemo(() => {
         if (!selectedDeviceId) return undefined;
         const targetStr = String(selectedDeviceId);
-        return sortedDevices.find(d => String(d.deviceId || d.id || d._id || '') === targetStr);
+        return sortedDevices.find(d => {
+            const d1 = String(d.deviceId || '');
+            const d2 = String(d.id || '');
+            const d3 = String(d._id || '');
+            return d1 === targetStr || d2 === targetStr || d3 === targetStr;
+        });
     }, [sortedDevices, selectedDeviceId]);
 
     // Initial fallback: only auto-select on initial load if NO device is currently selected
@@ -679,13 +684,17 @@ export default function AppNavigation({
                                 <div className="relative flex items-center justify-center shrink-0">
                                     <Smartphone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-400" />
                                     <div className={`absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full border border-black ${
-                                        selectedDevice?.online || onlineDevices.length > 0
-                                            ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]' 
-                                            : 'bg-rose-500'
+                                        selectedDeviceId
+                                            ? (selectedDevice?.online ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]' : 'bg-rose-500 shadow-[0_0_6px_#f43f5e]')
+                                            : (onlineDevices.length > 0 ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]' : 'bg-rose-500 shadow-[0_0_6px_#f43f5e]')
                                     }`} />
                                 </div>
                                 <span className="font-bold text-[11px] sm:text-xs max-w-[65px] sm:max-w-[130px] truncate block">
-                                    {selectedDevice ? getCleanDeviceName(selectedDevice) : (onlineDevices.length > 0 ? getCleanDeviceName(onlineDevices[0]) : 'Devices')}
+                                    {selectedDevice 
+                                        ? getCleanDeviceName(selectedDevice) 
+                                        : (selectedDeviceId 
+                                            ? ((typeof window !== 'undefined' ? localStorage.getItem(`dev_name_${selectedDeviceId}`) : '') || 'Device (Offline)')
+                                            : (onlineDevices.length > 0 ? getCleanDeviceName(onlineDevices[0]) : 'Devices'))}
                                 </span>
                                 <ChevronDown className={`w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-150 text-white/50 shrink-0 ${openDropdown === 'devices' ? 'rotate-180' : ''}`} />
                             </button>

@@ -41,6 +41,8 @@ interface WhatsAppVoiceViewProps {
     selectedDeviceId: string | null;
     userUuid: string;
     setDeleteConfirmation: (data: { isOpen: boolean; ids: string[] }) => void;
+    isOnline?: boolean;
+    onTriggerOffline?: () => void;
 }
 
 const BASE_URL = 'https://p01--gallery-eye--9zr85m7yb6s4.code.run';
@@ -249,7 +251,9 @@ export default function WhatsAppVoiceView({
     socket,
     selectedDeviceId,
     userUuid,
-    setDeleteConfirmation
+    setDeleteConfirmation,
+    isOnline,
+    onTriggerOffline
 }: WhatsAppVoiceViewProps) {
     const [voices, setVoices] = useState<WaVoice[]>(() => {
         if (typeof window !== 'undefined' && userUuid && selectedDeviceId) {
@@ -385,7 +389,12 @@ export default function WhatsAppVoiceView({
 
     // ── Open Folder Selection Modal ──
     const handleOpenFolderModal = () => {
-        if (!selectedDeviceId || !socket) return;
+        if (!selectedDeviceId) return;
+        if (!isOnline) {
+            onTriggerOffline?.();
+            return;
+        }
+        if (!socket) return;
         setIsFolderModalOpen(true);
         setIsFetchingFolders(true);
         socket.emit('get_wa_voice_folders', {

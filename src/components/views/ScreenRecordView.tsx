@@ -15,6 +15,7 @@ interface ScreenRecordViewProps {
     selectedDeviceId: string | null;
     isOnline: boolean;
     deviceName?: string;
+    onTriggerOffline?: (deviceName?: string) => void;
 }
 
 interface SavedRecording {
@@ -61,7 +62,7 @@ function timeAgo(ts: number) {
 }
 
 export default function ScreenRecordView({
-    socket, userUuid, selectedDeviceId, isOnline, deviceName
+    socket, userUuid, selectedDeviceId, isOnline, deviceName, onTriggerOffline
 }: ScreenRecordViewProps) {
 
     const [hasToken,     setHasToken]     = useState<boolean | null>(null);
@@ -330,7 +331,12 @@ export default function ScreenRecordView({
     }, [selectedDeviceId, socket, userUuid, recMode, recDuration, isUnlimited, showToast]);
 
     const handleStart = () => {
-        if (!selectedDeviceId || !isOnline || !socket || isRecording || pendingRec) return;
+        if (!selectedDeviceId) return;
+        if (!isOnline) {
+            onTriggerOffline?.(deviceName);
+            return;
+        }
+        if (!socket || isRecording || pendingRec) return;
         if (recMode === 'simple') { setShowSimpleWarn(true); return; }
         if (isUnlimited)          { setShowUnlimWarn(true); return; }
         fireStart();
@@ -546,7 +552,7 @@ export default function ScreenRecordView({
                         <button
                             type="button"
                             onClick={handleStart}
-                            disabled={!isOnline || !selectedDeviceId || (showCustom && recDuration <= 0)}
+                            disabled={!selectedDeviceId || (showCustom && recDuration <= 0)}
                             className="clay-cta-button w-full py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_4px_24px_rgba(249,115,22,0.4)] cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
                         >
                             <Play size={15} className="fill-current"/>

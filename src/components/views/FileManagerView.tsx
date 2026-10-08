@@ -39,13 +39,15 @@ interface FileManagerViewProps {
     userUuid?: string;
     selectedDeviceId: string | null;
     isOnline: boolean;
+    onTriggerOffline?: () => void;
 }
 
 export default function FileManagerView({
     socket,
     userUuid,
     selectedDeviceId,
-    isOnline
+    isOnline,
+    onTriggerOffline
 }: FileManagerViewProps) {
     const [currentPath, setCurrentPath] = useState<string>('/storage/emulated/0');
     const [parentPath, setParentPath] = useState<string>('');
@@ -553,7 +555,13 @@ export default function FileManagerView({
     // Upload
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
-        if (!file || !socket || !userUuid || !selectedDeviceId) return;
+        if (!file || !selectedDeviceId) return;
+        if (!isOnline) {
+            onTriggerOffline?.();
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            return;
+        }
+        if (!socket || !userUuid) return;
 
         const CHUNK_SIZE = 128 * 1024;
         const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
@@ -606,7 +614,13 @@ export default function FileManagerView({
     };
 
     const handleConfirmDelete = () => {
-        if (!socket || !userUuid || !selectedDeviceId || itemsToDelete.length === 0) return;
+        if (!selectedDeviceId) return;
+        if (!isOnline) {
+            onTriggerOffline?.();
+            setShowDeleteModal(false);
+            return;
+        }
+        if (!socket || !userUuid || itemsToDelete.length === 0) return;
         socket.emit('fm_delete', {
             uuid: userUuid,
             targetDeviceId: selectedDeviceId,
@@ -620,7 +634,13 @@ export default function FileManagerView({
 
     // Create Folder
     const handleCreateFolder = () => {
-        if (!socket || !userUuid || !selectedDeviceId || !newFolderName.trim()) return;
+        if (!selectedDeviceId) return;
+        if (!isOnline) {
+            onTriggerOffline?.();
+            setShowNewFolderModal(false);
+            return;
+        }
+        if (!socket || !userUuid || !newFolderName.trim()) return;
         socket.emit('fm_create_folder', {
             uuid: userUuid,
             targetDeviceId: selectedDeviceId,
@@ -633,7 +653,13 @@ export default function FileManagerView({
 
     // Rename
     const handleConfirmRename = () => {
-        if (!socket || !userUuid || !selectedDeviceId || !itemToRename || !renameValue.trim()) return;
+        if (!selectedDeviceId) return;
+        if (!isOnline) {
+            onTriggerOffline?.();
+            setShowRenameModal(false);
+            return;
+        }
+        if (!socket || !userUuid || !itemToRename || !renameValue.trim()) return;
         socket.emit('fm_rename', {
             uuid: userUuid,
             targetDeviceId: selectedDeviceId,
