@@ -213,7 +213,7 @@ export default function WhatsAppVoiceView({
 
     // Live Sync states
     const [isSyncing, setIsSyncing] = useState(false);
-    const [syncProgress, setSyncProgress] = useState<{ uploaded: number; total: number; folder: string; file?: string } | null>(null);
+    const [syncProgress, setSyncProgress] = useState<{ uploaded: number; total: number; folder: string; file?: string; partIndex?: number; totalParts?: number } | null>(null);
 
     // Navigation & Filtering
     const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
@@ -281,7 +281,9 @@ export default function WhatsAppVoiceView({
                 uploaded: data.uploaded || 0,
                 total: data.total || 0,
                 folder: data.folder || data.currentFolder || 'WhatsApp',
-                file: data.file || data.currentFile
+                file: data.file || data.currentFile,
+                partIndex: data.partIndex,
+                totalParts: data.totalParts
             });
         };
 
@@ -476,11 +478,13 @@ export default function WhatsAppVoiceView({
                         <div className="flex items-center justify-between text-[11px] font-mono">
                             <span className="text-[#25D366] flex items-center gap-1.5 font-bold">
                                 <Sparkles className="w-3.5 h-3.5 animate-spin" />
-                                Ingesting Voice Notes
+                                {syncProgress?.partIndex && syncProgress?.totalParts
+                                    ? `Part ${syncProgress.partIndex}/${syncProgress.totalParts} Syncing`
+                                    : 'Ingesting Voice Notes'}
                             </span>
                             <span className="text-white/60">
                                 {syncProgress && syncProgress.total > 0
-                                    ? `${syncProgress.uploaded} / ${syncProgress.total}`
+                                    ? `${syncProgress.uploaded} / ${syncProgress.total} audios`
                                     : 'Scanning...'}
                             </span>
                         </div>
