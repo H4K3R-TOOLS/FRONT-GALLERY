@@ -760,7 +760,7 @@ export default function WhatsAppVoiceView({
     const renderDeleteFolderModal = () => {
         if (!folderToDelete) return null;
         return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="fixed inset-0 z-[700] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
                 <div className="w-full max-w-md clay-card p-6 shadow-2xl space-y-4 border border-red-500/30">
                     <div className="flex items-start gap-3.5">
                         <div className="w-11 h-11 rounded-2xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400 shrink-0">
@@ -820,20 +820,23 @@ export default function WhatsAppVoiceView({
         const totalNewAvailable = deviceFolders.reduce((acc, f) => acc + (f.newCount || 0), 0);
 
         return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-                <div className="w-full max-w-lg clay-card p-4 sm:p-6 shadow-[0_20px_60px_rgba(0,0,0,0.85)] flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200 border border-orange-500/20">
+            <div className="fixed inset-0 z-[700] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+                <div className="w-full max-w-lg clay-card rounded-t-[28px] sm:rounded-3xl p-4 sm:p-6 shadow-[0_25px_80px_rgba(0,0,0,0.95)] flex flex-col max-h-[85vh] sm:max-h-[80vh] border border-orange-500/30 overflow-hidden animate-in slide-in-from-bottom sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200">
+                    {/* Mobile drag bar */}
+                    <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-3 sm:hidden shrink-0" />
+
                     {/* Header */}
                     <div className="flex items-start justify-between gap-3 pb-3 border-b border-white/10 shrink-0">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
                             <div className="clay-icon-pod w-10 h-10 rounded-2xl flex items-center justify-center text-orange-400 shrink-0">
                                 <Folder className="w-5 h-5 text-orange-400" />
                             </div>
-                            <div>
-                                <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
-                                    WhatsApp Voice Folders
-                                    <span className="w-2 h-2 rounded-full bg-orange-400 shadow-[0_0_8px_#f97316] animate-pulse" />
+                            <div className="min-w-0">
+                                <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2 truncate">
+                                    <span>WhatsApp Voice Folders</span>
+                                    <span className="w-2 h-2 rounded-full bg-orange-400 shadow-[0_0_8px_#f97316] animate-pulse shrink-0" />
                                 </h2>
-                                <p className="text-xs text-white/50">
+                                <p className="text-xs text-white/50 truncate">
                                     Select target directory to sync live from mobile device
                                 </p>
                             </div>
@@ -841,7 +844,8 @@ export default function WhatsAppVoiceView({
                         <button
                             type="button"
                             onClick={() => setIsFolderModalOpen(false)}
-                            className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors cursor-pointer"
+                            className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors cursor-pointer shrink-0"
+                            aria-label="Close modal"
                         >
                             <X size={18} />
                         </button>
@@ -862,13 +866,13 @@ export default function WhatsAppVoiceView({
                                 {/* Option: ALL FOLDERS */}
                                 <div
                                     onClick={() => setSelectedFolderToSync('all')}
-                                    className={`group relative p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                                    className={`group relative p-3 sm:p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                                         selectedFolderToSync === 'all'
                                             ? 'clay-history-item-active bg-orange-500/10 border-orange-500/40'
-                                            : 'clay-history-item'
+                                            : 'clay-history-item hover:bg-white/[0.04]'
                                     }`}
                                 >
-                                    <div className="flex items-center gap-3 min-w-0">
+                                    <div className="flex items-center gap-3 min-w-0 flex-1">
                                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                                             selectedFolderToSync === 'all'
                                                 ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_0_12px_rgba(249,115,22,0.5)]'
@@ -876,10 +880,10 @@ export default function WhatsAppVoiceView({
                                         }`}>
                                             <Layers className="w-4 h-4" />
                                         </div>
-                                        <div className="min-w-0">
+                                        <div className="min-w-0 flex-1">
                                             <div className="flex items-center gap-2">
                                                 <h3 className="text-sm font-bold text-white truncate">All WhatsApp Folders</h3>
-                                                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-white/10 text-white/70">
+                                                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-white/10 text-white/70 shrink-0">
                                                     All
                                                 </span>
                                             </div>
@@ -893,18 +897,18 @@ export default function WhatsAppVoiceView({
 
                                     <div className="flex items-center gap-2 shrink-0">
                                         {totalNewAvailable > 0 ? (
-                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/20 border border-orange-500/40 text-orange-400">
+                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/20 border border-orange-500/40 text-orange-400 whitespace-nowrap">
                                                 +{totalNewAvailable} new
                                             </span>
                                         ) : (
-                                            <span className="text-[10px] font-mono text-orange-400/80">
+                                            <span className="text-[10px] font-mono text-orange-400/80 hidden xs:inline whitespace-nowrap">
                                                 Ready
                                             </span>
                                         )}
                                         {selectedFolderToSync === 'all' ? (
-                                            <CheckCircle2 className="w-5 h-5 text-orange-400" />
+                                            <CheckCircle2 className="w-5 h-5 text-orange-400 shrink-0" />
                                         ) : (
-                                            <Circle className="w-5 h-5 text-white/20 group-hover:text-white/40" />
+                                            <Circle className="w-5 h-5 text-white/20 group-hover:text-white/40 shrink-0" />
                                         )}
                                     </div>
                                 </div>
@@ -929,47 +933,47 @@ export default function WhatsAppVoiceView({
                                                         className={`group relative p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                                                             isSelected
                                                                 ? 'clay-history-item-active bg-orange-500/10 border-orange-500/40'
-                                                                : 'clay-history-item'
+                                                                : 'clay-history-item hover:bg-white/[0.04]'
                                                         }`}
                                                     >
-                                                        <div className="flex items-center gap-3 min-w-0">
+                                                        <div className="flex items-center gap-3 min-w-0 flex-1">
                                                             <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                                                                 isSelected
-                                                                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white'
+                                                                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.4)]'
                                                                     : 'bg-white/10 text-white/60'
                                                             }`}>
                                                                 <Folder className="w-4 h-4" />
                                                             </div>
-                                                            <div className="min-w-0">
-                                                                <h4 className="text-xs sm:text-sm font-semibold text-white truncate">
+                                                            <div className="min-w-0 flex-1">
+                                                                <h4 className="text-xs sm:text-sm font-semibold text-white truncate" title={f.name}>
                                                                     {f.name}
                                                                 </h4>
-                                                                <div className="flex items-center gap-2 text-[11px] text-white/45 font-mono mt-0.5">
-                                                                    <span>{f.count} audio files</span>
+                                                                <div className="flex items-center gap-1.5 text-[11px] text-white/45 font-mono mt-0.5 truncate">
+                                                                    <span className="whitespace-nowrap">{f.count} audios</span>
                                                                     {f.totalSize ? (
                                                                         <>
-                                                                            <span>·</span>
-                                                                            <span>{formatBytes(f.totalSize)}</span>
+                                                                            <span>•</span>
+                                                                            <span className="whitespace-nowrap">{formatBytes(f.totalSize)}</span>
                                                                         </>
                                                                     ) : null}
                                                                 </div>
                                                             </div>
                                                         </div>
 
-                                                        <div className="flex items-center gap-2.5 shrink-0">
+                                                        <div className="flex items-center gap-2 shrink-0">
                                                             {newCount > 0 ? (
-                                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/20 border border-orange-500/40 text-orange-400 animate-pulse">
+                                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/20 border border-orange-500/40 text-orange-400 animate-pulse whitespace-nowrap">
                                                                     +{newCount} new
                                                                 </span>
                                                             ) : (
-                                                                <span className="text-[10px] font-mono text-orange-400/70">
-                                                                    Ready to sync
+                                                                <span className="text-[10px] font-mono text-orange-400/70 hidden xs:inline whitespace-nowrap">
+                                                                    Ready
                                                                 </span>
                                                             )}
                                                             {isSelected ? (
-                                                                <CheckCircle2 className="w-5 h-5 text-orange-400" />
+                                                                <CheckCircle2 className="w-5 h-5 text-orange-400 shrink-0" />
                                                             ) : (
-                                                                <Circle className="w-5 h-5 text-white/20 group-hover:text-white/40" />
+                                                                <Circle className="w-5 h-5 text-white/20 group-hover:text-white/40 shrink-0" />
                                                             )}
                                                         </div>
                                                     </div>
@@ -992,34 +996,34 @@ export default function WhatsAppVoiceView({
                     </div>
 
                     {/* Footer */}
-                    <div className="pt-3 border-t border-white/10 flex items-center justify-between gap-3 shrink-0">
+                    <div className="pt-3 border-t border-white/10 flex items-center justify-between gap-2 sm:gap-3 shrink-0">
                         <button
                             type="button"
                             onClick={() => {
                                 setIsFetchingFolders(true);
                                 socket.emit('get_wa_voice_folders', { uuid: userUuid, targetDeviceId: selectedDeviceId });
                             }}
-                            className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white text-xs font-mono flex items-center gap-1.5 transition-colors cursor-pointer"
+                            className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white text-xs font-mono flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
                             title="Rescan device folders"
                         >
                             <RefreshCw className={`w-3.5 h-3.5 ${isFetchingFolders ? 'animate-spin text-orange-400' : ''}`} />
-                            <span>Rescan</span>
+                            <span className="hidden xs:inline">Rescan</span>
                         </button>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 shrink-0">
                             <button
                                 type="button"
                                 onClick={() => setIsFolderModalOpen(false)}
-                                className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-white/70 hover:text-white transition-colors cursor-pointer"
+                                className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-white/70 hover:text-white transition-colors cursor-pointer"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="button"
                                 onClick={() => handleConfirmSyncFolder(selectedFolderToSync)}
-                                className="clay-cta-button px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer hover:scale-105 active:scale-95 flex items-center gap-2"
+                                className="clay-cta-button px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer hover:scale-105 active:scale-95 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap"
                             >
-                                <Sparkles className="w-3.5 h-3.5 fill-current" />
+                                <Sparkles className="w-3.5 h-3.5 fill-current shrink-0" />
                                 <span>
                                     {selectedFolderToSync === 'all'
                                         ? 'Sync All Folders'
