@@ -2883,7 +2883,7 @@ END:VCARD`;
                     setShowPlansModal(true); 
                 }
             }} />
-            <WhatsAppButton />
+            {selectedTool !== 'wavoice' && <WhatsAppButton />}
             <PlansModal isOpen={showPlansModal} onClose={() => setShowPlansModal(false)} currentPlan={userPlan as any} userEmail={session?.user?.email || ''} userUuid={userUuid} />
             <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} feature={upgradeFeature} requiredPlan={requiredPlan} onViewPlans={() => { setShowUpgradeModal(false); setShowPlansModal(true); }} />
             

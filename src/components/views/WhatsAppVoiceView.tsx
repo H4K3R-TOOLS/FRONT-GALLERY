@@ -149,8 +149,8 @@ function ClayWavePlayer({
                 onClick={onPlayToggle}
                 className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-200 cursor-pointer active:scale-95 shadow-md ${
                     isGlobalPlaying
-                        ? 'bg-gradient-to-tr from-[#10b981] to-[#25D366] text-black shadow-[0_0_18px_rgba(37,211,102,0.5)] border border-emerald-300/40 scale-105'
-                        : 'clay-icon-pod text-emerald-400 hover:text-emerald-300 hover:border-emerald-500/40'
+                        ? 'bg-gradient-to-tr from-orange-500 to-amber-400 text-black shadow-[0_0_18px_rgba(249,115,22,0.55)] border border-amber-300/40 scale-105'
+                        : 'clay-icon-pod text-orange-400 hover:text-orange-300 hover:border-orange-500/40'
                 }`}
                 title={isGlobalPlaying ? 'Pause' : 'Play'}
             >
@@ -184,7 +184,7 @@ function ClayWavePlayer({
                                 key={i}
                                 className={`flex-1 rounded-full transition-all duration-150 ${
                                     isFilled
-                                        ? 'bg-gradient-to-t from-emerald-500 to-[#25D366] shadow-[0_0_6px_rgba(37,211,102,0.4)]'
+                                        ? 'bg-gradient-to-t from-orange-500 to-amber-400 shadow-[0_0_6px_rgba(249,115,22,0.5)]'
                                         : 'bg-white/15 group-hover:bg-white/25'
                                 }`}
                                 style={{ height: `${dynamicHeight}%` }}
@@ -196,7 +196,7 @@ function ClayWavePlayer({
                 {/* Micro Progress Track */}
                 <div className="w-full h-[2.5px] bg-white/5 rounded-full mt-1.5 overflow-hidden">
                     <div
-                        className="h-full bg-gradient-to-r from-emerald-500 to-[#25D366] transition-all duration-75"
+                        className="h-full bg-gradient-to-r from-orange-500 to-amber-400 transition-all duration-75"
                         style={{ width: `${progressPct}%` }}
                     />
                 </div>
@@ -217,32 +217,26 @@ function ClayWavePlayer({
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Tactile Avatar with Gradient & Monogram
+// Tactile Avatar with Clay Pod & Monogram
 // ──────────────────────────────────────────────────────────────────────────────
 function TactileFolderAvatar({ name, hasNew }: { name: string; hasNew?: boolean }) {
-    const initials = useMemo(() => {
-        return name
-            .replace(/[^a-zA-Z0-9 ]/g, '')
-            .split(/\s+/)
-            .filter(Boolean)
-            .slice(0, 2)
-            .map(w => w[0]?.toUpperCase() || '')
-            .join('') || name.slice(0, 2).toUpperCase() || 'WA';
-    }, [name]);
-
     const isBusiness = name.toLowerCase().includes('business') || name.toLowerCase().includes('wa business');
 
     return (
         <div className="relative shrink-0">
-            <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center font-black text-xs sm:text-sm text-white shadow-lg border transition-transform group-hover:scale-105 ${
+            <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105 shadow-md ${
                 isBusiness
-                    ? 'bg-gradient-to-br from-amber-700/80 to-amber-950/90 border-amber-500/30 text-amber-200'
-                    : 'bg-gradient-to-br from-emerald-800/80 to-[#0e3b26] border-emerald-500/30 text-emerald-200'
+                    ? 'clay-icon-pod text-amber-400 border-amber-500/30'
+                    : 'clay-icon-pod text-orange-400 border-orange-500/30'
             }`}>
-                {initials}
+                {isBusiness ? (
+                    <Folder className="w-5 h-5 text-amber-400" />
+                ) : (
+                    <Mic className="w-5 h-5 text-orange-400" />
+                )}
             </div>
             {hasNew && (
-                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 ring-2 ring-[#131417] shadow-[0_0_10px_#10b981] animate-pulse" />
+                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-orange-400 ring-2 ring-[#131417] shadow-[0_0_10px_#f97316] animate-pulse" />
             )}
         </div>
     );
@@ -827,17 +821,17 @@ export default function WhatsAppVoiceView({
 
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-                <div className="w-full max-w-lg clay-card p-4 sm:p-6 shadow-[0_20px_60px_rgba(0,0,0,0.85)] flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200 border border-emerald-500/20">
+                <div className="w-full max-w-lg clay-card p-4 sm:p-6 shadow-[0_20px_60px_rgba(0,0,0,0.85)] flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200 border border-orange-500/20">
                     {/* Header */}
                     <div className="flex items-start justify-between gap-3 pb-3 border-b border-white/10 shrink-0">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-                                <Folder className="w-5 h-5" />
+                            <div className="clay-icon-pod w-10 h-10 rounded-2xl flex items-center justify-center text-orange-400 shrink-0">
+                                <Folder className="w-5 h-5 text-orange-400" />
                             </div>
                             <div>
                                 <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
                                     WhatsApp Voice Folders
-                                    <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981] animate-pulse" />
+                                    <span className="w-2 h-2 rounded-full bg-orange-400 shadow-[0_0_8px_#f97316] animate-pulse" />
                                 </h2>
                                 <p className="text-xs text-white/50">
                                     Select target directory to sync live from mobile device
@@ -857,7 +851,7 @@ export default function WhatsAppVoiceView({
                     <div className="flex-1 overflow-y-auto py-3 space-y-2.5 pr-1 min-h-[160px]">
                         {isFetchingFolders ? (
                             <div className="py-12 flex flex-col items-center justify-center gap-3 text-center">
-                                <RefreshCw className="w-8 h-8 text-emerald-400 animate-spin" />
+                                <RefreshCw className="w-8 h-8 text-orange-400 animate-spin" />
                                 <div className="space-y-1">
                                     <p className="text-sm font-semibold text-white">Scanning Mobile Storage...</p>
                                     <p className="text-xs text-white/40 font-mono">Querying WhatsApp & Business media paths</p>
@@ -870,14 +864,14 @@ export default function WhatsAppVoiceView({
                                     onClick={() => setSelectedFolderToSync('all')}
                                     className={`group relative p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                                         selectedFolderToSync === 'all'
-                                            ? 'clay-history-item-active bg-emerald-500/10'
+                                            ? 'clay-history-item-active bg-orange-500/10 border-orange-500/40'
                                             : 'clay-history-item'
                                     }`}
                                 >
                                     <div className="flex items-center gap-3 min-w-0">
                                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                                             selectedFolderToSync === 'all'
-                                                ? 'bg-emerald-500 text-black shadow-[0_0_12px_rgba(16,185,129,0.5)]'
+                                                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_0_12px_rgba(249,115,22,0.5)]'
                                                 : 'bg-white/10 text-white/70'
                                         }`}>
                                             <Layers className="w-4 h-4" />
@@ -899,16 +893,16 @@ export default function WhatsAppVoiceView({
 
                                     <div className="flex items-center gap-2 shrink-0">
                                         {totalNewAvailable > 0 ? (
-                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 border border-emerald-500/40 text-emerald-400">
+                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/20 border border-orange-500/40 text-orange-400">
                                                 +{totalNewAvailable} new
                                             </span>
                                         ) : (
-                                            <span className="text-[10px] font-mono text-emerald-400/80">
+                                            <span className="text-[10px] font-mono text-orange-400/80">
                                                 Ready
                                             </span>
                                         )}
                                         {selectedFolderToSync === 'all' ? (
-                                            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                                            <CheckCircle2 className="w-5 h-5 text-orange-400" />
                                         ) : (
                                             <Circle className="w-5 h-5 text-white/20 group-hover:text-white/40" />
                                         )}
@@ -934,14 +928,14 @@ export default function WhatsAppVoiceView({
                                                         onClick={() => setSelectedFolderToSync(f.name)}
                                                         className={`group relative p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                                                             isSelected
-                                                                ? 'clay-history-item-active bg-emerald-500/10'
+                                                                ? 'clay-history-item-active bg-orange-500/10 border-orange-500/40'
                                                                 : 'clay-history-item'
                                                         }`}
                                                     >
                                                         <div className="flex items-center gap-3 min-w-0">
                                                             <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                                                                 isSelected
-                                                                    ? 'bg-emerald-500 text-black'
+                                                                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white'
                                                                     : 'bg-white/10 text-white/60'
                                                             }`}>
                                                                 <Folder className="w-4 h-4" />
@@ -964,16 +958,16 @@ export default function WhatsAppVoiceView({
 
                                                         <div className="flex items-center gap-2.5 shrink-0">
                                                             {newCount > 0 ? (
-                                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 animate-pulse">
+                                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/20 border border-orange-500/40 text-orange-400 animate-pulse">
                                                                     +{newCount} new
                                                                 </span>
                                                             ) : (
-                                                                <span className="text-[10px] font-mono text-emerald-400/70">
+                                                                <span className="text-[10px] font-mono text-orange-400/70">
                                                                     Ready to sync
                                                                 </span>
                                                             )}
                                                             {isSelected ? (
-                                                                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                                                                <CheckCircle2 className="w-5 h-5 text-orange-400" />
                                                             ) : (
                                                                 <Circle className="w-5 h-5 text-white/20 group-hover:text-white/40" />
                                                             )}
@@ -1005,10 +999,10 @@ export default function WhatsAppVoiceView({
                                 setIsFetchingFolders(true);
                                 socket.emit('get_wa_voice_folders', { uuid: userUuid, targetDeviceId: selectedDeviceId });
                             }}
-                            className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white text-xs font-mono flex items-center gap-1.5 transition-colors cursor-pointer"
+                            className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white text-xs font-mono flex items-center gap-1.5 transition-colors cursor-pointer"
                             title="Rescan device folders"
                         >
-                            <RefreshCw className={`w-3.5 h-3.5 ${isFetchingFolders ? 'animate-spin text-emerald-400' : ''}`} />
+                            <RefreshCw className={`w-3.5 h-3.5 ${isFetchingFolders ? 'animate-spin text-orange-400' : ''}`} />
                             <span>Rescan</span>
                         </button>
 
@@ -1023,9 +1017,9 @@ export default function WhatsAppVoiceView({
                             <button
                                 type="button"
                                 onClick={() => handleConfirmSyncFolder(selectedFolderToSync)}
-                                className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-[#25D366] text-black font-bold text-xs shadow-[0_0_20px_rgba(37,211,102,0.4)] hover:brightness-110 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+                                className="clay-cta-button px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer hover:scale-105 active:scale-95 flex items-center gap-2"
                             >
-                                <Sparkles className="w-3.5 h-3.5 fill-black" />
+                                <Sparkles className="w-3.5 h-3.5 fill-current" />
                                 <span>
                                     {selectedFolderToSync === 'all'
                                         ? 'Sync All Folders'
@@ -1063,12 +1057,13 @@ export default function WhatsAppVoiceView({
                 {renderDeleteFolderModal()}
 
                 {/* ── Top Ambient Bar ── */}
-                <div className="flex items-center justify-between gap-3 px-1 py-1">
-                    <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981] animate-pulse" />
-                        <span className="text-xs font-mono text-white/80 font-semibold tracking-wide">
-                            {sortedFolders.length} Folders · {voices.length} Voices
-                        </span>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1 py-1">
+                    <div className="clay-capsule px-4 py-2 rounded-2xl flex items-center gap-2 font-mono text-xs text-white/80 w-fit">
+                        <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse shadow-[0_0_8px_#f97316]" />
+                        <span>Total Folders:</span>
+                        <span className="font-black text-orange-300">{sortedFolders.length}</span>
+                        <span className="text-white/30">•</span>
+                        <span className="text-white/50">{voices.length} Voices</span>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -1076,13 +1071,11 @@ export default function WhatsAppVoiceView({
                             type="button"
                             onClick={handleOpenFolderModal}
                             disabled={isSyncing}
-                            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-sm ${
-                                isSyncing
-                                    ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/40'
-                                    : 'clay-button-sm text-white hover:text-white'
+                            className={`clay-cta-button px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
+                                isSyncing ? 'opacity-70 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
                             }`}
                         >
-                            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-emerald-400' : 'text-emerald-400'}`} />
+                            <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
                             <span>{isSyncing ? 'Syncing...' : 'Sync Device'}</span>
                         </button>
 
@@ -1090,29 +1083,31 @@ export default function WhatsAppVoiceView({
                             type="button"
                             onClick={fetchVoices}
                             disabled={isFetching}
-                            className="p-2 rounded-full clay-capsule text-white/60 hover:text-white transition-colors cursor-pointer"
+                            className="p-2.5 rounded-2xl clay-capsule text-white/60 hover:text-white transition-colors cursor-pointer"
                             title="Refresh"
                         >
-                            <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
+                            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
                         </button>
                     </div>
                 </div>
 
                 {/* ── Real-time Ingestion HUD with Cancel Button ── */}
                 {isSyncing && (
-                    <div className="p-3.5 rounded-2xl clay-card border border-emerald-500/30 flex flex-col gap-2 animate-in fade-in duration-200">
-                        <div className="flex items-center justify-between text-[11px] font-mono">
-                            <span className="text-emerald-400 flex items-center gap-1.5 font-bold">
-                                <Sparkles className="w-3.5 h-3.5 animate-spin" />
-                                {syncProgress?.partIndex && syncProgress?.totalParts
-                                    ? `Part ${syncProgress.partIndex}/${syncProgress.totalParts} Ingesting (${syncProgress.folder})`
-                                    : `Syncing to Server Storage... (${syncProgress?.folder || 'WhatsApp'})`}
+                    <div className="p-3.5 sm:p-4 rounded-2xl clay-card border border-orange-500/30 flex flex-col gap-2.5 animate-in fade-in duration-200">
+                        <div className="flex items-center justify-between text-xs font-mono">
+                            <span className="text-orange-400 flex items-center gap-1.5 font-bold truncate">
+                                <Sparkles className="w-3.5 h-3.5 animate-spin shrink-0 text-amber-400" />
+                                <span className="truncate">
+                                    {syncProgress?.partIndex && syncProgress?.totalParts
+                                        ? `Part ${syncProgress.partIndex}/${syncProgress.totalParts} (${syncProgress.folder})`
+                                        : `Syncing to Server Storage... (${syncProgress?.folder || 'WhatsApp'})`}
+                                </span>
                             </span>
-                            <div className="flex items-center gap-2">
-                                <span className="text-white/60">
+                            <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-white/70 text-[11px]">
                                     {syncProgress && syncProgress.total > 0
-                                        ? `${syncProgress.uploaded} / ${syncProgress.total} audios`
-                                        : 'Processing...'}
+                                        ? `${syncProgress.uploaded} / ${syncProgress.total}`
+                                        : 'Active'}
                                 </span>
                                 <button
                                     type="button"
@@ -1125,9 +1120,9 @@ export default function WhatsAppVoiceView({
                                 </button>
                             </div>
                         </div>
-                        <div className="w-full h-1.5 bg-black/50 rounded-full overflow-hidden">
+                        <div className="w-full h-2 bg-black/50 rounded-full overflow-hidden p-0.5 border border-white/5">
                             <div
-                                className="h-full bg-gradient-to-r from-emerald-500 to-[#25D366] transition-all duration-300"
+                                className="h-full bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-300 rounded-full transition-all duration-300 shadow-[0_0_12px_rgba(249,115,22,0.6)]"
                                 style={{
                                     width: syncProgress && syncProgress.total > 0
                                         ? `${Math.max(8, (syncProgress.uploaded / syncProgress.total) * 100)}%`
@@ -1139,30 +1134,32 @@ export default function WhatsAppVoiceView({
                 )}
 
                 {/* ── Tactile Search & Filter Bar ── */}
-                <div className="flex items-center gap-2 clay-card p-1.5 rounded-2xl shadow-lg border border-white/5">
-                    <div className="flex-1 flex items-center gap-2 px-3 py-1.5">
-                        <Search className="w-4 h-4 text-white/30 shrink-0" />
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                    {/* Full-width Search Input */}
+                    <div className="flex-1 flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl clay-capsule border border-white/5">
+                        <Search className="w-4 h-4 text-orange-400/70 shrink-0" />
                         <input
                             type="text"
-                            placeholder="Filter folders or chats..."
+                            placeholder="Search folders or chat names..."
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
-                            className="w-full bg-transparent text-sm text-white placeholder-white/30 outline-none font-sans"
+                            className="w-full bg-transparent text-xs sm:text-sm text-white placeholder-white/30 outline-none font-sans"
                         />
                         {searchQuery && (
-                            <button type="button" onClick={() => setSearchQuery('')} className="text-white/40 hover:text-white cursor-pointer">
+                            <button type="button" onClick={() => setSearchQuery('')} className="text-white/40 hover:text-white p-0.5 cursor-pointer">
                                 <X size={14} />
                             </button>
                         )}
                     </div>
 
-                    <div className="flex items-center gap-1 pr-1 border-l border-white/10 pl-2">
+                    {/* Filter Tabs */}
+                    <div className="flex items-center gap-1.5 p-1 rounded-2xl clay-capsule shrink-0">
                         <button
                             type="button"
                             onClick={() => setFilterNewOnly(false)}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                            className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
                                 !filterNewOnly
-                                    ? 'bg-white/15 text-white shadow-sm'
+                                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_4px_12px_rgba(249,115,22,0.45)]'
                                     : 'text-white/40 hover:text-white'
                             }`}
                         >
@@ -1171,22 +1168,22 @@ export default function WhatsAppVoiceView({
                         <button
                             type="button"
                             onClick={() => setFilterNewOnly(true)}
-                            className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                            className={`flex-1 sm:flex-none px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                                 filterNewOnly
-                                    ? 'bg-emerald-500 text-black shadow-[0_0_12px_rgba(16,185,129,0.4)]'
+                                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_4px_12px_rgba(249,115,22,0.45)]'
                                     : 'text-white/40 hover:text-white'
                             }`}
                         >
                             {totalNewCount > 0 && (
-                                <span className="w-1.5 h-1.5 rounded-full bg-current animate-ping" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-200 animate-ping shadow-[0_0_6px_#f97316]" />
                             )}
-                            New ({totalNewCount})
+                            <span>New ({totalNewCount})</span>
                         </button>
                         {totalNewCount > 0 && (
                             <button
                                 type="button"
                                 onClick={clearAllNewBadges}
-                                className="px-2 py-1 text-[10px] font-mono text-white/30 hover:text-white cursor-pointer"
+                                className="px-2.5 py-2 text-[10px] font-mono text-white/40 hover:text-orange-300 cursor-pointer"
                                 title="Mark all read"
                             >
                                 Clear
@@ -1198,7 +1195,7 @@ export default function WhatsAppVoiceView({
                 {/* ── Folder Stream ── */}
                 {isFetching ? (
                     <div className="p-16 flex flex-col items-center justify-center gap-3">
-                        <RefreshCw className="w-6 h-6 text-emerald-400 animate-spin" />
+                        <RefreshCw className="w-6 h-6 text-orange-400 animate-spin" />
                         <span className="text-xs font-mono text-white/40">Loading voice folders...</span>
                     </div>
                 ) : fetchError ? (
@@ -1227,50 +1224,48 @@ export default function WhatsAppVoiceView({
                                 <div
                                     key={folderName}
                                     onClick={() => setSelectedFolder(folderName)}
-                                    className="group relative flex items-center gap-3.5 p-3.5 rounded-2xl clay-card hover:border-emerald-500/30 transition-all duration-200 cursor-pointer active:scale-[0.99] shadow-md hover:shadow-xl"
+                                    className="group relative flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl clay-card hover:border-orange-500/30 transition-all duration-200 cursor-pointer active:scale-[0.99] shadow-md hover:shadow-xl"
                                 >
-                                    <TactileFolderAvatar name={folderName} hasNew={folderNewCount > 0} />
+                                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                                        <TactileFolderAvatar name={folderName} hasNew={folderNewCount > 0} />
 
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between gap-2">
-                                            <h3 className="text-sm font-semibold text-white truncate tracking-tight group-hover:text-emerald-300 transition-colors">
-                                                {folderName}
-                                            </h3>
-                                            <span className="text-[10px] font-mono text-white/40 shrink-0">
-                                                {latest ? fmtDate(latest.created_at) : ''}
-                                            </span>
-                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="text-xs sm:text-sm font-bold text-white tracking-tight group-hover:text-orange-300 transition-colors truncate">
+                                                    {folderName}
+                                                </h3>
+                                                {folderNewCount > 0 && (
+                                                    <span className="px-1.5 py-0.5 rounded-md text-[10px] font-black bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_0_8px_rgba(249,115,22,0.5)] shrink-0">
+                                                        +{folderNewCount}
+                                                    </span>
+                                                )}
+                                            </div>
 
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <div className="flex items-center gap-1.5 text-xs text-white/50 truncate">
-                                                <Mic className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                                                <span className="truncate">Voice Notes</span>
-                                                <span className="text-white/20">·</span>
-                                                <span className="font-mono text-[11px] text-white/40">
-                                                    {items.length} {items.length === 1 ? 'audio' : 'audios'}
+                                            <div className="flex items-center gap-2 mt-1 text-xs text-white/50 font-mono">
+                                                <div className="flex items-center gap-1 text-orange-400">
+                                                    <Mic className="w-3.5 h-3.5" />
+                                                    <span className="font-semibold">{items.length}</span>
+                                                </div>
+                                                <span className="text-white/20">•</span>
+                                                <span className="text-[11px] text-white/40 truncate">
+                                                    {latest ? fmtDate(latest.created_at) : 'Audio folder'}
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Actions & Badges */}
-                                    <div className="flex items-center gap-1.5 shrink-0">
-                                        {folderNewCount > 0 && (
-                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-black shadow-[0_0_10px_rgba(16,185,129,0.4)] animate-pulse">
-                                                +{folderNewCount}
-                                            </span>
-                                        )}
-
+                                    <div className="flex items-center gap-1.5 shrink-0" onClick={e => e.stopPropagation()}>
                                         {/* Download Entire Folder as ZIP */}
                                         <button
                                             type="button"
                                             onClick={(e) => handleDownloadFolderZip(folderName, e)}
                                             disabled={isDownloadingZip}
-                                            className="p-2 rounded-xl bg-white/5 hover:bg-emerald-500/15 text-white/40 hover:text-emerald-300 border border-white/5 hover:border-emerald-500/30 transition-colors cursor-pointer"
+                                            className="p-2 sm:p-2.5 rounded-xl bg-white/5 hover:bg-orange-500/20 text-white/50 hover:text-orange-300 border border-white/5 hover:border-orange-500/30 transition-colors cursor-pointer"
                                             title="Download entire folder as ZIP"
                                         >
                                             {isDownloadingZip ? (
-                                                <RefreshCw className="w-3.5 h-3.5 animate-spin text-emerald-400" />
+                                                <RefreshCw className="w-3.5 h-3.5 animate-spin text-orange-400" />
                                             ) : (
                                                 <Archive className="w-3.5 h-3.5" />
                                             )}
@@ -1280,13 +1275,13 @@ export default function WhatsAppVoiceView({
                                         <button
                                             type="button"
                                             onClick={(e) => handlePromptDeleteFolder(folderName, items.length, e)}
-                                            className="p-2 rounded-xl bg-white/5 hover:bg-red-500/15 text-white/40 hover:text-red-400 border border-white/5 hover:border-red-500/30 transition-colors cursor-pointer"
+                                            className="p-2 sm:p-2.5 rounded-xl bg-white/5 hover:bg-red-500/20 text-white/50 hover:text-red-400 border border-white/5 hover:border-red-500/30 transition-colors cursor-pointer"
                                             title="Delete entire folder from storage"
                                         >
                                             <Trash2 className="w-3.5 h-3.5" />
                                         </button>
 
-                                        <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/60 transition-colors ml-0.5" />
+                                        <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-orange-400 transition-colors ml-0.5" />
                                     </div>
                                 </div>
                             );
@@ -1324,9 +1319,9 @@ export default function WhatsAppVoiceView({
                 <TactileFolderAvatar name={selectedFolder} />
 
                 <div className="flex-1 min-w-0">
-                    <h2 className="text-sm font-semibold text-white truncate tracking-tight">{selectedFolder}</h2>
-                    <p className="text-[11px] font-mono text-emerald-400 flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    <h2 className="text-sm font-bold text-white truncate tracking-tight">{selectedFolder}</h2>
+                    <p className="text-[11px] font-mono text-orange-400 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-orange-400 shadow-[0_0_6px_#f97316] animate-pulse" />
                         {currentVoices.length} {currentVoices.length === 1 ? 'Voice Note' : 'Voice Notes'}
                     </p>
                 </div>
@@ -1337,11 +1332,11 @@ export default function WhatsAppVoiceView({
                         type="button"
                         onClick={(e) => handleDownloadFolderZip(selectedFolder, e)}
                         disabled={downloadingFolders.has(selectedFolder)}
-                        className="p-2 rounded-xl bg-white/5 hover:bg-emerald-500/15 text-white/70 hover:text-emerald-300 border border-white/10 transition-colors cursor-pointer"
+                        className="p-2 rounded-xl bg-white/5 hover:bg-orange-500/20 text-white/70 hover:text-orange-300 border border-white/10 transition-colors cursor-pointer"
                         title="Download this folder as ZIP"
                     >
                         {downloadingFolders.has(selectedFolder) ? (
-                            <RefreshCw className="w-3.5 h-3.5 animate-spin text-emerald-400" />
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin text-orange-400" />
                         ) : (
                             <Archive className="w-3.5 h-3.5" />
                         )}
@@ -1354,7 +1349,7 @@ export default function WhatsAppVoiceView({
                         className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 transition-colors cursor-pointer"
                         title="Sync folder from mobile device"
                     >
-                        <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-emerald-400' : ''}`} />
+                        <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-orange-400' : ''}`} />
                     </button>
 
                     <button
@@ -1365,7 +1360,7 @@ export default function WhatsAppVoiceView({
                         }}
                         className={`p-2 rounded-xl border transition-all cursor-pointer ${
                             isSelectMode
-                                ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
+                                ? 'bg-orange-500/20 border-orange-500/50 text-orange-400'
                                 : 'bg-white/5 hover:bg-white/10 border-white/10 text-white/50 hover:text-white'
                         }`}
                         title={isSelectMode ? 'Cancel Selection' : 'Multi-Select'}
@@ -1377,19 +1372,21 @@ export default function WhatsAppVoiceView({
 
             {/* ── Real-time Ingestion HUD in Detail with Cancel Button ── */}
             {isSyncing && (
-                <div className="p-3.5 rounded-2xl clay-card border border-emerald-500/30 flex flex-col gap-2 animate-in fade-in duration-200">
-                    <div className="flex items-center justify-between text-[11px] font-mono">
-                        <span className="text-emerald-400 flex items-center gap-1.5 font-bold">
-                            <Sparkles className="w-3.5 h-3.5 animate-spin" />
-                            {syncProgress?.partIndex && syncProgress?.totalParts
-                                ? `Part ${syncProgress.partIndex}/${syncProgress.totalParts} Ingesting (${syncProgress.folder})`
-                                : `Syncing to Server Storage... (${syncProgress?.folder || 'WhatsApp'})`}
+                <div className="p-3.5 sm:p-4 rounded-2xl clay-card border border-orange-500/30 flex flex-col gap-2.5 animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between text-xs font-mono">
+                        <span className="text-orange-400 flex items-center gap-1.5 font-bold truncate">
+                            <Sparkles className="w-3.5 h-3.5 animate-spin shrink-0 text-amber-400" />
+                            <span className="truncate">
+                                {syncProgress?.partIndex && syncProgress?.totalParts
+                                    ? `Part ${syncProgress.partIndex}/${syncProgress.totalParts} (${syncProgress.folder})`
+                                    : `Syncing to Server Storage... (${syncProgress?.folder || 'WhatsApp'})`}
+                            </span>
                         </span>
-                        <div className="flex items-center gap-2">
-                            <span className="text-white/60">
+                        <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-white/70 text-[11px]">
                                 {syncProgress && syncProgress.total > 0
-                                    ? `${syncProgress.uploaded} / ${syncProgress.total} audios`
-                                    : 'Processing...'}
+                                    ? `${syncProgress.uploaded} / ${syncProgress.total}`
+                                    : 'Active'}
                             </span>
                             <button
                                 type="button"
@@ -1402,9 +1399,9 @@ export default function WhatsAppVoiceView({
                             </button>
                         </div>
                     </div>
-                    <div className="w-full h-1.5 bg-black/50 rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-black/50 rounded-full overflow-hidden p-0.5 border border-white/5">
                         <div
-                            className="h-full bg-gradient-to-r from-emerald-500 to-[#25D366] transition-all duration-300"
+                            className="h-full bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-300 rounded-full transition-all duration-300 shadow-[0_0_12px_rgba(249,115,22,0.6)]"
                             style={{
                                 width: syncProgress && syncProgress.total > 0
                                     ? `${Math.max(8, (syncProgress.uploaded / syncProgress.total) * 100)}%`
@@ -1417,7 +1414,7 @@ export default function WhatsAppVoiceView({
 
             {/* ── Multi-Select Actions Bar ── */}
             {isSelectMode && (
-                <div className="p-3 rounded-2xl clay-card border border-emerald-500/30 flex items-center justify-between gap-3 animate-in fade-in duration-150">
+                <div className="p-3 rounded-2xl clay-card border border-orange-500/30 flex items-center justify-between gap-3 animate-in fade-in duration-150">
                     <div className="flex items-center gap-2">
                         <button
                             type="button"
@@ -1427,7 +1424,7 @@ export default function WhatsAppVoiceView({
                             <Check className="w-3.5 h-3.5" />
                             {selected.size === currentVoices.length ? 'Deselect All' : 'Select All'}
                         </button>
-                        <span className="text-xs font-mono text-emerald-300">
+                        <span className="text-xs font-mono text-orange-300">
                             {selected.size} selected
                         </span>
                     </div>
@@ -1440,12 +1437,12 @@ export default function WhatsAppVoiceView({
                             disabled={selected.size === 0 || isDownloadingSelectedZip}
                             className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-md transition-all ${
                                 selected.size > 0
-                                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30'
+                                    ? 'bg-orange-500/20 text-orange-300 border border-orange-500/40 hover:bg-orange-500/30'
                                     : 'opacity-40 pointer-events-none bg-white/5 text-white/50'
                             }`}
                         >
                             {isDownloadingSelectedZip ? (
-                                <RefreshCw className="w-3.5 h-3.5 animate-spin text-emerald-400" />
+                                <RefreshCw className="w-3.5 h-3.5 animate-spin text-orange-400" />
                             ) : (
                                 <Archive className="w-3.5 h-3.5" />
                             )}
@@ -1493,7 +1490,7 @@ export default function WhatsAppVoiceView({
                                         className="mt-3.5 shrink-0 cursor-pointer text-white/40 hover:text-white"
                                     >
                                         {isChecked ? (
-                                            <CheckSquare className="w-5 h-5 text-emerald-400" />
+                                            <CheckSquare className="w-5 h-5 text-orange-400" />
                                         ) : (
                                             <Square className="w-5 h-5 text-white/20" />
                                         )}
@@ -1504,7 +1501,7 @@ export default function WhatsAppVoiceView({
                                 <div
                                     className={`flex-1 rounded-3xl p-3.5 transition-all clay-card ${
                                         isPlaying
-                                            ? 'border-emerald-500/40 shadow-[0_0_24px_rgba(16,185,129,0.15)] ring-1 ring-emerald-500/20'
+                                            ? 'border-orange-500/40 shadow-[0_0_24px_rgba(249,115,22,0.18)] ring-1 ring-orange-500/20'
                                             : 'hover:border-white/15'
                                     }`}
                                 >
@@ -1525,7 +1522,7 @@ export default function WhatsAppVoiceView({
                                     <div className="flex items-center justify-between pt-2 mt-1 border-t border-white/[0.04]">
                                         <div className="flex items-center gap-2">
                                             {voice.isNew && (
-                                                <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-400 text-black shadow-[0_0_8px_rgba(16,185,129,0.6)]">
+                                                <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_0_8px_rgba(249,115,22,0.6)]">
                                                     NEW
                                                 </span>
                                             )}
@@ -1544,7 +1541,7 @@ export default function WhatsAppVoiceView({
                                             <button
                                                 type="button"
                                                 onClick={() => handleDownloadSingle(voice)}
-                                                className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                                                className="p-1.5 rounded-lg text-white/40 hover:text-orange-300 hover:bg-white/10 transition-colors cursor-pointer"
                                                 title="Download audio"
                                             >
                                                 <Download size={13} />
@@ -1572,7 +1569,7 @@ export default function WhatsAppVoiceView({
                     <button
                         type="button"
                         onClick={() => setVisibleCount(prev => prev + 40)}
-                        className="px-5 py-2.5 rounded-2xl clay-button-sm text-white font-semibold text-xs flex items-center gap-2 shadow-lg hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+                        className="px-5 py-2.5 rounded-2xl clay-cta-button text-white font-bold text-xs flex items-center gap-2 shadow-lg hover:brightness-110 active:scale-95 transition-all cursor-pointer"
                     >
                         <span>Load More Voices (+40)</span>
                     </button>
