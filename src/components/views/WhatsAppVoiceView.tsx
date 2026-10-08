@@ -5,7 +5,7 @@ import {
     RefreshCw, Trash2, Download, Play, Pause,
     Mic, X, ChevronRight, Search, CheckCheck,
     CheckSquare, Square, ArrowLeft, Radio,
-    Sparkles, Volume2
+    Sparkles, Volume2, Folder, Layers, CheckCircle2, Circle
 } from 'lucide-react';
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -21,6 +21,14 @@ interface WaVoice {
     name: string;
     deviceId?: string;
     isNew?: boolean;
+}
+
+interface DeviceFolder {
+    name: string;
+    count: number;
+    newCount?: number;
+    totalSize?: number;
+    latestTimestamp?: number;
 }
 
 interface GroupedVoices {
@@ -215,6 +223,12 @@ export default function WhatsAppVoiceView({
     const [isSyncing, setIsSyncing] = useState(false);
     const [syncProgress, setSyncProgress] = useState<{ uploaded: number; total: number; folder: string; file?: string; partIndex?: number; totalParts?: number } | null>(null);
 
+    // WhatsApp Folder Modal states
+    const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
+    const [deviceFolders, setDeviceFolders] = useState<DeviceFolder[]>([]);
+    const [isFetchingFolders, setIsFetchingFolders] = useState(false);
+    const [selectedFolderToSync, setSelectedFolderToSync] = useState<string>('all');
+
     // Navigation & Filtering
     const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -257,15 +271,31 @@ export default function WhatsAppVoiceView({
         }
     }, [userUuid, selectedDeviceId]);
 
-    // ── Trigger Device Sync ──
-    const handleTriggerSync = () => {
+    // ── Open Folder Selection Modal & Fetch Live Folders ──
+    const handleOpenFolderModal = () => {
         if (!selectedDeviceId || !socket) return;
+        setIsFolderModalOpen(true);
+        setIsFetchingFolders(true);
+        socket.emit('get_wa_voice_folders', {
+            uuid: userUuid,
+            targetDeviceId: selectedDeviceId
+        });
+    };
+
+    // ── Trigger Device Sync for Selected Folder ──
+    const handleConfirmSyncFolder = (targetFolder: string) => {
+        if (!selectedDeviceId || !socket) return;
+        setIsFolderModalOpen(false);
         setIsSyncing(true);
-        setSyncProgress({ uploaded: 0, total: 0, folder: selectedFolder || 'Scanning...' });
+        setSyncProgress({
+            uploaded: 0,
+            total: 0,
+            folder: targetFolder === 'all' ? 'All WhatsApp Folders' : targetFolder
+        });
         socket.emit('trigger_wa_voice_sync', {
             uuid: userUuid,
             targetDeviceId: selectedDeviceId,
-            folderName: selectedFolder || 'all',
+            folderName: targetFolder,
             limit: -1
         });
     };
@@ -273,6 +303,17 @@ export default function WhatsAppVoiceView({
     // ── Socket Events ──
     useEffect(() => {
         if (!socket) return;
+
+        const onFoldersReceived = (data: any) => {
+            setIsFetchingFolders(false);
+            let list: DeviceFolder[] = [];
+            if (Array.isArray(data)) {
+                list = data;
+            } else if (data && Array.isArray(data.folders)) {
+                list = data.folders;
+            }
+            setDeviceFolders(list);
+        };
 
         const onProgress = (data: any) => {
             if (data.deviceId && selectedDeviceId && data.deviceId !== selectedDeviceId) return;
@@ -312,11 +353,13 @@ export default function WhatsAppVoiceView({
             });
         };
 
+        socket.on('wa_voice_folders', onFoldersReceived);
         socket.on('wa_voice_progress', onProgress);
         socket.on('wa_voice_complete', onComplete);
         socket.on('whatsapp_voice_ready', onVoiceReady);
 
         return () => {
+            socket.off('wa_voice_folders', onFoldersReceived);
             socket.off('wa_voice_progress', onProgress);
             socket.off('wa_voice_complete', onComplete);
             socket.off('whatsapp_voice_ready', onVoiceReady);
@@ -415,6 +458,231 @@ export default function WhatsAppVoiceView({
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
 
+    const formatBytes = (bytes?: number) => {
+        if (!bytes || bytes <= 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
+    };
+
+    // ── Live WhatsApp Folder Selection Modal ──
+    const renderFolderModal = () => {
+        if (!isFolderModalOpen) return null;
+
+        const totalAvailableVoices = deviceFolders.reduce((acc, f) => acc + (f.count || 0), 0);
+        const totalNewAvailable = deviceFolders.reduce((acc, f) => acc + (f.newCount || 0), 0);
+
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+                <div className="w-full max-w-lg bg-[#141518] border border-white/10 rounded-3xl p-4 sm:p-6 shadow-[0_20px_60px_rgba(0,0,0,0.85)] flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+                    {/* Modal Header */}
+                    <div className="flex items-start justify-between gap-3 pb-3 border-b border-white/10 shrink-0">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-2xl bg-[#25D366]/15 border border-[#25D366]/30 flex items-center justify-center text-[#25D366] shrink-0">
+                                <Folder className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
+                                    WhatsApp Voice Folders
+                                    <span className="w-2 h-2 rounded-full bg-[#25D366] shadow-[0_0_8px_#25D366] animate-pulse" />
+                                </h2>
+                                <p className="text-xs text-white/50">
+                                    Select target directory to sync live from mobile device
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setIsFolderModalOpen(false)}
+                            className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors cursor-pointer"
+                        >
+                            <X size={18} />
+                        </button>
+                    </div>
+
+                    {/* Modal Body */}
+                    <div className="flex-1 overflow-y-auto py-3 space-y-2.5 pr-1 min-h-[160px]">
+                        {isFetchingFolders ? (
+                            <div className="py-12 flex flex-col items-center justify-center gap-3 text-center">
+                                <RefreshCw className="w-8 h-8 text-[#25D366] animate-spin" />
+                                <div className="space-y-1">
+                                    <p className="text-sm font-semibold text-white">Scanning Mobile Device...</p>
+                                    <p className="text-xs text-white/40 font-mono">Querying WhatsApp & Business directories</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                {/* Option: ALL FOLDERS */}
+                                <div
+                                    onClick={() => setSelectedFolderToSync('all')}
+                                    className={`group relative p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                                        selectedFolderToSync === 'all'
+                                            ? 'bg-[#25D366]/10 border-[#25D366]/50 shadow-[0_0_20px_rgba(37,211,102,0.15)] ring-1 ring-[#25D366]/30'
+                                            : 'bg-white/[0.03] hover:bg-white/[0.07] border-white/5 hover:border-white/15'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                                            selectedFolderToSync === 'all'
+                                                ? 'bg-[#25D366] text-black shadow-[0_0_12px_rgba(37,211,102,0.5)]'
+                                                : 'bg-white/10 text-white/70'
+                                        }`}>
+                                            <Layers className="w-4 h-4" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="text-sm font-bold text-white truncate">All WhatsApp Folders</h3>
+                                                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-white/10 text-white/70">
+                                                    All
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-white/45 truncate mt-0.5">
+                                                {totalAvailableVoices > 0
+                                                    ? `${totalAvailableVoices} total voices across all folders`
+                                                    : 'Sync all voice notes across all discovered directories'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        {totalNewAvailable > 0 && (
+                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#25D366]/20 border border-[#25D366]/40 text-[#25D366]">
+                                                +{totalNewAvailable} new
+                                            </span>
+                                        )}
+                                        {selectedFolderToSync === 'all' ? (
+                                            <CheckCircle2 className="w-5 h-5 text-[#25D366]" />
+                                        ) : (
+                                            <Circle className="w-5 h-5 text-white/20 group-hover:text-white/40" />
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* List of Discovered Phone Folders */}
+                                {deviceFolders.length > 0 && (
+                                    <div className="pt-2">
+                                        <div className="px-1 pb-1.5 flex items-center justify-between text-[11px] font-mono text-white/40 uppercase tracking-wider">
+                                            <span>Discovered Phone Folders ({deviceFolders.length})</span>
+                                            <span>Voices / Status</span>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            {deviceFolders.map((f) => {
+                                                const isSelected = selectedFolderToSync === f.name;
+                                                const newCount = f.newCount ?? 0;
+
+                                                return (
+                                                    <div
+                                                        key={f.name}
+                                                        onClick={() => setSelectedFolderToSync(f.name)}
+                                                        className={`group relative p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                                                            isSelected
+                                                                ? 'bg-[#25D366]/10 border-[#25D366]/50 shadow-[0_0_20px_rgba(37,211,102,0.15)] ring-1 ring-[#25D366]/30'
+                                                                : 'bg-white/[0.03] hover:bg-white/[0.07] border-white/5 hover:border-white/15'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center gap-3 min-w-0">
+                                                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                                                                isSelected
+                                                                    ? 'bg-[#25D366] text-black'
+                                                                    : 'bg-white/10 text-white/60'
+                                                            }`}>
+                                                                <Folder className="w-4 h-4" />
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <h4 className="text-xs sm:text-sm font-semibold text-white truncate">
+                                                                    {f.name}
+                                                                </h4>
+                                                                <div className="flex items-center gap-2 text-[11px] text-white/45 font-mono mt-0.5">
+                                                                    <span>{f.count} audio files</span>
+                                                                    {f.totalSize ? (
+                                                                        <>
+                                                                            <span>·</span>
+                                                                            <span>{formatBytes(f.totalSize)}</span>
+                                                                        </>
+                                                                    ) : null}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-2.5 shrink-0">
+                                                            {newCount > 0 ? (
+                                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#25D366]/20 border border-[#25D366]/40 text-[#25D366] animate-pulse">
+                                                                    +{newCount} new
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-[10px] font-mono text-white/30">
+                                                                    up to date
+                                                                </span>
+                                                            )}
+                                                            {isSelected ? (
+                                                                <CheckCircle2 className="w-5 h-5 text-[#25D366]" />
+                                                            ) : (
+                                                                <Circle className="w-5 h-5 text-white/20 group-hover:text-white/40" />
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {deviceFolders.length === 0 && !isFetchingFolders && (
+                                    <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 text-center space-y-1">
+                                        <p className="text-xs text-white/60">No cached sub-folders listed yet</p>
+                                        <p className="text-[11px] text-white/35 font-mono">
+                                            Choose 'All WhatsApp Folders' to sync everything on device.
+                                        </p>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+
+                    {/* Modal Footer */}
+                    <div className="pt-3 border-t border-white/10 flex items-center justify-between gap-3 shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsFetchingFolders(true);
+                                socket.emit('get_wa_voice_folders', { uuid: userUuid, targetDeviceId: selectedDeviceId });
+                            }}
+                            className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white text-xs font-mono flex items-center gap-1.5 transition-colors cursor-pointer"
+                            title="Rescan device folders"
+                        >
+                            <RefreshCw className={`w-3.5 h-3.5 ${isFetchingFolders ? 'animate-spin text-[#25D366]' : ''}`} />
+                            <span>Rescan</span>
+                        </button>
+
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setIsFolderModalOpen(false)}
+                                className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-white/70 hover:text-white transition-colors cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleConfirmSyncFolder(selectedFolderToSync)}
+                                className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#128C7E] to-[#25D366] text-black font-bold text-xs shadow-[0_0_20px_rgba(37,211,102,0.4)] hover:brightness-110 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+                            >
+                                <Sparkles className="w-3.5 h-3.5 fill-black" />
+                                <span>
+                                    {selectedFolderToSync === 'all'
+                                        ? 'Sync All Folders'
+                                        : 'Sync Selected'}
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     // ── Empty State ──
     if (!selectedDeviceId) {
         return (
@@ -435,6 +703,7 @@ export default function WhatsAppVoiceView({
     if (!selectedFolder) {
         return (
             <div className="w-full max-w-2xl mx-auto space-y-3.5 pb-24 px-2 sm:px-4 animate-in fade-in duration-200">
+                {renderFolderModal()}
 
                 {/* ── Top Ambient Bar (No Tacky Banners) ── */}
                 <div className="flex items-center justify-between gap-3 px-1 py-1">
@@ -448,7 +717,7 @@ export default function WhatsAppVoiceView({
                     <div className="flex items-center gap-2">
                         <button
                             type="button"
-                            onClick={handleTriggerSync}
+                            onClick={handleOpenFolderModal}
                             disabled={isSyncing}
                             className={`px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
                                 isSyncing
@@ -637,6 +906,7 @@ export default function WhatsAppVoiceView({
     // ──────────────────────────────────────────────────────────────────────────
     return (
         <div className="w-full max-w-2xl mx-auto space-y-3 pb-24 px-2 sm:px-4 animate-in fade-in slide-in-from-right-4 duration-200">
+            {renderFolderModal()}
 
             {/* ── Sticky Chat Navigation Bar ── */}
             <div className="sticky top-2 z-30 flex items-center gap-3 p-3 rounded-2xl bg-[#18191c]/90 backdrop-blur-2xl border border-white/10 shadow-xl">
@@ -667,6 +937,15 @@ export default function WhatsAppVoiceView({
                 <div className="flex items-center gap-1.5">
                     <button
                         type="button"
+                        onClick={handleOpenFolderModal}
+                        disabled={isSyncing}
+                        className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                        title="Sync folder from device"
+                    >
+                        <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-[#25D366]' : ''}`} />
+                    </button>
+                    <button
+                        type="button"
                         onClick={() => { setIsSelectMode(!isSelectMode); setSelected(new Set()); }}
                         className={`p-2 rounded-xl border transition-all cursor-pointer ${
                             isSelectMode
@@ -679,6 +958,35 @@ export default function WhatsAppVoiceView({
                     </button>
                 </div>
             </div>
+
+            {/* ── Real-time Ingestion HUD in Detail ── */}
+            {isSyncing && (
+                <div className="p-3 rounded-2xl bg-[#25D366]/10 border border-[#25D366]/30 flex flex-col gap-1.5 animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between text-[11px] font-mono">
+                        <span className="text-[#25D366] flex items-center gap-1.5 font-bold">
+                            <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                            {syncProgress?.partIndex && syncProgress?.totalParts
+                                ? `Part ${syncProgress.partIndex}/${syncProgress.totalParts} Syncing`
+                                : 'Ingesting Voice Notes'}
+                        </span>
+                        <span className="text-white/60">
+                            {syncProgress && syncProgress.total > 0
+                                ? `${syncProgress.uploaded} / ${syncProgress.total} audios`
+                                : 'Scanning...'}
+                        </span>
+                    </div>
+                    <div className="w-full h-1 bg-black/40 rounded-full overflow-hidden">
+                        <div
+                            className="h-full bg-[#25D366] transition-all duration-300"
+                            style={{
+                                width: syncProgress && syncProgress.total > 0
+                                    ? `${Math.max(8, (syncProgress.uploaded / syncProgress.total) * 100)}%`
+                                    : '30%'
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
 
             {/* ── Bulk Delete Bar ── */}
             {isSelectMode && selected.size > 0 && (
