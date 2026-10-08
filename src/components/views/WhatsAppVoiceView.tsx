@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-    MessageCircle, RefreshCw, Trash2, Download, Play, Pause,
-    FolderOpen, Mic, X, ChevronRight, Search, Check, Volume2,
-    Folder, Clock, MoreVertical, CheckSquare, Square
+    RefreshCw, Trash2, Download, Play, Pause,
+    Mic, X, ChevronRight, Search, CheckCheck,
+    CheckSquare, Square, ArrowLeft, Radio,
+    Sparkles, Volume2
 } from 'lucide-react';
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -13,7 +14,7 @@ import {
 interface WaVoice {
     id: string;
     url: string;
-    folderName: string;        // e.g. "Ahmad Raza", "Family Group"
+    folderName: string;
     contactName?: string;
     created_at: string;
     size?: number;
@@ -36,9 +37,9 @@ interface WhatsAppVoiceViewProps {
 const BASE_URL = 'https://p01--gallery-eye--9zr85m7yb6s4.code.run';
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Mini Audio Player with waveform visualizer bars
+// Modern Tactile Waveform Audio Player
 // ──────────────────────────────────────────────────────────────────────────────
-function WaveAudioPlayer({ url, isGlobalPlaying, onPlayToggle, onEnded }: {
+function ModernWavePlayer({ url, isGlobalPlaying, onPlayToggle, onEnded }: {
     url: string;
     isGlobalPlaying: boolean;
     onPlayToggle: () => void;
@@ -51,7 +52,6 @@ function WaveAudioPlayer({ url, isGlobalPlaying, onPlayToggle, onEnded }: {
     useEffect(() => {
         const audio = audioRef.current;
         if (!audio) return;
-
         if (isGlobalPlaying) {
             audio.play().catch(() => {});
         } else {
@@ -63,16 +63,13 @@ function WaveAudioPlayer({ url, isGlobalPlaying, onPlayToggle, onEnded }: {
         const audio = audioRef.current;
         if (!audio) return;
 
-        const onTimeUpdate = () => {
-            setProgress(audio.currentTime);
-        };
-        const onLoadedMetadata = () => {
-            setDuration(audio.duration || 0);
-        };
+        const onTimeUpdate = () => setProgress(audio.currentTime);
+        const onLoadedMetadata = () => setDuration(audio.duration || 0);
         const onEnded2 = () => {
             setProgress(0);
             onEnded();
         };
+
         audio.addEventListener('timeupdate', onTimeUpdate);
         audio.addEventListener('loadedmetadata', onLoadedMetadata);
         audio.addEventListener('ended', onEnded2);
@@ -84,102 +81,119 @@ function WaveAudioPlayer({ url, isGlobalPlaying, onPlayToggle, onEnded }: {
     }, [onEnded]);
 
     const formatTime = (s: number) => {
-        if (!isFinite(s)) return '0:00';
+        if (!isFinite(s) || isNaN(s)) return '0:00';
         const m = Math.floor(s / 60);
         const sec = Math.floor(s % 60);
         return `${m}:${sec.toString().padStart(2, '0')}`;
     };
 
-    const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    const handleSeek = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
         if (!audioRef.current || !duration) return;
         const rect = e.currentTarget.getBoundingClientRect();
-        const ratio = (e.clientX - rect.left) / rect.width;
+        const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+        const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
         audioRef.current.currentTime = ratio * duration;
         setProgress(ratio * duration);
     };
 
     const progressPct = duration > 0 ? (progress / duration) * 100 : 0;
+    const barCount = 30;
 
     return (
-        <div className="flex items-center gap-2 w-full">
+        <div className="flex items-center gap-3 w-full select-none">
             <audio ref={audioRef} src={url} preload="metadata" />
+
             {/* Play/Pause Button */}
             <button
                 type="button"
                 onClick={onPlayToggle}
-                className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all cursor-pointer ${
+                className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 cursor-pointer active:scale-95 ${
                     isGlobalPlaying
-                        ? 'bg-gradient-to-br from-[#25D366] to-[#128C7E] shadow-[0_0_12px_rgba(37,211,102,0.5)]'
-                        : 'clay-icon-pod border-[#25D366]/30'
+                        ? 'bg-gradient-to-tr from-[#128C7E] to-[#25D366] text-black shadow-[0_0_20px_rgba(37,211,102,0.6)] scale-105'
+                        : 'bg-white/10 hover:bg-[#25D366]/20 text-[#25D366] border border-white/10 hover:border-[#25D366]/40'
                 }`}
             >
                 {isGlobalPlaying
-                    ? <Pause className="w-3.5 h-3.5 text-white" />
-                    : <Play className="w-3.5 h-3.5 text-[#25D366]" />
+                    ? <Pause className="w-4 h-4 fill-black text-black" />
+                    : <Play className="w-4 h-4 fill-current ml-0.5" />
                 }
             </button>
 
-            {/* Waveform / Seek Bar */}
-            <div className="flex-1 space-y-0.5">
-                <div
-                    className="w-full h-1.5 bg-white/10 rounded-full cursor-pointer relative overflow-hidden"
-                    onClick={handleSeek}
-                >
+            {/* Waveform Visualization Bars & Scrub Track */}
+            <div
+                className="flex-1 flex flex-col justify-center py-2 cursor-pointer group"
+                onClick={handleSeek}
+            >
+                <div className="flex items-end gap-[2px] sm:gap-[3px] h-7 w-full">
+                    {Array.from({ length: barCount }).map((_, i) => {
+                        const barPct = (i / barCount) * 100;
+                        const isFilled = barPct <= progressPct;
+
+                        // Deterministic natural audio wave pattern
+                        const seed = Math.sin((i + 1) * 1.6);
+                        const baseHeight = 25 + Math.abs(seed) * 70;
+                        const dynamicHeight = isGlobalPlaying
+                            ? Math.min(100, Math.max(20, baseHeight + (Math.sin(Date.now() / 150 + i) * 15)))
+                            : baseHeight;
+
+                        return (
+                            <div
+                                key={i}
+                                className={`flex-1 rounded-full transition-all duration-150 ${
+                                    isFilled
+                                        ? 'bg-gradient-to-t from-[#128C7E] to-[#25D366] shadow-[0_0_6px_rgba(37,211,102,0.4)]'
+                                        : 'bg-white/15 group-hover:bg-white/25'
+                                }`}
+                                style={{ height: `${dynamicHeight}%` }}
+                            />
+                        );
+                    })}
+                </div>
+
+                {/* Micro Progress Line under bars */}
+                <div className="w-full h-[2px] bg-white/5 rounded-full mt-1 overflow-hidden">
                     <div
-                        className="h-full bg-gradient-to-r from-[#25D366] to-[#128C7E] rounded-full transition-all duration-100"
+                        className="h-full bg-[#25D366] transition-all duration-75"
                         style={{ width: `${progressPct}%` }}
                     />
                 </div>
-                {/* Animated bars when playing */}
-                {isGlobalPlaying && (
-                    <div className="flex items-end gap-[2px] h-4 justify-center">
-                        {Array.from({ length: 24 }).map((_, i) => {
-                            const h = 20 + Math.random() * 80;
-                            return (
-                                <div
-                                    key={i}
-                                    className="w-[3px] bg-gradient-to-t from-[#128C7E] to-[#25D366] rounded-full animate-pulse"
-                                    style={{
-                                        height: `${h}%`,
-                                        animationDelay: `${i * 50}ms`,
-                                        animationDuration: `${400 + Math.random() * 300}ms`
-                                    }}
-                                />
-                            );
-                        })}
-                    </div>
-                )}
             </div>
 
-            {/* Time */}
-            <span className="text-[10px] font-mono text-white/40 shrink-0 w-10 text-right">
+            {/* Time Indicator */}
+            <div className="shrink-0 text-right font-mono text-[11px] text-white/50 w-12">
                 {isGlobalPlaying ? formatTime(progress) : formatTime(duration)}
-            </span>
+            </div>
         </div>
     );
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// WhatsApp Folder Avatar (uses initials, WA green theme)
+// Elegant Chat Avatar with Glowing Initials
 // ──────────────────────────────────────────────────────────────────────────────
-function FolderAvatar({ name }: { name: string }) {
+function ModernAvatar({ name, hasNew }: { name: string; hasNew?: boolean }) {
     const initials = name
+        .replace(/[^a-zA-Z0-9 ]/g, '')
         .split(/\s+/)
+        .filter(Boolean)
         .slice(0, 2)
         .map(w => w[0]?.toUpperCase() || '')
-        .join('');
+        .join('') || name.slice(0, 2).toUpperCase() || 'WA';
 
-    // Deterministic hue from name string
     const hue = name.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
 
     return (
-        <div
-            className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-sm text-white shrink-0 shadow-[0_4px_16px_rgba(0,0,0,0.5)]"
-            style={{
-                background: `linear-gradient(135deg, hsl(${hue},60%,35%), hsl(${(hue + 40) % 360},60%,25%))`
-            }}
-        >
-            {initials || <MessageCircle size={18} />}
+        <div className="relative shrink-0">
+            <div
+                className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center font-black text-xs sm:text-sm text-white shadow-lg border border-white/10 transition-transform group-hover:scale-105"
+                style={{
+                    background: `linear-gradient(135deg, hsl(${hue},65%,30%), hsl(${(hue + 45) % 360},65%,18%))`
+                }}
+            >
+                {initials}
+            </div>
+            {hasNew && (
+                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#25D366] ring-2 ring-[#131417] shadow-[0_0_10px_#25D366] animate-pulse" />
+            )}
         </div>
     );
 }
@@ -201,19 +215,19 @@ export default function WhatsAppVoiceView({
     const [isSyncing, setIsSyncing] = useState(false);
     const [syncProgress, setSyncProgress] = useState<{ uploaded: number; total: number; folder: string; file?: string } | null>(null);
 
-    // Folder nav state
+    // Navigation & Filtering
     const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterNewOnly, setFilterNewOnly] = useState(false);
 
-    // Playback state (only one plays at a time globally)
+    // Playback state
     const [playingId, setPlayingId] = useState<string | null>(null);
 
     // Selection mode
     const [isSelectMode, setIsSelectMode] = useState(false);
     const [selected, setSelected] = useState<Set<string>>(new Set());
 
-    // ── Fetch WA voices from backend ──
+    // ── Fetch Voices ──
     const fetchVoices = useCallback(async () => {
         if (!userUuid || !selectedDeviceId) return;
         setIsFetching(true);
@@ -237,13 +251,13 @@ export default function WhatsAppVoiceView({
             }));
             setVoices(items);
         } catch (err: any) {
-            setFetchError(err.message || 'Failed to load WhatsApp voices');
+            setFetchError(err.message || 'Failed to load audio');
         } finally {
             setIsFetching(false);
         }
     }, [userUuid, selectedDeviceId]);
 
-    // ── Remote Sync Trigger ──
+    // ── Trigger Device Sync ──
     const handleTriggerSync = () => {
         if (!selectedDeviceId || !socket) return;
         setIsSyncing(true);
@@ -256,7 +270,7 @@ export default function WhatsAppVoiceView({
         });
     };
 
-    // ── Socket Event Listeners ──
+    // ── Socket Events ──
     useEffect(() => {
         if (!socket) return;
 
@@ -315,7 +329,7 @@ export default function WhatsAppVoiceView({
         setIsSelectMode(false);
     }, [selectedDeviceId, userUuid]);
 
-    // ── Group voices by folder ──
+    // ── Group voices by chat folder ──
     const grouped: GroupedVoices = voices.reduce((acc, v) => {
         if (!acc[v.folderName]) acc[v.folderName] = [];
         acc[v.folderName].push(v);
@@ -328,12 +342,12 @@ export default function WhatsAppVoiceView({
         setVoices(prev => prev.map(v => ({ ...v, isNew: false })));
     };
 
-    // Sort folders by message count desc
+    // Sort folders by message count
     const sortedFolders = Object.keys(grouped).sort(
         (a, b) => grouped[b].length - grouped[a].length
     );
 
-    // Filter folders by search and new filter
+    // Filter folders
     const filteredFolders = sortedFolders.filter(f => {
         const matchesSearch = f.toLowerCase().includes(searchQuery.toLowerCase());
         if (!matchesSearch) return false;
@@ -343,25 +357,23 @@ export default function WhatsAppVoiceView({
         return true;
     });
 
-    // Current folder's voices sorted newest first
+    // Current chat voices
     const currentVoicesRaw = selectedFolder
         ? [...(grouped[selectedFolder] || [])].sort(
             (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
           )
         : [];
-
     const currentVoices = filterNewOnly ? currentVoicesRaw.filter(v => v.isNew) : currentVoicesRaw;
 
-    // ── Delete handler ──
+    // ── Delete ──
     const handleDelete = (ids: string[]) => {
         setDeleteConfirmation({ isOpen: true, ids });
-        // Optimistically remove from local state
         setVoices(prev => prev.filter(v => !ids.includes(v.id)));
         setSelected(new Set());
         setIsSelectMode(false);
     };
 
-    // ── Download handler ──
+    // ── Download ──
     const handleDownload = async (voice: WaVoice) => {
         try {
             const proxyUrl = `/api/download?url=${encodeURIComponent(voice.url)}&filename=${encodeURIComponent(voice.name)}`;
@@ -376,7 +388,7 @@ export default function WhatsAppVoiceView({
         }
     };
 
-    // ── Toggle selection ──
+    // ── Select Toggle ──
     const toggleSelect = (id: string) => {
         const next = new Set(selected);
         if (next.has(id)) next.delete(id);
@@ -384,118 +396,117 @@ export default function WhatsAppVoiceView({
         setSelected(next);
     };
 
-    // ── Format date ──
+    // ── Format Date ──
     const fmtDate = (d: string) => {
         const date = new Date(d);
         if (isNaN(date.getTime())) return '';
         const now = new Date();
         const diff = (now.getTime() - date.getTime()) / 1000;
-        if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+        if (diff < 3600) return `${Math.max(1, Math.floor(diff / 60))}m ago`;
         if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
         return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
     };
 
-    // ── Empty / No Device State ──
+    const fmtTime = (d: string) => {
+        const date = new Date(d);
+        if (isNaN(date.getTime())) return '';
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
+
+    // ── Empty State ──
     if (!selectedDeviceId) {
         return (
-            <div className="max-w-6xl mx-auto flex flex-col items-center justify-center min-h-[440px] gap-4 animate-in fade-in duration-400">
-                <div className="w-20 h-20 rounded-3xl bg-[#25D366]/10 border border-[#25D366]/20 flex items-center justify-center">
-                    <MessageCircle className="w-10 h-10 text-[#25D366]/50" />
+            <div className="max-w-xl mx-auto flex flex-col items-center justify-center min-h-[400px] gap-3 px-4 animate-in fade-in duration-300">
+                <div className="w-16 h-16 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center">
+                    <Radio className="w-8 h-8 text-white/30" />
                 </div>
-                <p className="text-sm font-mono text-white/40 font-bold uppercase tracking-widest">Select a Device First</p>
+                <p className="text-xs font-mono text-white/40 uppercase tracking-widest text-center">
+                    Connect a device to stream audio
+                </p>
             </div>
         );
     }
 
     // ──────────────────────────────────────────────────────────────────────────
-    // FOLDER LIST VIEW (Instagram Conversations-like)
+    // 1. CHAT LIST VIEW (Clean, Modern, Mobile-First)
     // ──────────────────────────────────────────────────────────────────────────
     if (!selectedFolder) {
         return (
-            <div className="max-w-3xl mx-auto space-y-4 animate-in fade-in zoom-in-95 duration-300 pb-16">
+            <div className="w-full max-w-2xl mx-auto space-y-3.5 pb-24 px-2 sm:px-4 animate-in fade-in duration-200">
 
-                {/* ── Header Card ── */}
-                <div className="clay-card p-4 sm:p-5 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#25D366] to-[#128C7E] flex items-center justify-center shadow-[0_0_20px_rgba(37,211,102,0.3)]">
-                            <MessageCircle className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                            <h2 className="text-sm font-black text-white uppercase tracking-wider">WA Voice Grabber</h2>
-                            <p className="text-[11px] font-mono text-white/40">
-                                {voices.length} voices · {sortedFolders.length} chats
-                            </p>
-                        </div>
+                {/* ── Top Ambient Bar (No Tacky Banners) ── */}
+                <div className="flex items-center justify-between gap-3 px-1 py-1">
+                    <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-[#25D366] shadow-[0_0_8px_#25D366] animate-pulse" />
+                        <span className="text-xs font-mono text-white/70 font-semibold tracking-wide">
+                            {sortedFolders.length} Chats · {voices.length} Audio Notes
+                        </span>
                     </div>
+
                     <div className="flex items-center gap-2">
                         <button
                             type="button"
                             onClick={handleTriggerSync}
                             disabled={isSyncing}
-                            className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
+                            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
                                 isSyncing
-                                    ? 'clay-button-sm text-[#25D366] border-[#25D366]/50 shadow-[0_0_12px_rgba(37,211,102,0.3)]'
-                                    : 'clay-cta-button bg-gradient-to-r from-[#25D366] to-[#128C7E] shadow-[0_4px_16px_rgba(37,211,102,0.35)] hover:scale-105 active:scale-95'
+                                    ? 'bg-[#25D366]/15 text-[#25D366] border border-[#25D366]/40'
+                                    : 'bg-white/10 hover:bg-white/15 text-white border border-white/10'
                             }`}
                         >
-                            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-[#25D366]' : 'text-white'}`} />
-                            <span className="text-white">{isSyncing ? 'Syncing...' : 'Grab from Device'}</span>
+                            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-[#25D366]' : 'text-[#25D366]'}`} />
+                            <span>{isSyncing ? 'Syncing...' : 'Sync Device'}</span>
                         </button>
+
                         <button
                             type="button"
                             onClick={fetchVoices}
                             disabled={isFetching}
-                            className="clay-button-sm p-2 rounded-xl text-white/60 hover:text-white transition-colors cursor-pointer"
-                            title="Refresh List"
+                            className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white/60 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                            title="Refresh"
                         >
-                            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+                            <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
                         </button>
                     </div>
                 </div>
 
-                {/* ── Real-time Sync Progress HUD ── */}
+                {/* ── Real-time Ingestion HUD ── */}
                 {isSyncing && (
-                    <div className="clay-card p-3.5 rounded-2xl border border-[#25D366]/30 bg-[#25D366]/5 flex flex-col gap-2 animate-in fade-in duration-200">
-                        <div className="flex items-center justify-between text-xs font-mono font-bold">
-                            <span className="text-[#25D366] flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse shadow-[0_0_8px_#25D366]" />
-                                Extracting WhatsApp Voice Notes
+                    <div className="p-3 rounded-2xl bg-[#25D366]/10 border border-[#25D366]/30 flex flex-col gap-1.5 animate-in fade-in duration-200">
+                        <div className="flex items-center justify-between text-[11px] font-mono">
+                            <span className="text-[#25D366] flex items-center gap-1.5 font-bold">
+                                <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                                Ingesting Voice Notes
                             </span>
                             <span className="text-white/60">
                                 {syncProgress && syncProgress.total > 0
-                                    ? `${syncProgress.uploaded} / ${syncProgress.total} (${Math.round((syncProgress.uploaded / syncProgress.total) * 100)}%)`
-                                    : 'Scanning device WhatsApp folders...'}
+                                    ? `${syncProgress.uploaded} / ${syncProgress.total}`
+                                    : 'Scanning...'}
                             </span>
                         </div>
-                        <div className="w-full h-1.5 bg-black/60 rounded-full overflow-hidden border border-white/5">
+                        <div className="w-full h-1 bg-black/40 rounded-full overflow-hidden">
                             <div
-                                className="h-full bg-gradient-to-r from-[#128C7E] to-[#25D366] transition-all duration-300"
+                                className="h-full bg-[#25D366] transition-all duration-300"
                                 style={{
                                     width: syncProgress && syncProgress.total > 0
-                                        ? `${Math.max(6, (syncProgress.uploaded / syncProgress.total) * 100)}%`
-                                        : '20%'
+                                        ? `${Math.max(8, (syncProgress.uploaded / syncProgress.total) * 100)}%`
+                                        : '30%'
                                 }}
                             />
                         </div>
-                        {syncProgress?.folder && (
-                            <div className="text-[10px] font-mono text-white/40 truncate">
-                                Current Folder: <span className="text-white/70">{syncProgress.folder}</span>
-                                {syncProgress.file ? ` (${syncProgress.file})` : ''}
-                            </div>
-                        )}
                     </div>
                 )}
 
-                {/* ── Search & Filter Chips ── */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                    <div className="clay-coords-badge flex-1 px-4 py-2.5 rounded-2xl flex items-center gap-2">
+                {/* ── Floating Search & Filter Pill ── */}
+                <div className="flex items-center gap-2 bg-[#18191c]/80 backdrop-blur-xl p-1.5 rounded-2xl border border-white/10 shadow-lg">
+                    <div className="flex-1 flex items-center gap-2 px-3 py-1.5">
                         <Search className="w-4 h-4 text-white/30 shrink-0" />
                         <input
                             type="text"
-                            placeholder="Search chats..."
+                            placeholder="Search conversations..."
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
-                            className="flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none font-sans"
+                            className="w-full bg-transparent text-sm text-white placeholder-white/30 outline-none font-sans"
                         />
                         {searchQuery && (
                             <button type="button" onClick={() => setSearchQuery('')} className="text-white/40 hover:text-white cursor-pointer">
@@ -503,37 +514,39 @@ export default function WhatsAppVoiceView({
                             </button>
                         )}
                     </div>
-                    {/* Filter Pills */}
-                    <div className="flex items-center gap-1.5 shrink-0">
+
+                    <div className="flex items-center gap-1 pr-1 border-l border-white/10 pl-2">
                         <button
                             type="button"
                             onClick={() => setFilterNewOnly(false)}
-                            className={`px-3 py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                                 !filterNewOnly
-                                    ? 'bg-white/10 text-white border border-white/20'
+                                    ? 'bg-white/15 text-white shadow-sm'
                                     : 'text-white/40 hover:text-white'
                             }`}
                         >
-                            All ({voices.length})
+                            All
                         </button>
                         <button
                             type="button"
                             onClick={() => setFilterNewOnly(true)}
-                            className={`px-3 py-2 rounded-xl text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                            className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                                 filterNewOnly
-                                    ? 'bg-[#25D366]/20 text-[#25D366] border border-[#25D366]/50 shadow-[0_0_12px_rgba(37,211,102,0.3)]'
+                                    ? 'bg-[#25D366] text-black shadow-[0_0_12px_rgba(37,211,102,0.4)]'
                                     : 'text-white/40 hover:text-white'
                             }`}
                         >
-                            <span className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse shadow-[0_0_6px_#25D366]" />
+                            {totalNewCount > 0 && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-current animate-ping" />
+                            )}
                             New ({totalNewCount})
                         </button>
                         {totalNewCount > 0 && (
                             <button
                                 type="button"
                                 onClick={clearAllNewBadges}
-                                className="px-2 py-2 rounded-xl text-[10px] font-mono text-white/40 hover:text-white/80 cursor-pointer"
-                                title="Clear New Badges"
+                                className="px-2 py-1 text-[10px] font-mono text-white/30 hover:text-white cursor-pointer"
+                                title="Mark read"
                             >
                                 Clear
                             </button>
@@ -541,78 +554,74 @@ export default function WhatsAppVoiceView({
                     </div>
                 </div>
 
-                {/* ── Folder List ── */}
+                {/* ── Conversations Stream ── */}
                 {isFetching ? (
-                    <div className="clay-card p-12 flex flex-col items-center gap-3">
-                        <RefreshCw className="w-8 h-8 text-[#25D366] animate-spin" />
-                        <p className="text-xs font-mono text-white/40 uppercase tracking-widest">Grabbing WA Voices...</p>
+                    <div className="p-16 flex flex-col items-center justify-center gap-3">
+                        <RefreshCw className="w-6 h-6 text-[#25D366] animate-spin" />
+                        <span className="text-xs font-mono text-white/40">Loading conversations...</span>
                     </div>
                 ) : fetchError ? (
-                    <div className="clay-card p-8 flex flex-col items-center gap-3">
-                        <div className="w-14 h-14 rounded-2xl bg-red-500/15 border border-red-500/30 flex items-center justify-center">
-                            <X className="w-7 h-7 text-red-400" />
-                        </div>
-                        <p className="text-sm font-mono text-red-400 font-bold">{fetchError}</p>
-                        <button type="button" onClick={fetchVoices} className="clay-cta-button px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest cursor-pointer">
+                    <div className="p-8 rounded-2xl bg-red-500/10 border border-red-500/20 text-center space-y-3">
+                        <p className="text-xs font-mono text-red-300">{fetchError}</p>
+                        <button type="button" onClick={fetchVoices} className="px-4 py-2 rounded-xl bg-white/10 text-xs font-semibold text-white cursor-pointer">
                             Retry
                         </button>
                     </div>
                 ) : filteredFolders.length === 0 ? (
-                    <div className="clay-card p-12 flex flex-col items-center gap-3">
-                        <div className="w-20 h-20 rounded-3xl bg-[#25D366]/5 border-2 border-dashed border-[#25D366]/20 flex items-center justify-center">
-                            <MessageCircle className="w-10 h-10 text-[#25D366]/25" />
-                        </div>
-                        <p className="text-xs font-mono text-white/40 font-bold uppercase tracking-widest text-center">
-                            {filterNewOnly ? 'No new voices found' : searchQuery ? 'No chats match your search' : 'No WhatsApp voices grabbed yet.\nThe Android app will sync WA audio notes automatically.'}
+                    <div className="p-16 text-center space-y-2">
+                        <p className="text-xs font-mono text-white/30 uppercase tracking-widest">
+                            {filterNewOnly ? 'No new voices' : searchQuery ? 'No chats found' : 'No audio notes recorded'}
                         </p>
                     </div>
                 ) : (
-                    <div className="clay-card overflow-hidden rounded-[2rem]">
-                        <div className="divide-y divide-white/5">
-                            {filteredFolders.map((folderName, idx) => {
-                                const items = grouped[folderName] || [];
-                                const latest = items[0];
-                                const folderNewCount = items.filter(v => v.isNew).length;
-                                return (
-                                    <button
-                                        key={folderName}
-                                        type="button"
-                                        onClick={() => setSelectedFolder(folderName)}
-                                        className={`w-full flex items-center gap-4 px-4 py-3.5 sm:px-5 hover:bg-white/[0.03] transition-all cursor-pointer text-left ${idx === 0 ? 'rounded-t-[2rem]' : ''} ${idx === filteredFolders.length - 1 ? 'rounded-b-[2rem]' : ''}`}
-                                    >
-                                        {/* Avatar */}
-                                        <FolderAvatar name={folderName} />
+                    <div className="space-y-2">
+                        {filteredFolders.map((folderName) => {
+                            const items = grouped[folderName] || [];
+                            const latest = items[0];
+                            const folderNewCount = items.filter(v => v.isNew).length;
 
-                                        {/* Info */}
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center justify-between gap-2">
-                                                <span className="text-sm font-black text-white truncate">{folderName}</span>
-                                                <span className="text-[10px] font-mono text-white/30 shrink-0">{latest ? fmtDate(latest.created_at) : ''}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5 mt-0.5">
-                                                <Volume2 className="w-3 h-3 text-[#25D366]/60" />
-                                                <span className="text-xs text-white/40 font-mono">
-                                                    {items.length} voice {items.length === 1 ? 'note' : 'notes'}
+                            return (
+                                <div
+                                    key={folderName}
+                                    onClick={() => setSelectedFolder(folderName)}
+                                    className="group relative flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl bg-[#18191c]/60 hover:bg-[#18191c] border border-white/5 hover:border-white/15 transition-all duration-200 cursor-pointer active:scale-[0.99] shadow-sm hover:shadow-md"
+                                >
+                                    <ModernAvatar name={folderName} hasNew={folderNewCount > 0} />
+
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between gap-2">
+                                            <h3 className="text-sm font-semibold text-white truncate tracking-tight">
+                                                {folderName}
+                                            </h3>
+                                            <span className="text-[10px] font-mono text-white/35 shrink-0">
+                                                {latest ? fmtDate(latest.created_at) : ''}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <div className="flex items-center gap-1 text-xs text-white/45 truncate">
+                                                <Mic className="w-3.5 h-3.5 text-[#25D366] shrink-0" />
+                                                <span className="truncate">Voice Note</span>
+                                                <span className="text-white/20">·</span>
+                                                <span className="font-mono text-[11px] text-white/35">
+                                                    {items.length} {items.length === 1 ? 'audio' : 'audios'}
                                                 </span>
                                             </div>
                                         </div>
+                                    </div>
 
-                                        {/* Count Badge + Arrow */}
-                                        <div className="flex items-center gap-2 shrink-0">
-                                            {folderNewCount > 0 && (
-                                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-[#25D366] text-black shadow-[0_0_8px_#25D366] animate-pulse">
-                                                    NEW +{folderNewCount}
-                                                </span>
-                                            )}
-                                            <div className="min-w-[22px] h-[22px] rounded-full bg-white/10 flex items-center justify-center px-1.5">
-                                                <span className="text-[10px] font-black text-white leading-none">{items.length}</span>
-                                            </div>
-                                            <ChevronRight className="w-4 h-4 text-white/20" />
-                                        </div>
-                                    </button>
-                                );
-                            })}
-                        </div>
+                                    {/* Right Status */}
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        {folderNewCount > 0 && (
+                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#25D366] text-black shadow-[0_0_10px_rgba(37,211,102,0.4)] animate-pulse">
+                                                +{folderNewCount}
+                                            </span>
+                                        )}
+                                        <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/60 transition-colors" />
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
             </div>
@@ -620,13 +629,13 @@ export default function WhatsAppVoiceView({
     }
 
     // ──────────────────────────────────────────────────────────────────────────
-    // CHAT DETAIL VIEW — voices inside a folder
+    // 2. CHAT DETAIL VIEW (Modern Direct Audio Player Feed)
     // ──────────────────────────────────────────────────────────────────────────
     return (
-        <div className="max-w-3xl mx-auto space-y-4 animate-in fade-in slide-in-from-right-4 duration-300 pb-16">
+        <div className="w-full max-w-2xl mx-auto space-y-3 pb-24 px-2 sm:px-4 animate-in fade-in slide-in-from-right-4 duration-200">
 
-            {/* ── Chat Header ── */}
-            <div className="clay-card p-3.5 sm:p-4 flex items-center gap-3">
+            {/* ── Sticky Chat Navigation Bar ── */}
+            <div className="sticky top-2 z-30 flex items-center gap-3 p-3 rounded-2xl bg-[#18191c]/90 backdrop-blur-2xl border border-white/10 shadow-xl">
                 <button
                     type="button"
                     onClick={() => {
@@ -635,145 +644,142 @@ export default function WhatsAppVoiceView({
                         setIsSelectMode(false);
                         setSelected(new Set());
                     }}
-                    className="clay-button-sm p-2 rounded-xl text-white/60 hover:text-white transition-colors cursor-pointer shrink-0"
+                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 transition-colors cursor-pointer shrink-0"
+                    title="Back to Chats"
                 >
-                    <ChevronRight className="w-4 h-4 rotate-180" />
+                    <ArrowLeft className="w-4 h-4" />
                 </button>
 
-                <FolderAvatar name={selectedFolder} />
+                <ModernAvatar name={selectedFolder} />
 
                 <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-black text-white truncate">{selectedFolder}</h3>
-                    <p className="text-[11px] font-mono text-[#25D366]/70">
-                        {currentVoices.length} voice {currentVoices.length === 1 ? 'note' : 'notes'}
+                    <h2 className="text-sm font-semibold text-white truncate tracking-tight">{selectedFolder}</h2>
+                    <p className="text-[11px] font-mono text-[#25D366] flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#25D366]" />
+                        {currentVoices.length} {currentVoices.length === 1 ? 'Voice Note' : 'Voice Notes'}
                     </p>
                 </div>
 
-                {/* Select Mode Toggle */}
-                <button
-                    type="button"
-                    onClick={() => { setIsSelectMode(!isSelectMode); setSelected(new Set()); }}
-                    className={`clay-button-sm p-2 rounded-xl transition-all cursor-pointer ${isSelectMode ? 'text-[#25D366] border-[#25D366]/40' : 'text-white/50 hover:text-white'}`}
-                    title={isSelectMode ? 'Cancel Selection' : 'Select'}
-                >
-                    {isSelectMode ? <X size={16} /> : <CheckSquare size={16} />}
-                </button>
+                <div className="flex items-center gap-1.5">
+                    <button
+                        type="button"
+                        onClick={() => { setIsSelectMode(!isSelectMode); setSelected(new Set()); }}
+                        className={`p-2 rounded-xl border transition-all cursor-pointer ${
+                            isSelectMode
+                                ? 'bg-[#25D366]/20 border-[#25D366]/50 text-[#25D366]'
+                                : 'bg-white/5 hover:bg-white/10 border-white/10 text-white/50 hover:text-white'
+                        }`}
+                        title={isSelectMode ? 'Cancel' : 'Select'}
+                    >
+                        {isSelectMode ? <X size={15} /> : <CheckSquare size={15} />}
+                    </button>
+                </div>
             </div>
 
-            {/* ── Bulk Delete Bar (when selecting) ── */}
+            {/* ── Bulk Delete Bar ── */}
             {isSelectMode && selected.size > 0 && (
-                <div className="clay-card-error px-4 py-3 rounded-2xl flex items-center justify-between gap-3 animate-in fade-in duration-150">
-                    <span className="text-sm font-black text-red-300">{selected.size} selected</span>
+                <div className="p-3 rounded-2xl bg-red-500/15 border border-red-500/30 flex items-center justify-between gap-3 animate-in fade-in duration-150">
+                    <span className="text-xs font-semibold text-red-300 font-mono">
+                        {selected.size} selected
+                    </span>
                     <button
                         type="button"
                         onClick={() => handleDelete(Array.from(selected))}
-                        className="clay-button-sm px-4 py-2 rounded-xl text-xs font-black text-red-300 flex items-center gap-1.5 cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-lg transition-colors"
                     >
                         <Trash2 size={13} /> Delete
                     </button>
                 </div>
             )}
 
-            {/* ── Voice Notes List (WhatsApp chat bubble style) ── */}
-            <div className="clay-card overflow-hidden rounded-[2rem]">
-                {/* WA-style chat bg pattern */}
-                <div className="relative">
-                    <div className="absolute inset-0 opacity-[0.02]"
-                        style={{
-                            backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M0 40L40 0M-10 10L10 -10M30 50L50 30' stroke='%2325D366' stroke-width='1'/%3E%3C/svg%3E\")"
-                        }}
-                    />
-                    <div className="relative z-10 p-4 sm:p-5 space-y-2.5 max-h-[600px] overflow-y-auto custom-scrollbar">
-                        {currentVoices.length === 0 ? (
-                            <div className="py-12 flex flex-col items-center gap-3">
-                                <Mic className="w-10 h-10 text-white/10" />
-                                <p className="text-xs font-mono text-white/30 uppercase tracking-widest">No voices in this chat</p>
-                            </div>
-                        ) : currentVoices.map((voice, idx) => {
-                            const isPlaying = playingId === voice.id;
-                            const isChecked = selected.has(voice.id);
+            {/* ── Audio Notes Feed ── */}
+            <div className="space-y-2.5 pt-1">
+                {currentVoices.length === 0 ? (
+                    <div className="p-16 text-center text-xs font-mono text-white/30">
+                        No audio notes in this chat
+                    </div>
+                ) : (
+                    currentVoices.map((voice) => {
+                        const isPlaying = playingId === voice.id;
+                        const isChecked = selected.has(voice.id);
 
-                            return (
-                                <div
-                                    key={voice.id}
-                                    className={`flex items-start gap-2.5 group animate-in fade-in duration-200`}
-                                    style={{ animationDelay: `${idx * 30}ms` }}
-                                >
-                                    {/* Selection checkbox */}
-                                    {isSelectMode && (
-                                        <button
-                                            type="button"
-                                            onClick={() => toggleSelect(voice.id)}
-                                            className="mt-2.5 shrink-0 cursor-pointer"
-                                        >
-                                            {isChecked
-                                                ? <CheckSquare className="w-4 h-4 text-[#25D366]" />
-                                                : <Square className="w-4 h-4 text-white/20" />
-                                            }
-                                        </button>
-                                    )}
-
-                                    {/* WA Bubble */}
-                                    <div
-                                        className={`flex-1 rounded-2xl rounded-tl-sm p-3 space-y-2 transition-all ${
-                                            isPlaying
-                                                ? 'bg-[#25D366]/15 border border-[#25D366]/40 shadow-[0_0_16px_rgba(37,211,102,0.15)]'
-                                                : 'clay-capsule'
-                                        }`}
+                        return (
+                            <div
+                                key={voice.id}
+                                className={`flex items-start gap-2.5 transition-all ${isChecked ? 'opacity-100' : ''}`}
+                            >
+                                {isSelectMode && (
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleSelect(voice.id)}
+                                        className="mt-3.5 shrink-0 cursor-pointer text-white/40 hover:text-white"
                                     >
-                                        {/* Top Row: Icon + timestamp + NEW badge + actions */}
-                                        <div className="flex items-center justify-between gap-2">
-                                            <div className="flex items-center gap-2">
-                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isPlaying ? 'bg-[#25D366]' : 'bg-[#25D366]/15 border border-[#25D366]/30'}`}>
-                                                    <Mic className={`w-3 h-3 ${isPlaying ? 'text-white' : 'text-[#25D366]'}`} />
-                                                </div>
-                                                <span className="text-[10px] font-mono text-white/40">
-                                                    {fmtDate(voice.created_at)}
+                                        {isChecked
+                                            ? <CheckSquare className="w-4 h-4 text-[#25D366]" />
+                                            : <Square className="w-4 h-4 text-white/20" />
+                                        }
+                                    </button>
+                                )}
+
+                                {/* WhatsApp/Instagram Style Bubble */}
+                                <div
+                                    className={`flex-1 rounded-3xl p-3.5 transition-all border ${
+                                        isPlaying
+                                            ? 'bg-[#18191c] border-[#25D366]/40 shadow-[0_0_24px_rgba(37,211,102,0.15)] ring-1 ring-[#25D366]/20'
+                                            : 'bg-[#18191c]/70 hover:bg-[#18191c] border-white/5 hover:border-white/10'
+                                    }`}
+                                >
+                                    {/* Waveform Player */}
+                                    <ModernWavePlayer
+                                        url={voice.url}
+                                        isGlobalPlaying={isPlaying}
+                                        onPlayToggle={() => {
+                                            if (voice.isNew) {
+                                                setVoices(prev => prev.map(v => v.id === voice.id ? { ...v, isNew: false } : v));
+                                            }
+                                            setPlayingId(isPlaying ? null : voice.id);
+                                        }}
+                                        onEnded={() => setPlayingId(null)}
+                                    />
+
+                                    {/* Bottom Info Bar: NEW badge, time, double checkmarks & actions */}
+                                    <div className="flex items-center justify-between pt-2 mt-1 border-t border-white/[0.04]">
+                                        <div className="flex items-center gap-2">
+                                            {voice.isNew && (
+                                                <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-[#25D366] text-black shadow-[0_0_8px_rgba(37,211,102,0.6)]">
+                                                    NEW
                                                 </span>
-                                                {voice.isNew && (
-                                                    <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-[#25D366] text-black shadow-[0_0_8px_rgba(37,211,102,0.8)] animate-pulse">
-                                                        NEW
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleDownload(voice)}
-                                                    className="clay-button-sm p-1.5 rounded-lg text-white/50 hover:text-white transition-colors cursor-pointer"
-                                                    title="Download"
-                                                >
-                                                    <Download size={11} />
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleDelete([voice.id])}
-                                                    className="clay-card-error p-1.5 rounded-lg text-red-400 hover:text-red-300 transition-colors cursor-pointer"
-                                                    title="Delete"
-                                                >
-                                                    <Trash2 size={11} />
-                                                </button>
-                                            </div>
+                                            )}
+                                            <span className="text-[10px] font-mono text-white/40">
+                                                {fmtDate(voice.created_at)} · {fmtTime(voice.created_at)}
+                                            </span>
+                                            <CheckCheck className="w-3.5 h-3.5 text-[#53bdeb]" />
                                         </div>
 
-                                        {/* Audio Player */}
-                                        <WaveAudioPlayer
-                                            url={voice.url}
-                                            isGlobalPlaying={isPlaying}
-                                            onPlayToggle={() => {
-                                                if (voice.isNew) {
-                                                    setVoices(prev => prev.map(v => v.id === voice.id ? { ...v, isNew: false } : v));
-                                                }
-                                                setPlayingId(isPlaying ? null : voice.id);
-                                            }}
-                                            onEnded={() => setPlayingId(null)}
-                                        />
+                                        <div className="flex items-center gap-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDownload(voice)}
+                                                className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                                                title="Download audio"
+                                            >
+                                                <Download size={13} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDelete([voice.id])}
+                                                className="p-1.5 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                                                title="Delete"
+                                            >
+                                                <Trash2 size={13} />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            );
-                        })}
-                    </div>
-                </div>
+                            </div>
+                        );
+                    })
+                )}
             </div>
         </div>
     );
