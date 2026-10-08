@@ -251,9 +251,32 @@ export default function WhatsAppVoiceView({
     userUuid,
     setDeleteConfirmation
 }: WhatsAppVoiceViewProps) {
-    const [voices, setVoices] = useState<WaVoice[]>([]);
+    const [voices, setVoices] = useState<WaVoice[]>(() => {
+        if (typeof window !== 'undefined' && userUuid && selectedDeviceId) {
+            try {
+                const cached = localStorage.getItem(`wa_voices_${userUuid}_${selectedDeviceId}`);
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                }
+            } catch {}
+        }
+        return [];
+    });
     const [isFetching, setIsFetching] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
+
+    // Hydrate per-device cached voices immediately on device switch
+    useEffect(() => {
+        if (!selectedDeviceId || !userUuid) return;
+        try {
+            const cached = localStorage.getItem(`wa_voices_${userUuid}_${selectedDeviceId}`);
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) setVoices(parsed);
+            }
+        } catch {}
+    }, [selectedDeviceId, userUuid]);
 
     // Live Sync HUD
     const [isSyncing, setIsSyncing] = useState(false);
@@ -315,9 +338,24 @@ export default function WhatsAppVoiceView({
                 deviceId: item.deviceId || selectedDeviceId,
                 isNew: Boolean(item.isNew)
             }));
-            setVoices(items);
+
+            if (items.length > 0) {
+                setVoices(items);
+                try {
+                    localStorage.setItem(`wa_voices_${userUuid}_${selectedDeviceId}`, JSON.stringify(items));
+                } catch {}
+            } else {
+                setVoices(prev => (prev.length > 0 ? prev : items));
+            }
         } catch (err: any) {
             setFetchError(err.message || 'Failed to load voice notes');
+            try {
+                const cached = localStorage.getItem(`wa_voices_${userUuid}_${selectedDeviceId}`);
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    if (Array.isArray(parsed) && parsed.length > 0) setVoices(parsed);
+                }
+            } catch {}
         } finally {
             setIsFetching(false);
         }

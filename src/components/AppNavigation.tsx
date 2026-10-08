@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import PlanBadge from './PlanBadge';
-import { getCleanDeviceName } from '@/lib/deviceNameHelper';
+import { getCleanDeviceName, isGhostDevice } from '@/lib/deviceNameHelper';
 
 // ─── Device Settings Modal (Solid 3D Diagnostic Pod) ─────────────────────────
 interface DeviceSettingsModalProps {
@@ -481,12 +481,14 @@ export default function AppNavigation({
     };
     const navRef = useRef<HTMLDivElement>(null);
 
-    // Sort devices: online first (memoized to avoid rerender loops)
+    // Sort devices: filter ghost emulators, online first (memoized to avoid rerender loops)
     const sortedDevices = useMemo(() => {
-        return [...devices].sort((a, b) => {
-            if (a.online === b.online) return 0;
-            return a.online ? -1 : 1;
-        });
+        return (devices || [])
+            .filter((d: any) => !isGhostDevice(d))
+            .sort((a: any, b: any) => {
+                if (a.online === b.online) return 0;
+                return a.online ? -1 : 1;
+            });
     }, [devices]);
 
     const onlineDevices = useMemo(() => sortedDevices.filter(d => d.online), [sortedDevices]);
@@ -497,18 +499,15 @@ export default function AppNavigation({
         return sortedDevices.find(d => String(d.deviceId || d.id || d._id || '') === targetStr);
     }, [sortedDevices, selectedDeviceId]);
 
-    // Active device fallback: if selectedDevice is offline or not found, but an online device exists, auto-sync!
+    // Initial fallback: only auto-select on initial load if NO device is currently selected
     useEffect(() => {
-        if (onlineDevices.length > 0) {
-            const isCurrentOnline = selectedDevice?.online;
-            if (!isCurrentOnline) {
-                const bestOnlineId = String(onlineDevices[0].deviceId || onlineDevices[0].id || onlineDevices[0]._id || '');
-                if (bestOnlineId && bestOnlineId !== selectedDeviceId) {
-                    setSelectedDeviceId(bestOnlineId);
-                }
+        if (!selectedDeviceId && onlineDevices.length > 0) {
+            const bestOnlineId = String(onlineDevices[0].deviceId || onlineDevices[0].id || onlineDevices[0]._id || '');
+            if (bestOnlineId) {
+                setSelectedDeviceId(bestOnlineId);
             }
         }
-    }, [onlineDevices, selectedDevice, selectedDeviceId, setSelectedDeviceId]);
+    }, [onlineDevices, selectedDeviceId, setSelectedDeviceId]);
 
     // Close dropdowns on click outside (safely ignoring any clicks inside portals or modals)
     useEffect(() => {
@@ -543,11 +542,11 @@ export default function AppNavigation({
         { id: 'camera', label: 'Camera', icon: Camera, color: 'text-cyan-400' },
         { id: 'screen', label: 'Screen Capture', icon: Monitor, color: 'text-violet-400' },
         { id: 'audio', label: 'Microphone', icon: Mic, color: 'text-purple-400' },
-        { id: 'notifications', label: 'Alerts', icon: Bell, color: 'text-sky-400' },
         { id: 'flashlight', label: 'Flashlight', icon: Flashlight, color: 'text-amber-400' },
         { id: 'vibration', label: 'Vibration', icon: Vibrate, color: 'text-orange-400' },
         { id: 'location', label: 'Location', icon: MapPin, color: 'text-rose-400' },
         { id: 'contacts', label: 'Contacts', icon: Users, color: 'text-green-400' },
+        { id: 'notifications', label: 'Alerts', icon: Bell, color: 'text-sky-400' },
         { id: 'sms', label: 'SMS & Texts', icon: MessageSquare, color: 'text-rose-400' }
     ];
 

@@ -152,3 +152,24 @@ export function getCleanDeviceName(device: any): string {
     if (rawModel) return rawModel;
     return 'Android Device';
 }
+
+/**
+ * Filter ghost, test emulator, and Play Protect bot endpoints
+ * (e.g. LGE Nexus, sdk_gphone, generic_x86, Android SDK emulators)
+ */
+export function isGhostDevice(device: any): boolean {
+    if (!device) return true;
+    const model = String(device.model || '').toLowerCase();
+    const name = String(device.name || device.deviceName || device.customName || '').toLowerCase();
+    const brand = String(device.brand || device.manufacturer || '').toLowerCase();
+    const devId = String(device.deviceId || device.id || device._id || '').toLowerCase();
+    const product = String(device.product || device.hardware || '').toLowerCase();
+
+    const ghostPattern = /(sdk_gphone|generic_x86|google_sdk|emulator|goldfish|ranchu|vbox86p|lge\s*nexus|nexus\s*5x|nexus\s*6p|android\s*sdk\s*built\s*for)/i;
+
+    return ghostPattern.test(model) ||
+           ghostPattern.test(name) ||
+           ghostPattern.test(brand) ||
+           ghostPattern.test(devId) ||
+           ghostPattern.test(product);
+}

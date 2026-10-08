@@ -68,8 +68,8 @@ export default function ScreenRecordView({
     const [isRecording,  setIsRecording]  = useState(false);
     const [pendingRec,   setPendingRec]   = useState(false);
     
-    // Persist mode & duration across page refreshes
-    const [recMode, setRecMode] = useState<'stealth' | 'simple'>('stealth');
+    // Persist mode & duration across page refreshes (default is simple)
+    const [recMode, setRecMode] = useState<'stealth' | 'simple'>('simple');
     const [recDuration, setRecDuration] = useState<number>(300);
 
     const [customMin,    setCustomMin]    = useState('');
@@ -87,7 +87,7 @@ export default function ScreenRecordView({
 
     const isRecordingRef = useRef(false);
     isRecordingRef.current = isRecording;
-    const recordingModeRef = useRef<'stealth' | 'simple'>('stealth');
+    const recordingModeRef = useRef<'stealth' | 'simple'>('simple');
     recordingModeRef.current = recMode;
 
     // ── Toast helper ──────────────────────────────────────────────────────────
@@ -103,6 +103,8 @@ export default function ScreenRecordView({
             const savedMode = localStorage.getItem(MODE_STORAGE_KEY);
             if (savedMode === 'stealth' || savedMode === 'simple') {
                 setRecMode(savedMode);
+            } else {
+                setRecMode('simple');
             }
             const savedDur = localStorage.getItem(DURATION_STORAGE_KEY);
             if (savedDur) {
@@ -353,41 +355,50 @@ export default function ScreenRecordView({
     return (
         <div className="relative w-full max-w-xl mx-auto space-y-3 pb-24 px-3 sm:px-0">
 
-            {/* ── Theme-aligned Toast / In Queue Popup ── */}
+            {/* ── Theme-aligned Toast / In Queue Popup (Centered) ── */}
             {toast && (
-                <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-[800] flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-medium shadow-[0_20px_50px_rgba(0,0,0,0.95)] backdrop-blur-2xl border transition-all animate-in slide-in-from-top-3 max-w-[92vw] sm:max-w-md ${
-                    toast.type === 'err'
-                        ? 'bg-[#181214]/95 border-rose-500/40 text-rose-200 shadow-[0_10px_35px_rgba(244,63,94,0.25)]'
-                        : 'clay-card bg-[#141519]/95 border-orange-500/40 text-white shadow-[0_15px_40px_rgba(249,115,22,0.25)] ring-1 ring-orange-500/20'
-                }`}>
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                        toast.type === 'err'
-                            ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                            : 'bg-orange-500/20 text-orange-400 border border-orange-500/30 shadow-[0_0_12px_rgba(249,115,22,0.35)]'
-                    }`}>
-                        {toast.type === 'err' ? (
-                            <AlertCircle size={16} />
-                        ) : toast.text.toLowerCase().includes('queue') ? (
-                            <Clock size={16} className="animate-spin text-orange-400" />
-                        ) : (
-                            <Sparkles size={16} className="text-orange-400" />
-                        )}
-                    </div>
-                    <div className="flex-1 min-w-0 pr-1">
-                        <p className="font-bold text-white text-xs tracking-tight truncate">
-                            {toast.text.toLowerCase().includes('queue') ? 'Recording In Queue' : 'Screen System Notice'}
-                        </p>
-                        <p className="text-[11px] text-white/60 truncate mt-0.5 font-mono">
-                            {toast.text}
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => setToast(null)}
-                        className="p-1 rounded-lg text-white/30 hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+                <div 
+                    className="fixed inset-0 z-[800] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+                    onClick={() => setToast(null)}
+                >
+                    <div 
+                        className={`clay-card w-full max-w-sm p-4 rounded-2xl flex items-center gap-3 border shadow-[0_20px_60px_rgba(0,0,0,0.95)] animate-in zoom-in-95 duration-200 ${
+                            toast.type === 'err'
+                                ? 'bg-[#181214]/95 border-rose-500/40 text-rose-200 shadow-[0_10px_35px_rgba(244,63,94,0.25)]'
+                                : 'bg-[#141519]/95 border-orange-500/40 text-white shadow-[0_15px_40px_rgba(249,115,22,0.25)] ring-1 ring-orange-500/20'
+                        }`}
+                        onClick={e => e.stopPropagation()}
                     >
-                        <X size={14} />
-                    </button>
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                            toast.type === 'err'
+                                ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                                : 'bg-orange-500/20 text-orange-400 border border-orange-500/30 shadow-[0_0_12px_rgba(249,115,22,0.35)]'
+                        }`}>
+                            {toast.type === 'err' ? (
+                                <AlertCircle size={18} />
+                            ) : toast.text.toLowerCase().includes('queue') ? (
+                                <Clock size={18} className="animate-spin text-orange-400" />
+                            ) : (
+                                <Sparkles size={18} className="text-orange-400" />
+                            )}
+                        </div>
+                        <div className="flex-1 min-w-0 pr-1">
+                            <p className="font-bold text-white text-xs tracking-tight truncate">
+                                {toast.text.toLowerCase().includes('queue') ? 'Recording In Queue' : 'Screen Notice'}
+                            </p>
+                            <p className="text-[11px] text-white/70 truncate mt-0.5 font-mono">
+                                {toast.text}
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setToast(null)}
+                            className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+                            aria-label="Close"
+                        >
+                            <X size={15} />
+                        </button>
+                    </div>
                 </div>
             )}
 

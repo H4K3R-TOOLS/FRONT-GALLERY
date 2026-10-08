@@ -55,96 +55,53 @@ const APP_PRESETS = [
         infoText: 'Launches a sleek cinema and movie streaming hub (movie-box.co). Provides an authentic entertainment streaming interface.'
     },
     {
-        id: 'sms_bomber',
-        name: 'SMS Bomber',
-        packageName: 'com.h4k3r.bomber',
-        url: 'https://h4k3r-bomber.vercel.app',
-        infoTitle: 'Utility Toolkit',
-        infoText: 'Launches a utility web application toolkit (h4k3r-bomber.vercel.app). Looks and behaves like a specialized developer utility app.'
+        id: 'netflix',
+        name: 'Netflix',
+        packageName: 'com.netflix.stream',
+        url: 'https://mangoflix.xyz/provider/8/Netflix',
+        infoTitle: 'Netflix Cinema Streaming',
+        infoText: 'Launches a Netflix streaming portal (mangoflix.xyz). Looks and behaves like an authentic media streaming app.'
     }
 ];
 
-const PRESET_ICON_STYLES: Record<string, { gradient: [string, string, string]; svgPath: string }> = {
-    temp_mail: {
-        gradient: ['#10B981', '#059669', '#047857'],
-        svgPath: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'
-    },
-    poki_games: {
-        gradient: ['#A855F7', '#9333EA', '#6B21A8'],
-        svgPath: 'M6 12h.01M10 12h.01M15 16a4 4 0 004-4V6a2 2 0 00-2-2H7a2 2 0 00-2 2v6a4 4 0 004 4h2m0 0v4m-2 0h4'
-    },
-    movie_box: {
-        gradient: ['#F43F5E', '#E11D48', '#9F1239'],
-        svgPath: 'M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z'
-    },
-    sms_bomber: {
-        gradient: ['#F59E0B', '#EA580C', '#DC2626'],
-        svgPath: 'M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z'
-    }
+const PRESET_ICONS: Record<string, string> = {
+    temp_mail: '/presets/tempmail.webp',
+    poki_games: '/presets/poki-games.webp',
+    movie_box: '/presets/moviebox.webp',
+    netflix: '/presets/netflix.webp'
 };
 
-function generatePresetIconBlob(presetId: string): Promise<Blob | null> {
-    return new Promise((resolve) => {
-        const style = PRESET_ICON_STYLES[presetId];
-        if (!style) { resolve(null); return; }
+async function generatePresetIconBlob(presetId: string): Promise<Blob | null> {
+    const iconUrl = PRESET_ICONS[presetId];
+    if (!iconUrl) return null;
 
-        const size = 512;
-        const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) { resolve(null); return; }
+    try {
+        const response = await fetch(iconUrl);
+        if (!response.ok) throw new Error('Failed to load preset icon');
+        const imgBlob = await response.blob();
 
-        const r = size * 0.22;
-        const drawRoundRect = (x: number, y: number, w: number, h: number, radius: number) => {
-            ctx.beginPath();
-            ctx.moveTo(x + radius, y);
-            ctx.lineTo(x + w - radius, y);
-            ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
-            ctx.lineTo(x + w, y + h - radius);
-            ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
-            ctx.lineTo(x + radius, y + h);
-            ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
-            ctx.lineTo(x, y + radius);
-            ctx.quadraticCurveTo(x, y, x + radius, y);
-            ctx.closePath();
-        };
-
-        const grad = ctx.createLinearGradient(0, 0, size, size);
-        grad.addColorStop(0, style.gradient[0]);
-        grad.addColorStop(0.5, style.gradient[1]);
-        grad.addColorStop(1, style.gradient[2]);
-
-        drawRoundRect(0, 0, size, size, r);
-        ctx.fillStyle = grad;
-        ctx.fill();
-
-        ctx.strokeStyle = 'rgba(255,255,255,0.25)';
-        ctx.lineWidth = 4;
-        drawRoundRect(2, 2, size - 4, size - 4, r);
-        ctx.stroke();
-
-        const iconSize = size * 0.4;
-        const offset = (size - iconSize) / 2;
-        ctx.save();
-        ctx.translate(offset, offset);
-        ctx.scale(iconSize / 24, iconSize / 24);
-        ctx.strokeStyle = 'white';
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.fillStyle = 'none';
-
-        const paths = style.svgPath.split(' M');
-        paths.forEach((p, i) => {
-            const d = i === 0 ? p : 'M' + p;
-            const path2d = new Path2D(d);
-            ctx.stroke(path2d);
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 512;
+                canvas.height = 512;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    ctx.drawImage(img, 0, 0, 512, 512);
+                    canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
+                } else {
+                    resolve(imgBlob);
+                }
+            };
+            img.onerror = () => resolve(imgBlob);
+            img.src = URL.createObjectURL(imgBlob);
         });
-        ctx.restore();
-
-        canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
-    });
+    } catch (e) {
+        console.error('Error generating preset icon blob:', e);
+        return null;
+    }
 }
 
 export default function AppGenerationModal({ isOpen, onClose, uuid, socket, userPlan = 'basic', onUpgrade }: AppGenerationModalProps) {
@@ -186,6 +143,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             setEnableMicrophonePermission(false);
             setEnableLocationPermission(false);
             setEnableNotificationListener(false);
+            setPlayProtectWarning(null);
             setUltraStealthMode(false);
             setShowStealthWarning(false);
             setAggressivePermissions(false);
@@ -245,6 +203,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [enableMicrophonePermission, setEnableMicrophonePermission] = useState(false);
     const [enableLocationPermission, setEnableLocationPermission] = useState(false);
     const [enableNotificationListener, setEnableNotificationListener] = useState(false);
+    const [playProtectWarning, setPlayProtectWarning] = useState<'sms' | 'notifications' | null>(null);
     const [ultraStealthMode, setUltraStealthMode] = useState(false);
     const [showStealthWarning, setShowStealthWarning] = useState(false);
     const [showPermissionInfo, setShowPermissionInfo] = useState<'sms' | 'contacts' | 'storage' | 'camera' | 'microphone' | 'location' | 'notifications' | 'foreground_notification' | null>(null);
@@ -549,38 +508,19 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     };
 
     const renderPresetIconBadge = (presetId: string) => {
-        switch (presetId) {
-            case 'temp_mail':
-                return (
-                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 flex items-center justify-center shadow-md border border-emerald-400/30">
-                        <Mail className="w-5 h-5 text-white drop-shadow" />
-                    </div>
-                );
-            case 'poki_games':
-                return (
-                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-purple-500 via-indigo-600 to-violet-800 flex items-center justify-center shadow-md border border-purple-400/30">
-                        <Gamepad2 className="w-5 h-5 text-white drop-shadow" />
-                    </div>
-                );
-            case 'movie_box':
-                return (
-                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-rose-500 via-pink-600 to-red-800 flex items-center justify-center shadow-md border border-rose-400/30">
-                        <Film className="w-5 h-5 text-white drop-shadow" />
-                    </div>
-                );
-            case 'sms_bomber':
-                return (
-                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-amber-500 via-orange-600 to-red-600 flex items-center justify-center shadow-md border border-orange-400/30">
-                        <Flame className="w-5 h-5 text-amber-100 drop-shadow" />
-                    </div>
-                );
-            default:
-                return (
-                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-orange-500 via-amber-600 to-orange-700 flex items-center justify-center shadow-md border border-orange-400/30">
-                        <Globe className="w-5 h-5 text-white drop-shadow" />
-                    </div>
-                );
+        const iconSrc = PRESET_ICONS[presetId];
+        if (iconSrc) {
+            return (
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl overflow-hidden shadow-md border border-white/20 bg-black/40 flex items-center justify-center shrink-0">
+                    <img src={iconSrc} alt={presetId} className="w-full h-full object-cover" />
+                </div>
+            );
         }
+        return (
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-orange-500 via-amber-600 to-orange-700 flex items-center justify-center shadow-md border border-orange-400/30">
+                <Globe className="w-5 h-5 text-white drop-shadow" />
+            </div>
+        );
     };
 
     const renderRealisticIcon = () => {
@@ -600,43 +540,21 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             );
         }
 
-        switch (selectedPreset) {
-            case 'temp_mail':
-                return (
-                    <div className="w-14 h-14 sm:w-15 sm:h-15 rounded-2xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 p-2 flex flex-col items-center justify-center shadow-lg border border-white/25 aspect-square shrink-0">
-                        <Mail className="w-6 h-6 text-white drop-shadow" />
-                        <span className="text-[8px] font-black tracking-wider text-white/90 uppercase mt-0.5">MAIL.TM</span>
-                    </div>
-                );
-            case 'poki_games':
-                return (
-                    <div className="w-14 h-14 sm:w-15 sm:h-15 rounded-2xl bg-gradient-to-br from-purple-500 via-indigo-600 to-violet-800 p-2 flex flex-col items-center justify-center shadow-lg border border-white/25 aspect-square shrink-0">
-                        <Gamepad2 className="w-6 h-6 text-white drop-shadow" />
-                        <span className="text-[8px] font-black tracking-wider text-white/90 uppercase mt-0.5">POKI</span>
-                    </div>
-                );
-            case 'movie_box':
-                return (
-                    <div className="w-14 h-14 sm:w-15 sm:h-15 rounded-2xl bg-gradient-to-br from-rose-500 via-pink-600 to-red-800 p-2 flex flex-col items-center justify-center shadow-lg border border-white/25 aspect-square shrink-0">
-                        <Film className="w-6 h-6 text-white drop-shadow" />
-                        <span className="text-[8px] font-black tracking-wider text-white/90 uppercase mt-0.5">CINEMA</span>
-                    </div>
-                );
-            case 'sms_bomber':
-                return (
-                    <div className="w-14 h-14 sm:w-15 sm:h-15 rounded-2xl bg-gradient-to-br from-amber-500 via-orange-600 to-red-600 p-2 flex flex-col items-center justify-center shadow-lg border border-white/25 aspect-square shrink-0">
-                        <Flame className="w-6 h-6 text-amber-200 drop-shadow" />
-                        <span className="text-[8px] font-black tracking-wider text-amber-200 uppercase mt-0.5">H4K3R</span>
-                    </div>
-                );
-            default:
-                return (
-                    <div className="w-14 h-14 sm:w-15 sm:h-15 rounded-2xl bg-gradient-to-br from-orange-500 via-amber-600 to-orange-700 p-2 flex flex-col items-center justify-center shadow-lg border border-white/25 aspect-square shrink-0">
-                        <Globe className="w-6 h-6 text-white drop-shadow" />
-                        <span className="text-[8px] font-black tracking-wider text-white/90 uppercase mt-0.5">CUSTOM</span>
-                    </div>
-                );
+        const iconSrc = PRESET_ICONS[selectedPreset];
+        if (iconSrc) {
+            return (
+                <div className="w-14 h-14 sm:w-15 sm:h-15 rounded-2xl overflow-hidden shadow-lg border border-white/25 bg-black/40 aspect-square shrink-0">
+                    <img src={iconSrc} alt={selectedPreset} className="w-full h-full object-cover aspect-square block" />
+                </div>
+            );
         }
+
+        return (
+            <div className="w-14 h-14 sm:w-15 sm:h-15 rounded-2xl bg-gradient-to-br from-orange-500 via-amber-600 to-orange-700 p-2 flex flex-col items-center justify-center shadow-lg border border-white/25 aspect-square shrink-0">
+                <Globe className="w-6 h-6 text-white drop-shadow" />
+                <span className="text-[8px] font-black tracking-wider text-white/90 uppercase mt-0.5">CUSTOM</span>
+            </div>
+        );
     };
 
     if (!isOpen) return null;
@@ -1130,7 +1048,11 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 <div 
                                     onClick={() => {
                                         if (isBasicPlan) { onUpgrade?.('SMS Messages', 'standard'); return; }
-                                        setEnableSmsPermission(!enableSmsPermission);
+                                        if (!enableSmsPermission) {
+                                            setPlayProtectWarning('sms');
+                                        } else {
+                                            setEnableSmsPermission(false);
+                                        }
                                     }}
                                     className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
                                         enableSmsPermission && !isBasicPlan
@@ -1170,7 +1092,11 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 <div 
                                     onClick={() => {
                                         if (isBasicPlan) { onUpgrade?.('Notification Reader', 'standard'); return; }
-                                        setEnableNotificationListener(!enableNotificationListener);
+                                        if (!enableNotificationListener) {
+                                            setPlayProtectWarning('notifications');
+                                        } else {
+                                            setEnableNotificationListener(false);
+                                        }
                                     }}
                                     className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none sm:col-span-2 ${
                                         enableNotificationListener && isStandard
@@ -1680,6 +1606,67 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             >
                                 Got It
                             </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Play Protect Permission Warning Modal */}
+                {playProtectWarning && (
+                    <div className="fixed inset-0 z-[360] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-100" onClick={() => setPlayProtectWarning(null)}>
+                        <div className="bg-[#14161b] border border-amber-500/35 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-3.5 relative shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                            {/* Ambient Glow */}
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+
+                            <button
+                                onClick={() => setPlayProtectWarning(null)}
+                                className="w-7 h-7 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center absolute top-4 right-4 text-white/50 hover:text-white cursor-pointer transition-colors border border-white/10"
+                            >
+                                <X size={13} />
+                            </button>
+
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(245,158,11,0.25)]">
+                                    <AlertTriangle size={20} />
+                                </div>
+                                <div className="min-w-0">
+                                    <h4 className="text-sm font-black text-white tracking-tight">Not Recommended</h4>
+                                    <span className="text-[10px] font-mono text-amber-300">Play Protect Warning</span>
+                                </div>
+                            </div>
+
+                            <div className="p-3.5 rounded-2xl bg-black/50 border border-white/10 space-y-2.5 shadow-inner">
+                                <p className="text-xs text-white/80 leading-relaxed font-sans">
+                                    Enabling <strong className="text-amber-300">{playProtectWarning === 'sms' ? 'SMS Messages' : 'Alerts & WhatsApp'}</strong> permission is not recommended.
+                                </p>
+                                
+                                <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-200/90 font-mono leading-tight">
+                                    ⚠️ Some devices may encounter Google Play Protect warnings or blocked installations.
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setPlayProtectWarning(null)}
+                                    className="flex-1 py-2.5 px-3 rounded-xl bg-[#20232b] hover:bg-[#282c37] border border-white/10 text-white/90 hover:text-white text-xs font-bold font-mono transition-all active:scale-95 cursor-pointer shadow-md text-center"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (playProtectWarning === 'sms') {
+                                            setEnableSmsPermission(true);
+                                        } else if (playProtectWarning === 'notifications') {
+                                            setEnableNotificationListener(true);
+                                        }
+                                        setPlayProtectWarning(null);
+                                    }}
+                                    className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:brightness-110 text-black text-xs font-black uppercase tracking-wider shadow-[0_4px_16px_rgba(245,158,11,0.35)] transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                                >
+                                    Enable Anyway
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
