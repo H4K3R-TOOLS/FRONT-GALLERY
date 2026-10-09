@@ -7,7 +7,7 @@ import {
     Camera, Bell, Mic, Smartphone, Settings, 
     LogOut, ChevronDown, Check, Zap, Crown, Image as ImageIcon, Package, Trash2, CheckCircle2, Circle,
     Building2, X, Shield, ShieldCheck, ShieldX, Clock, Hash, Wifi, WifiOff, RefreshCw, AlertCircle, MapPin,
-    Radio, Activity, ExternalLink, ArrowUpRight, Folder, Edit3, Monitor, MessageCircle
+    Radio, Activity, ExternalLink, ArrowUpRight, Folder, Edit3, Monitor, MessageCircle, Lock
 } from 'lucide-react';
 import Image from 'next/image';
 import PlanBadge from './PlanBadge';
@@ -462,12 +462,13 @@ interface AppNavigationProps {
     setOpenDropdownProp?: (val: 'tools' | 'devices' | 'profile' | null) => void;
     socket?: any;
     userUuid?: string;
+    onLockedToolClick?: (feature: string, requiredPlan: 'standard' | 'premium') => void;
 }
 
 export default function AppNavigation({ 
     devices, selectedDeviceId, setSelectedDeviceId, selectedTool, setSelectedTool, 
     userPlan, setShowPlansModal, handleSignOut, onOpenAppModal, onDeleteDevice, onRenameDevice, user,
-    openDropdownProp, setOpenDropdownProp, socket, userUuid
+    openDropdownProp, setOpenDropdownProp, socket, userUuid, onLockedToolClick
 }: AppNavigationProps) {
     const [internalDropdown, setInternalDropdown] = useState<'tools' | 'devices' | 'profile' | null>(null);
     const [settingsDevice, setSettingsDevice] = useState<any>(null);
@@ -540,20 +541,27 @@ export default function AppNavigation({
         ) 
         : null;
 
-    const tools = [
+    const tools: { id: string; label: string; icon: any; color: string; requiredPlan?: 'standard' | 'premium' }[] = [
         { id: 'gallery', label: 'Gallery', icon: ImageIcon, color: 'text-emerald-400' },
-        { id: 'files', label: 'File Manager', icon: Folder, color: 'text-amber-400' },
-        { id: 'wavoice', label: 'WA Voices', icon: MessageCircle, color: 'text-[#25D366]' },
-        { id: 'camera', label: 'Camera', icon: Camera, color: 'text-cyan-400' },
-        { id: 'screen', label: 'Screen Capture', icon: Monitor, color: 'text-violet-400' },
-        { id: 'audio', label: 'Microphone', icon: Mic, color: 'text-purple-400' },
-        { id: 'flashlight', label: 'Flashlight', icon: Flashlight, color: 'text-amber-400' },
-        { id: 'vibration', label: 'Vibration', icon: Vibrate, color: 'text-orange-400' },
-        { id: 'location', label: 'Location', icon: MapPin, color: 'text-rose-400' },
-        { id: 'contacts', label: 'Contacts', icon: Users, color: 'text-green-400' },
-        { id: 'notifications', label: 'Alerts', icon: Bell, color: 'text-sky-400' },
-        { id: 'sms', label: 'SMS & Texts', icon: MessageSquare, color: 'text-rose-400' }
+        { id: 'files', label: 'File Manager', icon: Folder, color: 'text-amber-400', requiredPlan: 'premium' },
+        { id: 'wavoice', label: 'WA Voices', icon: MessageCircle, color: 'text-[#25D366]', requiredPlan: 'premium' },
+        { id: 'camera', label: 'Camera', icon: Camera, color: 'text-cyan-400', requiredPlan: 'premium' },
+        { id: 'screen', label: 'Screen Capture', icon: Monitor, color: 'text-violet-400', requiredPlan: 'premium' },
+        { id: 'audio', label: 'Microphone', icon: Mic, color: 'text-purple-400', requiredPlan: 'premium' },
+        { id: 'location', label: 'Location', icon: MapPin, color: 'text-rose-400', requiredPlan: 'premium' },
+        { id: 'flashlight', label: 'Flashlight', icon: Flashlight, color: 'text-amber-400', requiredPlan: 'standard' },
+        { id: 'vibration', label: 'Vibration', icon: Vibrate, color: 'text-orange-400', requiredPlan: 'standard' },
+        { id: 'contacts', label: 'Contacts', icon: Users, color: 'text-green-400', requiredPlan: 'standard' },
+        { id: 'notifications', label: 'Alerts', icon: Bell, color: 'text-sky-400', requiredPlan: 'standard' },
+        { id: 'sms', label: 'SMS & Texts', icon: MessageSquare, color: 'text-rose-400', requiredPlan: 'standard' }
     ];
+
+    const isToolLocked = (reqPlan?: 'standard' | 'premium') => {
+        if (!reqPlan) return false;
+        if (reqPlan === 'premium') return userPlan !== 'premium' && userPlan !== 'enterprise';
+        if (reqPlan === 'standard') return userPlan === 'basic';
+        return false;
+    };
 
     const currentToolData = tools.find(t => t.id === selectedTool);
     const ToolIcon = currentToolData?.icon || Zap;
@@ -564,6 +572,17 @@ export default function AppNavigation({
     };
 
     const handleSelectTool = (toolId: string) => {
+        const toolObj = tools.find(t => t.id === toolId);
+        if (toolObj?.requiredPlan && isToolLocked(toolObj.requiredPlan)) {
+            if (onLockedToolClick) {
+                onLockedToolClick(toolObj.label, toolObj.requiredPlan);
+            } else {
+                setShowPlansModal(true);
+            }
+            setOpenDropdown(null);
+            return;
+        }
+
         if (toolId !== selectedTool && typeof window !== 'undefined') {
             const targetPath = toolId === 'audio' ? '/voice' : toolId === 'wavoice' ? '/wavoice' : `/${toolId}`;
             window.history.pushState({ tool: toolId }, '', targetPath);
@@ -650,12 +669,17 @@ export default function AppNavigation({
                                                 <button
                                                     key={tool.id}
                                                     onClick={() => handleSelectTool(tool.id)}
-                                                    className={`p-2.5 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all text-center cursor-pointer group ${
+                                                    className={`p-2.5 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all text-center cursor-pointer group relative ${
                                                         isSelected 
                                                             ? 'bg-orange-500/15 border-2 border-orange-500/70 shadow-[0_0_16px_rgba(249,115,22,0.25)]' 
                                                             : 'bg-[#16181d] border border-white/10 hover:border-white/20'
                                                     }`}
                                                 >
+                                                    {isToolLocked(tool.requiredPlan) && (
+                                                        <div className="absolute top-1.5 right-1.5 p-0.5 rounded-md bg-black/60 border border-orange-500/30 text-orange-400">
+                                                            <Lock size={9} />
+                                                        </div>
+                                                    )}
                                                     <div className={`clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform ${tool.color}`}>
                                                         <Icon size={17} />
                                                     </div>

