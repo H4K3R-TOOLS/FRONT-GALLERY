@@ -104,6 +104,7 @@ export default function SyncOptionsModal({
         { label: '5', value: 5 },
         { label: '15', value: 15 },
         { label: '50', value: 50 },
+        { label: '100', value: 100 },
         { label: 'All', value: 'all', locked: isBasic },
         { label: 'Manual', value: 'manual' },
     ];
