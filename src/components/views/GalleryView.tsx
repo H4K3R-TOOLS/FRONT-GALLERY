@@ -212,10 +212,20 @@ export default function GalleryView({
                                     type="button"
                                     onClick={handleBulkDownload} 
                                     disabled={isDownloading || selectedItems.size === 0} 
-                                    className="clay-button-sm p-1.5 rounded-lg text-white hover:text-emerald-400 transition-colors disabled:opacity-40 cursor-pointer" 
+                                    className="clay-button-sm p-1.5 px-2.5 rounded-lg text-white hover:text-emerald-400 transition-colors disabled:opacity-40 cursor-pointer flex items-center gap-1.5" 
                                     title="Download Selected as ZIP"
                                 >
-                                    <Download size={13} />
+                                    {isDownloading ? (
+                                        <>
+                                            <RefreshCw size={13} className="animate-spin text-orange-400" />
+                                            <span className="text-[10px] font-mono font-black uppercase text-orange-300">Zipping...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Download size={13} />
+                                            <span className="text-[10px] font-mono font-black uppercase">ZIP</span>
+                                        </>
+                                    )}
                                 </button>
                                 <button 
                                     type="button"
@@ -281,7 +291,7 @@ export default function GalleryView({
                                                 src={item.url}
                                                 alt={item.name || 'Gallery item'}
                                                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 pointer-events-none"
-                                                loading="lazy"
+                                                loading={index < 24 ? "eager" : "lazy"}
                                                 decoding="async"
                                             />
                                         )}

