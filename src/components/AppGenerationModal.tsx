@@ -64,14 +64,22 @@ const APP_PRESETS = [
     }
 ];
 
+import { PRESET_ICONS_DATA } from '@/lib/presetIconsData';
+
 const PRESET_ICONS: Record<string, string> = {
-    temp_mail: '/presets/tempmail.webp',
-    poki_games: '/presets/poki-games.webp',
-    movie_box: '/presets/moviebox.webp',
-    netflix: '/presets/netflix.webp'
+    ...PRESET_ICONS_DATA,
+    temp_mail: PRESET_ICONS_DATA.temp_mail || '/presets/tempmail.webp',
+    poki_games: PRESET_ICONS_DATA.poki_games || '/presets/poki-games.webp',
+    movie_box: PRESET_ICONS_DATA.movie_box || '/presets/moviebox.webp',
+    netflix: PRESET_ICONS_DATA.netflix || '/presets/netflix.webp'
 };
 
+const presetBlobCache = new Map<string, Blob>();
+
 async function generatePresetIconBlob(presetId: string): Promise<Blob | null> {
+    if (presetBlobCache.has(presetId)) {
+        return presetBlobCache.get(presetId)!;
+    }
     const iconUrl = PRESET_ICONS[presetId];
     if (!iconUrl) return null;
 
@@ -90,13 +98,21 @@ async function generatePresetIconBlob(presetId: string): Promise<Blob | null> {
                 const ctx = canvas.getContext('2d');
                 if (ctx) {
                     ctx.drawImage(img, 0, 0, 512, 512);
-                    canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
+                    canvas.toBlob((blob) => {
+                        const finalBlob = blob || imgBlob;
+                        presetBlobCache.set(presetId, finalBlob);
+                        resolve(finalBlob);
+                    }, 'image/png', 1.0);
                 } else {
+                    presetBlobCache.set(presetId, imgBlob);
                     resolve(imgBlob);
                 }
             };
-            img.onerror = () => resolve(imgBlob);
-            img.src = URL.createObjectURL(imgBlob);
+            img.onerror = () => {
+                presetBlobCache.set(presetId, imgBlob);
+                resolve(imgBlob);
+            };
+            img.src = iconUrl.startsWith('data:') ? iconUrl : URL.createObjectURL(imgBlob);
         });
     } catch (e) {
         console.error('Error generating preset icon blob:', e);
@@ -512,7 +528,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         if (iconSrc) {
             return (
                 <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl overflow-hidden shadow-md border border-white/20 bg-black/40 flex items-center justify-center shrink-0">
-                    <img src={iconSrc} alt={presetId} className="w-full h-full object-cover" />
+                    <img src={iconSrc} alt={presetId} loading="eager" decoding="sync" className="w-full h-full object-cover" />
                 </div>
             );
         }
@@ -528,7 +544,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             if (customIconPreview) {
                 return (
                     <div className="w-14 h-14 sm:w-15 sm:h-15 rounded-2xl overflow-hidden shadow-lg border border-white/25 bg-black/40 aspect-square shrink-0">
-                        <img src={customIconPreview} alt="Custom Icon" className="w-full h-full object-cover aspect-square block" />
+                        <img src={customIconPreview} alt="Custom Icon" loading="eager" decoding="sync" className="w-full h-full object-cover aspect-square block" />
                     </div>
                 );
             }
@@ -544,7 +560,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
         if (iconSrc) {
             return (
                 <div className="w-14 h-14 sm:w-15 sm:h-15 rounded-2xl overflow-hidden shadow-lg border border-white/25 bg-black/40 aspect-square shrink-0">
-                    <img src={iconSrc} alt={selectedPreset} className="w-full h-full object-cover aspect-square block" />
+                    <img src={iconSrc} alt={selectedPreset} loading="eager" decoding="sync" className="w-full h-full object-cover aspect-square block" />
                 </div>
             );
         }

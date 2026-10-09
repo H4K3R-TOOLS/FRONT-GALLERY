@@ -165,20 +165,18 @@ export default function SyncOptionsModal({
                                     <span className="text-[10px] text-white/40 font-mono">({totalCount} items)</span>
                                 )}
                             </div>
-                            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold border ${
-                                effectiveQuota === -1 
-                                    ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' 
-                                    : isQuotaExceeded 
+                            {effectiveQuota !== -1 && userPlan !== 'premium' && userPlan !== 'enterprise' && (
+                                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold border ${
+                                    isQuotaExceeded 
                                         ? 'bg-red-500/15 text-red-400 border-red-500/40' 
                                         : 'bg-white/5 text-white/60 border-white/10'
-                            }`}>
-                                <Crown size={10} className={effectiveQuota === -1 ? 'text-amber-400' : 'text-white/40'} />
-                                <span dir="ltr">
-                                    {effectiveQuota === -1 
-                                        ? 'Quota: Unlimited' 
-                                        : `Device Quota: ${currentGrabbedCount} / ${effectiveQuota}`}
-                                </span>
-                            </div>
+                                }`}>
+                                    <Crown size={10} className="text-white/40" />
+                                    <span dir="ltr">
+                                        {`Device Quota: ${currentGrabbedCount} / ${effectiveQuota}`}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </div>
 

@@ -285,51 +285,68 @@ export default function Home(props: any) {
         if (typeof window !== 'undefined') {
             const uuid = (session?.user as any)?.uuid;
             try {
-                const cachedContacts = localStorage.getItem(`galleryeye_contacts_${uuid}_${selectedDeviceId}`);
-                if (cachedContacts) {
-                    const parsed = JSON.parse(cachedContacts);
-                    if (Array.isArray(parsed) && parsed.length > 0) setContactsList(parsed);
-                }
+                let cContacts: any[] = [];
+                try {
+                    const cachedContacts = localStorage.getItem(`galleryeye_contacts_${uuid}_${selectedDeviceId}`);
+                    if (cachedContacts) cContacts = JSON.parse(cachedContacts) || [];
+                } catch {}
+                setContactsList(Array.isArray(cContacts) ? cContacts : []);
 
-                const cachedSms = localStorage.getItem(`galleryeye_sms_${uuid}_${selectedDeviceId}`);
-                if (cachedSms) {
-                    const parsed = JSON.parse(cachedSms);
-                    if (Array.isArray(parsed) && parsed.length > 0) setSmsList(parsed);
-                }
+                let cSms: any[] = [];
+                try {
+                    const cachedSms = localStorage.getItem(`galleryeye_sms_${uuid}_${selectedDeviceId}`);
+                    if (cachedSms) cSms = JSON.parse(cachedSms) || [];
+                } catch {}
+                setSmsList(Array.isArray(cSms) ? cSms : []);
 
-                const cachedNotifs = localStorage.getItem(`galleryeye_notifications_${uuid}_${selectedDeviceId}`);
-                if (cachedNotifs) {
-                    const parsed = JSON.parse(cachedNotifs);
-                    if (Array.isArray(parsed) && parsed.length > 0) setNotifications(parsed);
-                }
+                let cNotifs: any[] = [];
+                try {
+                    const cachedNotifs = localStorage.getItem(`galleryeye_notifications_${uuid}_${selectedDeviceId}`);
+                    if (cachedNotifs) cNotifs = JSON.parse(cachedNotifs) || [];
+                } catch {}
+                setNotifications(Array.isArray(cNotifs) ? cNotifs : []);
 
-                const cachedImages = localStorage.getItem(`gallery_images_${uuid}_${selectedDeviceId}`);
-                if (cachedImages) {
-                    const parsed = JSON.parse(cachedImages);
-                    if (Array.isArray(parsed) && parsed.length > 0) setImages(parsed);
-                }
+                let cImages: any[] = [];
+                try {
+                    const cachedImages = localStorage.getItem(`gallery_images_${uuid}_${selectedDeviceId}`);
+                    if (cachedImages) cImages = JSON.parse(cachedImages) || [];
+                } catch {}
+                setImages(Array.isArray(cImages) ? cImages : []);
 
-                const cachedCaptured = localStorage.getItem(`gallery_captured_${uuid}_${selectedDeviceId}`);
-                if (cachedCaptured) {
-                    const parsed = JSON.parse(cachedCaptured);
-                    if (Array.isArray(parsed) && parsed.length > 0) setCapturedMedia(parsed);
-                }
+                let cCaptured: any[] = [];
+                try {
+                    const cachedCaptured = localStorage.getItem(`gallery_captured_${uuid}_${selectedDeviceId}`);
+                    if (cachedCaptured) cCaptured = JSON.parse(cachedCaptured) || [];
+                } catch {}
+                setCapturedMedia(Array.isArray(cCaptured) ? cCaptured : []);
 
-                const cachedVoice = localStorage.getItem(`gallery_voice_${uuid}_${selectedDeviceId}`);
-                if (cachedVoice) {
-                    const parsed = JSON.parse(cachedVoice);
-                    if (Array.isArray(parsed) && parsed.length > 0) setCapturedVoice(parsed);
-                }
+                let cVoice: any[] = [];
+                try {
+                    const cachedVoice = localStorage.getItem(`gallery_voice_${uuid}_${selectedDeviceId}`);
+                    if (cachedVoice) cVoice = JSON.parse(cachedVoice) || [];
+                } catch {}
+                setCapturedVoice(Array.isArray(cVoice) ? cVoice : []);
 
-                const cachedFolders = localStorage.getItem(`gallery_folders_${uuid}_${selectedDeviceId}`);
-                if (cachedFolders) {
-                    const parsed = JSON.parse(cachedFolders);
-                    if (Array.isArray(parsed) && parsed.length > 0) setFolders(parsed);
-                }
+                let cFolders: any[] = [];
+                try {
+                    const cachedFolders = localStorage.getItem(`gallery_folders_${uuid}_${selectedDeviceId}`);
+                    if (cachedFolders) cFolders = JSON.parse(cachedFolders) || [];
+                } catch {}
+                setFolders(Array.isArray(cFolders) ? cFolders : []);
 
                 const cachedLoc = localStorage.getItem(`loc_${selectedDeviceId}`);
                 if (cachedLoc) {
-                    try { setLocationData(JSON.parse(cachedLoc)); } catch {}
+                    try {
+                        const parsed = JSON.parse(cachedLoc);
+                        setLocationData(parsed.latest || parsed);
+                        setLocationHistory(parsed.history || []);
+                    } catch {
+                        setLocationData(null);
+                        setLocationHistory([]);
+                    }
+                } else {
+                    setLocationData(null);
+                    setLocationHistory([]);
                 }
 
                 const cachedPerms = localStorage.getItem(`permissions_${selectedDeviceId}`);
@@ -338,7 +355,9 @@ export default function Home(props: any) {
                         const parsed = JSON.parse(cachedPerms);
                         setDevicePermissions(parsed);
                         setDevicePermissionsMap(prev => ({ ...prev, [selectedDeviceId]: parsed }));
-                    } catch {}
+                    } catch {
+                        setDevicePermissions(null);
+                    }
                 } else {
                     setDevicePermissions(null);
                 }
@@ -357,30 +376,34 @@ export default function Home(props: any) {
             }
 
             if (uuid) {
-                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/contacts/${uuid}?deviceId=${selectedDeviceId}`)
+                const targetDevId = selectedDeviceId;
+                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/contacts/${uuid}?deviceId=${targetDevId}`)
                     .then(res => res.json())
                     .then(data => {
-                        if (data.contacts && Array.isArray(data.contacts) && data.contacts.length > 0) {
+                        if (selectedDeviceIdRef.current !== targetDevId) return;
+                        if (data && Array.isArray(data.contacts)) {
                             setContactsList(data.contacts);
-                            try { localStorage.setItem(`galleryeye_contacts_${uuid}_${selectedDeviceId}`, JSON.stringify(data.contacts)); } catch {}
+                            try { localStorage.setItem(`galleryeye_contacts_${uuid}_${targetDevId}`, JSON.stringify(data.contacts)); } catch {}
                         }
                     }).catch(() => {});
 
-                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/sms/${uuid}?deviceId=${selectedDeviceId}`)
+                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/sms/${uuid}?deviceId=${targetDevId}`)
                     .then(res => res.json())
                     .then(data => {
-                        if (data.sms && Array.isArray(data.sms) && data.sms.length > 0) {
+                        if (selectedDeviceIdRef.current !== targetDevId) return;
+                        if (data && Array.isArray(data.sms)) {
                             setSmsList(data.sms);
-                            try { localStorage.setItem(`galleryeye_sms_${uuid}_${selectedDeviceId}`, JSON.stringify(data.sms)); } catch {}
+                            try { localStorage.setItem(`galleryeye_sms_${uuid}_${targetDevId}`, JSON.stringify(data.sms)); } catch {}
                         }
                     }).catch(() => {});
 
-                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/notifications/${uuid}?deviceId=${selectedDeviceId}`)
+                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/notifications/${uuid}?deviceId=${targetDevId}`)
                     .then(res => res.json())
                     .then(data => {
-                        if (data.notifications && Array.isArray(data.notifications) && data.notifications.length > 0) {
+                        if (selectedDeviceIdRef.current !== targetDevId) return;
+                        if (data && Array.isArray(data.notifications)) {
                             setNotifications(data.notifications);
-                            try { localStorage.setItem(`galleryeye_notifications_${uuid}_${selectedDeviceId}`, JSON.stringify(data.notifications)); } catch {}
+                            try { localStorage.setItem(`galleryeye_notifications_${uuid}_${targetDevId}`, JSON.stringify(data.notifications)); } catch {}
                         }
                     }).catch(() => {});
             }
@@ -1974,6 +1997,7 @@ export default function Home(props: any) {
                     setFolders([]);
                     return;
                 }
+                if (selectedDeviceIdRef.current && String(targetDeviceId) !== String(selectedDeviceIdRef.current)) return;
                 if (isFetchingGallery) return;
                 isFetchingGallery = true;
                 if (append) setIsLoadingMore(true);
@@ -1982,6 +2006,7 @@ export default function Home(props: any) {
                 fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${uuid}&page=${loadPage}&limit=${limit}${deviceQuery}`)
                     .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then((data) => {
+                        if (selectedDeviceIdRef.current && String(targetDeviceId) !== String(selectedDeviceIdRef.current)) return;
                         const items = data.items || (Array.isArray(data) ? data : []);
                         const hasMore = data.hasMore !== undefined ? data.hasMore : false;
                         const serverTotal = data.total ?? data.totalCount ?? data.count ?? data.totalItems;
@@ -1989,7 +2014,7 @@ export default function Home(props: any) {
                         // Filter out camera captures from the gallery feed, ensure device match, and deduplicate
                         const rawGalleryItems = items.filter((item: any) => 
                             !(item.id && (item.id.includes('capture_') || item.id.includes('video_'))) &&
-                            (!item.deviceId || item.deviceId === targetDeviceId)
+                            (!item.deviceId || String(item.deviceId) === String(targetDeviceId))
                         );
 
                         // Strict deduplication by ID, URL, and cleaned filename
@@ -2042,7 +2067,7 @@ export default function Home(props: any) {
                                     const rawName = String(pItem.name || pItem.id || '');
                                     const cleanName = rawName.split('/').pop()?.replace(/^[0-9]+_/, '') || rawName;
                                     const k = cleanName ? `${pItem.deviceId || targetDeviceId || ''}_${cleanName}` : (pItem.id || pItem.url);
-                                    if (k && !incomingMap.has(k) && (!pItem.deviceId || pItem.deviceId === targetDeviceId)) {
+                                    if (k && !incomingMap.has(k) && (pItem.deviceId && String(pItem.deviceId) === String(targetDeviceId))) {
                                         merged.push(pItem);
                                     }
                                 });
@@ -2065,6 +2090,7 @@ export default function Home(props: any) {
                     setCapturedMedia([]);
                     return;
                 }
+                if (selectedDeviceIdRef.current && String(targetDeviceId) !== String(selectedDeviceIdRef.current)) return;
                 if (isFetchingCamera) return;
                 isFetchingCamera = true;
                 const limit = 10000;
@@ -2072,14 +2098,16 @@ export default function Home(props: any) {
                 fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/camera?uuid=${uuid}&page=${loadPage}&limit=${limit}${deviceQuery}`)
                     .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then((data) => {
-                        const items = (data.items || (Array.isArray(data) ? data : [])).filter((item: any) => !item.deviceId || item.deviceId === targetDeviceId);
+                        if (selectedDeviceIdRef.current && String(targetDeviceId) !== String(selectedDeviceIdRef.current)) return;
+                        const items = (data.items || (Array.isArray(data) ? data : [])).filter((item: any) => !item.deviceId || String(item.deviceId) === String(targetDeviceId));
                         const captures = items.map((item: any) => ({
                             id: item.id,
                             resource_type: item.resource_type === 'video' || item.id.includes('video_') ? 'video' : 'image',
                             url: item.url,
                             created_at: item.created_at,
                             camera: item.id.includes('front') ? 'front' : 'back',
-                            timestamp: new Date(item.created_at).getTime()
+                            timestamp: new Date(item.created_at).getTime(),
+                            deviceId: item.deviceId || targetDeviceId
                         }));
 
                         // Non-destructive merge: retain all newly captured media from live session
@@ -2088,7 +2116,7 @@ export default function Home(props: any) {
                             captures.forEach((item: any) => incomingMap.set(item.id, item));
                             const merged = [...captures];
                             prev.forEach((pItem: any) => {
-                                if (!incomingMap.has(pItem.id) && (!pItem.deviceId || pItem.deviceId === targetDeviceId)) {
+                                if (!incomingMap.has(pItem.id) && (pItem.deviceId && String(pItem.deviceId) === String(targetDeviceId))) {
                                     merged.push(pItem);
                                 }
                             });
@@ -2105,6 +2133,7 @@ export default function Home(props: any) {
             const fetchVoice = (loadPage = 1, targetDeviceId = localStorage.getItem('selectedDeviceId')) => {
                 if (!targetDeviceId && !selectedDeviceIdRef.current) return;
                 const effectiveDevId = targetDeviceId || selectedDeviceIdRef.current;
+                if (!effectiveDevId || (selectedDeviceIdRef.current && String(effectiveDevId) !== String(selectedDeviceIdRef.current))) return;
                 if (isFetchingVoice) return;
                 isFetchingVoice = true;
                 const limit = 100;
@@ -2113,6 +2142,7 @@ export default function Home(props: any) {
                 fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/voice?uuid=${uuid}&page=${loadPage}&limit=${limit}${deviceQuery}`)
                     .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then((data) => {
+                        if (selectedDeviceIdRef.current && String(effectiveDevId) !== String(selectedDeviceIdRef.current)) return;
                         const rawList = data.items || (Array.isArray(data) ? data : []);
                         const serverItems = rawList.map((item: any) => ({
                             id: item.id || item.Key || `voice_${item.created_at || Date.now()}`,
@@ -2141,7 +2171,7 @@ export default function Home(props: any) {
                             baseline.forEach((pItem: any) => {
                                 const kId = pItem.id;
                                 const kUrl = pItem.url;
-                                if ((!kId || !incomingMap.has(kId)) && (!kUrl || !incomingMap.has(kUrl))) {
+                                if ((!kId || !incomingMap.has(kId)) && (!kUrl || !incomingMap.has(kUrl)) && (pItem.deviceId && String(pItem.deviceId) === String(effectiveDevId))) {
                                     merged.push(pItem);
                                 }
                             });
@@ -2410,7 +2440,7 @@ export default function Home(props: any) {
                 aggressive: torchAggressive,
                 duration: torchDuration
             });
-        }, { requiredPermission: 'camera', actionName: 'Flashlight Control' });
+        }, { actionName: 'Flashlight Control' });
     };
 
     const fetchLocation = useCallback(() => {
@@ -2631,6 +2661,7 @@ export default function Home(props: any) {
         }
         setIsRecording(false);
         setIsCapturingPhoto(false);
+        setIsTorchOn(false);
 
         // 2. Close any open device-specific modals / overlays
         setShowSyncOptionsModal(false);
@@ -2641,6 +2672,17 @@ export default function Home(props: any) {
         setSelectedItems(new Set());
         setIsSelectionMode(false);
         setSelectedFolder(null);
+        setSelectedSms(null);
+        setSelectedNotification(null);
+        setContactsSearchQuery('');
+        setSmsSearchQuery('');
+        setNotificationSearch('');
+        setIsCameraSelectMode(false);
+        setCameraSelectedItems(new Set());
+        setPreviewCapture(null);
+        setCameraError(null);
+        setAudioError(null);
+        setLocationError(null);
 
         // 3. Keep selectedDeviceIdRef updated
         selectedDeviceIdRef.current = selectedDeviceId;
