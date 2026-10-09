@@ -14,6 +14,8 @@ interface SyncOptionsModalProps {
     userPlan: 'free' | 'basic' | 'standard' | 'premium' | 'enterprise';
     onSync: (mediaType: 'image' | 'video', count: number | 'all', method: 'oneByOne' | 'zip') => void;
     onUpgrade: () => void;
+    currentGrabbedCount?: number;
+    maxAllowedQuota?: number;
 }
 
 export default function SyncOptionsModal({
@@ -22,7 +24,9 @@ export default function SyncOptionsModal({
     folder,
     userPlan,
     onSync,
-    onUpgrade
+    onUpgrade,
+    currentGrabbedCount = 0,
+    maxAllowedQuota
 }: SyncOptionsModalProps) {
     const hasImages = folder?.imageCount === undefined || folder?.imageCount > 0;
     const hasVideos = folder?.videoCount === undefined || folder?.videoCount > 0;
@@ -37,6 +41,14 @@ export default function SyncOptionsModal({
 
     const inputRef = useRef<HTMLInputElement>(null);
 
+    // Calculate quota limits
+    const isPremium = userPlan === 'premium' || userPlan === 'enterprise';
+    const isStandard = userPlan === 'standard';
+    const effectiveQuota = maxAllowedQuota !== undefined 
+        ? maxAllowedQuota 
+        : (isPremium ? -1 : (isStandard ? 1000 : 600));
+    const isQuotaExceeded = effectiveQuota !== -1 && currentGrabbedCount >= effectiveQuota;
+
     // Synchronize mediaType safely when folder changes without cascaded flicker
     useEffect(() => {
         if (isOpen && folder) {
@@ -45,14 +57,16 @@ export default function SyncOptionsModal({
             setShowManualInput(false);
             setManualInput('');
             setManualError(false);
-            setShowUpgradePopup(false);
+            if (isQuotaExceeded) {
+                setUpgradeMessage(`Device lifetime media quota reached (${currentGrabbedCount}/${effectiveQuota}). Upgrade to Premium for unlimited extraction.`);
+                setShowUpgradePopup(true);
+            } else {
+                setShowUpgradePopup(false);
+            }
         }
-    }, [isOpen, folder?.name]);
+    }, [isOpen, folder?.name, currentGrabbedCount, effectiveQuota, isQuotaExceeded]);
 
     if (!isOpen || !folder) return null;
-
-    const isPremium = userPlan === 'premium' || userPlan === 'enterprise';
-    const isBasic = userPlan === 'basic';
 
     const maxCount = mediaType === 'image'
         ? (folder?.imageCount ?? folder?.count ?? 999)
@@ -83,6 +97,12 @@ export default function SyncOptionsModal({
     };
 
     const validateAndTriggerSync = (method: 'oneByOne' | 'zip') => {
+        if (isQuotaExceeded) {
+            setUpgradeMessage(`Device lifetime media quota reached (${currentGrabbedCount}/${effectiveQuota}). Upgrade to Premium for unlimited extraction.`);
+            setShowUpgradePopup(true);
+            return;
+        }
+
         if (showManualInput) {
             const val = parseInt(manualInput, 10);
             if (isNaN(val) || val <= 0) {
@@ -103,7 +123,7 @@ export default function SyncOptionsModal({
     const quantityOptions: { label: string; value: number | 'all' | 'manual'; locked?: boolean }[] = [
         { label: '5', value: 5 },
         { label: '100', value: 100 },
-        { label: 'All', value: 'all', locked: isBasic },
+        { label: 'All', value: 'all' },
         { label: 'Manual', value: 'manual' },
     ];
 
@@ -135,11 +155,27 @@ export default function SyncOptionsModal({
                         <h2 className="text-base sm:text-lg font-black text-white uppercase tracking-wider">
                             Folder Sync Config
                         </h2>
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/50 border border-white/5 mt-1.5">
-                            <span className="text-xs font-black text-orange-300 font-mono">{folder.name}</span>
-                            {totalCount !== null && (
-                                <span className="text-[10px] text-white/40 font-mono">({totalCount} items)</span>
-                            )}
+                        <div className="flex flex-wrap items-center justify-center gap-2 mt-1.5">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/50 border border-white/5">
+                                <span className="text-xs font-black text-orange-300 font-mono">{folder.name}</span>
+                                {totalCount !== null && (
+                                    <span className="text-[10px] text-white/40 font-mono">({totalCount} items)</span>
+                                )}
+                            </div>
+                            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold border ${
+                                effectiveQuota === -1 
+                                    ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' 
+                                    : isQuotaExceeded 
+                                        ? 'bg-red-500/15 text-red-400 border-red-500/40' 
+                                        : 'bg-white/5 text-white/60 border-white/10'
+                            }`}>
+                                <Crown size={10} className={effectiveQuota === -1 ? 'text-amber-400' : 'text-white/40'} />
+                                <span>
+                                    {effectiveQuota === -1 
+                                        ? 'Quota: Unlimited' 
+                                        : `Device Quota: ${currentGrabbedCount}/${effectiveQuota}`}
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -339,15 +375,11 @@ export default function SyncOptionsModal({
                             <button
                                 type="button"
                                 onClick={() => {
-                                    if (isBasic) {
-                                        handleLockedClick('Download as ZIP');
+                                    if (!isPremium) {
+                                        handleLockedClick('Download as ZIP Archive');
                                         return;
                                     }
-                                    if (isPremium) {
-                                        validateAndTriggerSync('zip');
-                                    } else {
-                                        onUpgrade();
-                                    }
+                                    validateAndTriggerSync('zip');
                                 }}
                                 className={`w-full flex items-center justify-between p-3 sm:p-3.5 rounded-2xl transition-all cursor-pointer relative overflow-hidden ${
                                     isPremium
