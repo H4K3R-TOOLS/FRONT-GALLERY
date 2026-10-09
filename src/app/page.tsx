@@ -110,22 +110,7 @@ export default function Home(props: any) {
             }
         }
     }, [session]);
-    const [images, setImages] = useState<any[]>(() => {
-        if (typeof window !== 'undefined') {
-            try {
-                const devId = localStorage.getItem('selectedDeviceId');
-                const u = localStorage.getItem('galleryeye_user_uuid') || localStorage.getItem('galleryeye_last_uuid');
-                if (devId && u) {
-                    const cached = localStorage.getItem(`gallery_images_${u}_${devId}`);
-                    if (cached) {
-                        const parsed = JSON.parse(cached);
-                        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-                    }
-                }
-            } catch {}
-        }
-        return [];
-    });
+    const [images, setImages] = useState<any[]>([]);
     const [galleryPage, setGalleryPage] = useState(1);
     const [galleryHasMore, setGalleryHasMore] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -205,7 +190,21 @@ export default function Home(props: any) {
             }
 
             const savedDevice = localStorage.getItem('selectedDeviceId');
-            if (savedDevice) setSelectedDeviceId(savedDevice);
+            const savedUuid = localStorage.getItem('galleryeye_user_uuid') || localStorage.getItem('galleryeye_last_uuid');
+            if (savedDevice) {
+                setSelectedDeviceId(savedDevice);
+                if (savedUuid) {
+                    try {
+                        const cached = localStorage.getItem(`gallery_images_${savedUuid}_${savedDevice}`);
+                        if (cached) {
+                            const parsed = JSON.parse(cached);
+                            if (Array.isArray(parsed) && parsed.length > 0) {
+                                setImages(parsed);
+                            }
+                        }
+                    } catch {}
+                }
+            }
 
             const cachedDevs = localStorage.getItem('galleryeye_cached_devices');
             if (cachedDevs) {
