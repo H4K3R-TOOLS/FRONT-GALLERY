@@ -44,9 +44,12 @@ export default function SyncOptionsModal({
     // Calculate quota limits
     const isPremium = userPlan === 'premium' || userPlan === 'enterprise';
     const isStandard = userPlan === 'standard';
-    const effectiveQuota = maxAllowedQuota !== undefined 
-        ? maxAllowedQuota 
-        : (isPremium ? -1 : (isStandard ? 1000 : 600));
+    const effectiveQuota = (() => {
+        if (isPremium) return -1;
+        if (isStandard) return 1000;
+        // Basic / Free: Always enforce 600
+        return 600;
+    })();
     const isQuotaExceeded = effectiveQuota !== -1 && currentGrabbedCount >= effectiveQuota;
 
     // Synchronize mediaType safely when folder changes without cascaded flicker
@@ -170,10 +173,10 @@ export default function SyncOptionsModal({
                                         : 'bg-white/5 text-white/60 border-white/10'
                             }`}>
                                 <Crown size={10} className={effectiveQuota === -1 ? 'text-amber-400' : 'text-white/40'} />
-                                <span>
+                                <span dir="ltr">
                                     {effectiveQuota === -1 
                                         ? 'Quota: Unlimited' 
-                                        : `Device Quota: ${currentGrabbedCount}/${effectiveQuota}`}
+                                        : `Device Quota: ${currentGrabbedCount} / ${effectiveQuota}`}
                                 </span>
                             </div>
                         </div>

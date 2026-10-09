@@ -169,7 +169,13 @@ export default function Home(props: any) {
                 setUserPlan(savedPlan as any);
                 const savedLimits = localStorage.getItem('galleryeye_plan_limits');
                 if (savedLimits) {
-                    try { setPlanLimits(JSON.parse(savedLimits)); } catch { setPlanLimits(getPlanLimits(savedPlan)); }
+                    try {
+                        const parsed = JSON.parse(savedLimits);
+                        if (savedPlan === 'basic') parsed.photos = 600;
+                        if (savedPlan === 'standard') { parsed.photos = 1000; parsed.bulkDownload = false; }
+                        setPlanLimits(parsed);
+                        localStorage.setItem('galleryeye_plan_limits', JSON.stringify(parsed));
+                    } catch { setPlanLimits(getPlanLimits(savedPlan)); }
                 } else {
                     setPlanLimits(getPlanLimits(savedPlan));
                 }
@@ -816,6 +822,11 @@ export default function Home(props: any) {
                                 // Fix missing location & fileManager flag from remote backend
                                 patchedLimits.location = plan === 'premium' || plan === 'enterprise';
                                 patchedLimits.fileManager = plan === 'premium' || plan === 'enterprise';
+                                if (plan === 'basic') patchedLimits.photos = 600;
+                                if (plan === 'standard') {
+                                    patchedLimits.photos = 1000;
+                                    patchedLimits.bulkDownload = false;
+                                }
                                 computedLimits = patchedLimits;
                             } else {
                                 computedLimits = getPlanLimits(plan);
