@@ -1119,14 +1119,20 @@ export default function Home(props: any) {
                     deviceId: image.deviceId || currentDevId || null
                 };
                 setImages((prev) => {
-                    const isDup = prev.some(img => 
-                        (img.id && imageWithDevice.id && img.id === imageWithDevice.id) || 
-                        (img.url && imageWithDevice.url && img.url === imageWithDevice.url)
-                    );
+                    const incomingCleanName = String(imageWithDevice.name || imageWithDevice.id || '').split('/').pop()?.replace(/^[0-9]+_/, '') || '';
+                    const isDup = prev.some(img => {
+                        if (img.id && imageWithDevice.id && img.id === imageWithDevice.id) return true;
+                        if (img.url && imageWithDevice.url && img.url === imageWithDevice.url) return true;
+                        if (incomingCleanName && !incomingCleanName.startsWith('upload')) {
+                            const prevCleanName = String(img.name || img.id || '').split('/').pop()?.replace(/^[0-9]+_/, '') || '';
+                            if (prevCleanName && prevCleanName.toLowerCase() === incomingCleanName.toLowerCase()) return true;
+                        }
+                        return false;
+                    });
                     if (isDup) return prev;
+                    setTotalMediaCount(prevCount => prevCount + 1);
                     return [imageWithDevice, ...prev];
                 });
-                setTotalMediaCount(prev => prev + 1);
             });
 
             socket.on("image_deleted", (data: any) => {

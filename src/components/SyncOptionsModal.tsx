@@ -102,8 +102,6 @@ export default function SyncOptionsModal({
 
     const quantityOptions: { label: string; value: number | 'all' | 'manual'; locked?: boolean }[] = [
         { label: '5', value: 5 },
-        { label: '15', value: 15 },
-        { label: '50', value: 50 },
         { label: '100', value: 100 },
         { label: 'All', value: 'all', locked: isBasic },
         { label: 'Manual', value: 'manual' },
@@ -214,7 +212,7 @@ export default function SyncOptionsModal({
                             )}
                         </div>
                         
-                        <div className="grid grid-cols-5 gap-1.5 bg-[#0a0c10] p-1.5 rounded-2xl border border-white/5 shadow-inner">
+                        <div className="grid grid-cols-4 gap-1.5 bg-[#0a0c10] p-1.5 rounded-2xl border border-white/5 shadow-inner">
                             {quantityOptions.map((opt) => {
                                 const isActive = opt.value === 'manual'
                                     ? showManualInput
