@@ -144,6 +144,7 @@ export default function Home(props: any) {
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
     const selectedDeviceIdRef = useRef<string | null>(null);
     const prevDeviceFetchedRef = useRef<string | null>(null);
+    const prevTeardownDeviceIdRef = useRef<string | null>(null);
     const [isDeviceDropdownOpen, setIsDeviceDropdownOpen] = useState(false);
     const [navDropdown, setNavDropdown] = useState<'tools' | 'devices' | 'profile' | null>(null);
     const [socketPing, setSocketPing] = useState<number>(14);
@@ -342,8 +343,7 @@ export default function Home(props: any) {
                 } catch {}
                 setCapturedVoice(Array.isArray(cVoice) ? cVoice : []);
 
-                // Folders remain hidden on page refresh/device switch until user explicitly clicks "Scan Folders"
-                setFolders([]);
+
 
                 const cachedLoc = localStorage.getItem(`loc_${selectedDeviceId}`);
                 if (cachedLoc) {
@@ -628,6 +628,10 @@ export default function Home(props: any) {
                 localStorage.removeItem('galleryeye_selected_tool');
                 sessionStorage.removeItem('galleryeye_selected_tool');
             }
+        }
+        // User specification: Folders reset only when switching tools away from gallery
+        if (selectedTool && selectedTool !== 'gallery') {
+            setFolders([]);
         }
     }, [selectedTool]);
     const [isToolDropdownOpen, setIsToolDropdownOpen] = useState(false);
@@ -2684,6 +2688,13 @@ export default function Home(props: any) {
     // Clean Teardown & Isolation on Device Switch
     useEffect(() => {
         if (!selectedDeviceId) return;
+
+        // ONLY trigger teardown and reset folders if target device ACTUALLY switched!
+        // This ensures folders STAY visible during sync, socket pings, or media uploads!
+        if (prevTeardownDeviceIdRef.current === selectedDeviceId) {
+            return;
+        }
+        prevTeardownDeviceIdRef.current = selectedDeviceId;
 
         // 1. Immediately abort any active streams or hardware feeds
         if (isLiveStreamingRef.current) {

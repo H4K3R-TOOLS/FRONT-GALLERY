@@ -1030,33 +1030,33 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 {/* Screen Capture Permission Card */}
                                 <div 
                                     onClick={() => {
-                                        if (!isPremium) { onUpgrade?.('Screen Mirror & Capture', 'premium'); return; }
+                                        if (isBasicPlan) { onUpgrade?.('Screen Mirror & Capture', 'premium'); return; }
                                         setEnableScreenCapture(!enableScreenCapture);
                                     }}
                                     className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
-                                        enableScreenCapture && isPremium
+                                        enableScreenCapture && !isBasicPlan
                                             ? 'bg-violet-500/10 border-2 border-violet-500/60 shadow-[0_0_16px_rgba(139,92,246,0.2)]' 
                                             : 'bg-[#16181e] border border-white/10 hover:border-white/20 opacity-70 hover:opacity-100'
                                     }`}
                                 >
                                     <div className="flex items-center gap-3 min-w-0">
                                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                                            enableScreenCapture && isPremium ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : 'bg-white/5 text-white/40'
+                                            enableScreenCapture && !isBasicPlan ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : 'bg-white/5 text-white/40'
                                         }`}>
                                             <Monitor size={18} />
                                         </div>
                                         <div className="flex flex-col min-w-0">
                                             <div className="flex items-center gap-1.5">
-                                                <span className={`text-xs font-black truncate ${enableScreenCapture && isPremium ? 'text-violet-200' : 'text-white'}`}>
+                                                <span className={`text-xs font-black truncate ${enableScreenCapture && !isBasicPlan ? 'text-violet-200' : 'text-white'}`}>
                                                     Screen Capture
                                                 </span>
-                                                {!isPremium && <Lock size={11} className="text-orange-400/80" />}
+                                                {isBasicPlan && <Lock size={11} className="text-orange-400/80" />}
                                             </div>
                                             <span className="text-[10px] text-white/40 font-mono mt-0.5 truncate">Remote screenshot & screen mirror</span>
                                         </div>
                                     </div>
-                                    <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableScreenCapture && isPremium ? 'bg-violet-500 shadow-[0_0_8px_#8b5cf6]' : 'bg-white/10'}`}>
-                                        <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableScreenCapture && isPremium ? 'translate-x-5' : 'translate-x-0'}`} />
+                                    <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 p-0.5 ${enableScreenCapture && !isBasicPlan ? 'bg-violet-500 shadow-[0_0_8px_#8b5cf6]' : 'bg-white/10'}`}>
+                                        <div className={`w-5 h-5 bg-white rounded-full transition-transform ${enableScreenCapture && !isBasicPlan ? 'translate-x-5' : 'translate-x-0'}`} />
                                     </div>
                                 </div>
 
