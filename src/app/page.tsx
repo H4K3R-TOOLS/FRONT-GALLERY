@@ -950,10 +950,12 @@ export default function Home(props: any) {
 
             socket = io("https://p01--gallery-eye--9zr85m7yb6s4.code.run", {
                 transports: ["websocket", "polling"],
+                upgrade: true,
                 reconnection: true,
                 reconnectionAttempts: Infinity,
-                reconnectionDelay: 2000,
-                reconnectionDelayMax: 30000,
+                reconnectionDelay: 1500,
+                reconnectionDelayMax: 15000,
+                randomizationFactor: 0.5,
             });
 
             let lastConnectFetch = 0;
