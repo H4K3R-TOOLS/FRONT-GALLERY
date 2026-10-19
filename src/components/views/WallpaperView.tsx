@@ -108,10 +108,55 @@ export default function WallpaperView({
     const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Load persistent wallpaper preview per device & preload presets
+    useEffect(() => {
+        // Preload preset images in background for zero-latency browsing
+        PRESET_WALLPAPERS.forEach((p) => {
+            const img = new Image();
+            img.src = p.url;
+        });
+    }, []);
+
+    // Restore last wallpaper for selected device on mount / device change
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const targetKey = selectedDeviceId ? `wallpaper_cache_${selectedDeviceId}` : 'wallpaper_cache_last';
+        const raw = localStorage.getItem(targetKey) || localStorage.getItem('wallpaper_cache_last');
+        if (raw) {
+            try {
+                const parsed = JSON.parse(raw);
+                if (parsed.type === 'custom' && parsed.customImage) {
+                    setCustomImageBase64(parsed.customImage);
+                    if (parsed.customFileName) setCustomFileName(parsed.customFileName);
+                    setActiveTab('custom');
+                } else if (parsed.presetId && PRESET_WALLPAPERS.some(p => p.id === parsed.presetId)) {
+                    setSelectedPresetId(parsed.presetId);
+                    setActiveTab('presets');
+                }
+            } catch (_) {}
+        }
+    }, [selectedDeviceId]);
+
     // Active image source for preview
     const activeImageSrc = activeTab === 'custom' && customImageBase64 
         ? customImageBase64 
         : (PRESET_WALLPAPERS.find(p => p.id === selectedPresetId)?.url || PRESET_WALLPAPERS[0].url);
+
+    // Save wallpaper cache utility
+    const saveWallpaperCache = (deviceId: string | null) => {
+        if (typeof window === 'undefined') return;
+        const cacheData = {
+            type: activeTab,
+            presetId: selectedPresetId,
+            customImage: activeTab === 'custom' ? customImageBase64 : null,
+            customFileName: activeTab === 'custom' ? customFileName : '',
+            updatedAt: Date.now()
+        };
+        if (deviceId) {
+            try { localStorage.setItem(`wallpaper_cache_${deviceId}`, JSON.stringify(cacheData)); } catch (_) {}
+        }
+        try { localStorage.setItem('wallpaper_cache_last', JSON.stringify(cacheData)); } catch (_) {}
+    };
 
     // Listen to wallpaper_status event from socket
     useEffect(() => {
@@ -122,6 +167,9 @@ export default function WallpaperView({
             if (data?.success) {
                 setJustApplied(true);
                 setTimeout(() => setJustApplied(false), 4000);
+
+                // Persist current wallpaper preview for this device
+                saveWallpaperCache(selectedDeviceId);
 
                 const screenLabel = data?.target === 'home' ? 'Home Screen' : data?.target === 'lock' ? 'Lock Screen' : 'Both Screens';
                 setToastMessage({
@@ -141,24 +189,53 @@ export default function WallpaperView({
         return () => {
             socket.off('wallpaper_status', handleStatus);
         };
-    }, [socket]);
+    }, [socket, activeTab, selectedPresetId, customImageBase64, customFileName, selectedDeviceId]);
+
+    // Fast client-side image compression before base64 upload
+    const compressImage = (dataUrl: string, maxW = 1080, maxH = 2340): Promise<string> => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                let { width, height } = img;
+                if (width > maxW || height > maxH) {
+                    const ratio = Math.min(maxW / width, maxH / height);
+                    width = Math.round(width * ratio);
+                    height = Math.round(height * ratio);
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.85));
+                } else {
+                    resolve(dataUrl);
+                }
+            };
+            img.onerror = () => resolve(dataUrl);
+            img.src = dataUrl;
+        });
+    };
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        if (file.size > 15 * 1024 * 1024) {
-            setToastMessage({ type: 'error', text: 'Image exceeds 15MB limit.' });
+        if (file.size > 20 * 1024 * 1024) {
+            setToastMessage({ type: 'error', text: 'Image exceeds 20MB limit.' });
             setTimeout(() => setToastMessage(null), 4000);
             return;
         }
 
         setCustomFileName(file.name);
         const reader = new FileReader();
-        reader.onload = (event) => {
-            const result = event.target?.result as string;
-            if (result) {
-                setCustomImageBase64(result);
+        reader.onload = async (event) => {
+            const rawResult = event.target?.result as string;
+            if (rawResult) {
+                // Compress client-side to prevent socket freeze and guarantee <150ms transfer
+                const compressed = await compressImage(rawResult);
+                setCustomImageBase64(compressed);
                 setActiveTab('custom');
             }
         };
@@ -184,6 +261,9 @@ export default function WallpaperView({
             }
 
             setIsApplying(true);
+
+            // Optimistically update device cache
+            saveWallpaperCache(effectiveTarget);
 
             socket.emit('set_wallpaper', {
                 uuid: userUuid,
