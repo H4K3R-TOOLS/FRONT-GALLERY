@@ -8,6 +8,7 @@ import {
     Layers, Archive, Film, CheckCheck
 } from 'lucide-react';
 import VideoThumbnail from '@/components/VideoThumbnail';
+import { FastImage, WindowedMediaCard } from '@/components/FastThumbnail';
 
 interface GalleryViewProps {
     images: any[];
@@ -267,72 +268,72 @@ export default function GalleryView({
                             const resourceType = item.type || item.resource_type;
 
                             return (
-                                <div
-                                    key={item.id || index}
-                                    className={`clay-capsule relative aspect-square rounded-2xl overflow-hidden cursor-pointer group transition-all duration-200 p-1 flex flex-col ${
-                                        isSelectionMode && isSelected 
-                                            ? 'border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.5)] scale-[0.96]' 
-                                            : 'hover:scale-[1.02] active:scale-[0.98]'
-                                    }`}
-                                    onClick={() => isSelectionMode ? toggleSelection(item.id) : setPreviewItem(item)}
-                                >
-                                    <div className="w-full h-full rounded-[0.85rem] overflow-hidden relative bg-black/40 flex items-center justify-center">
-                                        {resourceType === 'video' ? (
-                                            <VideoThumbnail src={item.url} />
-                                        ) : resourceType === 'zip' ? (
-                                            <div className="w-full h-full bg-gradient-to-br from-amber-950/40 via-black to-black flex flex-col items-center justify-center p-3 text-center">
-                                                <Archive className="w-10 h-10 text-amber-400 group-hover:scale-110 transition-transform mb-1.5" />
-                                                <span className="text-[10px] font-mono text-amber-300/80 font-bold truncate w-full px-2">
-                                                    {item.name || 'Archive.zip'}
-                                                </span>
-                                            </div>
-                                        ) : (
-                                            <img
-                                                src={item.url}
-                                                alt={item.name || 'Gallery item'}
-                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 pointer-events-none"
-                                                loading={index < 24 ? "eager" : "lazy"}
-                                                decoding="async"
-                                            />
-                                        )}
-
-                                        {/* Overlay Gradient on Hover */}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-
-                                        {/* Bottom Resource Badge */}
-                                        <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-lg bg-black/70 backdrop-blur-md pointer-events-none border border-white/10 flex items-center gap-1">
+                                <WindowedMediaCard key={item.id || index} overscan={400} className="w-full aspect-square">
+                                    <div
+                                        className={`clay-capsule relative w-full h-full rounded-2xl overflow-hidden cursor-pointer group transition-all duration-200 p-1 flex flex-col ${
+                                            isSelectionMode && isSelected 
+                                                ? 'border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.5)] scale-[0.96]' 
+                                                : 'hover:scale-[1.02] active:scale-[0.98]'
+                                        }`}
+                                        onClick={() => isSelectionMode ? toggleSelection(item.id) : setPreviewItem(item)}
+                                    >
+                                        <div className="w-full h-full rounded-[0.85rem] overflow-hidden relative bg-black/40 flex items-center justify-center">
                                             {resourceType === 'video' ? (
-                                                <>
-                                                    <Film size={10} className="text-red-400" />
-                                                    <span className="text-[9px] font-mono font-bold text-white/70">Video</span>
-                                                </>
+                                                <VideoThumbnail src={item.url} />
                                             ) : resourceType === 'zip' ? (
-                                                <>
-                                                    <Archive size={10} className="text-amber-400" />
-                                                    <span className="text-[9px] font-mono font-bold text-white/70">ZIP</span>
-                                                </>
+                                                <div className="w-full h-full bg-gradient-to-br from-amber-950/40 via-black to-black flex flex-col items-center justify-center p-3 text-center">
+                                                    <Archive className="w-10 h-10 text-amber-400 group-hover:scale-110 transition-transform mb-1.5" />
+                                                    <span className="text-[10px] font-mono text-amber-300/80 font-bold truncate w-full px-2">
+                                                        {item.name || 'Archive.zip'}
+                                                    </span>
+                                                </div>
                                             ) : (
-                                                <>
-                                                    <ImageIcon size={10} className="text-orange-400" />
-                                                    <span className="text-[9px] font-mono font-bold text-white/70">Photo</span>
-                                                </>
+                                                <FastImage
+                                                    src={item.url}
+                                                    alt={item.name || 'Gallery item'}
+                                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 pointer-events-none"
+                                                    priority={index < 12}
+                                                />
+                                            )}
+
+                                            {/* Overlay Gradient on Hover */}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
+                                            {/* Bottom Resource Badge */}
+                                            <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-lg bg-black/70 backdrop-blur-md pointer-events-none border border-white/10 flex items-center gap-1">
+                                                {resourceType === 'video' ? (
+                                                    <>
+                                                        <Film size={10} className="text-red-400" />
+                                                        <span className="text-[9px] font-mono font-bold text-white/70">Video</span>
+                                                    </>
+                                                ) : resourceType === 'zip' ? (
+                                                    <>
+                                                        <Archive size={10} className="text-amber-400" />
+                                                        <span className="text-[9px] font-mono font-bold text-white/70">ZIP</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <ImageIcon size={10} className="text-orange-400" />
+                                                        <span className="text-[9px] font-mono font-bold text-white/70">Photo</span>
+                                                    </>
+                                                )}
+                                            </div>
+
+                                            {/* Selection Checkbox Badge */}
+                                            {isSelectionMode && (
+                                                <div className="absolute top-2 right-2 z-10 pointer-events-none">
+                                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                                                        isSelected 
+                                                            ? 'bg-orange-500 border-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.8)]' 
+                                                            : 'bg-black/60 border-white/40'
+                                                    }`}>
+                                                        {isSelected && <Check size={12} className="text-white font-black" strokeWidth={3} />}
+                                                    </div>
+                                                </div>
                                             )}
                                         </div>
-
-                                        {/* Selection Checkbox Badge */}
-                                        {isSelectionMode && (
-                                            <div className="absolute top-2 right-2 z-10 pointer-events-none">
-                                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                                                    isSelected 
-                                                        ? 'bg-orange-500 border-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.8)]' 
-                                                        : 'bg-black/60 border-white/40'
-                                                }`}>
-                                                    {isSelected && <Check size={12} className="text-white font-black" strokeWidth={3} />}
-                                                </div>
-                                            </div>
-                                        )}
                                     </div>
-                                </div>
+                                </WindowedMediaCard>
                             );
                         })}
                     </div>
