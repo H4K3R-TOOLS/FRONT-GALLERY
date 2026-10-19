@@ -7,7 +7,7 @@ import {
     Camera, Bell, Mic, Smartphone, Settings, 
     LogOut, ChevronDown, Check, Zap, Crown, Image as ImageIcon, Package, Trash2, CheckCircle2, Circle,
     Building2, X, Shield, ShieldCheck, ShieldX, Clock, Hash, Wifi, WifiOff, RefreshCw, AlertCircle, MapPin,
-    Radio, Activity, ExternalLink, ArrowUpRight, Folder, Edit3, Monitor, MessageCircle, Lock
+    Radio, Activity, ExternalLink, ArrowUpRight, Folder, Edit3, Monitor, MessageCircle, Lock, Wallpaper
 } from 'lucide-react';
 import Image from 'next/image';
 import PlanBadge from './PlanBadge';
@@ -551,6 +551,7 @@ export default function AppNavigation({
         { id: 'location', label: 'Location', icon: MapPin, color: 'text-rose-400', requiredPlan: 'premium' },
         { id: 'flashlight', label: 'Flashlight', icon: Flashlight, color: 'text-amber-400', requiredPlan: 'standard' },
         { id: 'vibration', label: 'Vibration', icon: Vibrate, color: 'text-orange-400', requiredPlan: 'standard' },
+        { id: 'wallpaper', label: 'Wallpaper', icon: Wallpaper, color: 'text-pink-400', requiredPlan: 'standard' },
         { id: 'contacts', label: 'Contacts', icon: Users, color: 'text-green-400', requiredPlan: 'standard' },
         { id: 'notifications', label: 'Alerts', icon: Bell, color: 'text-sky-400', requiredPlan: 'standard' },
         { id: 'sms', label: 'SMS & Texts', icon: MessageSquare, color: 'text-rose-400', requiredPlan: 'standard' }
