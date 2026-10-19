@@ -51,6 +51,8 @@ export default function AdminPage() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [activeTab, setActiveTab] = useState<'users' | 'devices' | 'media'>('users');
+    const [userPlanFilter, setUserPlanFilter] = useState<'all' | 'enterprise' | 'premium' | 'standard' | 'basic'>('all');
+    const [userVisibleCount, setUserVisibleCount] = useState(30);
 
     const [devices, setDevices] = useState<AdminDevice[]>([]);
     const [devicesLoading, setDevicesLoading] = useState(false);
@@ -181,11 +183,14 @@ export default function AdminPage() {
     const fetchUsers = async (email: string) => {
         setIsLoading(true);
         try {
-            const res = await fetch(`${BACKEND_URL}/admin/users`, {
+            const res = await fetch(`${BACKEND_URL}/admin/users?limit=300`, {
                 headers: { 'x-admin-email': email }
             });
             if (res.ok) {
-                setUsers(await res.json());
+                const data = await res.json();
+                setUsers(Array.isArray(data) ? data : []);
+            } else {
+                setError('Failed to fetch users');
             }
         } catch {
             setError('Failed to fetch users');
@@ -485,18 +490,32 @@ export default function AdminPage() {
         return `${(bytes / 1048576).toFixed(1)} MB`;
     };
 
+    const userPlanStats = useMemo(() => {
+        const base = hasSearched ? searchResults : users;
+        return {
+            all: base.length,
+            enterprise: base.filter(u => u.plan === 'enterprise').length,
+            premium: base.filter(u => u.plan === 'premium').length,
+            standard: base.filter(u => u.plan === 'standard').length,
+            basic: base.filter(u => !u.plan || u.plan === 'basic').length,
+        };
+    }, [users, hasSearched, searchResults]);
+
     const displayUsers = useMemo(() => {
         const query = searchQuery.trim().toLowerCase();
-        if (hasSearched) {
-            return searchResults;
+        let list = hasSearched ? searchResults : users;
+
+        if (userPlanFilter !== 'all') {
+            list = list.filter(u => (u.plan || 'basic').toLowerCase() === userPlanFilter);
         }
-        if (!query) return users;
-        return users.filter(u =>
+
+        if (!query) return list;
+        return list.filter(u =>
             (u.email && u.email.toLowerCase().includes(query)) ||
             (u.name && u.name.toLowerCase().includes(query)) ||
             (u.uuid && u.uuid.toLowerCase().includes(query))
         );
-    }, [users, searchQuery, hasSearched, searchResults]);
+    }, [users, searchQuery, hasSearched, searchResults, userPlanFilter]);
 
     // S3 Storage Folders List (Enriched with user plans & folder counts)
     const userFoldersList = useMemo(() => {
@@ -877,6 +896,69 @@ export default function AdminPage() {
                             </div>
                         </div>
 
+                        {/* User Plan Filter Pills */}
+                        <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 no-scrollbar flex-nowrap sm:flex-wrap">
+                            <button
+                                type="button"
+                                onClick={() => { setUserPlanFilter('all'); setUserVisibleCount(30); }}
+                                className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
+                                    userPlanFilter === 'all'
+                                        ? 'bg-accent/25 text-accent-hi border border-accent/40 shadow-sm'
+                                        : 'clay-card text-fg-2 hover:text-white'
+                                }`}
+                            >
+                                All Users ({userPlanStats.all})
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setUserPlanFilter('enterprise'); setUserVisibleCount(30); }}
+                                className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold uppercase tracking-wider transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+                                    userPlanFilter === 'enterprise'
+                                        ? 'bg-purple-500/25 text-purple-200 border border-purple-500/50 shadow-[0_0_12px_rgba(168,85,247,0.2)]'
+                                        : 'clay-card text-purple-400/80 hover:text-purple-300'
+                                }`}
+                            >
+                                <Building2 size={11} className="text-purple-400" />
+                                <span>Enterprise ({userPlanStats.enterprise})</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setUserPlanFilter('premium'); setUserVisibleCount(30); }}
+                                className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold uppercase tracking-wider transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+                                    userPlanFilter === 'premium'
+                                        ? 'bg-amber-500/25 text-amber-200 border border-amber-500/50 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
+                                        : 'clay-card text-amber-400/80 hover:text-amber-300'
+                                }`}
+                            >
+                                <Crown size={11} className="text-amber-400" />
+                                <span>Premium ({userPlanStats.premium})</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setUserPlanFilter('standard'); setUserVisibleCount(30); }}
+                                className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold uppercase tracking-wider transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+                                    userPlanFilter === 'standard'
+                                        ? 'bg-emerald-500/25 text-emerald-200 border border-emerald-500/50 shadow-[0_0_12px_rgba(16,185,129,0.2)]'
+                                        : 'clay-card text-emerald-400/80 hover:text-emerald-300'
+                                }`}
+                            >
+                                <Zap size={11} className="text-emerald-400" />
+                                <span>Standard ({userPlanStats.standard})</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setUserPlanFilter('basic'); setUserVisibleCount(30); }}
+                                className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold uppercase tracking-wider transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+                                    userPlanFilter === 'basic'
+                                        ? 'bg-white/15 text-white border border-white/30'
+                                        : 'clay-card text-zinc-400 hover:text-white'
+                                }`}
+                            >
+                                <Package size={11} className="text-zinc-400" />
+                                <span>Basic ({userPlanStats.basic})</span>
+                            </button>
+                        </div>
+
                         {/* Search & Actions Bar */}
                         <div className="flex gap-2">
                             <div className="relative flex-1 min-w-0">
@@ -888,6 +970,7 @@ export default function AdminPage() {
                                         setSearchQuery(e.target.value);
                                         setHasSearched(false);
                                         setSearchResults([]);
+                                        setUserVisibleCount(30);
                                     }}
                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                     placeholder="Search email, UUID, or name..."
@@ -895,7 +978,7 @@ export default function AdminPage() {
                                 />
                                 {searchQuery && (
                                     <button
-                                        onClick={() => { setSearchQuery(''); setSearchResults([]); setHasSearched(false); }}
+                                        onClick={() => { setSearchQuery(''); setSearchResults([]); setHasSearched(false); setUserVisibleCount(30); }}
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-fg-3 hover:text-white"
                                     >
                                         <X size={14} />
@@ -911,9 +994,9 @@ export default function AdminPage() {
                             </button>
                         </div>
 
-                        {/* Users List Grid */}
+                        {/* Users List Grid (Windowed Slicing for Instant 60fps Performance) */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {displayUsers.map((user, idx) => (
+                            {displayUsers.slice(0, userVisibleCount).map((user, idx) => (
                                 <div
                                     key={user.email || idx}
                                     className={`clay-card p-4 rounded-2xl transition-all flex flex-col justify-between relative ${
@@ -971,6 +1054,33 @@ export default function AdminPage() {
                                 </div>
                             ))}
                         </div>
+
+                        {/* Pagination / Load More Bar */}
+                        {displayUsers.length > userVisibleCount && (
+                            <div className="clay-card p-3 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono">
+                                <span className="text-fg-3">
+                                    Displaying <strong className="text-white">{Math.min(userVisibleCount, displayUsers.length)}</strong> of <strong className="text-cyan-400">{displayUsers.length}</strong> active accounts
+                                </span>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setUserVisibleCount(prev => prev + 30)}
+                                        className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white font-bold transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
+                                    >
+                                        <span>Load More (+30)</span>
+                                    </button>
+                                    {displayUsers.length > userVisibleCount + 30 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setUserVisibleCount(displayUsers.length)}
+                                            className="px-4 py-2 rounded-xl bg-accent/20 hover:bg-accent/30 border border-accent/40 text-accent-hi font-bold transition-all cursor-pointer active:scale-95"
+                                        >
+                                            <span>Show All ({displayUsers.length})</span>
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         {displayUsers.length === 0 && (
                             <div className="text-center py-12 clay-card rounded-3xl text-fg-2 space-y-3">
