@@ -70,7 +70,7 @@ export default function AdminPage() {
     const [visibleCount, setVisibleCount] = useState(24);
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
-    const BACKEND_URL = 'https://p01--gallery-eye--9zr85m7yb6s4.code.run';
+    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://spynox.collyes2.workers.dev';
     const R2_CACHE_KEY = 'admin_r2_files_cache';
     const R2_CACHE_TS_KEY = 'admin_r2_cache_ts';
 

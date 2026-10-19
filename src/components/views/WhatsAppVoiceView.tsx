@@ -45,7 +45,7 @@ interface WhatsAppVoiceViewProps {
     onTriggerOffline?: () => void;
 }
 
-const BASE_URL = 'https://p01--gallery-eye--9zr85m7yb6s4.code.run';
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://spynox.collyes2.workers.dev';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Claymorphic Waveform Audio Player

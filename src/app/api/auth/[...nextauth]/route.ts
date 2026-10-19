@@ -2,6 +2,8 @@ import NextAuth, { AuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import { syncGoogleUserRecord } from "@/lib/auth-registry"
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://spynox.collyes2.workers.dev';
+
 export const authOptions: AuthOptions = {
     providers: [
         GoogleProvider({
@@ -16,7 +18,7 @@ export const authOptions: AuthOptions = {
                     syncGoogleUserRecord(user.email, user.name);
                 }
                 try {
-                    let res = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/login", {
+                    let res = await fetch(`${BACKEND_URL}/auth/login`, {
                         method: 'POST',
                         body: JSON.stringify({
                             email: user.email,
@@ -27,7 +29,7 @@ export const authOptions: AuthOptions = {
                         headers: { "Content-Type": "application/json" }
                     });
                     if (!res.ok) {
-                        res = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/login", {
+                        res = await fetch(`${BACKEND_URL}/login`, {
                             method: 'POST',
                             body: JSON.stringify({
                                 email: user.email,
@@ -60,7 +62,7 @@ export const authOptions: AuthOptions = {
                 token.lastPlanCheck = now;
                 try {
                     const planRes = await fetch(
-                        `https://p01--gallery-eye--9zr85m7yb6s4.code.run/user/plan?uuid=${encodeURIComponent(token.uuid || '')}&email=${encodeURIComponent(token.email)}`,
+                        `${BACKEND_URL}/user/plan?uuid=${encodeURIComponent(token.uuid || '')}&email=${encodeURIComponent(token.email)}`,
                         { cache: 'no-store' }
                     );
                     if (planRes.ok) {

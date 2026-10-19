@@ -30,9 +30,10 @@ export async function POST(req: Request) {
             }, { status: 400 });
         }
 
+        const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://spynox.collyes2.workers.dev';
         // Check cloud backend for existing accounts (read-only, send only email)
         try {
-            const checkRes = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/login", {
+            const checkRes = await fetch(`${BACKEND_URL}/auth/login`, {
                 method: 'POST',
                 body: JSON.stringify({ email: cleanEmail }),
                 headers: { "Content-Type": "application/json" }
@@ -64,7 +65,7 @@ export async function POST(req: Request) {
 
         // Try cloud registration endpoint (new backend has /auth/register)
         try {
-            await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/register", {
+            await fetch(`${BACKEND_URL}/auth/register`, {
                 method: 'POST',
                 body: JSON.stringify({ email: cleanEmail, password, name, provider: 'credentials' }),
                 headers: { "Content-Type": "application/json" }

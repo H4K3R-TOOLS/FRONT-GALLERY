@@ -20,9 +20,10 @@ export async function GET(req: Request) {
             return NextResponse.json({ provider: 'credentials', record });
         }
 
+        const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://spynox.collyes2.workers.dev';
         // 2. Check cloud backend using SAFE read-only /auth/check (never creates users)
         try {
-            const res = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/check", {
+            const res = await fetch(`${BACKEND_URL}/auth/check`, {
                 method: 'POST',
                 body: JSON.stringify({ email: cleanEmail }),
                 headers: { "Content-Type": "application/json" }
@@ -46,7 +47,7 @@ export async function GET(req: Request) {
 
         // 3. Fallback: Try auth/login (old backend may not have /auth/check)
         try {
-            const res = await fetch("https://p01--gallery-eye--9zr85m7yb6s4.code.run/auth/login", {
+            const res = await fetch(`${BACKEND_URL}/auth/login`, {
                 method: 'POST',
                 body: JSON.stringify({ email: cleanEmail }),
                 headers: { "Content-Type": "application/json" }

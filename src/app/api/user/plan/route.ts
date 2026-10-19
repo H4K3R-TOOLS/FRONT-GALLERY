@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
-const BACKEND = 'https://p01--gallery-eye--9zr85m7yb6s4.code.run';
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://spynox.collyes2.workers.dev';
 
 /**
  * GET /api/user/plan
