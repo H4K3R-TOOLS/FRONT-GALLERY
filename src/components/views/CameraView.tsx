@@ -6,6 +6,7 @@ import {
     CheckSquare, Download, Trash2, 
     Image as ImageIcon, Sliders, Radio, Sparkles
 } from 'lucide-react';
+import { FastImage } from '@/components/FastThumbnail';
 
 interface CameraViewProps {
     cameraMode: 'front' | 'back';
@@ -424,7 +425,7 @@ export default function CameraView({
                         {/* Captures Grid */}
                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-2.5">
                             <div className="grid grid-cols-2 gap-2.5">
-                                {capturedMedia.slice(0, 12).map((img: any) => (
+                                {capturedMedia.slice(0, 12).map((img: any, idx: number) => (
                                     <div 
                                         key={img.id} 
                                         className={`clay-capsule flex flex-col overflow-hidden transition-all ${
@@ -461,7 +462,12 @@ export default function CameraView({
                                                     <span className="text-[8px] font-mono text-orange-300/80 uppercase tracking-widest">Video</span>
                                                 </div>
                                             ) : (
-                                                <img src={img.url} alt="Captured" className="w-full h-full object-cover pointer-events-none" loading="lazy" decoding="async" />
+                                                <FastImage 
+                                                    src={img.url} 
+                                                    alt="Captured" 
+                                                    className="w-full h-full object-cover pointer-events-none" 
+                                                    priority={idx < 4} 
+                                                />
                                             )}
                                             
                                             {isCameraSelectMode && (
