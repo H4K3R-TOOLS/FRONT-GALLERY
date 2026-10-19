@@ -4,9 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
     Wallpaper, Upload, Sparkles, Check, CheckCircle2, AlertCircle, 
     Smartphone, Lock, Home, RefreshCw, X, Image as ImageIcon,
-    Wifi, BatteryCharging, Shield, Info, ArrowRight
+    Wifi, BatteryCharging, ArrowRight
 } from 'lucide-react';
-import Image from 'next/image';
 
 interface WallpaperViewProps {
     socket: any;
@@ -36,58 +35,58 @@ const PRESET_WALLPAPERS: PresetWallpaper[] = [
     {
         id: 'cyber_grid',
         name: 'Cyber Grid',
-        tag: 'Cyberpunk',
-        url: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=1080&q=80',
-        thumb: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=360&q=70'
+        tag: 'Matrix',
+        url: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1080&h=2340&q=85',
+        thumb: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=360&h=780&q=75'
     },
     {
         id: 'neon_tokyo',
         name: 'Neon Tokyo',
-        tag: 'Midnight',
-        url: 'https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=1080&q=80',
-        thumb: 'https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=360&q=70'
+        tag: 'Cyberpunk',
+        url: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1080&h=2340&q=85',
+        thumb: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=360&h=780&q=75'
     },
     {
         id: 'deep_space',
         name: 'Cosmic Nebula',
         tag: 'AMOLED',
-        url: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=1080&q=80',
-        thumb: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=360&q=70'
+        url: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=1080&h=2340&q=85',
+        thumb: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=360&h=780&q=75'
     },
     {
         id: 'dark_peaks',
         name: 'Dark Peaks',
         tag: 'Minimal',
-        url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1080&q=80',
-        thumb: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=360&q=70'
+        url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1080&h=2340&q=85',
+        thumb: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=360&h=780&q=75'
     },
     {
         id: 'crimson_horizon',
         name: 'Crimson Flow',
         tag: 'Abstract',
-        url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=1080&q=80',
-        thumb: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=360&q=70'
+        url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=1080&h=2340&q=85',
+        thumb: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=360&h=780&q=75'
     },
     {
         id: 'synthwave',
         name: 'Synthwave Sun',
-        tag: 'Retro 80s',
-        url: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1080&q=80',
-        thumb: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=360&q=70'
+        tag: 'Retro',
+        url: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1080&h=2340&q=85',
+        thumb: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=360&h=780&q=75'
     },
     {
         id: 'emerald_aurora',
         name: 'Emerald Aurora',
         tag: 'Nature',
-        url: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=1080&q=80',
-        thumb: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=360&q=70'
+        url: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=1080&h=2340&q=85',
+        thumb: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=360&h=780&q=75'
     },
     {
         id: 'obsidian_liquid',
         name: 'Obsidian Fluid',
         tag: 'Dark 4K',
-        url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1080&q=80',
-        thumb: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=360&q=70'
+        url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1080&h=2340&q=85',
+        thumb: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=360&h=780&q=75'
     }
 ];
 
@@ -105,7 +104,8 @@ export default function WallpaperView({
     const [customFileName, setCustomFileName] = useState<string>('');
     const [targetScreen, setTargetScreen] = useState<'both' | 'home' | 'lock'>('both');
     const [isApplying, setIsApplying] = useState<boolean>(false);
-    const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+    const [justApplied, setJustApplied] = useState<boolean>(false);
+    const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Active image source for preview
@@ -120,19 +120,21 @@ export default function WallpaperView({
         const handleStatus = (data: any) => {
             setIsApplying(false);
             if (data?.success) {
-                const screenLabel = data?.target === 'home' ? 'Home screen' : data?.target === 'lock' ? 'Lock screen' : 'Both screens';
-                setFeedback({
+                setJustApplied(true);
+                setTimeout(() => setJustApplied(false), 4000);
+
+                const screenLabel = data?.target === 'home' ? 'Home Screen' : data?.target === 'lock' ? 'Lock Screen' : 'Both Screens';
+                setToastMessage({
                     type: 'success',
-                    message: `Wallpaper changed successfully on ${screenLabel}!`
+                    text: `Wallpaper updated on ${screenLabel}`
                 });
             } else {
-                setFeedback({
+                setToastMessage({
                     type: 'error',
-                    message: data?.message || 'Failed to update wallpaper on target device.'
+                    text: data?.message || 'Failed to update wallpaper.'
                 });
             }
-            // Auto clear feedback after 6 seconds
-            setTimeout(() => setFeedback(null), 6000);
+            setTimeout(() => setToastMessage(null), 4500);
         };
 
         socket.on('wallpaper_status', handleStatus);
@@ -145,8 +147,9 @@ export default function WallpaperView({
         const file = e.target.files?.[0];
         if (!file) return;
 
-        if (file.size > 12 * 1024 * 1024) {
-            setFeedback({ type: 'error', message: 'Image size exceeds 12MB limit. Please choose a smaller photo.' });
+        if (file.size > 15 * 1024 * 1024) {
+            setToastMessage({ type: 'error', text: 'Image exceeds 15MB limit.' });
+            setTimeout(() => setToastMessage(null), 4000);
             return;
         }
 
@@ -157,7 +160,6 @@ export default function WallpaperView({
             if (result) {
                 setCustomImageBase64(result);
                 setActiveTab('custom');
-                setFeedback(null);
             }
         };
         reader.readAsDataURL(file);
@@ -176,12 +178,12 @@ export default function WallpaperView({
                 : (PRESET_WALLPAPERS.find(p => p.id === selectedPresetId)?.url || PRESET_WALLPAPERS[0].url);
 
             if (!imagePayload) {
-                setFeedback({ type: 'error', message: 'Please select a wallpaper or upload an image.' });
+                setToastMessage({ type: 'error', text: 'Select a wallpaper first.' });
+                setTimeout(() => setToastMessage(null), 3000);
                 return;
             }
 
             setIsApplying(true);
-            setFeedback(null);
 
             socket.emit('set_wallpaper', {
                 uuid: userUuid,
@@ -191,11 +193,11 @@ export default function WallpaperView({
                 type: activeTab
             });
 
-            // Fallback timeout in case device is unresponsive
             setTimeout(() => {
                 setIsApplying((prev) => {
                     if (prev) {
-                        setFeedback({ type: 'error', message: 'Request timed out. Target device may be in deep sleep or offline.' });
+                        setToastMessage({ type: 'error', text: 'Device timed out or asleep.' });
+                        setTimeout(() => setToastMessage(null), 4000);
                         return false;
                     }
                     return false;
@@ -205,114 +207,65 @@ export default function WallpaperView({
     };
 
     return (
-        <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in zoom-in-95 duration-300 pb-16">
+        <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in zoom-in-95 duration-200 pb-16 relative">
             
-            {/* ── Top Header Banner ── */}
-            <div className="clay-card p-5 sm:p-7 relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="relative z-10">
-                    <div className="flex items-center gap-2.5 mb-2">
-                        <div className="clay-icon-pod w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center text-orange-400 border-orange-500/30 shadow-[0_0_20px_rgba(249,115,22,0.25)]">
-                            <Wallpaper className="w-5 h-5 text-orange-400" />
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <h2 className="text-base sm:text-lg font-black text-white tracking-tight">Remote Wallpaper Changer</h2>
-                                <span className="px-2 py-0.5 rounded-full bg-orange-500/15 border border-orange-500/30 text-[9px] font-mono font-bold text-orange-300 uppercase tracking-wider">
-                                    LIVE SYNC
-                                </span>
-                            </div>
-                            <p className="text-xs text-white/50 font-sans">
-                                Push high-resolution presets or custom photos directly to target screen background
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Device Online Status Capsule */}
-                <div className="relative z-10 flex items-center gap-2">
-                    <div className={`clay-pill px-3.5 py-1.5 flex items-center gap-2 ${
-                        isOnline 
-                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' 
-                            : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+            {/* ── Sleek Floating Dark Glass Toast (No Ugly Green Banners) ── */}
+            {toastMessage && (
+                <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[200] pointer-events-none">
+                    <div className={`px-4 py-2.5 rounded-2xl backdrop-blur-2xl border flex items-center gap-2.5 shadow-[0_15px_40px_rgba(0,0,0,0.95)] animate-in fade-in slide-in-from-top-3 duration-200 ${
+                        toastMessage.type === 'success'
+                            ? 'bg-[#12141a]/95 border-orange-500/40 text-orange-200 shadow-[0_0_25px_rgba(249,115,22,0.25)]'
+                            : 'bg-[#181114]/95 border-rose-500/40 text-rose-200 shadow-[0_0_25px_rgba(244,63,94,0.25)]'
                     }`}>
-                        <span className={`w-2 h-2 rounded-full ${
-                            isOnline ? 'bg-emerald-400 animate-pulse shadow-[0_0_8px_#10b981]' : 'bg-rose-400'
-                        }`} />
-                        <span className="text-[11px] font-mono font-black uppercase tracking-wider">
-                            {isOnline ? 'DEVICE LINKED & ACTIVE' : 'TARGET OFFLINE'}
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Feedback Alert Banner */}
-            {feedback && (
-                <div className={`p-4 rounded-2xl border flex items-center justify-between gap-3 animate-in fade-in duration-200 ${
-                    feedback.type === 'success' 
-                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200 shadow-[0_0_24px_rgba(16,185,129,0.15)]' 
-                        : 'bg-rose-500/10 border-rose-500/30 text-rose-200 shadow-[0_0_24px_rgba(244,63,94,0.15)]'
-                }`}>
-                    <div className="flex items-center gap-2.5">
-                        {feedback.type === 'success' ? (
-                            <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
+                        {toastMessage.type === 'success' ? (
+                            <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse shadow-[0_0_8px_#f97316]" />
                         ) : (
-                            <AlertCircle size={18} className="text-rose-400 shrink-0" />
+                            <AlertCircle size={14} className="text-rose-400 shrink-0" />
                         )}
-                        <span className="text-xs font-mono font-bold">{feedback.message}</span>
+                        <span className="text-xs font-mono font-bold tracking-tight">{toastMessage.text}</span>
                     </div>
-                    <button 
-                        type="button" 
-                        onClick={() => setFeedback(null)} 
-                        className="text-white/40 hover:text-white p-1"
-                    >
-                        <X size={14} />
-                    </button>
                 </div>
             )}
 
-            {/* ── Main Two-Column Studio Layout ── */}
+            {/* ── Main Two-Column Layout ── */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 
-                {/* ── Left Column: Interactive Phone Screen Mockup (4 cols) ── */}
+                {/* ── Left Column: Enhanced Ultra-Sleek 3D Phone Shell (5 cols) ── */}
                 <div className="lg:col-span-5 flex flex-col items-center">
-                    <div className="clay-card p-6 w-full flex flex-col items-center relative overflow-hidden">
+                    <div className="clay-card p-5 sm:p-6 w-full flex flex-col items-center relative overflow-hidden">
                         
-                        {/* Sub-label */}
-                        <div className="w-full flex items-center justify-between text-[11px] font-mono text-white/50 mb-4 pb-3 border-b border-white/5">
-                            <span className="flex items-center gap-1.5 text-orange-400 font-bold">
-                                <Smartphone size={13} />
-                                REAL-TIME PREVIEW
-                            </span>
-                            <span className="uppercase text-white/40">
-                                {targetScreen === 'both' ? 'Home & Lock Screen' : `${targetScreen} Screen`}
-                            </span>
-                        </div>
-
-                        {/* ── Tactical 3D Phone Shell ── */}
-                        <div className="w-[260px] sm:w-[280px] h-[520px] sm:h-[560px] rounded-[2.8rem] bg-[#0c0d12] p-2.5 relative shadow-[0_20px_60px_rgba(0,0,0,0.9),inset_0_0_0_2px_rgba(255,255,255,0.1)] border-4 border-[#1f222b]">
+                        {/* ── Tactical 3D Smartphone Chassis ── */}
+                        <div className="w-[260px] sm:w-[280px] h-[520px] sm:h-[560px] rounded-[3.2rem] bg-[#0c0d12] p-3 relative shadow-[0_30px_90px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.18),0_0_0_1px_rgba(255,255,255,0.06)] border-[4px] border-[#1c1f28]">
                             
-                            {/* Inner Screen Bezel */}
-                            <div className="w-full h-full rounded-[2.2rem] overflow-hidden relative flex flex-col justify-between bg-black select-none">
+                            {/* Realistic Hardware Side Button Accents */}
+                            <div className="absolute -left-[6px] top-28 w-[3px] h-8 bg-white/20 rounded-l-sm" />
+                            <div className="absolute -left-[6px] top-40 w-[3px] h-12 bg-white/20 rounded-l-sm" />
+                            <div className="absolute -right-[6px] top-32 w-[3px] h-14 bg-white/20 rounded-r-sm" />
+
+                            {/* Inner Glass Display Bezel */}
+                            <div className="w-full h-full rounded-[2.5rem] overflow-hidden relative flex flex-col justify-between bg-black select-none shadow-inner">
                                 
                                 {/* Background Image */}
                                 <div className="absolute inset-0 z-0">
                                     <img 
                                         src={activeImageSrc} 
                                         alt="Wallpaper Preview" 
-                                        className="w-full h-full object-cover transition-all duration-500 ease-out" 
+                                        className="w-full h-full object-cover transition-opacity duration-300 ease-out" 
                                     />
-                                    {/* Dark gradient overlay for UI readability */}
-                                    <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/65 pointer-events-none" />
+                                    {/* Ultra-subtle gradient overlay for UI elements */}
+                                    <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-transparent to-black/60 pointer-events-none" />
+                                    {/* Diagonal Glass Sheen Reflection */}
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.03] to-transparent pointer-events-none" />
                                 </div>
 
-                                {/* Dynamic Island / Speaker Notch */}
+                                {/* Dynamic Island Capsule */}
                                 <div className="relative z-20 w-full pt-2 flex justify-center">
-                                    <div className="w-20 h-4 bg-black rounded-full flex items-center justify-end px-2.5 border border-white/10 shadow-md">
-                                        <div className="w-2 h-2 rounded-full bg-blue-500/50" />
+                                    <div className="w-20 h-4 bg-black rounded-full flex items-center justify-end px-2.5 border border-white/10 shadow-lg">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-400/40 animate-pulse" />
                                     </div>
                                 </div>
 
-                                {/* Phone Status Bar */}
+                                {/* Status Bar */}
                                 <div className="relative z-20 px-5 flex items-center justify-between text-[10px] font-mono text-white/90 drop-shadow">
                                     <span className="font-bold">09:41</span>
                                     <div className="flex items-center gap-1.5">
@@ -321,12 +274,12 @@ export default function WallpaperView({
                                     </div>
                                 </div>
 
-                                {/* Phone Screen Content Depending on Target Mode */}
+                                {/* Display Content: Home vs Lock */}
                                 {targetScreen === 'lock' ? (
-                                    /* Lock Screen Mockup */
+                                    /* Lock Screen Mode */
                                     <div className="relative z-20 flex-1 flex flex-col items-center justify-between py-6 px-4">
                                         <div className="flex flex-col items-center mt-6">
-                                            <Lock size={15} className="text-white/70 mb-2 drop-shadow" />
+                                            <Lock size={14} className="text-white/70 mb-2 drop-shadow" />
                                             <div className="text-5xl font-black text-white font-sans tracking-tight drop-shadow-lg">
                                                 09:41
                                             </div>
@@ -335,24 +288,23 @@ export default function WallpaperView({
                                             </div>
                                         </div>
 
-                                        <div className="text-[10px] font-mono text-white/60 tracking-wider uppercase animate-pulse drop-shadow">
+                                        <div className="text-[9px] font-mono text-white/60 tracking-wider uppercase animate-pulse drop-shadow">
                                             Swipe up to unlock
                                         </div>
                                     </div>
                                 ) : (
-                                    /* Home Screen Mockup */
+                                    /* Home Screen Mode */
                                     <div className="relative z-20 flex-1 flex flex-col justify-between py-5 px-3">
-                                        {/* Top Weather Widget Mock */}
-                                        <div className="bg-black/35 backdrop-blur-md border border-white/10 rounded-2xl p-2.5 mx-2 text-white/90 shadow-lg">
-                                            <div className="text-[11px] font-bold">24° Sunny</div>
-                                            <div className="text-[9px] text-white/60 font-mono">Location Tracked</div>
+                                        {/* Minimal Weather Pill */}
+                                        <div className="bg-black/35 backdrop-blur-md border border-white/10 rounded-2xl p-2 mx-2 text-white/90 shadow-lg">
+                                            <div className="text-[10px] font-bold">24° Sunny</div>
                                         </div>
 
-                                        {/* Home Screen App Grid */}
-                                        <div className="grid grid-cols-4 gap-2.5 px-2 my-auto">
-                                            {['Phone', 'Messages', 'Gallery', 'Settings', 'Camera', 'Maps', 'Chrome', 'Files'].map((app, idx) => (
+                                        {/* Clean App Grid */}
+                                        <div className="grid grid-cols-4 gap-2 px-2 my-auto">
+                                            {['Phone', 'Chat', 'Gallery', 'Music', 'Camera', 'Maps', 'Web', 'Files'].map((app, idx) => (
                                                 <div key={idx} className="flex flex-col items-center gap-1">
-                                                    <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 shadow-md flex items-center justify-center text-white/90 text-xs font-black">
+                                                    <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 shadow flex items-center justify-center text-white/90 text-[11px] font-black">
                                                         {app[0]}
                                                     </div>
                                                     <span className="text-[8px] font-medium text-white/80 drop-shadow truncate w-full text-center">
@@ -362,10 +314,10 @@ export default function WallpaperView({
                                             ))}
                                         </div>
 
-                                        {/* Bottom Dock */}
-                                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2 mx-1 flex items-center justify-around border border-white/15">
+                                        {/* Bottom Glass Dock */}
+                                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-1.5 mx-1 flex items-center justify-around border border-white/15 shadow">
                                             {['📞', '💬', '🌐', '📷'].map((icon, idx) => (
-                                                <div key={idx} className="w-8 h-8 rounded-xl bg-black/40 flex items-center justify-center text-sm shadow">
+                                                <div key={idx} className="w-7 h-7 rounded-lg bg-black/40 flex items-center justify-center text-xs">
                                                     {icon}
                                                 </div>
                                             ))}
@@ -375,11 +327,8 @@ export default function WallpaperView({
                             </div>
                         </div>
 
-                        {/* Screen Target Mode Buttons */}
-                        <div className="w-full mt-5 space-y-2">
-                            <label className="text-[10px] font-mono font-bold text-white/40 uppercase tracking-wider block text-center">
-                                Select Destination Screen
-                            </label>
+                        {/* Screen Target Segmented Controller */}
+                        <div className="w-full mt-5">
                             <div className="grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-[#0c0d12] border border-white/10 shadow-inner">
                                 {[
                                     { id: 'both', label: 'Both', icon: Smartphone },
@@ -393,7 +342,7 @@ export default function WallpaperView({
                                             key={tab.id}
                                             type="button"
                                             onClick={() => setTargetScreen(tab.id as any)}
-                                            className={`py-2 px-2 rounded-xl flex items-center justify-center gap-1.5 text-xs font-mono font-bold transition-all cursor-pointer ${
+                                            className={`py-2 px-2 rounded-xl flex items-center justify-center gap-1.5 text-xs font-mono font-bold transition-colors cursor-pointer ${
                                                 active
                                                     ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-black font-black shadow-[0_2px_12px_rgba(249,115,22,0.35)]'
                                                     : 'text-white/50 hover:text-white hover:bg-white/5'
@@ -409,11 +358,11 @@ export default function WallpaperView({
                     </div>
                 </div>
 
-                {/* ── Right Column: Source Tabs & Wallpaper Picker (7 cols) ── */}
+                {/* ── Right Column: Source Tabs & Wallpapers (7 cols) ── */}
                 <div className="lg:col-span-7 space-y-5">
                     
-                    {/* Source Mode Switcher: Presets vs Custom Upload */}
-                    <div className="clay-card p-2 sm:p-2.5 flex items-center gap-2">
+                    {/* Source Switcher: Preload vs Custom Upload */}
+                    <div className="clay-card p-1.5 sm:p-2 flex items-center gap-2">
                         <button
                             type="button"
                             onClick={() => setActiveTab('presets')}
@@ -424,7 +373,7 @@ export default function WallpaperView({
                             }`}
                         >
                             <Sparkles size={14} />
-                            <span>Curated Presets ({PRESET_WALLPAPERS.length})</span>
+                            <span>Preload</span>
                         </button>
 
                         <button
@@ -441,20 +390,10 @@ export default function WallpaperView({
                         </button>
                     </div>
 
-                    {/* Tab 1: Presets Gallery Grid */}
+                    {/* Tab 1: Preload Gallery Grid (Zero Layout Shift, Pure Vertical Proportions) */}
                     {activeTab === 'presets' && (
-                        <div className="clay-card p-5 sm:p-6 space-y-4">
-                            <div className="flex items-center justify-between pb-3 border-b border-white/5">
-                                <div>
-                                    <h3 className="text-xs sm:text-sm font-black text-white">Curated Aesthetic Wallpapers</h3>
-                                    <p className="text-[10px] sm:text-[11px] font-mono text-white/40">Select any 4K preset to preview and apply</p>
-                                </div>
-                                <span className="text-[10px] font-mono text-orange-400 font-bold px-2 py-0.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
-                                    FAST CDN
-                                </span>
-                            </div>
-
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-[380px] overflow-y-auto custom-scrollbar pr-1">
+                        <div className="clay-card p-4 sm:p-5">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-[420px] overflow-y-auto custom-scrollbar pr-1">
                                 {PRESET_WALLPAPERS.map((preset) => {
                                     const isSelected = selectedPresetId === preset.id;
                                     return (
@@ -462,20 +401,21 @@ export default function WallpaperView({
                                             key={preset.id}
                                             type="button"
                                             onClick={() => setSelectedPresetId(preset.id)}
-                                            className={`group relative rounded-2xl overflow-hidden aspect-[9/16] transition-all cursor-pointer border text-left flex flex-col justify-between p-2.5 ${
+                                            className={`group relative rounded-2xl overflow-hidden aspect-[9/18] transition-all cursor-pointer border text-left flex flex-col justify-between p-2.5 ${
                                                 isSelected 
-                                                    ? 'border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.45)] ring-2 ring-orange-400/50 scale-[1.02]' 
-                                                    : 'border-white/10 hover:border-white/30 hover:scale-[1.01]'
+                                                    ? 'border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.45)] ring-2 ring-orange-400/50' 
+                                                    : 'border-white/10 hover:border-white/25'
                                             }`}
                                         >
                                             {/* Thumbnail Image */}
                                             <img 
                                                 src={preset.thumb} 
                                                 alt={preset.name} 
+                                                loading="eager"
                                                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
                                             />
                                             {/* Gradient Overlay */}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-black/30" />
 
                                             {/* Top Selection Check */}
                                             <div className="relative z-10 flex justify-end">
@@ -503,14 +443,11 @@ export default function WallpaperView({
                         </div>
                     )}
 
-                    {/* Tab 2: Custom Image Upload Zone */}
+                    {/* Tab 2: Custom Upload Zone */}
                     {activeTab === 'custom' && (
                         <div className="clay-card p-5 sm:p-6 space-y-4">
-                            <div className="flex items-center justify-between pb-3 border-b border-white/5">
-                                <div>
-                                    <h3 className="text-xs sm:text-sm font-black text-white">Upload Custom Image</h3>
-                                    <p className="text-[10px] sm:text-[11px] font-mono text-white/40">Upload any photo (JPG, PNG, WebP up to 12MB)</p>
-                                </div>
+                            <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                                <h3 className="text-xs sm:text-sm font-black text-white">Upload Custom Image</h3>
                                 {customImageBase64 && (
                                     <button
                                         type="button"
@@ -560,33 +497,23 @@ export default function WallpaperView({
                                     </button>
                                 </div>
                             ) : (
-                                /* Drag & Drop Upload Zone */
+                                /* Clean Drag & Drop Upload Zone */
                                 <div 
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="p-8 sm:p-12 border-2 border-dashed border-white/15 hover:border-orange-500/60 rounded-3xl flex flex-col items-center justify-center text-center cursor-pointer transition-all hover:bg-white/[0.02] group"
+                                    className="p-10 sm:p-14 border-2 border-dashed border-white/15 hover:border-orange-500/60 rounded-3xl flex flex-col items-center justify-center text-center cursor-pointer transition-all hover:bg-white/[0.02] group"
                                 >
                                     <div className="clay-icon-pod w-14 h-14 rounded-2xl flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform mb-3 border-orange-500/30 shadow-[0_0_20px_rgba(249,115,22,0.2)]">
                                         <Upload size={22} className="text-orange-400" />
                                     </div>
                                     <h4 className="text-xs sm:text-sm font-bold text-white mb-1">Click to browse or drop an image here</h4>
-                                    <p className="text-[10px] font-mono text-white/40">PNG, JPG, JPEG, WebP • High resolution recommended</p>
+                                    <p className="text-[10px] font-mono text-white/40">PNG, JPG, JPEG, WebP</p>
                                 </div>
                             )}
-
-                            <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 text-[11px] text-orange-200/80 font-mono leading-relaxed flex items-start gap-2">
-                                <Info size={14} className="text-orange-400 shrink-0 mt-0.5" />
-                                <span>Images are decoded and scaled directly on the target device to fit its exact native screen resolution without distortion.</span>
-                            </div>
                         </div>
                     )}
 
-                    {/* ── Master Action HUD Button ── */}
-                    <div className="clay-card p-5 sm:p-6 space-y-3">
-                        <div className="flex items-center justify-between text-xs font-mono text-white/50">
-                            <span>Target: <strong className="text-orange-300 font-bold uppercase">{targetScreen === 'both' ? 'Home & Lock Screen' : `${targetScreen} Screen`}</strong></span>
-                            <span>Source: <strong className="text-white/80 font-bold">{activeTab === 'custom' ? 'Custom Upload' : 'Curated Preset'}</strong></span>
-                        </div>
-
+                    {/* ── Master Action HUD Button (Clean, No Clutter Labels) ── */}
+                    <div className="clay-card p-4 sm:p-5">
                         <button
                             type="button"
                             onClick={handleApplyWallpaper}
@@ -594,13 +521,20 @@ export default function WallpaperView({
                             className={`w-full py-4 px-6 rounded-2xl flex items-center justify-center gap-2.5 text-xs sm:text-sm font-black font-mono uppercase tracking-wider transition-all cursor-pointer shadow-lg active:scale-98 ${
                                 isApplying
                                     ? 'bg-orange-500/40 text-black/60 cursor-not-allowed'
+                                    : justApplied
+                                    ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-black shadow-[0_8px_30px_rgba(16,185,129,0.35)]'
                                     : 'bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 hover:brightness-110 text-black shadow-[0_8px_30px_rgba(249,115,22,0.4)] hover:scale-[1.01]'
                             }`}
                         >
                             {isApplying ? (
                                 <>
                                     <RefreshCw size={16} className="animate-spin text-black" />
-                                    <span>Applying Wallpaper to Device...</span>
+                                    <span>Applying Wallpaper...</span>
+                                </>
+                            ) : justApplied ? (
+                                <>
+                                    <CheckCircle2 size={16} className="text-black" />
+                                    <span>Wallpaper Applied!</span>
                                 </>
                             ) : (
                                 <>
