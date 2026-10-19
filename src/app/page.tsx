@@ -1209,7 +1209,14 @@ export default function Home(props: any) {
                     });
                     if (isDup) return prev;
                     setTotalMediaCount(prevCount => prevCount + 1);
-                    return [imageWithDevice, ...prev];
+                    const updated = [imageWithDevice, ...prev];
+                    const effectiveDevId = currentDevId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
+                    if (typeof window !== 'undefined' && effectiveDevId && uuid) {
+                        try {
+                            localStorage.setItem(`gallery_images_${uuid}_${effectiveDevId}`, JSON.stringify(updated.slice(0, 100)));
+                        } catch {}
+                    }
+                    return updated;
                 });
             });
 
@@ -2098,12 +2105,21 @@ export default function Home(props: any) {
                                     const rawName = String(pItem.name || pItem.id || '');
                                     const cleanName = rawName.split('/').pop()?.replace(/^[0-9]+_/, '') || rawName;
                                     const k = cleanName ? `${pItem.deviceId || targetDeviceId || ''}_${cleanName}` : (pItem.id || pItem.url);
-                                    if (k && !incomingMap.has(k) && (pItem.deviceId && String(pItem.deviceId) === String(targetDeviceId))) {
-                                        merged.push(pItem);
+                                    const isDeviceMatch = !pItem.deviceId || String(pItem.deviceId) === String(targetDeviceId);
+                                    if (k && !incomingMap.has(k) && isDeviceMatch) {
+                                        // Prepend newly synced items so they stay visible at the top of the gallery!
+                                        merged.unshift(pItem);
                                     }
                                 });
 
-                                // Referential stability: if merged array contains the exact same items as prev, keep prev reference to prevent re-render & image reload flicker
+                                // Sort by timestamp descending so newest uploads always appear first
+                                merged.sort((a, b) => {
+                                    const timeA = new Date(a.created_at || a.LastModified || 0).getTime();
+                                    const timeB = new Date(b.created_at || b.LastModified || 0).getTime();
+                                    return timeB - timeA;
+                                });
+
+                                // Referential stability: if merged array contains the exact same items as prev, keep prev reference
                                 if (prev.length === merged.length && prev.length > 0) {
                                     const isIdentical = prev.every((p, idx) => {
                                         const m = merged[idx];
@@ -2112,6 +2128,9 @@ export default function Home(props: any) {
                                     if (isIdentical) return prev;
                                 }
 
+                                const cacheKey = `gallery_images_${uuid}_${targetDeviceId}`;
+                                try { localStorage.setItem(cacheKey, JSON.stringify(merged.slice(0, 100))); } catch {}
+
                                 return merged;
                             });
                         }
@@ -2119,7 +2138,7 @@ export default function Home(props: any) {
                         setGalleryPage(loadPage);
 
                         const cacheKey = `gallery_images_${uuid}_${targetDeviceId}`;
-                        try { localStorage.setItem(cacheKey, JSON.stringify(items.slice(0, 100))); } catch { /* storage full */ }
+                        try { localStorage.setItem(cacheKey, JSON.stringify(galleryItems.slice(0, 100))); } catch {}
                     })
                     .catch(e => console.error('[Gallery] Fetch error:', e))
                     .finally(() => { isFetchingGallery = false; setIsLoadingMore(false); });
@@ -3912,26 +3931,9 @@ END:VCARD`;
                                     <p className="text-xs text-white/40 font-mono mb-6">Compressed encrypted media archive package.</p>
                                     <button 
                                         type="button"
-                                        onClick={async () => {
-                                            try {
-                                                const response = await fetch(previewItem.url);
-                                                const blob = await response.blob();
-                                                const blobUrl = window.URL.createObjectURL(blob);
-                                                const link = document.createElement('a');
-                                                link.href = blobUrl;
-                                                link.download = previewItem.name || 'archive.zip';
-                                                document.body.appendChild(link);
-                                                link.click();
-                                                document.body.removeChild(link);
-                                                window.URL.revokeObjectURL(blobUrl);
-                                            } catch (e) {
-                                                const link = document.createElement('a');
-                                                link.href = previewItem.url;
-                                                link.download = previewItem.name || 'archive.zip';
-                                                document.body.appendChild(link);
-                                                link.click();
-                                                document.body.removeChild(link);
-                                            }
+                                        onClick={() => {
+                                            const filename = previewItem.name || 'archive.zip';
+                                            downloadSingle(previewItem.url, filename);
                                         }}
                                         className="clay-cta-button w-full py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_8px_24px_rgba(249,115,22,0.5)] transition-transform hover:scale-105 active:scale-95 cursor-pointer"
                                     >
@@ -3948,26 +3950,9 @@ END:VCARD`;
                             <div className="absolute top-2 right-2 sm:top-4 sm:right-4 flex items-center gap-2 z-20">
                                 <button 
                                     type="button"
-                                    onClick={async () => {
-                                        try {
-                                            const response = await fetch(previewItem.url);
-                                            const blob = await response.blob();
-                                            const blobUrl = window.URL.createObjectURL(blob);
-                                            const link = document.createElement('a');
-                                            link.href = blobUrl;
-                                            link.download = previewItem.name || (previewItem.resource_type === 'video' ? 'video.mp4' : 'image.jpg');
-                                            document.body.appendChild(link);
-                                            link.click();
-                                            document.body.removeChild(link);
-                                            window.URL.revokeObjectURL(blobUrl);
-                                        } catch (e) {
-                                            const link = document.createElement('a');
-                                            link.href = previewItem.url;
-                                            link.download = previewItem.name || 'download';
-                                            document.body.appendChild(link);
-                                            link.click();
-                                            document.body.removeChild(link);
-                                        }
+                                    onClick={() => {
+                                        const filename = previewItem.name || (previewItem.resource_type === 'video' ? 'video.mp4' : 'image.jpg');
+                                        downloadSingle(previewItem.url, filename);
                                     }}
                                     className="clay-button-sm w-10 h-10 rounded-xl flex items-center justify-center text-white/80 hover:text-white transition-colors cursor-pointer"
                                     title="Download Media"
