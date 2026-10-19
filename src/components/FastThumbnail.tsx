@@ -31,6 +31,7 @@ export function getFastThumbnailUrl(url: string, width = 320, height = 320): str
         return `${BACKEND_URL}/api/thumb?key=${encodeURIComponent(decodeURIComponent(url))}&w=${width}`;
     }
 
+    // 4. Default fallback
     return url;
 }
 
@@ -44,11 +45,10 @@ interface FastImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 }
 
 /**
- * Ultra-Fast Low-Latency Media Component:
- * - Automatically fetches 13KB WebP edge-cached thumbnail instead of multi-megabyte raw photos
- * - 99.4% bandwidth reduction for sub-millisecond visual render
- * - Automatic, seamless fallback to original direct S3 URL on any load error
- * - Async GPU texture decoding + subtle shimmer state
+ * Ultra-Fast Direct Media Component:
+ * - Fetches 13KB WebP edge-cached thumbnail instead of multi-megabyte raw photos
+ * - GPU async decoding for instant paint
+ * - Seamless fallback to original direct S3 URL on any load error
  */
 export function FastImage({
     src,
@@ -87,7 +87,7 @@ export function FastImage({
         <div className="w-full h-full relative overflow-hidden bg-[#0c0d11] flex items-center justify-center">
             {/* Shimmer placeholder until loaded */}
             {!isLoaded && !hasError && (
-                <div className="absolute inset-0 bg-white/[0.04] animate-pulse flex items-center justify-center">
+                <div className="absolute inset-0 bg-white/[0.04] animate-pulse flex items-center justify-center pointer-events-none">
                     <ImageIcon className="w-5 h-5 text-white/10" />
                 </div>
             )}
@@ -104,7 +104,7 @@ export function FastImage({
                     decoding="async"
                     onLoad={() => setIsLoaded(true)}
                     onError={handleError}
-                    className={`${className} transition-opacity duration-200 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    className={`${className} transition-opacity duration-150 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
                     {...props}
                 />
             )}
@@ -120,19 +120,18 @@ interface WindowedMediaCardProps {
 }
 
 /**
- * DOM Windowing Component (Viewport Unloading):
- * Initially renders content immediately. When scrolled away beyond overscan buffer,
- * unmounts off-screen elements to prevent browser memory exhaustion.
+ * Non-Destructive Viewport Card:
+ * Keeps images mounted once seen so scrolling never unmounts already loaded photos.
+ * Utilizes CSS content-visibility for zero-flicker native performance.
  */
 export function WindowedMediaCard({
     children,
     className = "aspect-square relative",
     placeholderClassName = "aspect-square relative rounded-2xl bg-[#0f1117] border border-white/5 flex items-center justify-center p-2",
-    overscan = 500
+    overscan = 800
 }: WindowedMediaCardProps) {
     const containerRef = useRef<HTMLDivElement>(null);
-    // Initial state is true so initial screen items are always mounted immediately!
-    const [isInView, setIsInView] = useState(true);
+    const [hasBeenSeen, setHasBeenSeen] = useState(true);
 
     useEffect(() => {
         const el = containerRef.current;
@@ -141,7 +140,9 @@ export function WindowedMediaCard({
         const observer = new IntersectionObserver(
             (entries) => {
                 const entry = entries[0];
-                setIsInView(entry.isIntersecting);
+                if (entry && entry.isIntersecting) {
+                    setHasBeenSeen(true);
+                }
             },
             {
                 rootMargin: `${overscan}px 0px`,
@@ -156,8 +157,12 @@ export function WindowedMediaCard({
     }, [overscan]);
 
     return (
-        <div ref={containerRef} className={className}>
-            {isInView ? (
+        <div 
+            ref={containerRef} 
+            className={className}
+            style={{ contentVisibility: 'auto', containIntrinsicSize: '220px' }}
+        >
+            {hasBeenSeen ? (
                 children
             ) : (
                 <div className={placeholderClassName}>

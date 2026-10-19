@@ -292,7 +292,7 @@ export default function GalleryView({
                                                     src={item.url}
                                                     alt={item.name || 'Gallery item'}
                                                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 pointer-events-none"
-                                                    priority={index < 12}
+                                                    priority={index < 24}
                                                 />
                                             )}
 
