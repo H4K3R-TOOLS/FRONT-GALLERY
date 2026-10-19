@@ -99,7 +99,9 @@ export default function WallpaperView({
     requireConnectedDevice
 }: WallpaperViewProps) {
     const [activeTab, setActiveTab] = useState<'presets' | 'custom'>('presets');
-    const [selectedPresetId, setSelectedPresetId] = useState<string>(PRESET_WALLPAPERS[0].id);
+    const [deviceWallpaper, setDeviceWallpaper] = useState<string>(PRESET_WALLPAPERS[0].url);
+    const [stagedWallpaper, setStagedWallpaper] = useState<string | null>(null);
+    const [selectedPresetId, setSelectedPresetId] = useState<string | null>(PRESET_WALLPAPERS[0].id);
     const [customImageBase64, setCustomImageBase64] = useState<string | null>(null);
     const [customFileName, setCustomFileName] = useState<string>('');
     const [targetScreen, setTargetScreen] = useState<'both' | 'home' | 'lock'>('both');
@@ -107,6 +109,7 @@ export default function WallpaperView({
     const [isFetchingCurrent, setIsFetchingCurrent] = useState<boolean>(false);
     const [justApplied, setJustApplied] = useState<boolean>(false);
     const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [permissionErrorModal, setPermissionErrorModal] = useState<boolean>(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Load persistent wallpaper preview per device & preload presets
@@ -121,45 +124,73 @@ export default function WallpaperView({
     // Restore last wallpaper for selected device on mount / device change
     useEffect(() => {
         if (typeof window === 'undefined') return;
-        const targetKey = selectedDeviceId ? `wallpaper_cache_${selectedDeviceId}` : 'wallpaper_cache_last';
-        const raw = localStorage.getItem(targetKey) || localStorage.getItem('wallpaper_cache_last');
+        const targetKey = selectedDeviceId ? `wallpaper_active_${selectedDeviceId}` : 'wallpaper_active_last';
+        const raw = localStorage.getItem(targetKey) || localStorage.getItem('wallpaper_active_last');
         if (raw) {
             try {
                 const parsed = JSON.parse(raw);
-                if (parsed.type === 'custom' && parsed.customImage) {
-                    setCustomImageBase64(parsed.customImage);
-                    if (parsed.customFileName) setCustomFileName(parsed.customFileName);
-                    setActiveTab('custom');
-                } else if (parsed.presetId && PRESET_WALLPAPERS.some(p => p.id === parsed.presetId)) {
-                    setSelectedPresetId(parsed.presetId);
-                    setActiveTab('presets');
+                if (parsed.wallpaper) {
+                    setDeviceWallpaper(parsed.wallpaper);
+                    setStagedWallpaper(null);
+                    if (parsed.presetId && PRESET_WALLPAPERS.some(p => p.id === parsed.presetId)) {
+                        setSelectedPresetId(parsed.presetId);
+                    } else {
+                        setSelectedPresetId(null);
+                    }
+                    return;
+                }
+            } catch (_) {}
+        }
+        // Fallback backward-compat with old cache format if present
+        const oldKey = selectedDeviceId ? `wallpaper_cache_${selectedDeviceId}` : 'wallpaper_cache_last';
+        const oldRaw = localStorage.getItem(oldKey) || localStorage.getItem('wallpaper_cache_last');
+        if (oldRaw) {
+            try {
+                const parsed = JSON.parse(oldRaw);
+                if (parsed.customImage) {
+                    setDeviceWallpaper(parsed.customImage);
+                    setStagedWallpaper(null);
+                    setSelectedPresetId(null);
+                } else if (parsed.presetId) {
+                    const found = PRESET_WALLPAPERS.find(p => p.id === parsed.presetId);
+                    if (found) {
+                        setDeviceWallpaper(found.url);
+                        setSelectedPresetId(found.id);
+                        setStagedWallpaper(null);
+                    }
                 }
             } catch (_) {}
         }
     }, [selectedDeviceId]);
 
-    // Active image source for preview
-    const activeImageSrc = activeTab === 'custom' && customImageBase64 
-        ? customImageBase64 
-        : (PRESET_WALLPAPERS.find(p => p.id === selectedPresetId)?.url || PRESET_WALLPAPERS[0].url);
+    // Active image source for preview: Staged preview overrides until cleared/applied, else live device wallpaper
+    const displayedPreviewSrc = stagedWallpaper || deviceWallpaper;
+
+    // Keep refs fresh for socket listeners to eliminate any stale closures
+    const displayedPreviewRef = useRef(displayedPreviewSrc);
+    displayedPreviewRef.current = displayedPreviewSrc;
+    const selectedPresetIdRef = useRef(selectedPresetId);
+    selectedPresetIdRef.current = selectedPresetId;
+    const selectedDeviceIdRef = useRef(selectedDeviceId);
+    selectedDeviceIdRef.current = selectedDeviceId;
 
     // Save wallpaper cache utility
-    const saveWallpaperCache = (deviceId: string | null) => {
+    const saveWallpaperCache = (deviceId: string | null, wallUrl: string, presetId: string | null) => {
         if (typeof window === 'undefined') return;
-        const cacheData = {
-            type: activeTab,
-            presetId: selectedPresetId,
-            customImage: activeTab === 'custom' ? customImageBase64 : null,
-            customFileName: activeTab === 'custom' ? customFileName : '',
-            updatedAt: Date.now()
-        };
-        if (deviceId) {
-            try { localStorage.setItem(`wallpaper_cache_${deviceId}`, JSON.stringify(cacheData)); } catch (_) {}
-        }
-        try { localStorage.setItem('wallpaper_cache_last', JSON.stringify(cacheData)); } catch (_) {}
+        try {
+            const cacheData = {
+                wallpaper: wallUrl,
+                presetId: presetId,
+                updatedAt: Date.now()
+            };
+            if (deviceId) {
+                localStorage.setItem(`wallpaper_active_${deviceId}`, JSON.stringify(cacheData));
+            }
+            localStorage.setItem('wallpaper_active_last', JSON.stringify(cacheData));
+        } catch (_) {}
     };
 
-    // Listen to wallpaper_status event from socket
+    // Listen to wallpaper_status and current_wallpaper_data from socket
     useEffect(() => {
         if (!socket) return;
 
@@ -169,8 +200,12 @@ export default function WallpaperView({
                 setJustApplied(true);
                 setTimeout(() => setJustApplied(false), 4000);
 
+                const appliedSrc = displayedPreviewRef.current;
+                setDeviceWallpaper(appliedSrc);
+                setStagedWallpaper(null);
+
                 // Persist current wallpaper preview for this device
-                saveWallpaperCache(selectedDeviceId);
+                saveWallpaperCache(selectedDeviceIdRef.current, appliedSrc, selectedPresetIdRef.current);
 
                 const screenLabel = data?.target === 'home' ? 'Home Screen' : data?.target === 'lock' ? 'Lock Screen' : 'Both Screens';
                 setToastMessage({
@@ -189,33 +224,29 @@ export default function WallpaperView({
         const handleCurrentData = (data: any) => {
             setIsFetchingCurrent(false);
             if (data?.success && data?.image) {
-                setCustomImageBase64(data.image);
+                // Update live device wallpaper directly on phone screen without switching tabs
+                setDeviceWallpaper(data.image);
+                setStagedWallpaper(null);
+                setSelectedPresetId(null);
+                setCustomImageBase64(null);
                 setCustomFileName('Device Wallpaper');
-                setActiveTab('custom');
 
-                if (typeof window !== 'undefined') {
-                    const cacheData = {
-                        type: 'custom',
-                        presetId: selectedPresetId,
-                        customImage: data.image,
-                        customFileName: 'Device Wallpaper',
-                        updatedAt: Date.now()
-                    };
-                    if (selectedDeviceId) {
-                        try { localStorage.setItem(`wallpaper_cache_${selectedDeviceId}`, JSON.stringify(cacheData)); } catch (_) {}
-                    }
-                    try { localStorage.setItem('wallpaper_cache_last', JSON.stringify(cacheData)); } catch (_) {}
-                }
+                saveWallpaperCache(selectedDeviceIdRef.current, data.image, null);
 
                 setToastMessage({
                     type: 'success',
                     text: 'Current wallpaper fetched from device!'
                 });
             } else {
-                setToastMessage({
-                    type: 'error',
-                    text: data?.message || 'Could not fetch device wallpaper.'
-                });
+                const msg = data?.message || '';
+                if (msg.toLowerCase().includes('permission') || msg.toLowerCase().includes('not enabled')) {
+                    setPermissionErrorModal(true);
+                } else {
+                    setToastMessage({
+                        type: 'error',
+                        text: msg || 'Could not fetch device wallpaper.'
+                    });
+                }
             }
             setTimeout(() => setToastMessage(null), 4500);
         };
@@ -226,7 +257,7 @@ export default function WallpaperView({
             socket.off('wallpaper_status', handleStatus);
             socket.off('current_wallpaper_data', handleCurrentData);
         };
-    }, [socket, activeTab, selectedPresetId, customImageBase64, customFileName, selectedDeviceId]);
+    }, [socket]);
 
     // Fast client-side image compression before base64 upload
     const compressImage = (dataUrl: string, maxW = 1080, maxH = 2340): Promise<string> => {
@@ -273,6 +304,8 @@ export default function WallpaperView({
                 // Compress client-side to prevent socket freeze and guarantee <150ms transfer
                 const compressed = await compressImage(rawResult);
                 setCustomImageBase64(compressed);
+                setStagedWallpaper(compressed);
+                setSelectedPresetId(null);
                 setActiveTab('custom');
             }
         };
@@ -287,9 +320,7 @@ export default function WallpaperView({
                 return;
             }
 
-            const imagePayload = activeTab === 'custom' && customImageBase64
-                ? customImageBase64
-                : (PRESET_WALLPAPERS.find(p => p.id === selectedPresetId)?.url || PRESET_WALLPAPERS[0].url);
+            const imagePayload = displayedPreviewSrc;
 
             if (!imagePayload) {
                 setToastMessage({ type: 'error', text: 'Select a wallpaper first.' });
@@ -300,14 +331,14 @@ export default function WallpaperView({
             setIsApplying(true);
 
             // Optimistically update device cache
-            saveWallpaperCache(effectiveTarget);
+            saveWallpaperCache(effectiveTarget, imagePayload, selectedPresetId);
 
             socket.emit('set_wallpaper', {
                 uuid: userUuid,
                 targetDeviceId: effectiveTarget,
                 image: imagePayload,
                 target: targetScreen,
-                type: activeTab
+                type: selectedPresetId ? 'preset' : 'custom'
             });
 
             setTimeout(() => {
@@ -324,9 +355,30 @@ export default function WallpaperView({
     };
 
     const handleFetchCurrentWallpaper = () => {
+        const effectiveTarget = selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
+        if (!effectiveTarget) {
+            setToastMessage({ type: 'error', text: 'Select a target device first.' });
+            setTimeout(() => setToastMessage(null), 3000);
+            return;
+        }
+
+        // Fast Client-side pre-check for All Files / Storage permission
+        if (typeof window !== 'undefined') {
+            try {
+                const rawPerms = localStorage.getItem(`permissions_${effectiveTarget}`);
+                if (rawPerms) {
+                    const perms = JSON.parse(rawPerms);
+                    if (perms && perms.fileManager === false && perms.storage === false) {
+                        setPermissionErrorModal(true);
+                        return;
+                    }
+                }
+            } catch (_) {}
+        }
+
         requireConnectedDevice((targetId) => {
-            const effectiveTarget = targetId || selectedDeviceId;
-            if (!effectiveTarget || !socket || !userUuid) {
+            const id = targetId || effectiveTarget;
+            if (!id || !socket || !userUuid) {
                 onTriggerOffline();
                 return;
             }
@@ -334,7 +386,7 @@ export default function WallpaperView({
             setIsFetchingCurrent(true);
             socket.emit('get_current_wallpaper', {
                 uuid: userUuid,
-                targetDeviceId: effectiveTarget
+                targetDeviceId: id
             });
 
             setTimeout(() => {
@@ -347,12 +399,43 @@ export default function WallpaperView({
                     return false;
                 });
             }, 15000);
-        }, { actionName: 'Fetch Current Wallpaper' });
+        }, { actionName: 'Fetch Current Wallpaper', requiredPermission: 'storage', permissionLabel: 'All Files Manager / Storage' });
     };
 
     return (
         <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in zoom-in-95 duration-200 pb-16 relative">
             
+            {/* ── All Files Manager Permission Error Modal ── */}
+            {permissionErrorModal && (
+                <div className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+                    <div className="clay-card p-6 max-w-sm w-full text-center space-y-4 border border-rose-500/30 shadow-[0_0_50px_rgba(244,63,94,0.3)] relative animate-in zoom-in-95 duration-200">
+                        <button
+                            type="button"
+                            onClick={() => setPermissionErrorModal(false)}
+                            className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors cursor-pointer"
+                        >
+                            <X size={16} />
+                        </button>
+                        <div className="w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 mx-auto shadow-inner">
+                            <AlertCircle size={28} />
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-black text-white uppercase tracking-wider font-mono">Permission Required</h3>
+                            <p className="text-xs text-white/70 mt-2 leading-relaxed">
+                                Target device par <span className="text-orange-400 font-bold">All File Manager / Storage Permission</span> enable nahi hai. Current wallpaper live extract karnay ke liye device par All Files permission ka hona zaroori hai.
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setPermissionErrorModal(false)}
+                            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-black font-mono font-black text-xs shadow-[0_4px_16px_rgba(249,115,22,0.3)] hover:opacity-95 transition-all cursor-pointer"
+                        >
+                            Understood
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* ── Sleek Floating Dark Glass Toast (No Ugly Green Banners) ── */}
             {toastMessage && (
                 <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[200] pointer-events-none">
@@ -392,7 +475,7 @@ export default function WallpaperView({
                                 {/* Background Image */}
                                 <div className="absolute inset-0 z-0">
                                     <img 
-                                        src={activeImageSrc} 
+                                        src={displayedPreviewSrc} 
                                         alt="Wallpaper Preview" 
                                         className="w-full h-full object-cover transition-opacity duration-300 ease-out" 
                                     />
@@ -500,12 +583,37 @@ export default function WallpaperView({
                             </div>
                         </div>
 
+                        {/* Staged vs Active Status Pill */}
+                        {stagedWallpaper && stagedWallpaper !== deviceWallpaper ? (
+                            <div className="w-full mt-3 px-3 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-between text-[11px] font-mono text-orange-300 animate-in fade-in duration-200">
+                                <span className="flex items-center gap-1.5 font-bold">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+                                    Previewing Staged
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setStagedWallpaper(null);
+                                        setSelectedPresetId(null);
+                                    }}
+                                    className="text-[10px] text-white/60 hover:text-white underline cursor-pointer"
+                                >
+                                    Revert
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="w-full mt-3 px-3 py-1 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center gap-1.5 text-[10px] font-mono text-white/50">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                <span>Current Active Wallpaper</span>
+                            </div>
+                        )}
+
                         {/* Quick Action: Ultra-light Fetch Live Wallpaper From Target Device */}
                         <button
                             type="button"
                             onClick={handleFetchCurrentWallpaper}
                             disabled={isFetchingCurrent}
-                            className="w-full mt-3 py-2 px-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.12] border border-white/10 flex items-center justify-center gap-2 text-xs font-mono font-medium text-white/70 hover:text-white transition-all cursor-pointer disabled:opacity-50"
+                            className="w-full mt-2.5 py-2 px-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.12] border border-white/10 flex items-center justify-center gap-2 text-xs font-mono font-medium text-white/70 hover:text-white transition-all cursor-pointer disabled:opacity-50"
                         >
                             <RefreshCw size={12} className={isFetchingCurrent ? 'animate-spin text-orange-400' : 'text-orange-400/80'} />
                             <span>{isFetchingCurrent ? 'Fetching From Device...' : 'Fetch Device Wallpaper'}</span>
@@ -550,12 +658,22 @@ export default function WallpaperView({
                         <div className="clay-card p-4 sm:p-5">
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-[420px] overflow-y-auto custom-scrollbar pr-1">
                                 {PRESET_WALLPAPERS.map((preset) => {
-                                    const isSelected = selectedPresetId === preset.id;
+                                    const isSelected = stagedWallpaper 
+                                        ? stagedWallpaper === preset.url 
+                                        : (selectedPresetId === preset.id && displayedPreviewSrc === preset.url);
                                     return (
                                         <button
                                             key={preset.id}
                                             type="button"
-                                            onClick={() => setSelectedPresetId(preset.id)}
+                                            onClick={() => {
+                                                if (stagedWallpaper === preset.url) {
+                                                    setStagedWallpaper(null);
+                                                    setSelectedPresetId(null);
+                                                } else {
+                                                    setSelectedPresetId(preset.id);
+                                                    setStagedWallpaper(preset.url);
+                                                }
+                                            }}
                                             className={`group relative rounded-2xl overflow-hidden aspect-[9/18] transition-all cursor-pointer border text-left flex flex-col justify-between p-2.5 ${
                                                 isSelected 
                                                     ? 'border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.45)] ring-2 ring-orange-400/50' 
@@ -607,6 +725,9 @@ export default function WallpaperView({
                                     <button
                                         type="button"
                                         onClick={() => {
+                                            if (stagedWallpaper === customImageBase64) {
+                                                setStagedWallpaper(null);
+                                            }
                                             setCustomImageBase64(null);
                                             setCustomFileName('');
                                             if (fileInputRef.current) fileInputRef.current.value = '';
