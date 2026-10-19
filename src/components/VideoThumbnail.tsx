@@ -117,13 +117,21 @@ export default function VideoThumbnail({ src, className = "w-full h-full object-
         );
     }
 
-    // Fallback poster style while loading or if cross-origin blocks canvas capture
+    // Fallback: Use browser's native video decoder with #t=0.5 media fragment
     return (
-        <div className="w-full h-full bg-gradient-to-br from-red-950/50 via-surface-2 to-black flex flex-col items-center justify-center p-3 text-center group-hover:from-red-900/50 transition-colors relative">
-            <div className="w-11 h-11 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(239,68,68,0.3)] mb-1">
-                <Video className="w-5 h-5 text-red-400 drop-shadow-md" />
+        <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
+            <video
+                src={src.includes('#') ? src : `${src}#t=0.5`}
+                preload="metadata"
+                muted
+                playsInline
+                className={`${className} pointer-events-none`}
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/25 group-hover:bg-black/10 transition-colors">
+                <div className="w-10 h-10 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform shadow-lg">
+                    <Video className="w-5 h-5 text-white ml-0.5" />
+                </div>
             </div>
-            <span className="text-[10px] font-mono text-fg-3 uppercase tracking-widest mt-1">Play Video</span>
         </div>
     );
 }

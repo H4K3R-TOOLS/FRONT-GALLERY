@@ -71,27 +71,42 @@ export default function AdminPage() {
     const [visibleCount, setVisibleCount] = useState(30);
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
-    // Selected User Folder for Grouped Media View
+    // S3 Storage Folders & Plan Filter State
+    const [rawUserFolders, setRawUserFolders] = useState<Array<{
+        uuid: string;
+        user?: User | null;
+        enterprise?: boolean;
+    }>>([]);
+    const [isFoldersLoading, setIsFoldersLoading] = useState(false);
+    const [folderPlanFilter, setFolderPlanFilter] = useState<'all' | 'enterprise' | 'premium' | 'standard' | 'basic' | 'has_media'>('all');
+    const [folderCountsMap, setFolderCountsMap] = useState<Record<string, { total: number; images: number; videos: number }>>({});
+
+    // Dedicated Active Folder Media State (Isolated from global r2Files)
     const [selectedUserFolder, setSelectedUserFolder] = useState<{
         uuid: string;
         user?: User;
-        total: number;
-        images: number;
-        videos: number;
-        enterprise: boolean;
+        total?: number;
+        images?: number;
+        videos?: number;
+        enterprise?: boolean;
     } | null>(null);
+    const [folderFiles, setFolderFiles] = useState<R2File[]>([]);
+    const [isFolderFilesLoading, setIsFolderFilesLoading] = useState(false);
     const [folderSearchQuery, setFolderSearchQuery] = useState('');
 
     const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://spynox.collyes2.workers.dev';
     const R2_CACHE_KEY = 'admin_r2_files_cache';
     const R2_CACHE_TS_KEY = 'admin_r2_cache_ts';
 
-    // Helper: Map R2 File Key to Owner User
+    // Helper: Map R2 File Key to Owner User (Bidirectional & Case-Insensitive)
     const getFileOwner = useCallback((fileId: string): User | undefined => {
         const parts = fileId.split('/');
         if (parts.length >= 2) {
-            const uuid = parts[1];
-            return users.find(u => u.uuid === uuid);
+            const uuid = parts[1].toLowerCase();
+            return users.find(u =>
+                (u.uuid && u.uuid.toLowerCase() === uuid) ||
+                (u.email && u.email.toLowerCase() === uuid)
+            );
         }
         return undefined;
     }, [users]);
@@ -236,66 +251,65 @@ export default function AdminPage() {
         }
     };
 
-    // R2 Media Functions — with localStorage cache
-    const fetchR2Files = useCallback(async (useCache = false, specificUuid?: string) => {
+    // S3 Storage Folders Fetcher
+    const fetchUserFolders = useCallback(async () => {
         if (!session?.user?.email) return;
-
-        if (useCache && !specificUuid) {
-            try {
-                const cached = localStorage.getItem(R2_CACHE_KEY);
-                if (cached) {
-                    const parsed = JSON.parse(cached);
-                    setR2Files(parsed);
-                }
-            } catch { /* ignore */ }
-        }
-
-        setR2Loading(true);
+        setIsFoldersLoading(true);
         try {
-            const targetUuid = specificUuid || r2UuidFilter.trim();
-            const url = targetUuid
-                ? `${BACKEND_URL}/admin/r2-files?uuid=${encodeURIComponent(targetUuid)}`
-                : `${BACKEND_URL}/admin/r2-files`;
-            const res = await fetch(url, {
+            const res = await fetch(`${BACKEND_URL}/admin/r2-user-folders`, {
                 headers: { 'x-admin-email': session.user.email }
             });
             if (res.ok) {
                 const data = await res.json();
-                if (specificUuid) {
-                    setR2Files(prev => {
-                        const others = prev.filter(f => !f.id.startsWith(`gallery_sync/${specificUuid}/`));
-                        return [...others, ...data];
-                    });
-                } else {
-                    setR2Files(data);
-                    try {
-                        localStorage.setItem(R2_CACHE_KEY, JSON.stringify(data));
-                        localStorage.setItem(R2_CACHE_TS_KEY, Date.now().toString());
-                    } catch { /* ignore */ }
-                }
-                setVisibleCount(30);
+                setRawUserFolders(Array.isArray(data) ? data : []);
             }
         } catch {
-            setError('Failed to fetch media assets');
+            setError('Failed to fetch storage vaults');
         } finally {
-            setR2Loading(false);
+            setIsFoldersLoading(false);
         }
-    }, [session, r2UuidFilter, BACKEND_URL]);
+    }, [session, BACKEND_URL]);
 
+    // Dedicated User Vault Loader (Isolated per folder for instant streaming)
     const openUserFolder = async (folder: {
         uuid: string;
         user?: User;
-        total: number;
-        images: number;
-        videos: number;
-        enterprise: boolean;
+        total?: number;
+        images?: number;
+        videos?: number;
+        enterprise?: boolean;
     }) => {
         setSelectedUserFolder(folder);
         setSelectedFiles(new Set());
         setVisibleCount(30);
-        const existingCount = r2Files.filter(f => f.id.startsWith(`gallery_sync/${folder.uuid}/`)).length;
-        if (existingCount === 0) {
-            await fetchR2Files(false, folder.uuid);
+        setMediaFilter('all');
+        setIsFolderFilesLoading(true);
+        setFolderFiles([]);
+
+        try {
+            const res = await fetch(`${BACKEND_URL}/admin/r2-files?uuid=${encodeURIComponent(folder.uuid)}&limit=4000`, {
+                headers: { 'x-admin-email': session?.user?.email || '' }
+            });
+            if (res.ok) {
+                const data: R2File[] = await res.json();
+                setFolderFiles(data);
+                const imgs = data.filter(f => f.resource_type === 'image').length;
+                const vids = data.filter(f => f.resource_type === 'video').length;
+                setFolderCountsMap(prev => ({
+                    ...prev,
+                    [folder.uuid]: {
+                        total: data.length,
+                        images: imgs,
+                        videos: vids
+                    }
+                }));
+            } else {
+                setError('Failed to load folder assets');
+            }
+        } catch {
+            setError('Network error fetching folder files');
+        } finally {
+            setIsFolderFilesLoading(false);
         }
     };
 
@@ -315,7 +329,7 @@ export default function AdminPage() {
             setError(`${enterpriseCount} Enterprise file(s) are protected and were skipped.`);
         }
 
-        setR2Loading(true);
+        setIsFolderFilesLoading(true);
         try {
             const CHUNK_SIZE = 500;
             let totalDeleted = 0;
@@ -335,11 +349,20 @@ export default function AdminPage() {
 
                 totalDeleted += chunk.length;
 
-                setR2Files(prev => {
-                    const updated = prev.filter(f => !chunk.includes(f.id));
-                    try { localStorage.setItem(R2_CACHE_KEY, JSON.stringify(updated)); } catch { }
-                    return updated;
-                });
+                setFolderFiles(prev => prev.filter(f => !chunk.includes(f.id)));
+                setR2Files(prev => prev.filter(f => !chunk.includes(f.id)));
+                if (selectedUserFolder) {
+                    setFolderCountsMap(prev => {
+                        const cur = prev[selectedUserFolder.uuid] || { total: 0, images: 0, videos: 0 };
+                        return {
+                            ...prev,
+                            [selectedUserFolder.uuid]: {
+                                ...cur,
+                                total: Math.max(0, cur.total - chunk.length)
+                            }
+                        };
+                    });
+                }
             }
 
             setSelectedFiles(new Set());
@@ -348,7 +371,7 @@ export default function AdminPage() {
         } catch {
             setError('Delete failed during operation');
         } finally {
-            setR2Loading(false);
+            setIsFolderFilesLoading(false);
         }
     };
 
@@ -375,10 +398,10 @@ export default function AdminPage() {
     };
 
     useEffect(() => {
-        if (isAuthorized && activeTab === 'media' && r2Files.length === 0) {
-            fetchR2Files(true);
+        if (isAuthorized && activeTab === 'media' && rawUserFolders.length === 0) {
+            fetchUserFolders();
         }
-    }, [activeTab, isAuthorized, fetchR2Files, r2Files.length]);
+    }, [activeTab, isAuthorized, fetchUserFolders, rawUserFolders.length]);
 
     const openEditModal = (user: User) => {
         setSelectedUser(user);
@@ -470,7 +493,8 @@ export default function AdminPage() {
         );
     }, [users, searchQuery, hasSearched, searchResults]);
 
-    const userFolders = useMemo(() => {
+    // S3 Storage Folders List (Enriched with user plans & folder counts)
+    const userFoldersList = useMemo(() => {
         const map = new Map<string, {
             uuid: string;
             user?: User;
@@ -480,78 +504,116 @@ export default function AdminPage() {
             enterprise: boolean;
         }>();
 
-        // 1. Group loaded files
-        r2Files.forEach(file => {
-            const parts = file.id.split('/');
-            const uuid = parts.length >= 2 ? parts[1] : 'unknown';
-            if (!map.has(uuid)) {
-                const owner = users.find(u => u.uuid === uuid);
-                map.set(uuid, {
-                    uuid,
-                    user: owner,
-                    total: 0,
-                    images: 0,
-                    videos: 0,
-                    enterprise: owner?.plan === 'enterprise'
-                });
-            }
-            const item = map.get(uuid)!;
-            item.total += 1;
-            if (file.resource_type === 'video') item.videos += 1;
-            else item.images += 1;
+        // 1. Register real S3 storage folders
+        rawUserFolders.forEach(item => {
+            const uuidLower = item.uuid.toLowerCase();
+            const owner = item.user || users.find(u =>
+                (u.uuid && u.uuid.toLowerCase() === uuidLower) ||
+                (u.email && u.email.toLowerCase() === uuidLower)
+            );
+            const plan = owner?.plan || 'basic';
+            const counts = folderCountsMap[item.uuid] || { total: 0, images: 0, videos: 0 };
+
+            map.set(item.uuid, {
+                uuid: item.uuid,
+                user: owner ? { ...owner, plan } : undefined,
+                total: counts.total,
+                images: counts.images,
+                videos: counts.videos,
+                enterprise: plan === 'enterprise'
+            });
         });
 
-        // 2. Also register users from user list so folders show up even before files load
+        // 2. Also register any paid users (Enterprise, Premium, Standard) if not yet listed
         users.forEach(u => {
-            if (u.uuid && !map.has(u.uuid)) {
+            if (u.uuid && !map.has(u.uuid) && u.plan && u.plan !== 'basic') {
+                const counts = folderCountsMap[u.uuid] || { total: 0, images: 0, videos: 0 };
                 map.set(u.uuid, {
                     uuid: u.uuid,
                     user: u,
-                    total: 0,
-                    images: 0,
-                    videos: 0,
+                    total: counts.total,
+                    images: counts.images,
+                    videos: counts.videos,
                     enterprise: u.plan === 'enterprise'
                 });
             }
         });
 
-        const list = Array.from(map.values());
-        if (!folderSearchQuery.trim()) {
-            return list.sort((a, b) => b.total - a.total);
+        return Array.from(map.values());
+    }, [rawUserFolders, users, folderCountsMap]);
+
+    // Folder Plan Stats for Filter Pills
+    const folderPlanStats = useMemo(() => {
+        let all = userFoldersList.length;
+        let enterprise = 0;
+        let premium = 0;
+        let standard = 0;
+        let basic = 0;
+        let withMedia = 0;
+
+        userFoldersList.forEach(f => {
+            const plan = f.user?.plan || 'basic';
+            if (plan === 'enterprise') enterprise++;
+            else if (plan === 'premium') premium++;
+            else if (plan === 'standard') standard++;
+            else basic++;
+
+            if ((folderCountsMap[f.uuid]?.total || 0) > 0) withMedia++;
+        });
+
+        return { all, enterprise, premium, standard, basic, withMedia };
+    }, [userFoldersList, folderCountsMap]);
+
+    // Filtered User Folders by Plan & Search Query
+    const filteredFolders = useMemo(() => {
+        let list = userFoldersList;
+
+        if (folderPlanFilter === 'enterprise') {
+            list = list.filter(f => f.user?.plan === 'enterprise');
+        } else if (folderPlanFilter === 'premium') {
+            list = list.filter(f => f.user?.plan === 'premium');
+        } else if (folderPlanFilter === 'standard') {
+            list = list.filter(f => f.user?.plan === 'standard');
+        } else if (folderPlanFilter === 'basic') {
+            list = list.filter(f => (f.user?.plan || 'basic') === 'basic');
+        } else if (folderPlanFilter === 'has_media') {
+            list = list.filter(f => (folderCountsMap[f.uuid]?.total || 0) > 0);
         }
-        const q = folderSearchQuery.trim().toLowerCase();
-        return list
-            .filter(f =>
+
+        if (folderSearchQuery.trim()) {
+            const q = folderSearchQuery.trim().toLowerCase();
+            list = list.filter(f =>
                 f.uuid.toLowerCase().includes(q) ||
                 (f.user?.email && f.user.email.toLowerCase().includes(q)) ||
                 (f.user?.name && f.user.name.toLowerCase().includes(q))
-            )
-            .sort((a, b) => b.total - a.total);
-    }, [r2Files, users, folderSearchQuery]);
+            );
+        }
 
-    const activeUserFiles = useMemo(() => {
-        if (!selectedUserFolder) return [];
-        return r2Files.filter(f => f.id.startsWith(`gallery_sync/${selectedUserFolder.uuid}/`));
-    }, [r2Files, selectedUserFolder]);
+        // Sort: Enterprise first, then Premium, then Standard, then by items count
+        const planWeight = { enterprise: 4, premium: 3, standard: 2, basic: 1 };
+        return list.sort((a, b) => {
+            const wA = planWeight[a.user?.plan || 'basic'] || 1;
+            const wB = planWeight[b.user?.plan || 'basic'] || 1;
+            if (wB !== wA) return wB - wA;
+            return b.total - a.total;
+        });
+    }, [userFoldersList, folderPlanFilter, folderSearchQuery, folderCountsMap]);
 
+    // Active Folder Media Assets
     const displayedFiles = useMemo(() => {
-        const source = selectedUserFolder ? activeUserFiles : r2Files;
-        if (mediaFilter === 'all') return source;
-        if (mediaFilter === 'enterprise') return source.filter(f => isEnterpriseAsset(f.id));
-        return source.filter(f => f.resource_type === mediaFilter);
-    }, [mediaFilter, selectedUserFolder, activeUserFiles, r2Files, isEnterpriseAsset]);
+        if (!selectedUserFolder) return [];
+        if (mediaFilter === 'all') return folderFiles;
+        if (mediaFilter === 'enterprise') return folderFiles.filter(f => isEnterpriseAsset(f.id));
+        return folderFiles.filter(f => f.resource_type === mediaFilter);
+    }, [mediaFilter, selectedUserFolder, folderFiles, isEnterpriseAsset]);
 
     const currentlyVisibleFiles = useMemo(() => {
         return displayedFiles.slice(0, visibleCount);
     }, [displayedFiles, visibleCount]);
 
-    const currentScopeFiles = useMemo(() => {
-        return selectedUserFolder ? activeUserFiles : r2Files;
-    }, [selectedUserFolder, activeUserFiles, r2Files]);
-
-    const imageCount = useMemo(() => currentScopeFiles.filter(f => f.resource_type === 'image').length, [currentScopeFiles]);
-    const videoCount = useMemo(() => currentScopeFiles.filter(f => f.resource_type === 'video').length, [currentScopeFiles]);
-    const enterpriseMediaCount = useMemo(() => currentScopeFiles.filter(f => isEnterpriseAsset(f.id)).length, [currentScopeFiles, isEnterpriseAsset]);
+    const imageCount = useMemo(() => folderFiles.filter(f => f.resource_type === 'image').length, [folderFiles]);
+    const videoCount = useMemo(() => folderFiles.filter(f => f.resource_type === 'video').length, [folderFiles]);
+    const enterpriseMediaCount = useMemo(() => folderFiles.filter(f => isEnterpriseAsset(f.id)).length, [folderFiles, isEnterpriseAsset]);
 
     // Loading Screen
     if (status === 'loading') {
@@ -657,13 +719,13 @@ export default function AdminPage() {
                             onClick={() => {
                                 if (activeTab === 'users' && session?.user?.email) fetchUsers(session.user.email);
                                 else if (activeTab === 'devices' && session?.user?.email) fetchDevices(session.user.email);
-                                else fetchR2Files(false);
+                                else fetchUserFolders();
                             }}
-                            disabled={isLoading || r2Loading || devicesLoading}
+                            disabled={isLoading || isFoldersLoading || devicesLoading}
                             title="Refresh Data"
                             className="p-2 sm:px-3 sm:py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-fg-2 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer active:scale-95 disabled:opacity-50"
                         >
-                            <RefreshCw size={13} className={(isLoading || r2Loading || devicesLoading) ? 'animate-spin' : ''} />
+                            <RefreshCw size={13} className={(isLoading || isFoldersLoading || devicesLoading) ? 'animate-spin' : ''} />
                             <span className="hidden sm:inline">Sync</span>
                         </button>
 
@@ -726,7 +788,7 @@ export default function AdminPage() {
                             <HardDrive size={14} className="shrink-0" />
                             <span className="truncate">
                                 <span className="sm:hidden">Vault</span>
-                                <span className="hidden sm:inline">Cloud Vault</span> ({r2Files.length})
+                                <span className="hidden sm:inline">Cloud Vault</span> ({userFoldersList.length})
                             </span>
                         </button>
                     </div>
@@ -778,7 +840,7 @@ export default function AdminPage() {
                                     <Package size={12} className="text-zinc-400" />
                                     <span>Basic</span>
                                 </div>
-                                <div className="text-2xl sm:text-3xl font-black text-zinc-400 mt-1">{users.filter(u => u.plan === 'basic').length}</div>
+                                <div className="text-2xl sm:text-3xl font-black text-zinc-400 mt-1">{users.filter(u => (u.plan || 'basic') === 'basic').length}</div>
                             </div>
 
                             <div className="clay-card p-3 sm:p-4 rounded-2xl flex flex-col justify-between min-h-[85px] border-emerald-500/20">
@@ -1012,37 +1074,114 @@ export default function AdminPage() {
                                             <span>User Vaults</span>
                                         </div>
                                         <div className="text-2xl sm:text-3xl font-black text-white mt-1">
-                                            {userFolders.filter(f => f.total > 0).length || userFolders.length}
+                                            {folderPlanStats.all}
                                         </div>
                                     </div>
 
-                                    <div className="clay-card p-3 sm:p-4 rounded-2xl flex flex-col justify-between min-h-[85px]">
-                                        <div className="text-[10px] font-mono font-bold text-fg-2 uppercase tracking-widest flex items-center gap-1.5">
-                                            <HardDrive size={13} className="text-white/60" />
-                                            <span>Total Assets</span>
+                                    <div className="clay-card p-3 sm:p-4 rounded-2xl flex flex-col justify-between min-h-[85px] border-purple-500/30">
+                                        <div className="text-[10px] font-mono font-bold text-purple-300 uppercase tracking-widest flex items-center gap-1.5">
+                                            <Building2 size={13} className="text-purple-400" />
+                                            <span>Enterprise</span>
                                         </div>
-                                        <div className="text-2xl sm:text-3xl font-black text-white mt-1">{r2Files.length}</div>
+                                        <div className="text-2xl sm:text-3xl font-black text-purple-300 mt-1">
+                                            {folderPlanStats.enterprise}
+                                        </div>
+                                    </div>
+
+                                    <div className="clay-card p-3 sm:p-4 rounded-2xl flex flex-col justify-between min-h-[85px] border-amber-500/20">
+                                        <div className="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
+                                            <Crown size={13} className="text-amber-400" />
+                                            <span>Premium</span>
+                                        </div>
+                                        <div className="text-2xl sm:text-3xl font-black text-amber-400 mt-1">
+                                            {folderPlanStats.premium}
+                                        </div>
                                     </div>
 
                                     <div className="clay-card p-3 sm:p-4 rounded-2xl flex flex-col justify-between min-h-[85px] border-emerald-500/20">
                                         <div className="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
-                                            <ImageIcon size={13} className="text-emerald-400" />
-                                            <span>Images</span>
+                                            <Zap size={13} className="text-emerald-400" />
+                                            <span>Standard</span>
                                         </div>
                                         <div className="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">
-                                            {r2Files.filter(f => f.resource_type === 'image').length}
+                                            {folderPlanStats.standard}
                                         </div>
                                     </div>
+                                </div>
 
-                                    <div className="clay-card p-3 sm:p-4 rounded-2xl flex flex-col justify-between min-h-[85px] border-danger/20">
-                                        <div className="text-[10px] font-mono font-bold text-danger uppercase tracking-widest flex items-center gap-1.5">
-                                            <VideoIcon size={13} className="text-danger" />
-                                            <span>Videos</span>
-                                        </div>
-                                        <div className="text-2xl sm:text-3xl font-black text-danger mt-1">
-                                            {r2Files.filter(f => f.resource_type === 'video').length}
-                                        </div>
-                                    </div>
+                                {/* Folder Plan Filter Pills */}
+                                <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 no-scrollbar flex-nowrap sm:flex-wrap">
+                                    <button
+                                        type="button"
+                                        onClick={() => setFolderPlanFilter('all')}
+                                        className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
+                                            folderPlanFilter === 'all'
+                                                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                                                : 'clay-card text-fg-2 hover:text-white'
+                                        }`}
+                                    >
+                                        All Vaults ({folderPlanStats.all})
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFolderPlanFilter('enterprise')}
+                                        className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold uppercase tracking-wider transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+                                            folderPlanFilter === 'enterprise'
+                                                ? 'bg-purple-500/25 text-purple-200 border border-purple-500/50 shadow-[0_0_12px_rgba(168,85,247,0.2)]'
+                                                : 'clay-card text-purple-400/80 hover:text-purple-300'
+                                        }`}
+                                    >
+                                        <Building2 size={11} className="text-purple-400" />
+                                        <span>Enterprise ({folderPlanStats.enterprise})</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFolderPlanFilter('premium')}
+                                        className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold uppercase tracking-wider transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+                                            folderPlanFilter === 'premium'
+                                                ? 'bg-amber-500/25 text-amber-200 border border-amber-500/50 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
+                                                : 'clay-card text-amber-400/80 hover:text-amber-300'
+                                        }`}
+                                    >
+                                        <Crown size={11} className="text-amber-400" />
+                                        <span>Premium ({folderPlanStats.premium})</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFolderPlanFilter('standard')}
+                                        className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold uppercase tracking-wider transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+                                            folderPlanFilter === 'standard'
+                                                ? 'bg-emerald-500/25 text-emerald-200 border border-emerald-500/50 shadow-[0_0_12px_rgba(16,185,129,0.2)]'
+                                                : 'clay-card text-emerald-400/80 hover:text-emerald-300'
+                                        }`}
+                                    >
+                                        <Zap size={11} className="text-emerald-400" />
+                                        <span>Standard ({folderPlanStats.standard})</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFolderPlanFilter('basic')}
+                                        className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold uppercase tracking-wider transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+                                            folderPlanFilter === 'basic'
+                                                ? 'bg-white/15 text-white border border-white/30'
+                                                : 'clay-card text-zinc-400 hover:text-white'
+                                        }`}
+                                    >
+                                        <Package size={11} className="text-zinc-400" />
+                                        <span>Basic ({folderPlanStats.basic})</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFolderPlanFilter('has_media')}
+                                        className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold uppercase tracking-wider transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+                                            folderPlanFilter === 'has_media'
+                                                ? 'bg-cyan-500/25 text-cyan-200 border border-cyan-500/50'
+                                                : 'clay-card text-cyan-400/70 hover:text-cyan-300'
+                                        }`}
+                                    >
+                                        <HardDrive size={11} className="text-cyan-400" />
+                                        <span>With Media ({folderPlanStats.withMedia})</span>
+                                    </button>
                                 </div>
 
                                 {/* Folder Search Bar */}
@@ -1066,49 +1205,61 @@ export default function AdminPage() {
                                         )}
                                     </div>
                                     <button
-                                        onClick={() => fetchR2Files(false)}
-                                        disabled={r2Loading}
+                                        onClick={fetchUserFolders}
+                                        disabled={isFoldersLoading}
                                         className="clay-cta-button px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shrink-0 transition-all active:scale-95 disabled:opacity-50"
                                         title="Scan Cloud Storage"
                                     >
-                                        <RefreshCw size={13} className={r2Loading ? 'animate-spin' : ''} />
-                                        <span className="hidden sm:inline">{r2Loading ? 'Scanning...' : 'Scan Vaults'}</span>
+                                        <RefreshCw size={13} className={isFoldersLoading ? 'animate-spin' : ''} />
+                                        <span className="hidden sm:inline">{isFoldersLoading ? 'Scanning...' : 'Scan Vaults'}</span>
                                     </button>
                                 </div>
 
                                 {/* User Folders Grid */}
-                                {r2Loading && userFolders.length === 0 ? (
+                                {isFoldersLoading && filteredFolders.length === 0 ? (
                                     <div className="text-center py-16 clay-card rounded-3xl space-y-2">
                                         <div className="w-10 h-10 border-2 border-cyan-500/20 border-t-cyan-400 rounded-full animate-spin mx-auto" />
                                         <p className="text-fg-2 text-xs font-mono">Scanning user vaults from cloud storage...</p>
                                     </div>
-                                ) : userFolders.length === 0 ? (
+                                ) : filteredFolders.length === 0 ? (
                                     <div className="text-center py-16 clay-card rounded-3xl text-fg-2 space-y-2">
                                         <Folder size={36} className="mx-auto text-cyan-500/40" />
-                                        <p className="text-sm font-bold text-white">No user media folders detected</p>
-                                        <p className="text-xs text-white/40 font-mono">When devices sync photos, their folder will automatically appear here.</p>
+                                        <p className="text-sm font-bold text-white">No user media folders match this filter</p>
+                                        <p className="text-xs text-white/40 font-mono">Try switching filters or clearing your search query.</p>
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-                                        {userFolders.map((folder) => {
+                                        {filteredFolders.map((folder) => {
                                             const owner = folder.user;
                                             const email = owner?.email || 'Unregistered UUID';
-                                            const name = owner?.name || email.split('@')[0];
+                                            const name = owner?.name || (email.includes('@') ? email.split('@')[0] : 'Device Node');
                                             const hasMedia = folder.total > 0;
 
                                             return (
                                                 <div
                                                     key={folder.uuid}
                                                     onClick={() => openUserFolder(folder)}
-                                                    className="clay-card p-4 sm:p-5 rounded-2xl flex flex-col justify-between gap-3.5 transition-all hover:scale-[1.015] active:scale-[0.985] cursor-pointer group hover:border-cyan-500/40 relative overflow-hidden shadow-lg"
+                                                    className={`clay-card p-4 sm:p-5 rounded-2xl flex flex-col justify-between gap-3.5 transition-all hover:scale-[1.015] active:scale-[0.985] cursor-pointer group relative overflow-hidden shadow-lg ${
+                                                        owner?.plan === 'enterprise'
+                                                            ? 'border-purple-500/40 hover:border-purple-500/70'
+                                                            : owner?.plan === 'premium'
+                                                                ? 'border-amber-500/30 hover:border-amber-500/60'
+                                                                : 'hover:border-cyan-500/40'
+                                                    }`}
                                                 >
                                                     {/* Top Row: Icon + Badges */}
                                                     <div className="flex items-center justify-between gap-2">
-                                                        <div className="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 group-hover:scale-105 group-hover:shadow-[0_0_16px_rgba(6,182,212,0.4)] transition-all shrink-0">
-                                                            <Folder className="w-5 h-5 text-cyan-400" />
+                                                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all shrink-0 ${
+                                                            owner?.plan === 'enterprise'
+                                                                ? 'bg-purple-500/15 border border-purple-500/30 text-purple-300'
+                                                                : owner?.plan === 'premium'
+                                                                    ? 'bg-amber-500/15 border border-amber-500/30 text-amber-300'
+                                                                    : 'bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 group-hover:scale-105'
+                                                        }`}>
+                                                            <Folder className="w-5 h-5" />
                                                         </div>
                                                         <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                                                            {owner?.plan && getPlanBadge(owner.plan)}
+                                                            {getPlanBadge(owner?.plan || 'basic')}
                                                             <span className={`text-[10px] font-mono font-black px-2.5 py-0.5 rounded-lg border ${
                                                                 hasMedia 
                                                                     ? 'text-cyan-300 bg-cyan-500/15 border-cyan-500/30' 
@@ -1166,9 +1317,9 @@ export default function AdminPage() {
                                         <div className="min-w-0">
                                             <div className="flex items-center gap-2">
                                                 <h3 className="text-sm sm:text-base font-black text-white truncate">
-                                                    {selectedUserFolder.user?.name || selectedUserFolder.user?.email || 'User Vault'}
+                                                    {selectedUserFolder.user?.name || (selectedUserFolder.user?.email && selectedUserFolder.user.email.includes('@') ? selectedUserFolder.user.email.split('@')[0] : 'User Vault')}
                                                 </h3>
-                                                {selectedUserFolder.user?.plan && getPlanBadge(selectedUserFolder.user.plan)}
+                                                {getPlanBadge(selectedUserFolder.user?.plan || 'basic')}
                                             </div>
                                             <p className="text-[11px] text-zinc-400 font-mono truncate">
                                                 UUID: {selectedUserFolder.uuid} • {displayedFiles.length} assets visible
@@ -1186,12 +1337,12 @@ export default function AdminPage() {
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() => fetchR2Files(false, selectedUserFolder.uuid)}
-                                            disabled={r2Loading}
+                                            onClick={() => openUserFolder(selectedUserFolder)}
+                                            disabled={isFolderFilesLoading}
                                             className="clay-cta-button px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer active:scale-95 disabled:opacity-50"
                                         >
-                                            <RefreshCw size={12} className={r2Loading ? 'animate-spin' : ''} />
-                                            <span>{r2Loading ? 'Syncing...' : 'Sync Vault'}</span>
+                                            <RefreshCw size={12} className={isFolderFilesLoading ? 'animate-spin' : ''} />
+                                            <span>{isFolderFilesLoading ? 'Syncing...' : 'Sync Vault'}</span>
                                         </button>
                                     </div>
                                 </div>
@@ -1214,7 +1365,7 @@ export default function AdminPage() {
                                                     : 'clay-card text-fg-2 hover:text-white'
                                             }`}
                                         >
-                                            {filter === 'all' && `All (${currentScopeFiles.length})`}
+                                            {filter === 'all' && `All (${folderFiles.length})`}
                                             {filter === 'image' && `Images (${imageCount})`}
                                             {filter === 'video' && `Videos (${videoCount})`}
                                             {filter === 'enterprise' && `Enterprise (${enterpriseMediaCount})`}
@@ -1249,10 +1400,10 @@ export default function AdminPage() {
                                 )}
 
                                 {/* Media Grid with FastImage & WindowedMediaCard Virtualization */}
-                                {r2Loading && activeUserFiles.length === 0 ? (
+                                {isFolderFilesLoading ? (
                                     <div className="text-center py-16 clay-card rounded-3xl space-y-2">
                                         <div className="w-10 h-10 border-2 border-cyan-500/20 border-t-cyan-400 rounded-full animate-spin mx-auto" />
-                                        <p className="text-fg-2 text-xs font-mono">Loading user media assets...</p>
+                                        <p className="text-fg-2 text-xs font-mono">Loading user media assets directly from cloud storage...</p>
                                     </div>
                                 ) : displayedFiles.length === 0 ? (
                                     <div className="text-center py-16 clay-card rounded-3xl text-fg-2 space-y-2">
@@ -1343,7 +1494,7 @@ export default function AdminPage() {
                                 )}
 
                                 {/* Load More Button */}
-                                {!r2Loading && visibleCount < displayedFiles.length && (
+                                {!isFolderFilesLoading && visibleCount < displayedFiles.length && (
                                     <div className="mt-6 text-center pb-6">
                                         <button
                                             onClick={() => setVisibleCount(prev => prev + 30)}
