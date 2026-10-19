@@ -76,6 +76,9 @@ export default function AdminPage() {
         uuid: string;
         user?: User | null;
         enterprise?: boolean;
+        total?: number;
+        images?: number;
+        videos?: number;
     }>>([]);
     const [isFoldersLoading, setIsFoldersLoading] = useState(false);
     const [folderPlanFilter, setFolderPlanFilter] = useState<'all' | 'enterprise' | 'premium' | 'standard' | 'basic' | 'has_media'>('all');
@@ -295,14 +298,16 @@ export default function AdminPage() {
                 setFolderFiles(data);
                 const imgs = data.filter(f => f.resource_type === 'image').length;
                 const vids = data.filter(f => f.resource_type === 'video').length;
+                const updatedCounts = {
+                    total: data.length,
+                    images: imgs,
+                    videos: vids
+                };
                 setFolderCountsMap(prev => ({
                     ...prev,
-                    [folder.uuid]: {
-                        total: data.length,
-                        images: imgs,
-                        videos: vids
-                    }
+                    [folder.uuid]: updatedCounts
                 }));
+                setSelectedUserFolder(prev => prev ? { ...prev, ...updatedCounts } : null);
             } else {
                 setError('Failed to load folder assets');
             }
@@ -512,7 +517,11 @@ export default function AdminPage() {
                 (u.email && u.email.toLowerCase() === uuidLower)
             );
             const plan = owner?.plan || 'basic';
-            const counts = folderCountsMap[item.uuid] || { total: 0, images: 0, videos: 0 };
+            const counts = folderCountsMap[item.uuid] || {
+                total: typeof item.total === 'number' ? item.total : 0,
+                images: typeof item.images === 'number' ? item.images : 0,
+                videos: typeof item.videos === 'number' ? item.videos : 0
+            };
 
             map.set(item.uuid, {
                 uuid: item.uuid,
@@ -1260,13 +1269,16 @@ export default function AdminPage() {
                                                         </div>
                                                         <div className="flex items-center gap-1.5 flex-wrap justify-end">
                                                             {getPlanBadge(owner?.plan || 'basic')}
-                                                            <span className={`text-[10px] font-mono font-black px-2.5 py-0.5 rounded-lg border ${
-                                                                hasMedia 
-                                                                    ? 'text-cyan-300 bg-cyan-500/15 border-cyan-500/30' 
-                                                                    : 'text-white/40 bg-white/5 border-white/10'
-                                                            }`}>
-                                                                {folder.total} {folder.total === 1 ? 'item' : 'items'}
-                                                            </span>
+                                                            {hasMedia ? (
+                                                                <span className="text-[10px] font-mono font-black px-2.5 py-0.5 rounded-lg border text-cyan-300 bg-cyan-500/15 border-cyan-500/30">
+                                                                    {folder.total} {folder.total === 1 ? 'item' : 'items'}
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-lg border text-cyan-300/80 bg-cyan-500/10 border-cyan-500/20 flex items-center gap-1">
+                                                                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                                                                    <span>Vault Ready</span>
+                                                                </span>
+                                                            )}
                                                         </div>
                                                     </div>
 
@@ -1286,8 +1298,15 @@ export default function AdminPage() {
 
                                                     {/* Footer: Media Breakdown + Open Action */}
                                                     <div className="pt-3 border-t border-white/5 flex items-center justify-between text-xs font-mono">
-                                                        <span className="text-white/40 text-[11px]">
-                                                            {folder.images} imgs • {folder.videos} vids
+                                                        <span className="text-[11px]">
+                                                            {hasMedia ? (
+                                                                <span className="text-white/50">{folder.images} imgs • {folder.videos} vids</span>
+                                                            ) : (
+                                                                <span className="text-cyan-400/60 font-semibold flex items-center gap-1">
+                                                                    <HardDrive size={11} className="text-cyan-400/60" />
+                                                                    <span>Cloud Storage Active</span>
+                                                                </span>
+                                                            )}
                                                         </span>
                                                         <span className="text-cyan-400 font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
                                                             <span>Open Vault</span>
