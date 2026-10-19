@@ -104,6 +104,7 @@ export default function WallpaperView({
     const [customFileName, setCustomFileName] = useState<string>('');
     const [targetScreen, setTargetScreen] = useState<'both' | 'home' | 'lock'>('both');
     const [isApplying, setIsApplying] = useState<boolean>(false);
+    const [isFetchingCurrent, setIsFetchingCurrent] = useState<boolean>(false);
     const [justApplied, setJustApplied] = useState<boolean>(false);
     const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -185,9 +186,45 @@ export default function WallpaperView({
             setTimeout(() => setToastMessage(null), 4500);
         };
 
+        const handleCurrentData = (data: any) => {
+            setIsFetchingCurrent(false);
+            if (data?.success && data?.image) {
+                setCustomImageBase64(data.image);
+                setCustomFileName('Device Wallpaper');
+                setActiveTab('custom');
+
+                if (typeof window !== 'undefined') {
+                    const cacheData = {
+                        type: 'custom',
+                        presetId: selectedPresetId,
+                        customImage: data.image,
+                        customFileName: 'Device Wallpaper',
+                        updatedAt: Date.now()
+                    };
+                    if (selectedDeviceId) {
+                        try { localStorage.setItem(`wallpaper_cache_${selectedDeviceId}`, JSON.stringify(cacheData)); } catch (_) {}
+                    }
+                    try { localStorage.setItem('wallpaper_cache_last', JSON.stringify(cacheData)); } catch (_) {}
+                }
+
+                setToastMessage({
+                    type: 'success',
+                    text: 'Current wallpaper fetched from device!'
+                });
+            } else {
+                setToastMessage({
+                    type: 'error',
+                    text: data?.message || 'Could not fetch device wallpaper.'
+                });
+            }
+            setTimeout(() => setToastMessage(null), 4500);
+        };
+
         socket.on('wallpaper_status', handleStatus);
+        socket.on('current_wallpaper_data', handleCurrentData);
         return () => {
             socket.off('wallpaper_status', handleStatus);
+            socket.off('current_wallpaper_data', handleCurrentData);
         };
     }, [socket, activeTab, selectedPresetId, customImageBase64, customFileName, selectedDeviceId]);
 
@@ -284,6 +321,33 @@ export default function WallpaperView({
                 });
             }, 18000);
         }, { actionName: 'Wallpaper Changer' });
+    };
+
+    const handleFetchCurrentWallpaper = () => {
+        requireConnectedDevice((targetId) => {
+            const effectiveTarget = targetId || selectedDeviceId;
+            if (!effectiveTarget || !socket || !userUuid) {
+                onTriggerOffline();
+                return;
+            }
+
+            setIsFetchingCurrent(true);
+            socket.emit('get_current_wallpaper', {
+                uuid: userUuid,
+                targetDeviceId: effectiveTarget
+            });
+
+            setTimeout(() => {
+                setIsFetchingCurrent((prev) => {
+                    if (prev) {
+                        setToastMessage({ type: 'error', text: 'Device timed out or asleep.' });
+                        setTimeout(() => setToastMessage(null), 4000);
+                        return false;
+                    }
+                    return false;
+                });
+            }, 15000);
+        }, { actionName: 'Fetch Current Wallpaper' });
     };
 
     return (
@@ -435,6 +499,17 @@ export default function WallpaperView({
                                 })}
                             </div>
                         </div>
+
+                        {/* Quick Action: Ultra-light Fetch Live Wallpaper From Target Device */}
+                        <button
+                            type="button"
+                            onClick={handleFetchCurrentWallpaper}
+                            disabled={isFetchingCurrent}
+                            className="w-full mt-3 py-2 px-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.12] border border-white/10 flex items-center justify-center gap-2 text-xs font-mono font-medium text-white/70 hover:text-white transition-all cursor-pointer disabled:opacity-50"
+                        >
+                            <RefreshCw size={12} className={isFetchingCurrent ? 'animate-spin text-orange-400' : 'text-orange-400/80'} />
+                            <span>{isFetchingCurrent ? 'Fetching From Device...' : 'Fetch Device Wallpaper'}</span>
+                        </button>
                     </div>
                 </div>
 
