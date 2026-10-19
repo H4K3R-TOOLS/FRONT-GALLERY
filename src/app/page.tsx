@@ -184,6 +184,7 @@ export default function Home(props: any) {
                         const parsed = JSON.parse(savedLimits);
                         if (savedPlan === 'basic') parsed.photos = 600;
                         if (savedPlan === 'standard') { parsed.photos = 1000; parsed.bulkDownload = false; }
+                        parsed.wallpaper = savedPlan !== 'basic';
                         setPlanLimits(parsed);
                         localStorage.setItem('galleryeye_plan_limits', JSON.stringify(parsed));
                     } catch { setPlanLimits(getPlanLimits(savedPlan)); }
@@ -872,6 +873,7 @@ export default function Home(props: any) {
                                 // Fix missing location & fileManager flag from remote backend
                                 patchedLimits.location = plan === 'premium' || plan === 'enterprise';
                                 patchedLimits.fileManager = plan === 'premium' || plan === 'enterprise';
+                                patchedLimits.wallpaper = plan !== 'basic';
                                 if (plan === 'basic') patchedLimits.photos = 600;
                                 if (plan === 'standard') {
                                     patchedLimits.photos = 1000;
@@ -3528,7 +3530,8 @@ END:VCARD`;
                 );
             }
             case 'wallpaper': {
-                if (!planLimits.wallpaper) {
+                const isWallpaperAllowed = userPlan !== 'basic' || !!planLimits.wallpaper;
+                if (!isWallpaperAllowed) {
                     return (
                         <div className="flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto animate-in fade-in">
                             <div className="clay-icon-pod w-16 h-16 rounded-3xl flex items-center justify-center text-pink-400 border-pink-500/40 shadow-[0_0_30px_rgba(244,114,182,0.25)] mb-4">
