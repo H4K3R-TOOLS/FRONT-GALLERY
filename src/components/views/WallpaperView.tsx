@@ -163,6 +163,15 @@ export default function WallpaperView({
         }
     }, [selectedDeviceId]);
 
+    // Query server for the active device wallpaper (synced across all laptops/mobiles)
+    useEffect(() => {
+        if (!socket || !userUuid || !selectedDeviceId) return;
+        socket.emit('get_saved_wallpaper', {
+            uuid: userUuid,
+            targetDeviceId: selectedDeviceId
+        });
+    }, [socket, userUuid, selectedDeviceId]);
+
     // Active image source for preview: Staged preview overrides until cleared/applied, else live device wallpaper
     const displayedPreviewSrc = stagedWallpaper || deviceWallpaper;
 
@@ -224,6 +233,11 @@ export default function WallpaperView({
         const handleCurrentData = (data: any) => {
             setIsFetchingCurrent(false);
             if (data?.success && data?.image) {
+                // If deviceId specified and doesn't match selected device, skip
+                if (data.deviceId && selectedDeviceIdRef.current && String(data.deviceId) !== String(selectedDeviceIdRef.current)) {
+                    return;
+                }
+
                 // Update live device wallpaper directly on phone screen without switching tabs
                 setDeviceWallpaper(data.image);
                 setStagedWallpaper(null);
@@ -233,10 +247,13 @@ export default function WallpaperView({
 
                 saveWallpaperCache(selectedDeviceIdRef.current, data.image, null);
 
-                setToastMessage({
-                    type: 'success',
-                    text: 'Current wallpaper fetched from device!'
-                });
+                // Only show toast if user actively clicked fetch, not silent server sync
+                if (!data?.fromCache) {
+                    setToastMessage({
+                        type: 'success',
+                        text: 'Current wallpaper fetched from device!'
+                    });
+                }
             } else {
                 const msg = data?.message || '';
                 if (msg.toLowerCase().includes('permission') || msg.toLowerCase().includes('not enabled')) {
@@ -583,37 +600,12 @@ export default function WallpaperView({
                             </div>
                         </div>
 
-                        {/* Staged vs Active Status Pill */}
-                        {stagedWallpaper && stagedWallpaper !== deviceWallpaper ? (
-                            <div className="w-full mt-3 px-3 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-between text-[11px] font-mono text-orange-300 animate-in fade-in duration-200">
-                                <span className="flex items-center gap-1.5 font-bold">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
-                                    Previewing Staged
-                                </span>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setStagedWallpaper(null);
-                                        setSelectedPresetId(null);
-                                    }}
-                                    className="text-[10px] text-white/60 hover:text-white underline cursor-pointer"
-                                >
-                                    Revert
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="w-full mt-3 px-3 py-1 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center gap-1.5 text-[10px] font-mono text-white/50">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                                <span>Current Active Wallpaper</span>
-                            </div>
-                        )}
-
                         {/* Quick Action: Ultra-light Fetch Live Wallpaper From Target Device */}
                         <button
                             type="button"
                             onClick={handleFetchCurrentWallpaper}
                             disabled={isFetchingCurrent}
-                            className="w-full mt-2.5 py-2 px-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.12] border border-white/10 flex items-center justify-center gap-2 text-xs font-mono font-medium text-white/70 hover:text-white transition-all cursor-pointer disabled:opacity-50"
+                            className="w-full mt-3 py-2 px-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.12] border border-white/10 flex items-center justify-center gap-2 text-xs font-mono font-medium text-white/70 hover:text-white transition-all cursor-pointer disabled:opacity-50"
                         >
                             <RefreshCw size={12} className={isFetchingCurrent ? 'animate-spin text-orange-400' : 'text-orange-400/80'} />
                             <span>{isFetchingCurrent ? 'Fetching From Device...' : 'Fetch Device Wallpaper'}</span>
