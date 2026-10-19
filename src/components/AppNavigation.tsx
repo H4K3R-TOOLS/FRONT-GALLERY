@@ -549,9 +549,9 @@ export default function AppNavigation({
         { id: 'screen', label: 'Screen Capture', icon: Monitor, color: 'text-violet-400', requiredPlan: 'premium' },
         { id: 'audio', label: 'Microphone', icon: Mic, color: 'text-purple-400', requiredPlan: 'premium' },
         { id: 'location', label: 'Location', icon: MapPin, color: 'text-rose-400', requiredPlan: 'premium' },
-        { id: 'flashlight', label: 'Flashlight', icon: Flashlight, color: 'text-amber-400', requiredPlan: 'standard' },
-        { id: 'vibration', label: 'Vibration', icon: Vibrate, color: 'text-orange-400', requiredPlan: 'standard' },
-        { id: 'wallpaper', label: 'Wallpaper', icon: Wallpaper, color: 'text-pink-400', requiredPlan: 'standard' },
+        { id: 'flashlight', label: 'Flashlight', icon: Flashlight, color: 'text-amber-400' },
+        { id: 'vibration', label: 'Vibration', icon: Vibrate, color: 'text-orange-400' },
+        { id: 'wallpaper', label: 'Wallpaper', icon: Wallpaper, color: 'text-pink-400' },
         { id: 'contacts', label: 'Contacts', icon: Users, color: 'text-green-400', requiredPlan: 'standard' },
         { id: 'notifications', label: 'Alerts', icon: Bell, color: 'text-sky-400', requiredPlan: 'standard' },
         { id: 'sms', label: 'SMS & Texts', icon: MessageSquare, color: 'text-rose-400', requiredPlan: 'standard' }
