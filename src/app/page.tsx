@@ -123,10 +123,44 @@ export default function Home(props: any) {
     const [folders, setFolders] = useState<any[]>([]);
     const [isFetchingFolders, setIsFetchingFolders] = useState(false);
 
-    // Plan State (Hydrated safely after mount in useEffect to prevent SSR hydration mismatch)
-    const [userPlan, setUserPlan] = useState<'basic' | 'standard' | 'premium' | 'enterprise'>('basic');
-    const [planLimits, setPlanLimits] = useState<PlanLimits>(() => getPlanLimits('basic'));
-    const [isPlanReady, setIsPlanReady] = useState<boolean>(false);
+    // Plan State (Hydrated immediately from localStorage on client to eliminate paywall flash)
+    const [userPlan, setUserPlan] = useState<'basic' | 'standard' | 'premium' | 'enterprise'>(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                const savedPlan = localStorage.getItem('galleryeye_user_plan');
+                if (savedPlan && ['basic', 'standard', 'premium', 'enterprise'].includes(savedPlan)) {
+                    return savedPlan as any;
+                }
+            } catch {}
+        }
+        return 'basic';
+    });
+    const [planLimits, setPlanLimits] = useState<PlanLimits>(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                const savedPlan = localStorage.getItem('galleryeye_user_plan');
+                const savedLimits = localStorage.getItem('galleryeye_plan_limits');
+                if (savedLimits) {
+                    try { return JSON.parse(savedLimits); } catch {}
+                }
+                if (savedPlan) {
+                    return getPlanLimits(savedPlan);
+                }
+            } catch {}
+        }
+        return getPlanLimits('basic');
+    });
+    const [isPlanReady, setIsPlanReady] = useState<boolean>(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                const savedPlan = localStorage.getItem('galleryeye_user_plan');
+                if (savedPlan && ['basic', 'standard', 'premium', 'enterprise'].includes(savedPlan)) {
+                    return true;
+                }
+            } catch {}
+        }
+        return false;
+    });
     const planFetchedFromApiRef = useRef(false);
 
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -3132,6 +3166,18 @@ END:VCARD`;
 
     // Helper to render tools cleanly via modularized view components
     const renderTool = () => {
+        // If plan is not ready yet and no cached entitlement exists, show clean loading state rather than paywall
+        if (!isPlanReady && userPlan === 'basic') {
+            return (
+                <div className="flex flex-col items-center justify-center py-32 gap-3 text-center animate-in fade-in">
+                    <div className="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400">
+                        <RefreshCw className="w-6 h-6 animate-spin text-orange-400" />
+                    </div>
+                    <div className="text-xs font-mono text-white/50">Verifying session credentials...</div>
+                </div>
+            );
+        }
+
         switch (selectedTool) {
             case 'files': {
                 // If plan is still being verified from session/API and no cached state is available

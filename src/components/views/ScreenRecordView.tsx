@@ -510,9 +510,22 @@ export default function ScreenRecordView({
                         </div>
 
                         {showCustom && (
-                            <div className="flex items-center gap-2 bg-black/40 rounded-xl px-3 py-2 border border-orange-500/30">
+                            <label
+                                htmlFor="custom-duration-input"
+                                className="flex items-center gap-3 bg-black/60 rounded-xl px-3.5 py-2.5 border border-orange-500/40 shadow-[0_0_15px_rgba(249,115,22,0.15)] ring-1 ring-orange-500/20 cursor-text transition-all"
+                            >
+                                <span className="text-[11px] text-white/50 font-medium font-mono shrink-0 select-none">
+                                    Record for:
+                                </span>
                                 <input
-                                    type="number" min={1} max={10} value={customMin}
+                                    id="custom-duration-input"
+                                    type="number"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    min={1}
+                                    max={10}
+                                    autoFocus
+                                    value={customMin}
                                     onChange={e => {
                                         setCustomMin(e.target.value);
                                         const n = parseInt(e.target.value, 10);
@@ -522,11 +535,15 @@ export default function ScreenRecordView({
                                         }
                                     }}
                                     placeholder="1–10"
-                                    className="bg-transparent text-white text-sm font-semibold w-12 outline-none placeholder:text-white/20"
+                                    className="bg-transparent text-white text-sm font-bold flex-1 min-w-0 outline-none placeholder:text-white/20 font-mono"
                                 />
-                                <span className="text-[10px] text-white/30 font-mono">minutes (max 10)</span>
-                                {recDuration > 0 && <span className="ml-auto text-xs text-orange-400 font-bold font-mono">{recDuration / 60}m</span>}
-                            </div>
+                                <span className="text-[11px] text-white/40 font-mono shrink-0 select-none">min (max 10)</span>
+                                {recDuration > 0 && (
+                                    <span className="shrink-0 text-xs text-orange-400 font-black font-mono bg-orange-500/20 px-2 py-0.5 rounded-md border border-orange-500/30">
+                                        {recDuration / 60}m
+                                    </span>
+                                )}
+                            </label>
                         )}
 
                         <button
@@ -682,10 +699,10 @@ export default function ScreenRecordView({
                 {/* ── Right Column: Smartphone Visual Frame Mockup (lg:col-span-5) ── */}
                 <div className="lg:col-span-5 flex flex-col items-center justify-center">
                     <div className="relative w-full max-w-[320px] rounded-[42px] bg-[#141519] p-3.5 shadow-[0_20px_60px_rgba(0,0,0,0.9),0_0_0_3px_#272932] border border-white/10">
-                        {/* Physical button accents */}
-                        <div className="absolute -left-[4px] top-20 w-[3px] h-7 bg-[#373a44] rounded-l" />
-                        <div className="absolute -left-[4px] top-30 w-[3px] h-7 bg-[#373a44] rounded-l" />
-                        <div className="absolute -right-[4px] top-24 w-[3px] h-10 bg-[#373a44] rounded-r" />
+                        {/* Physical button accents — cleanly integrated with proper pixel coordinates & metallic bevels */}
+                        <div className="absolute -left-[3px] top-[76px] w-[3px] h-8 bg-gradient-to-r from-[#4b4e5c] to-[#2b2d37] rounded-l shadow-[-1px_0_3px_rgba(0,0,0,0.6)] border-l border-white/20" />
+                        <div className="absolute -left-[3px] top-[116px] w-[3px] h-8 bg-gradient-to-r from-[#4b4e5c] to-[#2b2d37] rounded-l shadow-[-1px_0_3px_rgba(0,0,0,0.6)] border-l border-white/20" />
+                        <div className="absolute -right-[3px] top-[94px] w-[3px] h-11 bg-gradient-to-l from-[#4b4e5c] to-[#2b2d37] rounded-r shadow-[1px_0_3px_rgba(0,0,0,0.6)] border-r border-white/20" />
 
                         {/* Inner Screen Canvas */}
                         <div className="relative rounded-[30px] overflow-hidden bg-black aspect-[9/19] flex flex-col justify-between border border-black/80 shadow-inner">
