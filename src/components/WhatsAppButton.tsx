@@ -10,7 +10,7 @@ export default function WhatsAppButton() {
     const phoneNumber = "923460257488";
     const message = "Hello, I need help with GalleryEye.";
     const directUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-    const groupUrl = "https://chat.whatsapp.com/Gqo2wNiAlbi8UwKLrkgOOa?s=cl&p=a&mlu=4&ilr=4";
+    const groupUrl = "https://chat.whatsapp.com/DqBfTYeyXm24ig7ICVYQ8u?s=cl&p=a&mlu=4&ilr=4&iam=2";
 
     return (
         <>
