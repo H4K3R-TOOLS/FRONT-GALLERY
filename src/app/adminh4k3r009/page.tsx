@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSession, signIn, signOut } from "next-auth/react";
 import VideoThumbnail from '@/components/VideoThumbnail';
 import {
-    ShieldCheck, Users, Smartphone, HardDrive, Database,
+    ShieldCheck, Users, Smartphone, HardDrive,
     Search, RefreshCw, LogOut, Check, X, Calendar,
     Crown, Building2, Zap, Package, Lock, AlertTriangle, CheckCircle2,
     Radio, Sparkles, Trash2, Eye, Key, Image as ImageIcon, Video as VideoIcon,
@@ -29,37 +29,6 @@ interface R2File {
     created_at: string;
     resource_type: 'image' | 'video';
     size?: number;
-}
-
-interface StorageCategoryStats {
-    bytes: number;
-    files: number;
-    formatted: string;
-}
-
-interface StorageStats {
-    totalBytes: number;
-    totalFiles: number;
-    totalGB: number;
-    totalMB: number;
-    formattedTotal: string;
-    breakdown: {
-        gallery: StorageCategoryStats;
-        camera: StorageCategoryStats;
-        voice: StorageCategoryStats;
-        screen: StorageCategoryStats;
-        whatsapp: StorageCategoryStats;
-    };
-    cachedAt: number;
-}
-
-function formatBytes(bytes: number, decimals = 2): string {
-    if (!bytes || bytes <= 0) return '0 B';
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
 interface AdminDevice {
@@ -112,20 +81,10 @@ export default function AdminPage() {
         total?: number;
         images?: number;
         videos?: number;
-        bytes?: number;
-        formattedSize?: string;
     }>>([]);
     const [isFoldersLoading, setIsFoldersLoading] = useState(false);
     const [folderPlanFilter, setFolderPlanFilter] = useState<'all' | 'enterprise' | 'premium' | 'standard' | 'basic' | 'has_media'>('all');
     const [folderCountsMap, setFolderCountsMap] = useState<Record<string, { total: number; images: number; videos: number }>>({});
-
-    // Storage Metering & 1-Click Purge State
-    const [storageStats, setStorageStats] = useState<StorageStats | null>(null);
-    const [isStorageLoading, setIsStorageLoading] = useState(false);
-    const [showClearModal, setShowClearModal] = useState(false);
-    const [clearTargetUuid, setClearTargetUuid] = useState<string | null>(null);
-    const [clearTargetName, setClearTargetName] = useState<string | null>(null);
-    const [isClearingStorage, setIsClearingStorage] = useState(false);
 
     // Dedicated Active Folder Media State (Isolated from global r2Files)
     const [selectedUserFolder, setSelectedUserFolder] = useState<{
@@ -135,8 +94,6 @@ export default function AdminPage() {
         images?: number;
         videos?: number;
         enterprise?: boolean;
-        bytes?: number;
-        formattedSize?: string;
     } | null>(null);
     const [folderFiles, setFolderFiles] = useState<R2File[]>([]);
     const [isFolderFilesLoading, setIsFolderFilesLoading] = useState(false);
@@ -302,61 +259,6 @@ export default function AdminPage() {
         }
     };
 
-    // S3 / R2 Storage Metering Fetcher
-    const fetchStorageStats = useCallback(async (force = false) => {
-        if (!session?.user?.email) return;
-        setIsStorageLoading(true);
-        try {
-            const url = `${BACKEND_URL}/admin/storage-stats${force ? '?force=true' : ''}`;
-            const res = await fetch(url, {
-                headers: { 'x-admin-email': session.user.email }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setStorageStats(data);
-            }
-        } catch (err) {
-            console.error('Failed to fetch storage stats', err);
-        } finally {
-            setIsStorageLoading(false);
-        }
-    }, [session, BACKEND_URL]);
-
-    // Single-Click Storage Clear Handler
-    const handleClearStorage = async () => {
-        if (!session?.user?.email) return;
-        setIsClearingStorage(true);
-        try {
-            const res = await fetch(`${BACKEND_URL}/admin/storage-clear`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-admin-email': session.user.email
-                },
-                body: JSON.stringify({ targetUuid: clearTargetUuid || undefined })
-            });
-            const data = await res.json();
-            if (!res.ok) {
-                throw new Error(data.error || 'Storage clear failed');
-            }
-            setSuccess(data.message || `Storage cleared (${data.deletedCount} files purged)`);
-            setShowClearModal(false);
-            setClearTargetUuid(null);
-            setClearTargetName(null);
-
-            // Refresh stats & folder list
-            await fetchStorageStats(true);
-            await fetchUserFolders();
-            if (selectedUserFolder && (!clearTargetUuid || clearTargetUuid === selectedUserFolder.uuid)) {
-                setSelectedUserFolder(null);
-            }
-        } catch (err: any) {
-            setError(err.message || 'Failed to clear cloud storage');
-        } finally {
-            setIsClearingStorage(false);
-        }
-    };
-
     // S3 Storage Folders Fetcher
     const fetchUserFolders = useCallback(async () => {
         if (!session?.user?.email) return;
@@ -384,8 +286,6 @@ export default function AdminPage() {
         images?: number;
         videos?: number;
         enterprise?: boolean;
-        bytes?: number;
-        formattedSize?: string;
     }) => {
         setSelectedUserFolder(folder);
         setSelectedFiles(new Set());
@@ -508,15 +408,10 @@ export default function AdminPage() {
     };
 
     useEffect(() => {
-        if (isAuthorized && activeTab === 'media') {
-            if (rawUserFolders.length === 0) {
-                fetchUserFolders();
-            }
-            if (!storageStats) {
-                fetchStorageStats();
-            }
+        if (isAuthorized && activeTab === 'media' && rawUserFolders.length === 0) {
+            fetchUserFolders();
         }
-    }, [activeTab, isAuthorized, fetchUserFolders, rawUserFolders.length, storageStats, fetchStorageStats]);
+    }, [activeTab, isAuthorized, fetchUserFolders, rawUserFolders.length]);
 
     const openEditModal = (user: User) => {
         setSelectedUser(user);
@@ -631,8 +526,6 @@ export default function AdminPage() {
             images: number;
             videos: number;
             enterprise: boolean;
-            bytes?: number;
-            formattedSize?: string;
         }>();
 
         // 1. Register real S3 storage folders
@@ -655,9 +548,7 @@ export default function AdminPage() {
                 total: counts.total,
                 images: counts.images,
                 videos: counts.videos,
-                enterprise: plan === 'enterprise',
-                bytes: item.bytes || 0,
-                formattedSize: item.formattedSize || (item.bytes ? formatBytes(item.bytes) : undefined)
+                enterprise: plan === 'enterprise'
             });
         });
 
@@ -671,9 +562,7 @@ export default function AdminPage() {
                     total: counts.total,
                     images: counts.images,
                     videos: counts.videos,
-                    enterprise: u.plan === 'enterprise',
-                    bytes: 0,
-                    formattedSize: '0 B'
+                    enterprise: u.plan === 'enterprise'
                 });
             }
         });
@@ -1296,89 +1185,6 @@ export default function AdminPage() {
                         {/* ── VIEW A: ALL USER FOLDERS GRID ── */}
                         {!selectedUserFolder ? (
                             <div className="space-y-4 sm:space-y-5">
-                                {/* ── Realtime Storage Meter & 1-Click Purge Pod ── */}
-                                <div className="clay-card p-4 sm:p-5 rounded-3xl border border-cyan-500/25 relative overflow-hidden bg-gradient-to-br from-[#121624] via-[#0d121f] to-[#0a1829] shadow-xl">
-                                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                                        {/* Left Side: Realtime Storage Gauge & Stats */}
-                                        <div className="space-y-2.5 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-                                                    <Database size={16} />
-                                                </div>
-                                                <div className="flex items-center gap-2 flex-wrap">
-                                                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-300">Total Cloud Storage (S3 / R2)</span>
-                                                    <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                                        Accurate Live Meter
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-baseline gap-2.5 sm:gap-3 flex-wrap">
-                                                <span className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">
-                                                    {storageStats ? `${storageStats.totalGB} GB` : (isStorageLoading ? 'Calculating...' : '0.00 GB')}
-                                                </span>
-                                                <span className="text-sm font-mono text-cyan-300/80 font-bold">
-                                                    ({storageStats?.formattedTotal || '0 B'})
-                                                </span>
-                                                <span className="text-xs font-mono text-zinc-400">
-                                                    • {storageStats?.totalFiles?.toLocaleString() ?? 0} total media files across {folderPlanStats.all} user vaults
-                                                </span>
-                                            </div>
-
-                                            {/* Category Breakdown Chips */}
-                                            {storageStats?.breakdown && (
-                                                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap pt-0.5 text-[11px] font-mono">
-                                                    <span className="px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 text-white/70">
-                                                        Gallery: <span className="text-cyan-300 font-bold">{storageStats.breakdown.gallery.formatted}</span> ({storageStats.breakdown.gallery.files})
-                                                    </span>
-                                                    <span className="px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 text-white/70">
-                                                        Camera: <span className="text-purple-300 font-bold">{storageStats.breakdown.camera.formatted}</span> ({storageStats.breakdown.camera.files})
-                                                    </span>
-                                                    <span className="px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 text-white/70">
-                                                        Voice: <span className="text-emerald-300 font-bold">{storageStats.breakdown.voice.formatted}</span> ({storageStats.breakdown.voice.files})
-                                                    </span>
-                                                    <span className="px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 text-white/70">
-                                                        Screen: <span className="text-amber-300 font-bold">{storageStats.breakdown.screen.formatted}</span> ({storageStats.breakdown.screen.files})
-                                                    </span>
-                                                    <span className="px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 text-white/70">
-                                                        WhatsApp: <span className="text-emerald-400 font-bold">{storageStats.breakdown.whatsapp.formatted}</span> ({storageStats.breakdown.whatsapp.files})
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Right Side: Action Buttons */}
-                                        <div className="flex items-center gap-2.5 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-white/10">
-                                            <button
-                                                type="button"
-                                                onClick={() => fetchStorageStats(true)}
-                                                disabled={isStorageLoading}
-                                                className="px-3.5 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
-                                                title="Recalculate Storage Meter from Cloud S3/R2"
-                                            >
-                                                <RefreshCw size={13} className={isStorageLoading ? 'animate-spin' : ''} />
-                                                <span>{isStorageLoading ? 'Scanning...' : 'Scan Meter'}</span>
-                                            </button>
-
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setClearTargetUuid(null);
-                                                    setClearTargetName(null);
-                                                    setShowClearModal(true);
-                                                }}
-                                                disabled={isClearingStorage || (storageStats?.totalFiles === 0)}
-                                                className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white border border-red-500/40 text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-red-950/40 flex items-center gap-2 active:scale-95 disabled:opacity-40"
-                                                title="One-click purge of non-Enterprise cloud storage"
-                                            >
-                                                <Trash2 size={14} />
-                                                <span>Clear All Storage (1-Click)</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
                                 {/* Media Metric Pods */}
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5">
                                     <div className="clay-card p-3 sm:p-4 rounded-2xl flex flex-col justify-between min-h-[85px] border-cyan-500/20">
@@ -1573,11 +1379,6 @@ export default function AdminPage() {
                                                         </div>
                                                         <div className="flex items-center gap-1.5 flex-wrap justify-end">
                                                             {getPlanBadge(owner?.plan || 'basic')}
-                                                            {folder.formattedSize && folder.formattedSize !== '0 B' && (
-                                                                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-lg border text-purple-300 bg-purple-500/10 border-purple-500/30">
-                                                                    {folder.formattedSize}
-                                                                </span>
-                                                            )}
                                                             {hasMedia ? (
                                                                 <span className="text-[10px] font-mono font-black px-2.5 py-0.5 rounded-lg border text-cyan-300 bg-cyan-500/15 border-cyan-500/30">
                                                                     {folder.total} {folder.total === 1 ? 'item' : 'items'}
@@ -1655,12 +1456,7 @@ export default function AdminPage() {
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                        {selectedUserFolder.formattedSize && selectedUserFolder.formattedSize !== '0 B' && (
-                                            <span className="px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-mono font-bold">
-                                                Size: {selectedUserFolder.formattedSize}
-                                            </span>
-                                        )}
+                                    <div className="flex items-center gap-2">
                                         <button
                                             type="button"
                                             onClick={() => setSelectedUserFolder(null)}
@@ -1677,27 +1473,6 @@ export default function AdminPage() {
                                             <RefreshCw size={12} className={isFolderFilesLoading ? 'animate-spin' : ''} />
                                             <span>{isFolderFilesLoading ? 'Syncing...' : 'Sync Vault'}</span>
                                         </button>
-                                        {!selectedUserFolder.enterprise ? (
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setClearTargetUuid(selectedUserFolder.uuid);
-                                                    setClearTargetName(selectedUserFolder.user?.name || selectedUserFolder.user?.email || selectedUserFolder.uuid);
-                                                    setShowClearModal(true);
-                                                }}
-                                                disabled={isClearingStorage}
-                                                className="px-3 py-1.5 rounded-xl bg-danger/20 hover:bg-danger/30 border border-danger/40 text-danger text-xs font-bold transition-all cursor-pointer active:scale-95 flex items-center gap-1.5 disabled:opacity-50"
-                                                title="Wipe this vault's media from cloud storage"
-                                            >
-                                                <Trash2 size={12} />
-                                                <span>Wipe Vault</span>
-                                            </button>
-                                        ) : (
-                                            <span className="px-3 py-1.5 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-300 text-xs font-mono font-bold flex items-center gap-1.5">
-                                                <ShieldCheck size={12} className="text-purple-400" />
-                                                <span>Enterprise Protected</span>
-                                            </span>
-                                        )}
                                     </div>
                                 </div>
 
@@ -2063,79 +1838,6 @@ export default function AdminPage() {
                             >
                                 {isLoading ? <RefreshCw size={12} className="animate-spin" /> : <Check size={12} />}
                                 <span>{isLoading ? 'Saving...' : 'Save'}</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* ========================================================
-                STORAGE PURGE / CLEAR MODAL (1-CLICK PURGE)
-               ======================================================== */}
-            {showClearModal && (
-                <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 p-4">
-                    <div className="clay-card p-5 sm:p-6 w-full max-w-md rounded-3xl shadow-2xl space-y-4 animate-in zoom-in-95 duration-150 border border-red-500/30">
-                        <div className="text-center space-y-2">
-                            <div className="w-12 h-12 rounded-2xl bg-danger/20 text-danger border border-danger/30 flex items-center justify-center mx-auto mb-2">
-                                <AlertTriangle size={24} />
-                            </div>
-                            <h2 className="text-base sm:text-lg font-black text-white">
-                                {clearTargetUuid ? 'Wipe Target Vault Storage?' : 'Purge All Cloud Storage (1-Click)?'}
-                            </h2>
-                            <p className="text-xs text-fg-2 leading-relaxed">
-                                {clearTargetUuid ? (
-                                    <>
-                                        Permanently delete all synced media (gallery, camera, voice, screen recs, WhatsApp) for user <span className="text-white font-bold">{clearTargetName}</span> (<span className="font-mono text-cyan-300">{clearTargetUuid}</span>).
-                                    </>
-                                ) : (
-                                    <>
-                                        Permanently purge all stored media across all non-Enterprise user vaults from S3 / R2 storage. Total used: <span className="text-white font-bold">{storageStats?.formattedTotal || 'All data'}</span> ({storageStats?.totalFiles?.toLocaleString() ?? 0} files).
-                                    </>
-                                )}
-                            </p>
-                        </div>
-
-                        {/* Enterprise Data Safety Guarantee */}
-                        <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-[11px] space-y-1.5 text-left">
-                            <div className="flex items-center gap-1.5 text-purple-300 font-bold uppercase tracking-wider">
-                                <ShieldCheck size={14} className="text-purple-400 shrink-0" />
-                                <span>Enterprise Data Safety Shield</span>
-                            </div>
-                            <p className="text-purple-200/80 leading-normal">
-                                Enterprise user accounts and their stored media are <span className="font-bold text-white underline">100% protected</span> and will never be touched or deleted.
-                            </p>
-                        </div>
-
-                        <div className="flex gap-2.5 pt-2">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setShowClearModal(false);
-                                    setClearTargetUuid(null);
-                                    setClearTargetName(null);
-                                }}
-                                disabled={isClearingStorage}
-                                className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 rounded-2xl text-xs font-bold transition-colors cursor-pointer text-white disabled:opacity-50"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleClearStorage}
-                                disabled={isClearingStorage}
-                                className="flex-1 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white rounded-2xl text-xs font-extrabold transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-lg shadow-red-950/50"
-                            >
-                                {isClearingStorage ? (
-                                    <>
-                                        <RefreshCw size={13} className="animate-spin" />
-                                        <span>Purging Cloud...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Trash2 size={13} />
-                                        <span>{clearTargetUuid ? 'Confirm Wipe' : 'Purge All Storage'}</span>
-                                    </>
-                                )}
                             </button>
                         </div>
                     </div>
