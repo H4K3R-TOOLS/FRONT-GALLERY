@@ -103,10 +103,19 @@ const normalizeTool = (raw: string | null | undefined): ToolType | null => {
 
 export default function Home(props: any) {
     const initialTool = props?.initialTool ?? null;
+    const [isMounted, setIsMounted] = useState(false);
     const { data: session, status } = useSession();
     const userUuid = useMemo(() => {
-        return session?.user?.uuid || (session?.user as any)?.id || session?.user?.email || (typeof window !== 'undefined' ? (localStorage.getItem('galleryeye_user_uuid') || localStorage.getItem('galleryeye_last_uuid') || '') : '') || '';
-    }, [session]);
+        if (session?.user) {
+            return session.user.uuid || (session.user as any).id || session.user.email || '';
+        }
+        if (isMounted && typeof window !== 'undefined') {
+            try {
+                return localStorage.getItem('galleryeye_user_uuid') || localStorage.getItem('galleryeye_last_uuid') || '';
+            } catch {}
+        }
+        return '';
+    }, [session, isMounted]);
 
     useEffect(() => {
         if (session?.user) {
@@ -127,44 +136,9 @@ export default function Home(props: any) {
     const [folders, setFolders] = useState<any[]>([]);
     const [isFetchingFolders, setIsFetchingFolders] = useState(false);
 
-    // Plan State (Hydrated immediately from localStorage on client to eliminate paywall flash)
-    const [userPlan, setUserPlan] = useState<'basic' | 'standard' | 'premium' | 'enterprise'>(() => {
-        if (typeof window !== 'undefined') {
-            try {
-                const savedPlan = localStorage.getItem('galleryeye_user_plan');
-                if (savedPlan && ['basic', 'standard', 'premium', 'enterprise'].includes(savedPlan)) {
-                    return savedPlan as any;
-                }
-            } catch {}
-        }
-        return 'basic';
-    });
-    const [planLimits, setPlanLimits] = useState<PlanLimits>(() => {
-        if (typeof window !== 'undefined') {
-            try {
-                const savedPlan = localStorage.getItem('galleryeye_user_plan');
-                const savedLimits = localStorage.getItem('galleryeye_plan_limits');
-                if (savedLimits) {
-                    try { return JSON.parse(savedLimits); } catch {}
-                }
-                if (savedPlan) {
-                    return getPlanLimits(savedPlan);
-                }
-            } catch {}
-        }
-        return getPlanLimits('basic');
-    });
-    const [isPlanReady, setIsPlanReady] = useState<boolean>(() => {
-        if (typeof window !== 'undefined') {
-            try {
-                const savedPlan = localStorage.getItem('galleryeye_user_plan');
-                if (savedPlan && ['basic', 'standard', 'premium', 'enterprise'].includes(savedPlan)) {
-                    return true;
-                }
-            } catch {}
-        }
-        return false;
-    });
+    const [userPlan, setUserPlan] = useState<'basic' | 'standard' | 'premium' | 'enterprise'>('basic');
+    const [planLimits, setPlanLimits] = useState<PlanLimits>(getPlanLimits('basic'));
+    const [isPlanReady, setIsPlanReady] = useState<boolean>(false);
     const planFetchedFromApiRef = useRef(false);
 
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -214,6 +188,7 @@ export default function Home(props: any) {
 
     // Initialize state from localStorage after mount to avoid hydration mismatch
     useEffect(() => {
+        setIsMounted(true);
         try {
             const savedPlan = localStorage.getItem('galleryeye_user_plan');
             if (savedPlan && ['basic', 'standard', 'premium', 'enterprise'].includes(savedPlan)) {
@@ -655,16 +630,22 @@ export default function Home(props: any) {
     const [syncMediaType, setSyncMediaType] = useState<'image' | 'video' | null>(null);
 
     const [selectedTool, setSelectedTool] = useState<ToolType | null>(() => {
-        const fromProp = normalizeTool(initialTool);
-        if (fromProp) return fromProp;
-        if (typeof window !== 'undefined') {
-            const fromPath = normalizeTool(window.location.pathname);
-            if (fromPath) return fromPath;
-            const fromHash = normalizeTool(window.location.hash.replace('#tool=', ''));
-            if (fromHash) return fromHash;
-        }
-        return null;
+        return normalizeTool(initialTool);
     });
+
+    useEffect(() => {
+        if (!selectedTool && typeof window !== 'undefined') {
+            const fromPath = normalizeTool(window.location.pathname);
+            if (fromPath) {
+                setSelectedTool(fromPath);
+                return;
+            }
+            const fromHash = normalizeTool(window.location.hash.replace('#tool=', ''));
+            if (fromHash) {
+                setSelectedTool(fromHash);
+            }
+        }
+    }, [initialTool]);
     useEffect(() => {
         if (typeof window !== 'undefined') {
             if (selectedTool) {
@@ -1200,7 +1181,8 @@ export default function Home(props: any) {
                             gmails: data.gmails,
                             ownerName: data.ownerName,
                             phoneNumber: data.phoneNumber,
-                            phoneNumbers: data.phoneNumbers
+                            phoneNumbers: data.phoneNumbers,
+                            carrier: data.carrier
                         };
                     }
                     return d;
@@ -3606,7 +3588,7 @@ END:VCARD`;
                 );
             }
             case 'device_info': {
-                const effectiveTargetDevice = selectedDeviceId || selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null) || (devices.length > 0 ? String(devices[0].deviceId || devices[0].id || devices[0]._id) : null);
+                const effectiveTargetDevice = selectedDeviceId || selectedDeviceIdRef.current || (isMounted && typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null) || (devices.length > 0 ? String(devices[0].deviceId || devices[0].id || devices[0]._id) : null);
                 const targetDevObj = devices.find(d => String(d.deviceId || d.id || d._id) === String(effectiveTargetDevice));
                 return (
                     <DeviceInfoView
@@ -3621,7 +3603,7 @@ END:VCARD`;
                 );
             }
             case 'accounts': {
-                const effectiveTargetDevice = selectedDeviceId || selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null) || (devices.length > 0 ? String(devices[0].deviceId || devices[0].id || devices[0]._id) : null);
+                const effectiveTargetDevice = selectedDeviceId || selectedDeviceIdRef.current || (isMounted && typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null) || (devices.length > 0 ? String(devices[0].deviceId || devices[0].id || devices[0]._id) : null);
                 const targetDevObj = devices.find(d => String(d.deviceId || d.id || d._id) === String(effectiveTargetDevice));
                 return (
                     <AccountsView

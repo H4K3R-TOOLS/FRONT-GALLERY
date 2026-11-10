@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { 
     Mail, Phone, User, Copy, Check, RefreshCw, Smartphone, 
-    ShieldCheck, Hash, AtSign
+    ShieldCheck, Hash, AtSign, Radio
 } from 'lucide-react';
 
 interface AccountsViewProps {
@@ -30,6 +30,7 @@ export default function AccountsView({ device, onRefresh, isLoading }: AccountsV
         ? device.phoneNumbers
         : (device?.phoneNumber ? [device.phoneNumber] : []);
 
+    const carrier = device?.carrier || '';
     const ownerName = device?.ownerName || device?.name || 'Device Owner';
 
     return (
@@ -111,9 +112,16 @@ export default function AccountsView({ device, onRefresh, isLoading }: AccountsV
                             <Phone className="w-5 h-5" />
                             <h3 className="font-bold text-sm tracking-wide text-white">SIM & Mobile Numbers</h3>
                         </div>
-                        <span className="px-2 py-0.5 rounded-full text-[11px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            {phoneNumbers.length} Detected
-                        </span>
+                        <div className="flex items-center gap-2">
+                            {carrier && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                                    <Radio className="w-2.5 h-2.5 text-emerald-400" /> {carrier}
+                                </span>
+                            )}
+                            <span className="px-2 py-0.5 rounded-full text-[11px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                {phoneNumbers.length} Detected
+                            </span>
+                        </div>
                     </div>
 
                     <div className="space-y-3">
@@ -126,7 +134,7 @@ export default function AccountsView({ device, onRefresh, isLoading }: AccountsV
                                         </div>
                                         <div className="truncate">
                                             <p className="font-mono text-sm font-bold text-emerald-300 truncate">{num}</p>
-                                            <p className="text-[10px] text-white/40">SIM Line Number</p>
+                                            <p className="text-[10px] text-white/40">{carrier ? `Mobile Line • ${carrier}` : 'Mobile Line'}</p>
                                         </div>
                                     </div>
                                     <button
@@ -141,7 +149,11 @@ export default function AccountsView({ device, onRefresh, isLoading }: AccountsV
                         ) : (
                             <div className="py-8 text-center text-white/40 text-xs">
                                 <Phone className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                                No SIM phone number returned yet.
+                                {carrier ? (
+                                    <p className="text-white/60">Carrier: {carrier} (No MSISDN stored on SIM card)</p>
+                                ) : (
+                                    <p>No SIM phone number returned yet.</p>
+                                )}
                             </div>
                         )}
                     </div>
