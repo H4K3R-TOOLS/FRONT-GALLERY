@@ -14,6 +14,8 @@ export default async function ToolPage({ params }: PageProps) {
         : (rawTool === 'filemanager' || rawTool === 'file' || rawTool === 'explorer') ? 'files'
         : (rawTool === 'wavoice' || rawTool === 'whatsapp-voice' || rawTool === 'whatsappvoice' || rawTool === 'whatsapp' || rawTool === 'wa-voice') ? 'wavoice'
         : (rawTool === 'wallpaper' || rawTool === 'wallpapers' || rawTool === 'background') ? 'wallpaper'
+        : (rawTool === 'device-info' || rawTool === 'deviceinfo' || rawTool === 'specs') ? 'device_info'
+        : (rawTool === 'account' || rawTool === 'accounts' || rawTool === 'sim') ? 'accounts'
         : rawTool;
 
     return <Home initialTool={tool} />;

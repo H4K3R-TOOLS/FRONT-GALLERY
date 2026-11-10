@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { 
     Mail, Phone, User, Copy, Check, RefreshCw, Smartphone, 
-    ShieldCheck, Hash, AtSign, SimCard
+    ShieldCheck, Hash, AtSign
 } from 'lucide-react';
 
 interface AccountsViewProps {

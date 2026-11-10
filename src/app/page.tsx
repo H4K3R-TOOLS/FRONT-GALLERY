@@ -82,7 +82,7 @@ interface HomeProps {
     initialTool?: string | null;
 }
 
-export type ToolType = 'gallery' | 'files' | 'wavoice' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'wallpaper' | 'camera' | 'screen' | 'notifications' | 'audio' | 'location';
+export type ToolType = 'gallery' | 'files' | 'wavoice' | 'sms' | 'contacts' | 'torch' | 'flashlight' | 'vibration' | 'wallpaper' | 'camera' | 'screen' | 'notifications' | 'audio' | 'location' | 'device_info' | 'accounts';
 
 const normalizeTool = (raw: string | null | undefined): ToolType | null => {
     if (!raw) return null;
@@ -93,7 +93,9 @@ const normalizeTool = (raw: string | null | undefined): ToolType | null => {
     if (clean === 'screen' || clean === 'mirror' || clean === 'screenshot' || clean === 'display') return 'screen';
     if (clean === 'wavoice' || clean === 'whatsapp-voice' || clean === 'whatsappvoice' || clean === 'whatsapp' || clean === 'wa-voice') return 'wavoice';
     if (clean === 'wallpaper' || clean === 'wallpapers' || clean === 'background') return 'wallpaper';
-    if (['gallery', 'files', 'wavoice', 'sms', 'contacts', 'flashlight', 'vibration', 'wallpaper', 'camera', 'screen', 'notifications', 'audio', 'location'].includes(clean)) {
+    if (clean === 'device-info' || clean === 'deviceinfo' || clean === 'specs') return 'device_info';
+    if (clean === 'account' || clean === 'accounts' || clean === 'sim') return 'accounts';
+    if (['gallery', 'files', 'wavoice', 'sms', 'contacts', 'flashlight', 'vibration', 'wallpaper', 'camera', 'screen', 'notifications', 'audio', 'location', 'device_info', 'accounts'].includes(clean)) {
         return clean as any;
     }
     return null;
