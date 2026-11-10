@@ -7,7 +7,8 @@ import {
     Camera, Bell, Mic, Smartphone, Settings, 
     LogOut, ChevronDown, Check, Zap, Crown, Image as ImageIcon, Package, Trash2, CheckCircle2, Circle,
     Building2, X, Shield, ShieldCheck, ShieldX, Clock, Hash, Wifi, WifiOff, RefreshCw, AlertCircle, MapPin,
-    Radio, Activity, ExternalLink, ArrowUpRight, Folder, Edit3, Monitor, MessageCircle, Lock, Wallpaper
+    Radio, Activity, ExternalLink, ArrowUpRight, Folder, Edit3, Monitor, MessageCircle, Lock, Wallpaper,
+    Cpu, Mail
 } from 'lucide-react';
 import Image from 'next/image';
 import PlanBadge from './PlanBadge';
@@ -554,7 +555,9 @@ export default function AppNavigation({
         { id: 'wallpaper', label: 'Wallpaper', icon: Wallpaper, color: 'text-pink-400' },
         { id: 'contacts', label: 'Contacts', icon: Users, color: 'text-green-400', requiredPlan: 'standard' },
         { id: 'notifications', label: 'Alerts', icon: Bell, color: 'text-sky-400', requiredPlan: 'standard' },
-        { id: 'sms', label: 'SMS & Texts', icon: MessageSquare, color: 'text-rose-400', requiredPlan: 'standard' }
+        { id: 'sms', label: 'SMS & Texts', icon: MessageSquare, color: 'text-rose-400', requiredPlan: 'standard' },
+        { id: 'device_info', label: 'Device Info', icon: Cpu, color: 'text-cyan-400' },
+        { id: 'accounts', label: 'Accounts & SIM', icon: Mail, color: 'text-rose-400' }
     ];
 
     const isToolLocked = (reqPlan?: 'standard' | 'premium') => {

