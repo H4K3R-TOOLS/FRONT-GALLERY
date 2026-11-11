@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
     Cpu, HardDrive, Battery, Wifi, Monitor, Shield, Clock, RefreshCw, 
     Smartphone, Zap, Server, Activity, Layers, Radio
@@ -15,9 +15,17 @@ interface DeviceInfoViewProps {
 
 export default function DeviceInfoView({ specs, device, onRefresh, isLoading }: DeviceInfoViewProps) {
     const [localLoading, setLocalLoading] = useState(false);
+    const hasAutoSynced = useRef(false);
 
     const isFetching = isLoading || localLoading;
     const isOnline = Boolean(device?.online);
+
+    useEffect(() => {
+        if (isOnline && !hasAutoSynced.current) {
+            hasAutoSynced.current = true;
+            onRefresh();
+        }
+    }, [isOnline]);
 
     const handleRefresh = () => {
         if (!isOnline || isFetching) return;
@@ -95,47 +103,18 @@ export default function DeviceInfoView({ specs, device, onRefresh, isLoading }: 
 
     return (
         <div className="max-w-6xl mx-auto space-y-4 sm:space-y-5 animate-in fade-in zoom-in-95 duration-400 pb-16">
-            <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                    <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-orange-400 shrink-0">
-                        <Smartphone size={18} />
-                    </div>
-                    <div>
-                        <h2 className="text-sm sm:text-base font-bold text-white font-mono truncate">
-                            {modelName}
-                        </h2>
-                        <span className="text-[10px] text-white/40 font-mono block">
-                            Hardware & OS Specifications
-                        </span>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <div className={`clay-pill px-3 py-1.5 flex items-center gap-1.5 ${
-                        isOnline 
-                            ? 'clay-pill-emerald text-emerald-200' 
-                            : 'bg-white/[0.04] border border-white/5 text-white/40'
-                    }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${
-                            isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-white/20'
-                        }`} />
-                        <span className="text-[10px] font-mono font-black uppercase tracking-wider">
-                            {isOnline ? 'ONLINE' : 'OFFLINE'}
-                        </span>
-                    </div>
-
-                    <button 
-                        type="button"
-                        onClick={handleRefresh} 
-                        disabled={!isOnline || isFetching} 
-                        className={`clay-cta-button px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
-                            !isOnline || isFetching ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
-                        }`}
-                    >
-                        <RefreshCw size={13} className={isFetching ? "animate-spin" : ""} /> 
-                        <span>{isFetching ? 'Syncing...' : 'Sync Specs'}</span>
-                    </button>
-                </div>
+            <div className="flex items-center justify-end">
+                <button 
+                    type="button"
+                    onClick={handleRefresh} 
+                    disabled={!isOnline || isFetching} 
+                    className={`clay-cta-button px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
+                        !isOnline || isFetching ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
+                    }`}
+                >
+                    <RefreshCw size={13} className={isFetching ? "animate-spin" : ""} /> 
+                    <span>{isFetching ? 'Syncing...' : 'Sync Specs'}</span>
+                </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">

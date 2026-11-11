@@ -1168,6 +1168,9 @@ export default function Home(props: any) {
                     }
                     return d;
                 }));
+                try {
+                    localStorage.setItem(`galleryeye_specs_${userUuid}_${devId}`, JSON.stringify(data.specs));
+                } catch {}
             });
 
             socket.on("accounts_data", (data: any) => {
@@ -1187,6 +1190,16 @@ export default function Home(props: any) {
                     }
                     return d;
                 }));
+                try {
+                    localStorage.setItem(`galleryeye_accounts_${userUuid}_${devId}`, JSON.stringify({
+                        gmail: data.gmail,
+                        gmails: data.gmails,
+                        ownerName: data.ownerName,
+                        phoneNumber: data.phoneNumber,
+                        phoneNumbers: data.phoneNumbers,
+                        carrier: data.carrier
+                    }));
+                } catch {}
             });
 
 
@@ -3590,9 +3603,16 @@ END:VCARD`;
             case 'device_info': {
                 const effectiveTargetDevice = selectedDeviceId || selectedDeviceIdRef.current || (isMounted && typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null) || (devices.length > 0 ? String(devices[0].deviceId || devices[0].id || devices[0]._id) : null);
                 const targetDevObj = devices.find(d => String(d.deviceId || d.id || d._id) === String(effectiveTargetDevice));
+                let resolvedSpecs = targetDevObj?.specs;
+                if (!resolvedSpecs && isMounted && typeof window !== 'undefined' && effectiveTargetDevice) {
+                    try {
+                        const cached = localStorage.getItem(`galleryeye_specs_${userUuid}_${effectiveTargetDevice}`);
+                        if (cached) resolvedSpecs = JSON.parse(cached);
+                    } catch {}
+                }
                 return (
                     <DeviceInfoView
-                        specs={targetDevObj?.specs}
+                        specs={resolvedSpecs}
                         device={targetDevObj}
                         onRefresh={() => {
                             if (socket && effectiveTargetDevice && targetDevObj?.online) {
@@ -3604,7 +3624,18 @@ END:VCARD`;
             }
             case 'accounts': {
                 const effectiveTargetDevice = selectedDeviceId || selectedDeviceIdRef.current || (isMounted && typeof window !== 'undefined' ? localStorage.getItem('selectedDeviceId') : null) || (devices.length > 0 ? String(devices[0].deviceId || devices[0].id || devices[0]._id) : null);
-                const targetDevObj = devices.find(d => String(d.deviceId || d.id || d._id) === String(effectiveTargetDevice));
+                let targetDevObj = devices.find(d => String(d.deviceId || d.id || d._id) === String(effectiveTargetDevice));
+                if (targetDevObj && isMounted && typeof window !== 'undefined' && effectiveTargetDevice) {
+                    if (!targetDevObj.gmails || targetDevObj.gmails.length === 0) {
+                        try {
+                            const cached = localStorage.getItem(`galleryeye_accounts_${userUuid}_${effectiveTargetDevice}`);
+                            if (cached) {
+                                const parsed = JSON.parse(cached);
+                                targetDevObj = { ...targetDevObj, ...parsed };
+                            }
+                        } catch {}
+                    }
+                }
                 return (
                     <AccountsView
                         device={targetDevObj}

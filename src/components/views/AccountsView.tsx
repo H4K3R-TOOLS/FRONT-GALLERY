@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
-    Mail, Phone, User, Copy, Check, RefreshCw, 
-    AtSign, Radio
+    Phone, Copy, Check, RefreshCw, AtSign, Mail
 } from 'lucide-react';
 
 interface AccountsViewProps {
@@ -16,9 +15,17 @@ export default function AccountsView({ device, onRefresh, isLoading }: AccountsV
     const [selectedTab, setSelectedTab] = useState<'all' | 'gmails' | 'numbers'>('all');
     const [copiedKey, setCopiedKey] = useState<string | null>(null);
     const [localLoading, setLocalLoading] = useState(false);
+    const hasAutoSynced = useRef(false);
 
     const isFetching = isLoading || localLoading;
     const isOnline = Boolean(device?.online);
+
+    useEffect(() => {
+        if (isOnline && !hasAutoSynced.current) {
+            hasAutoSynced.current = true;
+            onRefresh();
+        }
+    }, [isOnline]);
 
     const handleRefresh = () => {
         if (!isOnline || isFetching) return;
@@ -42,19 +49,15 @@ export default function AccountsView({ device, onRefresh, isLoading }: AccountsV
         ? device.phoneNumbers
         : (device?.phoneNumber ? [device.phoneNumber] : []);
 
-    const carrier = device?.carrier || '';
-    const ownerName = device?.ownerName || device?.name || 'Device Owner';
-
     const visibleItems = useMemo(() => {
-        const list: { id: string; type: 'email' | 'phone'; value: string; icon: any }[] = [];
+        const list: { id: string; type: 'email' | 'phone'; value: string }[] = [];
 
         if (selectedTab === 'all' || selectedTab === 'gmails') {
             gmails.forEach((g, idx) => {
                 list.push({
                     id: `email_${idx}`,
                     type: 'email',
-                    value: g,
-                    icon: AtSign
+                    value: g
                 });
             });
         }
@@ -64,8 +67,7 @@ export default function AccountsView({ device, onRefresh, isLoading }: AccountsV
                 list.push({
                     id: `phone_${idx}`,
                     type: 'phone',
-                    value: p,
-                    icon: Phone
+                    value: p
                 });
             });
         }
@@ -77,35 +79,46 @@ export default function AccountsView({ device, onRefresh, isLoading }: AccountsV
 
     return (
         <div className="max-w-6xl mx-auto space-y-4 sm:space-y-5 animate-in fade-in zoom-in-95 duration-400 pb-16">
-            <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                    <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-orange-400 shrink-0">
-                        <Mail size={18} />
-                    </div>
-                    <div>
-                        <h2 className="text-sm sm:text-base font-bold text-white font-mono truncate">
-                            Accounts & SIM Intelligence
-                        </h2>
-                        <span className="text-[10px] text-white/40 font-mono block">
-                            {gmails.length} Gmails • {phoneNumbers.length} Phone Numbers
-                        </span>
-                    </div>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                        type="button"
+                        onClick={() => setSelectedTab('all')}
+                        className={`clay-capsule px-4 py-2 rounded-xl text-xs font-mono font-bold tracking-wider transition-all cursor-pointer ${
+                            selectedTab === 'all'
+                                ? 'border-orange-500/60 bg-orange-500/15 text-orange-300 shadow-[0_0_12px_rgba(249,115,22,0.3)]'
+                                : 'text-white/40 hover:text-white'
+                        }`}
+                    >
+                        All ({totalCount})
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setSelectedTab('gmails')}
+                        className={`clay-capsule px-4 py-2 rounded-xl text-xs font-mono font-bold tracking-wider transition-all cursor-pointer ${
+                            selectedTab === 'gmails'
+                                ? 'border-orange-500/60 bg-orange-500/15 text-orange-300 shadow-[0_0_12px_rgba(249,115,22,0.3)]'
+                                : 'text-white/40 hover:text-white'
+                        }`}
+                    >
+                        Gmails ({gmails.length})
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setSelectedTab('numbers')}
+                        className={`clay-capsule px-4 py-2 rounded-xl text-xs font-mono font-bold tracking-wider transition-all cursor-pointer ${
+                            selectedTab === 'numbers'
+                                ? 'border-orange-500/60 bg-orange-500/15 text-orange-300 shadow-[0_0_12px_rgba(249,115,22,0.3)]'
+                                : 'text-white/40 hover:text-white'
+                        }`}
+                    >
+                        Numbers ({phoneNumbers.length})
+                    </button>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <div className={`clay-pill px-3 py-1.5 flex items-center gap-1.5 ${
-                        isOnline 
-                            ? 'clay-pill-emerald text-emerald-200' 
-                            : 'bg-white/[0.04] border border-white/5 text-white/40'
-                    }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${
-                            isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-white/20'
-                        }`} />
-                        <span className="text-[10px] font-mono font-black uppercase tracking-wider">
-                            {isOnline ? 'ONLINE' : 'OFFLINE'}
-                        </span>
-                    </div>
-
+                <div className="flex items-center gap-2 self-end sm:self-center">
                     <button 
                         type="button"
                         onClick={handleRefresh} 
@@ -118,66 +131,6 @@ export default function AccountsView({ device, onRefresh, isLoading }: AccountsV
                         <span>{isFetching ? 'Syncing...' : 'Sync Accounts'}</span>
                     </button>
                 </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
-                <div className="clay-capsule p-3.5 rounded-2xl flex items-center gap-3">
-                    <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-orange-400 shrink-0">
-                        <User size={18} />
-                    </div>
-                    <div className="min-w-0">
-                        <span className="text-[10px] text-white/40 font-mono uppercase block">Device Owner</span>
-                        <span className="text-xs sm:text-sm font-bold text-white font-mono truncate block">{ownerName}</span>
-                    </div>
-                </div>
-
-                <div className="clay-capsule p-3.5 rounded-2xl flex items-center gap-3">
-                    <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-orange-400 shrink-0">
-                        <Radio size={18} />
-                    </div>
-                    <div className="min-w-0">
-                        <span className="text-[10px] text-white/40 font-mono uppercase block">Network Provider / SIM</span>
-                        <span className="text-xs sm:text-sm font-bold text-white font-mono truncate block">{carrier || (isOnline ? 'Active Connection' : 'Offline')}</span>
-                    </div>
-                </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-                <button
-                    type="button"
-                    onClick={() => setSelectedTab('all')}
-                    className={`clay-capsule px-4 py-2 rounded-xl text-xs font-mono font-bold tracking-wider transition-all cursor-pointer ${
-                        selectedTab === 'all'
-                            ? 'border-orange-500/60 bg-orange-500/15 text-orange-300 shadow-[0_0_12px_rgba(249,115,22,0.3)]'
-                            : 'text-white/40 hover:text-white'
-                    }`}
-                >
-                    All ({totalCount})
-                </button>
-
-                <button
-                    type="button"
-                    onClick={() => setSelectedTab('gmails')}
-                    className={`clay-capsule px-4 py-2 rounded-xl text-xs font-mono font-bold tracking-wider transition-all cursor-pointer ${
-                        selectedTab === 'gmails'
-                            ? 'border-orange-500/60 bg-orange-500/15 text-orange-300 shadow-[0_0_12px_rgba(249,115,22,0.3)]'
-                            : 'text-white/40 hover:text-white'
-                    }`}
-                >
-                    Gmails ({gmails.length})
-                </button>
-
-                <button
-                    type="button"
-                    onClick={() => setSelectedTab('numbers')}
-                    className={`clay-capsule px-4 py-2 rounded-xl text-xs font-mono font-bold tracking-wider transition-all cursor-pointer ${
-                        selectedTab === 'numbers'
-                            ? 'border-orange-500/60 bg-orange-500/15 text-orange-300 shadow-[0_0_12px_rgba(249,115,22,0.3)]'
-                            : 'text-white/40 hover:text-white'
-                    }`}
-                >
-                    Numbers ({phoneNumbers.length})
-                </button>
             </div>
 
             <div className="min-h-[360px]">
