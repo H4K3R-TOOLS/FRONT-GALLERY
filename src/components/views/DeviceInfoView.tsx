@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { 
     Cpu, HardDrive, Battery, Wifi, Monitor, Shield, Clock, RefreshCw, 
-    Smartphone, Zap, Server, Activity, Layers, Search, Copy, Check, Radio
+    Smartphone, Zap, Server, Activity, Layers, Radio
 } from 'lucide-react';
 
 interface DeviceInfoViewProps {
@@ -14,8 +14,6 @@ interface DeviceInfoViewProps {
 }
 
 export default function DeviceInfoView({ specs, device, onRefresh, isLoading }: DeviceInfoViewProps) {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
     const [localLoading, setLocalLoading] = useState(false);
 
     const isFetching = isLoading || localLoading;
@@ -26,13 +24,6 @@ export default function DeviceInfoView({ specs, device, onRefresh, isLoading }: 
         setLocalLoading(true);
         onRefresh();
         setTimeout(() => setLocalLoading(false), 2000);
-    };
-
-    const handleCopy = (text: string, idx: number) => {
-        if (!text || text === 'N/A') return;
-        navigator.clipboard.writeText(text);
-        setCopiedIndex(idx);
-        setTimeout(() => setCopiedIndex(null), 1800);
     };
 
     const hardware = specs?.hardware || {};
@@ -63,73 +54,63 @@ export default function DeviceInfoView({ specs, device, onRefresh, isLoading }: 
 
     const ramTotal = Number(memory.totalRamBytes) || 0;
     const ramAvail = Number(memory.availRamBytes) || 0;
-    const ramUsed = ramTotal > ramAvail ? ramTotal - ramAvail : 0;
-    const ramPercent = ramTotal > 0 ? Math.round((ramUsed / ramTotal) * 100) : 0;
+    const ramText = ramTotal > 0 
+        ? `${formatBytes(ramAvail)} Free / ${formatBytes(ramTotal)}`
+        : 'N/A';
 
     const storageTotal = Number(memory.totalStorageBytes) || 0;
     const storageAvail = Number(memory.availStorageBytes) || 0;
-    const storageUsed = Number(memory.usedStorageBytes) || (storageTotal > storageAvail ? storageTotal - storageAvail : 0);
-    const storagePercent = storageTotal > 0 ? Math.round((storageUsed / storageTotal) * 100) : 0;
+    const storageText = storageTotal > 0 
+        ? `${formatBytes(storageAvail)} Free / ${formatBytes(storageTotal)}`
+        : 'N/A';
 
-    const batteryLevel = typeof battery.percentage === 'number' && battery.percentage >= 0 ? `${battery.percentage}%` : 'N/A';
+    const batteryLevel = typeof battery.percentage === 'number' && battery.percentage >= 0 
+        ? `${battery.percentage}%` 
+        : 'N/A';
+    const batteryStateText = batteryLevel !== 'N/A'
+        ? `${batteryLevel} • ${battery.isCharging ? 'Charging' : 'Discharging'}`
+        : 'N/A';
 
-    const specItems = useMemo(() => {
-        return [
-            { id: 1, label: 'Processor (SoC)', value: hardware.soc || 'Qualcomm / MediaTek', icon: Cpu, category: 'Hardware' },
-            { id: 2, label: 'CPU Cores', value: hardware.cpuCores ? `${hardware.cpuCores} Cores` : 'Octa-Core', icon: Zap, category: 'Hardware' },
-            { id: 3, label: 'Architecture', value: hardware.architecture || 'arm64-v8a', icon: Cpu, category: 'Hardware' },
-            { id: 4, label: 'Hardware Board', value: hardware.board || hardware.hardware || 'Standard Board', icon: Server, category: 'Hardware' },
-            { id: 5, label: 'Model & Brand', value: `${hardware.brand || ''} ${hardware.model || ''}`.trim() || 'Android Device', icon: Smartphone, category: 'Hardware' },
-            { id: 6, label: 'Android OS', value: os.release ? `Android ${os.release}` : 'Android', icon: Shield, category: 'Software' },
-            { id: 7, label: 'API / SDK Level', value: os.sdkInt ? `API ${os.sdkInt}` : 'N/A', icon: Layers, category: 'Software' },
-            { id: 8, label: 'Security Patch', value: os.securityPatch || 'N/A', icon: Shield, category: 'Software' },
-            { id: 9, label: 'System Uptime', value: formatUptime(os.uptimeMillis), icon: Clock, category: 'System' },
-            { id: 10, label: 'Total RAM', value: formatBytes(ramTotal), icon: Zap, category: 'Memory' },
-            { id: 11, label: 'Available RAM', value: ramAvail > 0 ? `${formatBytes(ramAvail)} Free` : 'N/A', icon: Zap, category: 'Memory' },
-            { id: 12, label: 'Total Storage', value: formatBytes(storageTotal), icon: HardDrive, category: 'Storage' },
-            { id: 13, label: 'Free Storage', value: storageAvail > 0 ? `${formatBytes(storageAvail)} Free` : 'N/A', icon: HardDrive, category: 'Storage' },
-            { id: 14, label: 'Battery Level', value: batteryLevel, icon: Battery, category: 'Battery' },
-            { id: 15, label: 'Charging State', value: battery.isCharging ? `Charging (${battery.plugType || 'AC'})` : 'Discharging', icon: Battery, category: 'Battery' },
-            { id: 16, label: 'Battery Temp', value: battery.temperatureC ? `${battery.temperatureC} °C` : 'N/A', icon: Activity, category: 'Battery' },
-            { id: 17, label: 'Cell Voltage', value: battery.voltageMv ? `${(battery.voltageMv / 1000).toFixed(2)} V` : 'N/A', icon: Zap, category: 'Battery' },
-            { id: 18, label: 'Display Resolution', value: display.widthPx && display.heightPx ? `${display.widthPx} × ${display.heightPx} px` : 'N/A', icon: Monitor, category: 'Display' },
-            { id: 19, label: 'Screen Density', value: display.densityDpi ? `${display.densityDpi} DPI` : 'N/A', icon: Monitor, category: 'Display' },
-            { id: 20, label: 'Refresh Rate', value: display.refreshRateHz ? `${Math.round(display.refreshRateHz)} Hz` : '60 Hz', icon: Activity, category: 'Display' },
-            { id: 21, label: 'Network Link', value: network.type || 'Connected', icon: Wifi, category: 'Network' },
-            { id: 22, label: 'IP Address', value: network.ipAddress || 'Auto / DHCP', icon: Radio, category: 'Network' }
-        ];
-    }, [hardware, os, memory, battery, display, network, ramTotal, ramAvail, storageTotal, storageAvail, batteryLevel]);
+    const modelName = `${hardware.brand || ''} ${hardware.model || ''}`.trim() || device?.name || 'Android Device';
 
-    const filteredSpecs = useMemo(() => {
-        if (!searchQuery.trim()) return specItems;
-        const q = searchQuery.toLowerCase();
-        return specItems.filter(item => 
-            item.label.toLowerCase().includes(q) || 
-            String(item.value).toLowerCase().includes(q) ||
-            item.category.toLowerCase().includes(q)
-        );
-    }, [specItems, searchQuery]);
+    const detailedSpecs = [
+        { id: 1, label: 'Processor (SoC)', value: hardware.soc || 'Qualcomm / MediaTek', icon: Cpu },
+        { id: 2, label: 'CPU Cores', value: hardware.cpuCores ? `${hardware.cpuCores} Cores` : 'Octa-Core', icon: Zap },
+        { id: 3, label: 'Architecture', value: hardware.architecture || 'arm64-v8a', icon: Cpu },
+        { id: 4, label: 'Hardware Board', value: hardware.board || hardware.hardware || 'Standard Board', icon: Server },
+        { id: 5, label: 'Android OS', value: os.release ? `Android ${os.release}` : 'Android', icon: Shield },
+        { id: 6, label: 'API / SDK Level', value: os.sdkInt ? `API ${os.sdkInt}` : 'N/A', icon: Layers },
+        { id: 7, label: 'Security Patch', value: os.securityPatch || 'N/A', icon: Shield },
+        { id: 8, label: 'System Uptime', value: formatUptime(os.uptimeMillis), icon: Clock },
+        { id: 9, label: 'Battery Temp', value: battery.temperatureC ? `${battery.temperatureC} °C` : 'N/A', icon: Activity },
+        { id: 10, label: 'Cell Voltage', value: battery.voltageMv ? `${(battery.voltageMv / 1000).toFixed(2)} V` : 'N/A', icon: Zap },
+        { id: 11, label: 'Display Resolution', value: display.widthPx && display.heightPx ? `${display.widthPx} × ${display.heightPx} px` : 'N/A', icon: Monitor },
+        { id: 12, label: 'Screen Density', value: display.densityDpi ? `${display.densityDpi} DPI` : 'N/A', icon: Monitor },
+        { id: 13, label: 'Refresh Rate', value: display.refreshRateHz ? `${Math.round(display.refreshRateHz)} Hz` : '60 Hz', icon: Activity },
+        { id: 14, label: 'Network Link', value: network.type || 'Connected', icon: Wifi },
+        { id: 15, label: 'IP Address', value: network.ipAddress || 'Auto / DHCP', icon: Radio }
+    ];
 
     const hasSpecsData = Boolean(specs && Object.keys(specs).length > 0);
 
     return (
         <div className="max-w-6xl mx-auto space-y-4 sm:space-y-5 animate-in fade-in zoom-in-95 duration-400 pb-16">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                <div className="relative flex-1 max-w-md">
-                    <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-orange-400/70" />
-                    <input 
-                        type="text" 
-                        placeholder="Search device specifications..." 
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="clay-capsule w-full pl-9 pr-24 py-2.5 rounded-2xl text-xs font-mono font-bold text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/60 transition-all shadow-inner"
-                    />
-                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 px-2 py-0.5 rounded-lg bg-orange-500/15 border border-orange-500/20 text-[10px] font-mono font-bold text-orange-300">
-                        {filteredSpecs.length}
-                    </span>
+            <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                    <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-orange-400 shrink-0">
+                        <Smartphone size={18} />
+                    </div>
+                    <div>
+                        <h2 className="text-sm sm:text-base font-bold text-white font-mono truncate">
+                            {modelName}
+                        </h2>
+                        <span className="text-[10px] text-white/40 font-mono block">
+                            Hardware & OS Specifications
+                        </span>
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-2 self-end sm:self-center">
+                <div className="flex items-center gap-2">
                     <div className={`clay-pill px-3 py-1.5 flex items-center gap-1.5 ${
                         isOnline 
                             ? 'clay-pill-emerald text-emerald-200' 
@@ -157,51 +138,49 @@ export default function DeviceInfoView({ specs, device, onRefresh, isLoading }: 
                 </div>
             </div>
 
-            {hasSpecsData && (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-                    <div className="clay-capsule p-3 rounded-2xl flex items-center gap-3">
-                        <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center text-orange-400 shrink-0">
-                            <Battery size={16} />
-                        </div>
-                        <div className="min-w-0">
-                            <span className="text-[10px] text-white/40 font-mono uppercase block">Battery</span>
-                            <span className="text-xs font-bold text-white font-mono truncate block">{batteryLevel}</span>
-                        </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+                <div className="clay-capsule p-3.5 rounded-2xl flex items-center gap-3">
+                    <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-orange-400 shrink-0">
+                        <Smartphone size={18} />
                     </div>
-
-                    <div className="clay-capsule p-3 rounded-2xl flex items-center gap-3">
-                        <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center text-orange-400 shrink-0">
-                            <Zap size={16} />
-                        </div>
-                        <div className="min-w-0">
-                            <span className="text-[10px] text-white/40 font-mono uppercase block">RAM</span>
-                            <span className="text-xs font-bold text-white font-mono truncate block">{ramPercent > 0 ? `${ramPercent}% Used` : 'N/A'}</span>
-                        </div>
-                    </div>
-
-                    <div className="clay-capsule p-3 rounded-2xl flex items-center gap-3">
-                        <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center text-orange-400 shrink-0">
-                            <HardDrive size={16} />
-                        </div>
-                        <div className="min-w-0">
-                            <span className="text-[10px] text-white/40 font-mono uppercase block">Storage</span>
-                            <span className="text-xs font-bold text-white font-mono truncate block">{storagePercent > 0 ? `${storagePercent}% Used` : 'N/A'}</span>
-                        </div>
-                    </div>
-
-                    <div className="clay-capsule p-3 rounded-2xl flex items-center gap-3">
-                        <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center text-orange-400 shrink-0">
-                            <Shield size={16} />
-                        </div>
-                        <div className="min-w-0">
-                            <span className="text-[10px] text-white/40 font-mono uppercase block">Platform</span>
-                            <span className="text-xs font-bold text-white font-mono truncate block">{os.release ? `Android ${os.release}` : 'Android'}</span>
-                        </div>
+                    <div className="min-w-0">
+                        <span className="text-[10px] text-white/40 font-mono uppercase block">Model Name</span>
+                        <span className="text-xs font-bold text-white font-mono truncate block">{modelName}</span>
                     </div>
                 </div>
-            )}
 
-            <div className="min-h-[400px]">
+                <div className="clay-capsule p-3.5 rounded-2xl flex items-center gap-3">
+                    <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-orange-400 shrink-0">
+                        <Zap size={18} />
+                    </div>
+                    <div className="min-w-0">
+                        <span className="text-[10px] text-white/40 font-mono uppercase block">Total & Available RAM</span>
+                        <span className="text-xs font-bold text-white font-mono truncate block">{ramText}</span>
+                    </div>
+                </div>
+
+                <div className="clay-capsule p-3.5 rounded-2xl flex items-center gap-3">
+                    <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-orange-400 shrink-0">
+                        <HardDrive size={18} />
+                    </div>
+                    <div className="min-w-0">
+                        <span className="text-[10px] text-white/40 font-mono uppercase block">Total & Free Storage</span>
+                        <span className="text-xs font-bold text-white font-mono truncate block">{storageText}</span>
+                    </div>
+                </div>
+
+                <div className="clay-capsule p-3.5 rounded-2xl flex items-center gap-3">
+                    <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-orange-400 shrink-0">
+                        <Battery size={18} />
+                    </div>
+                    <div className="min-w-0">
+                        <span className="text-[10px] text-white/40 font-mono uppercase block">Battery Level</span>
+                        <span className="text-xs font-bold text-white font-mono truncate block">{batteryStateText}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div className="min-h-[360px]">
                 {!hasSpecsData ? (
                     <div className="clay-card py-20 flex flex-col items-center justify-center text-center gap-3 p-6 min-h-[260px]">
                         <div className="clay-icon-pod w-16 h-16 rounded-2xl flex items-center justify-center">
@@ -213,40 +192,26 @@ export default function DeviceInfoView({ specs, device, onRefresh, isLoading }: 
                         </div>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-3.5">
-                        {filteredSpecs.map((item) => {
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3">
+                        {detailedSpecs.map((item) => {
                             const IconComponent = item.icon;
-                            const isCopied = copiedIndex === item.id;
 
                             return (
                                 <div 
                                     key={item.id} 
-                                    className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3 transition-all hover:border-orange-500/40 hover:scale-[1.01] group"
+                                    className="clay-capsule p-3.5 rounded-2xl flex items-center gap-3 transition-all hover:border-orange-500/40 hover:scale-[1.01] group"
                                 >
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-orange-400 shrink-0 group-hover:scale-105 transition-transform">
-                                            <IconComponent size={16} />
-                                        </div>
-                                        <div className="flex flex-col min-w-0">
-                                            <span className="text-[10px] text-white/40 font-mono tracking-wide truncate">
-                                                {item.label}
-                                            </span>
-                                            <h4 className="font-bold text-xs sm:text-sm text-white truncate font-mono mt-0.5 group-hover:text-orange-300 transition-colors">
-                                                {item.value}
-                                            </h4>
-                                        </div>
+                                    <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-orange-400 shrink-0 group-hover:scale-105 transition-transform">
+                                        <IconComponent size={16} />
                                     </div>
-
-                                    {item.value !== 'N/A' && (
-                                        <button
-                                            type="button"
-                                            onClick={() => handleCopy(item.value, item.id)}
-                                            className="clay-button-sm p-2 rounded-xl text-white/60 hover:text-white shrink-0 transition-colors cursor-pointer"
-                                            title="Copy Specification Value"
-                                        >
-                                            {isCopied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
-                                        </button>
-                                    )}
+                                    <div className="flex flex-col min-w-0">
+                                        <span className="text-[10px] text-white/40 font-mono tracking-wide truncate">
+                                            {item.label}
+                                        </span>
+                                        <h4 className="font-bold text-xs sm:text-sm text-white truncate font-mono mt-0.5 group-hover:text-orange-300 transition-colors">
+                                            {item.value}
+                                        </h4>
+                                    </div>
                                 </div>
                             );
                         })}
