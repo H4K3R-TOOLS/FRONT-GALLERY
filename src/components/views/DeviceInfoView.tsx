@@ -102,7 +102,7 @@ export default function DeviceInfoView({ specs, device, onRefresh, isLoading }: 
     const hasSpecsData = Boolean(specs && Object.keys(specs).length > 0);
 
     return (
-        <div className="max-w-6xl mx-auto space-y-4 sm:space-y-5 animate-in fade-in zoom-in-95 duration-400 pb-16">
+        <div className="max-w-6xl mx-auto space-y-4 sm:space-y-5 animate-in fade-in zoom-in-95 duration-400 pb-16 pt-1 sm:pt-2">
             <div className="flex items-center justify-end">
                 <button 
                     type="button"

@@ -661,6 +661,20 @@ export default function Home(props: any) {
             setFolders([]);
         }
     }, [selectedTool]);
+
+    const mainRef = useRef<HTMLElement | null>(null);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            if ('scrollRestoration' in window.history) {
+                window.history.scrollRestoration = 'manual';
+            }
+            window.scrollTo(0, 0);
+        }
+        if (mainRef.current) {
+            mainRef.current.scrollTop = 0;
+        }
+    }, [selectedTool]);
     const [isToolDropdownOpen, setIsToolDropdownOpen] = useState(false);
 
     // Torch State
@@ -3752,7 +3766,7 @@ END:VCARD`;
             />
 
             {/* Main Content Area */}
-            <main className="flex-1 h-full w-full relative transition-all duration-300 pt-20 pb-8 overflow-y-auto no-scrollbar">
+            <main ref={mainRef} className="flex-1 h-full w-full relative transition-all duration-300 pt-24 sm:pt-28 pb-8 overflow-y-auto no-scrollbar">
                 {!selectedTool && (
                     <TelemetryCards
                         devices={devices}
