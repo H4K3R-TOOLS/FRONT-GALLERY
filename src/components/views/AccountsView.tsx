@@ -11,6 +11,25 @@ interface AccountsViewProps {
     isLoading?: boolean;
 }
 
+function isValidEmail(raw: string): boolean {
+    if (!raw || typeof raw !== 'string') return false;
+    const trimmed = raw.trim();
+    return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(trimmed);
+}
+
+function isValidPhoneNumber(raw: string): boolean {
+    if (!raw || typeof raw !== 'string') return false;
+    const lower = raw.toLowerCase();
+    if (lower.includes('whatsapp') || lower.includes('meet') || lower.includes('google') || lower.includes('business') || lower.includes('telegram')) {
+        return false;
+    }
+    if (/[a-zA-Z]/.test(raw)) {
+        return false;
+    }
+    const digits = raw.replace(/[^0-9]/g, '');
+    return digits.length >= 8 && digits.length <= 15;
+}
+
 export default function AccountsView({ device, onRefresh, isLoading }: AccountsViewProps) {
     const [selectedTab, setSelectedTab] = useState<'all' | 'gmails' | 'numbers'>('all');
     const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -41,13 +60,43 @@ export default function AccountsView({ device, onRefresh, isLoading }: AccountsV
         setTimeout(() => setCopiedKey(null), 1800);
     };
 
-    const gmails: string[] = device?.gmails && Array.isArray(device.gmails) && device.gmails.length > 0
+    const rawGmails: string[] = device?.gmails && Array.isArray(device.gmails) && device.gmails.length > 0
         ? device.gmails
         : (device?.gmail ? [device.gmail] : []);
 
-    const phoneNumbers: string[] = device?.phoneNumbers && Array.isArray(device.phoneNumbers) && device.phoneNumbers.length > 0
+    const rawPhones: string[] = device?.phoneNumbers && Array.isArray(device.phoneNumbers) && device.phoneNumbers.length > 0
         ? device.phoneNumbers
         : (device?.phoneNumber ? [device.phoneNumber] : []);
+
+    const gmails = useMemo(() => {
+        const seen = new Set<string>();
+        const list: string[] = [];
+        for (const g of rawGmails) {
+            if (isValidEmail(g)) {
+                const norm = g.trim().toLowerCase();
+                if (!seen.has(norm)) {
+                    seen.add(norm);
+                    list.push(norm);
+                }
+            }
+        }
+        return list;
+    }, [rawGmails]);
+
+    const phoneNumbers = useMemo(() => {
+        const seen = new Set<string>();
+        const list: string[] = [];
+        for (const p of rawPhones) {
+            if (isValidPhoneNumber(p)) {
+                const norm = p.trim();
+                if (!seen.has(norm)) {
+                    seen.add(norm);
+                    list.push(norm);
+                }
+            }
+        }
+        return list;
+    }, [rawPhones]);
 
     const visibleItems = useMemo(() => {
         const list: { id: string; type: 'email' | 'phone'; value: string }[] = [];
