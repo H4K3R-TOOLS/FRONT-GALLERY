@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { 
     Mail, Phone, User, Copy, Check, RefreshCw, Smartphone, 
-    ShieldCheck, Hash, AtSign, Radio, ExternalLink, CheckCircle2,
-    MessageSquare, AlertCircle
+    ShieldCheck, Hash, AtSign, Radio, AlertCircle, Info, ExternalLink,
+    CheckCircle2
 } from 'lucide-react';
 
 interface AccountsViewProps {
@@ -13,245 +13,284 @@ interface AccountsViewProps {
     isLoading?: boolean;
 }
 
-type AccountTab = 'all' | 'gmails' | 'sim' | 'owner';
-
 export default function AccountsView({ device, onRefresh, isLoading }: AccountsViewProps) {
+    const [localRefreshing, setLocalRefreshing] = useState(false);
     const [copiedKey, setCopiedKey] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<AccountTab>('all');
+
+    const isBusy = isLoading || localRefreshing;
+    const isOnline = Boolean(device?.online);
 
     const handleCopy = (text: string, key: string) => {
         if (!text) return;
         navigator.clipboard.writeText(text);
         setCopiedKey(key);
-        setTimeout(() => setCopiedKey(null), 1800);
+        setTimeout(() => setCopiedKey(null), 2000);
     };
 
-    const gmails = device?.gmails && Array.isArray(device.gmails) && device.gmails.length > 0
+    const handleRefresh = () => {
+        if (!isOnline || isBusy) return;
+        setLocalRefreshing(true);
+        onRefresh();
+        setTimeout(() => setLocalRefreshing(false), 2000);
+    };
+
+    const gmails: string[] = device?.gmails && Array.isArray(device.gmails) && device.gmails.length > 0
         ? device.gmails
         : (device?.gmail ? [device.gmail] : []);
 
-    const phoneNumbers = device?.phoneNumbers && Array.isArray(device.phoneNumbers) && device.phoneNumbers.length > 0
+    const phoneNumbers: string[] = device?.phoneNumbers && Array.isArray(device.phoneNumbers) && device.phoneNumbers.length > 0
         ? device.phoneNumbers
         : (device?.phoneNumber ? [device.phoneNumber] : []);
 
     const carrier = device?.carrier || '';
     const ownerName = device?.ownerName || device?.name || 'Device Owner';
-    const isOnline = Boolean(device?.online);
-    const deviceName = device?.name || device?.model || 'Target Device';
 
     return (
-        <div className="max-w-5xl mx-auto space-y-5 pb-16 px-1 sm:px-0">
-            <header className="rounded-2xl bg-[#18191c] border border-white/[0.08] p-4 sm:p-6 shadow-sm">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 py-4 space-y-6 pb-20">
+            <header className="rounded-2xl border border-white/[0.07] bg-[#0c121e]/90 p-4 sm:p-6 backdrop-blur-md">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center gap-3.5 min-w-0">
-                        <div className="w-11 h-11 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center shrink-0 text-zinc-300">
-                            <Mail className="w-5 h-5" />
+                        <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
+                            <Mail className="w-6 h-6" />
                         </div>
                         <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <h1 className="text-base sm:text-lg font-semibold text-zinc-100 truncate tracking-tight">
-                                    Accounts & Subscriptions
+                            <div className="flex items-center gap-2.5 flex-wrap">
+                                <h1 className="text-lg sm:text-xl font-bold tracking-tight text-white truncate">
+                                    Identity & Account Intelligence
                                 </h1>
-                                <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-mono border ${
+                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium tracking-wide border ${
                                     isOnline 
-                                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-                                        : 'bg-zinc-800/60 text-zinc-400 border-zinc-700/40'
+                                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
+                                        : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
                                 }`}>
-                                    <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-zinc-500'}`} />
-                                    {isOnline ? 'Active Sync' : 'Cached State'}
+                                    <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`} />
+                                    {isOnline ? 'ONLINE' : 'OFFLINE'}
                                 </span>
                             </div>
-                            <p className="text-xs text-zinc-400 font-mono truncate mt-0.5">
-                                Host: {deviceName} • {gmails.length} Google Accounts • {phoneNumbers.length} Mobile Lines
+                            <p className="text-xs text-white/50 truncate mt-0.5">
+                                {device?.name || 'Target Device'} • Authenticated Google Accounts, SIM Lines & Owner Profile
                             </p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                    <div className="flex items-center gap-2.5 shrink-0 self-start md:self-auto">
                         <button
-                            onClick={onRefresh}
-                            disabled={isLoading}
-                            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] active:bg-white/[0.04] border border-white/[0.09] text-zinc-200 font-medium text-xs transition-colors disabled:opacity-40"
-                        >
-                            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                            <span>Refresh Accounts</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2.5 mt-5 pt-5 border-t border-white/[0.06]">
-                    <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                        <span className="text-[11px] text-zinc-500 block mb-1">Google Accounts</span>
-                        <div className="flex items-baseline gap-1.5">
-                            <span className="text-lg font-semibold text-zinc-100 font-mono">{gmails.length}</span>
-                            <span className="text-[11px] text-zinc-400">Synced</span>
-                        </div>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                        <span className="text-[11px] text-zinc-500 block mb-1">Line Numbers</span>
-                        <div className="flex items-baseline gap-1.5">
-                            <span className="text-lg font-semibold text-zinc-100 font-mono">{phoneNumbers.length}</span>
-                            <span className="text-[11px] text-zinc-400">Identities</span>
-                        </div>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                        <span className="text-[11px] text-zinc-500 block mb-1">Carrier Network</span>
-                        <div className="flex items-baseline gap-1.5">
-                            <span className="text-sm sm:text-base font-semibold text-zinc-100 truncate font-mono">
-                                {carrier || 'Cellular'}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <div className="flex sm:hidden overflow-x-auto no-scrollbar gap-1.5 p-1 bg-[#18191c] rounded-xl border border-white/[0.06]">
-                {(['all', 'gmails', 'sim', 'owner'] as AccountTab[]).map((tab) => {
-                    const labels: Record<AccountTab, string> = {
-                        all: 'All Intelligence',
-                        gmails: `Gmails (${gmails.length})`,
-                        sim: `SIM Numbers (${phoneNumbers.length})`,
-                        owner: 'Owner Profile'
-                    };
-                    const isActive = activeTab === tab;
-                    return (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-                                isActive 
-                                    ? 'bg-white/10 text-zinc-100 border border-white/[0.08]' 
-                                    : 'text-zinc-400 hover:text-zinc-200'
+                            onClick={handleRefresh}
+                            disabled={!isOnline || isBusy}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-xs tracking-wide transition-all border ${
+                                !isOnline 
+                                    ? 'bg-white/[0.02] border-white/5 text-white/30 cursor-not-allowed'
+                                    : 'bg-rose-500/15 border-rose-500/30 text-rose-300 hover:bg-rose-500/25 active:scale-[0.98]'
                             }`}
                         >
-                            {labels[tab]}
+                            <RefreshCw className={`w-3.5 h-3.5 ${isBusy ? 'animate-spin' : ''}`} />
+                            <span>{isBusy ? 'Synchronizing...' : 'Refresh Accounts'}</span>
                         </button>
-                    );
-                })}
-            </div>
+                    </div>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <section className={`rounded-2xl bg-[#18191c] border border-white/[0.08] p-5 sm:p-6 space-y-4 ${
-                    activeTab === 'all' || activeTab === 'gmails' ? 'block' : 'hidden sm:block'
-                }`}>
-                    <div className="flex items-center justify-between pb-3.5 border-b border-white/[0.06]">
-                        <div className="flex items-center gap-2.5">
-                            <AtSign className="w-4 h-4 text-zinc-300" />
-                            <h2 className="text-sm font-semibold text-zinc-100">Google Accounts (Gmail)</h2>
+                {!isOnline && (
+                    <div className="mt-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-3 text-xs text-rose-300">
+                        <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                        <span>Target device is currently offline. Showing cached account identities from last connection.</span>
+                    </div>
+                )}
+            </header>
+
+            <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="p-4 rounded-xl border border-white/[0.06] bg-[#0c121e]/60 space-y-1.5">
+                    <div className="flex items-center justify-between text-white/40 text-xs">
+                        <span>Google Accounts</span>
+                        <AtSign className="w-4 h-4 text-rose-400" />
+                    </div>
+                    <div className="flex items-baseline gap-1.5">
+                        <span className="font-mono text-xl sm:text-2xl font-bold text-white tabular-nums">
+                            {gmails.length}
+                        </span>
+                        <span className="text-xs text-white/40">Synced</span>
+                    </div>
+                    <p className="text-[11px] text-white/40 truncate">
+                        {gmails[0] || 'No accounts yet'}
+                    </p>
+                </div>
+
+                <div className="p-4 rounded-xl border border-white/[0.06] bg-[#0c121e]/60 space-y-1.5">
+                    <div className="flex items-center justify-between text-white/40 text-xs">
+                        <span>SIM & Phone Lines</span>
+                        <Phone className="w-4 h-4 text-emerald-400" />
+                    </div>
+                    <div className="flex items-baseline gap-1.5">
+                        <span className="font-mono text-xl sm:text-2xl font-bold text-white tabular-nums">
+                            {phoneNumbers.length}
+                        </span>
+                        <span className="text-xs text-white/40">Detected</span>
+                    </div>
+                    <p className="text-[11px] text-white/40 truncate">
+                        {phoneNumbers[0] || (carrier ? `Carrier: ${carrier}` : 'Awaiting sync')}
+                    </p>
+                </div>
+
+                <div className="p-4 rounded-xl border border-white/[0.06] bg-[#0c121e]/60 space-y-1.5">
+                    <div className="flex items-center justify-between text-white/40 text-xs">
+                        <span>Network Provider</span>
+                        <Radio className="w-4 h-4 text-cyan-400" />
+                    </div>
+                    <div className="flex items-baseline gap-1.5">
+                        <span className="text-base sm:text-lg font-bold text-white truncate">
+                            {carrier || (isOnline ? 'Active Network' : 'Disconnected')}
+                        </span>
+                    </div>
+                    <p className="text-[11px] text-white/40 truncate">
+                        {carrier ? 'SIM Telemetry' : 'Carrier network'}
+                    </p>
+                </div>
+
+                <div className="p-4 rounded-xl border border-white/[0.06] bg-[#0c121e]/60 space-y-1.5">
+                    <div className="flex items-center justify-between text-white/40 text-xs">
+                        <span>Device Owner</span>
+                        <User className="w-4 h-4 text-indigo-400" />
+                    </div>
+                    <div className="flex items-baseline gap-1.5">
+                        <span className="text-base sm:text-lg font-bold text-white truncate">
+                            {ownerName}
+                        </span>
+                    </div>
+                    <p className="text-[11px] text-white/40 truncate">
+                        Verified Device Identity
+                    </p>
+                </div>
+            </section>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <section className="p-5 sm:p-6 rounded-2xl border border-white/[0.06] bg-[#0c121e]/60 space-y-4">
+                    <div className="flex items-center justify-between pb-3 border-b border-white/[0.05]">
+                        <div className="flex items-center gap-2 text-rose-400">
+                            <AtSign className="w-4 h-4" />
+                            <h2 className="text-xs font-bold tracking-wider uppercase text-white">Google Accounts (Gmail)</h2>
                         </div>
-                        <span className="text-[11px] font-mono text-zinc-400 bg-white/[0.04] px-2 py-0.5 rounded border border-white/[0.06]">
-                            {gmails.length} Detected
+                        <span className="px-2 py-0.5 rounded-full text-[11px] font-mono bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                            {gmails.length} Recorded
                         </span>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-2.5">
                         {gmails.length > 0 ? (
                             gmails.map((email: string, idx: number) => (
                                 <div 
-                                    key={idx}
-                                    className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.04] transition-colors gap-3"
+                                    key={idx} 
+                                    className="flex items-center justify-between p-3.5 rounded-xl border border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
                                 >
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        <div className="w-8 h-8 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center font-mono text-xs font-semibold text-zinc-300 shrink-0">
+                                    <div className="flex items-center gap-3 min-w-0 mr-2">
+                                        <div className="w-9 h-9 rounded-lg bg-rose-500/15 border border-rose-500/20 flex items-center justify-center text-rose-400 font-bold text-xs shrink-0">
                                             {email[0]?.toUpperCase() || 'G'}
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="font-mono text-xs sm:text-sm font-medium text-zinc-100 truncate">
+                                            <p className="font-mono text-xs sm:text-sm font-semibold text-white truncate">
                                                 {email}
                                             </p>
-                                            <span className="text-[10px] text-zinc-500 font-mono">
-                                                {idx === 0 ? 'Primary Sync Identity' : 'Associated Account'}
-                                            </span>
+                                            <p className="text-[10px] text-white/40 mt-0.5">
+                                                {idx === 0 ? 'Primary Google Account' : 'Secondary Sync Account'}
+                                            </p>
                                         </div>
                                     </div>
 
                                     <button
                                         onClick={() => handleCopy(email, `email_${idx}`)}
-                                        className="h-8 w-8 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.02] border border-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-zinc-200 transition-colors shrink-0"
-                                        title="Copy Account Email"
+                                        className="p-2 sm:px-3 sm:py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.08] text-white/70 hover:text-white transition-all shrink-0 flex items-center gap-1.5 text-xs active:scale-95"
+                                        title="Copy Email"
                                     >
                                         {copiedKey === `email_${idx}` ? (
-                                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                            <>
+                                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                                <span className="hidden sm:inline text-emerald-400 text-[11px] font-medium">Copied</span>
+                                            </>
                                         ) : (
-                                            <Copy className="w-3.5 h-3.5" />
+                                            <>
+                                                <Copy className="w-3.5 h-3.5" />
+                                                <span className="hidden sm:inline text-[11px]">Copy</span>
+                                            </>
                                         )}
                                     </button>
                                 </div>
                             ))
                         ) : (
-                            <div className="py-10 text-center space-y-2">
-                                <Mail className="w-6 h-6 text-zinc-600 mx-auto" />
-                                <p className="text-xs text-zinc-400">No authenticated accounts retrieved.</p>
-                                <p className="text-[11px] text-zinc-500">Tap Refresh Accounts above to poll target device.</p>
+                            <div className="py-10 px-4 rounded-xl border border-white/[0.03] bg-white/[0.01] text-center space-y-2">
+                                <Mail className="w-8 h-8 text-white/20 mx-auto" />
+                                <h3 className="text-xs font-semibold text-white/80">No Google Accounts Synchronized</h3>
+                                <p className="text-[11px] text-white/40 max-w-sm mx-auto">
+                                    Accounts are harvested via contacts sync provider. Ensure target has active Google account signed in and contacts permission is authorized.
+                                </p>
                             </div>
                         )}
                     </div>
                 </section>
 
-                <section className={`rounded-2xl bg-[#18191c] border border-white/[0.08] p-5 sm:p-6 space-y-4 ${
-                    activeTab === 'all' || activeTab === 'sim' ? 'block' : 'hidden sm:block'
-                }`}>
-                    <div className="flex items-center justify-between pb-3.5 border-b border-white/[0.06]">
-                        <div className="flex items-center gap-2.5">
-                            <Phone className="w-4 h-4 text-zinc-300" />
-                            <h2 className="text-sm font-semibold text-zinc-100">SIM & Line Identifiers</h2>
+                <section className="p-5 sm:p-6 rounded-2xl border border-white/[0.06] bg-[#0c121e]/60 space-y-4">
+                    <div className="flex items-center justify-between pb-3 border-b border-white/[0.05]">
+                        <div className="flex items-center gap-2 text-emerald-400">
+                            <Phone className="w-4 h-4" />
+                            <h2 className="text-xs font-bold tracking-wider uppercase text-white">SIM & Mobile Numbers</h2>
                         </div>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-2">
                             {carrier && (
-                                <span className="text-[11px] font-mono text-zinc-400 bg-white/[0.04] px-2 py-0.5 rounded border border-white/[0.06] truncate max-w-[120px]">
-                                    {carrier}
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                                    <Radio className="w-2.5 h-2.5 text-emerald-400" /> {carrier}
                                 </span>
                             )}
-                            <span className="text-[11px] font-mono text-zinc-400 bg-white/[0.04] px-2 py-0.5 rounded border border-white/[0.06]">
-                                {phoneNumbers.length}
+                            <span className="px-2 py-0.5 rounded-full text-[11px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                {phoneNumbers.length} Detected
                             </span>
                         </div>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-2.5">
                         {phoneNumbers.length > 0 ? (
                             phoneNumbers.map((num: string, idx: number) => (
                                 <div 
-                                    key={idx}
-                                    className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.04] transition-colors gap-3"
+                                    key={idx} 
+                                    className="flex items-center justify-between p-3.5 rounded-xl border border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
                                 >
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        <div className="w-8 h-8 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center font-mono text-xs font-semibold text-zinc-300 shrink-0">
+                                    <div className="flex items-center gap-3 min-w-0 mr-2">
+                                        <div className="w-9 h-9 rounded-lg bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-xs shrink-0">
                                             #{idx + 1}
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="font-mono text-xs sm:text-sm font-semibold text-zinc-100 truncate">
+                                            <p className="font-mono text-xs sm:text-sm font-bold text-emerald-300 truncate">
                                                 {num}
                                             </p>
-                                            <span className="text-[10px] text-zinc-500 font-mono">
-                                                {carrier ? `${carrier} • Verified Line` : 'Active Line Identity'}
-                                            </span>
+                                            <p className="text-[10px] text-white/40 mt-0.5">
+                                                {carrier ? `Mobile Line • ${carrier}` : 'Verified Mobile Identity'}
+                                            </p>
                                         </div>
                                     </div>
 
                                     <button
                                         onClick={() => handleCopy(num, `phone_${idx}`)}
-                                        className="h-8 w-8 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.02] border border-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-zinc-200 transition-colors shrink-0"
+                                        className="p-2 sm:px-3 sm:py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.08] text-white/70 hover:text-white transition-all shrink-0 flex items-center gap-1.5 text-xs active:scale-95"
                                         title="Copy Phone Number"
                                     >
                                         {copiedKey === `phone_${idx}` ? (
-                                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                            <>
+                                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                                <span className="hidden sm:inline text-emerald-400 text-[11px] font-medium">Copied</span>
+                                            </>
                                         ) : (
-                                            <Copy className="w-3.5 h-3.5" />
+                                            <>
+                                                <Copy className="w-3.5 h-3.5" />
+                                                <span className="hidden sm:inline text-[11px]">Copy</span>
+                                            </>
                                         )}
                                     </button>
                                 </div>
                             ))
                         ) : (
-                            <div className="py-10 text-center space-y-2">
-                                <Phone className="w-6 h-6 text-zinc-600 mx-auto" />
-                                <p className="text-xs text-zinc-400">
-                                    {carrier ? `Carrier: ${carrier}` : 'No phone number stored on SIM card binary.'}
-                                </p>
-                                <p className="text-[11px] text-zinc-500">
-                                    Numbers sync automatically once WhatsApp, Telegram, or Contacts are authorized.
+                            <div className="py-10 px-4 rounded-xl border border-white/[0.03] bg-white/[0.01] text-center space-y-2">
+                                <Phone className="w-8 h-8 text-white/20 mx-auto" />
+                                <h3 className="text-xs font-semibold text-white/80">No SIM Phone Number Recorded</h3>
+                                <p className="text-[11px] text-white/40 max-w-sm mx-auto">
+                                    {carrier 
+                                        ? `Carrier ${carrier} active. Most SIM cards do not write the MSISDN directly to the SIM card. Active WhatsApp or messaging sync will resolve the line number.` 
+                                        : 'Awaiting SIM registration or messaging account sync.'}
                                 </p>
                             </div>
                         )}
@@ -259,33 +298,19 @@ export default function AccountsView({ device, onRefresh, isLoading }: AccountsV
                 </section>
             </div>
 
-            <section className={`rounded-2xl bg-[#18191c] border border-white/[0.08] p-5 sm:p-6 ${
-                activeTab === 'all' || activeTab === 'owner' ? 'block' : 'hidden sm:block'
-            }`}>
-                <div className="flex items-center justify-between pb-3.5 border-b border-white/[0.06] mb-4">
-                    <div className="flex items-center gap-2.5">
-                        <User className="w-4 h-4 text-zinc-300" />
-                        <h2 className="text-sm font-semibold text-zinc-100">Host Device Owner Profile</h2>
-                    </div>
-                    <span className="inline-flex items-center gap-1 text-[11px] font-mono text-emerald-400">
-                        <ShieldCheck className="w-3.5 h-3.5" /> Verified Profile
-                    </span>
+            <section className="p-5 sm:p-6 rounded-2xl border border-white/[0.06] bg-[#0c121e]/60 space-y-3">
+                <div className="flex items-center gap-2 text-indigo-400 pb-2 border-b border-white/[0.05]">
+                    <User className="w-4 h-4" />
+                    <h2 className="text-xs font-bold tracking-wider uppercase text-white">Device Owner Profile & Provenance</h2>
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                    <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                        <span className="text-[11px] text-zinc-500 block mb-0.5">Profile Display Name</span>
-                        <p className="text-sm font-semibold text-zinc-100 truncate">{ownerName}</p>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-white/[0.04] bg-white/[0.02]">
+                    <div className="space-y-0.5">
+                        <span className="text-[11px] text-white/40 uppercase tracking-wider font-semibold">Registered Host Display Name</span>
+                        <p className="text-base sm:text-lg font-bold text-white tracking-tight">{ownerName}</p>
                     </div>
-                    <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                        <span className="text-[11px] text-zinc-500 block mb-0.5">Primary Communication Channel</span>
-                        <p className="font-mono text-zinc-200 truncate">
-                            {phoneNumbers[0] || gmails[0] || 'Awaiting Authorization'}
-                        </p>
-                    </div>
-                    <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                        <span className="text-[11px] text-zinc-500 block mb-0.5">Host Hardware Model</span>
-                        <p className="font-mono text-zinc-200 truncate">{deviceName}</p>
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 text-xs font-medium self-start sm:self-auto">
+                        <ShieldCheck className="w-4 h-4" />
+                        <span>Verified Account Profile</span>
                     </div>
                 </div>
             </section>
