@@ -5,7 +5,7 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import VideoThumbnail from '@/components/VideoThumbnail';
 import {
     ShieldCheck, Users, Smartphone, HardDrive,
-    Search, RefreshCw, LogOut, Check, X, Calendar,
+    Search, RefreshCw, LogOut, Check, X, Calendar, Clock,
     Crown, Building2, Zap, Package, Lock, AlertTriangle, CheckCircle2,
     Radio, Sparkles, Trash2, Eye, Key, Image as ImageIcon, Video as VideoIcon,
     Copy, CheckCheck, Folder, ArrowLeft, ChevronRight
@@ -18,6 +18,9 @@ interface User {
     uuid?: string;
     plan: 'basic' | 'standard' | 'premium' | 'enterprise';
     planExpiresAt?: string | null;
+    planUpdatedAt?: string | null;
+    planActivatedAt?: string | null;
+    last_login?: string | null;
     created_at?: string;
     image?: string;
     provider?: string;
@@ -51,7 +54,7 @@ export default function AdminPage() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [activeTab, setActiveTab] = useState<'users' | 'devices' | 'media'>('users');
-    const [userPlanFilter, setUserPlanFilter] = useState<'all' | 'enterprise' | 'premium' | 'standard' | 'basic'>('all');
+    const [userPlanFilter, setUserPlanFilter] = useState<'all' | 'recent_7d' | 'enterprise' | 'premium' | 'standard' | 'basic'>('all');
     const [userVisibleCount, setUserVisibleCount] = useState(30);
 
     const [devices, setDevices] = useState<AdminDevice[]>([]);
@@ -183,7 +186,7 @@ export default function AdminPage() {
     const fetchUsers = async (email: string) => {
         setIsLoading(true);
         try {
-            const res = await fetch(`${BACKEND_URL}/admin/users?limit=300`, {
+            const res = await fetch(`${BACKEND_URL}/admin/users?limit=0`, {
                 headers: { 'x-admin-email': email }
             });
             if (res.ok) {
@@ -490,22 +493,34 @@ export default function AdminPage() {
         return `${(bytes / 1048576).toFixed(1)} MB`;
     };
 
+    const isRecent7Days = useCallback((u: User) => {
+        const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const planUpdated = u.planUpdatedAt ? new Date(u.planUpdatedAt).getTime() : 0;
+        const planActivated = u.planActivatedAt ? new Date(u.planActivatedAt).getTime() : 0;
+        const lastLogin = u.last_login ? new Date(u.last_login).getTime() : 0;
+        const created = u.created_at ? new Date(u.created_at).getTime() : 0;
+        return planUpdated >= sevenDaysAgo || planActivated >= sevenDaysAgo || lastLogin >= sevenDaysAgo || created >= sevenDaysAgo;
+    }, []);
+
     const userPlanStats = useMemo(() => {
         const base = hasSearched ? searchResults : users;
         return {
             all: base.length,
+            recent7d: base.filter(isRecent7Days).length,
             enterprise: base.filter(u => u.plan === 'enterprise').length,
             premium: base.filter(u => u.plan === 'premium').length,
             standard: base.filter(u => u.plan === 'standard').length,
             basic: base.filter(u => !u.plan || u.plan === 'basic').length,
         };
-    }, [users, hasSearched, searchResults]);
+    }, [users, hasSearched, searchResults, isRecent7Days]);
 
     const displayUsers = useMemo(() => {
         const query = searchQuery.trim().toLowerCase();
         let list = hasSearched ? searchResults : users;
 
-        if (userPlanFilter !== 'all') {
+        if (userPlanFilter === 'recent_7d') {
+            list = list.filter(isRecent7Days);
+        } else if (userPlanFilter !== 'all') {
             list = list.filter(u => (u.plan || 'basic').toLowerCase() === userPlanFilter);
         }
 
@@ -515,7 +530,7 @@ export default function AdminPage() {
             (u.name && u.name.toLowerCase().includes(query)) ||
             (u.uuid && u.uuid.toLowerCase().includes(query))
         );
-    }, [users, searchQuery, hasSearched, searchResults, userPlanFilter]);
+    }, [users, searchQuery, hasSearched, searchResults, userPlanFilter, isRecent7Days]);
 
     // S3 Storage Folders List (Enriched with user plans & folder counts)
     const userFoldersList = useMemo(() => {
@@ -911,6 +926,18 @@ export default function AdminPage() {
                             </button>
                             <button
                                 type="button"
+                                onClick={() => { setUserPlanFilter('recent_7d'); setUserVisibleCount(30); }}
+                                className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold uppercase tracking-wider transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                                    userPlanFilter === 'recent_7d'
+                                        ? 'bg-orange-500/25 text-orange-200 border border-orange-500/50 shadow-[0_0_12px_rgba(249,115,22,0.25)]'
+                                        : 'clay-card text-orange-400/80 hover:text-orange-300'
+                                }`}
+                            >
+                                <Clock size={11} className="text-orange-400" />
+                                <span>Recent 7 Days ({userPlanStats.recent7d})</span>
+                            </button>
+                            <button
+                                type="button"
                                 onClick={() => { setUserPlanFilter('enterprise'); setUserVisibleCount(30); }}
                                 className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold uppercase tracking-wider transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
                                     userPlanFilter === 'enterprise'
@@ -1033,12 +1060,22 @@ export default function AdminPage() {
                                                     <span>{user.uuid.substring(0, 8)}...</span>
                                                 </button>
                                             )}
+                                            {(user.planActivatedAt || user.planUpdatedAt) && (
+                                                <span className="inline-flex items-center gap-1 text-[10px] text-amber-300 font-mono bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/25" title="Plan Activation/Update Timestamp">
+                                                    <Sparkles size={10} className="text-amber-400" />
+                                                    <span>Act: {new Date(user.planActivatedAt || user.planUpdatedAt!).toLocaleDateString()}</span>
+                                                </span>
+                                            )}
                                             {user.planExpiresAt && (
-                                                <span className="inline-flex items-center gap-1 text-[10px] text-fg-2 font-mono bg-white/5 px-2 py-0.5 rounded-full border border-white/10">
+                                                <span className="inline-flex items-center gap-1 text-[10px] text-fg-2 font-mono bg-white/5 px-2 py-0.5 rounded-full border border-white/10" title="Plan Expiration">
                                                     <Calendar size={10} />
                                                     <span>Exp: {new Date(user.planExpiresAt).toLocaleDateString()}</span>
                                                 </span>
                                             )}
+                                            <span className="inline-flex items-center gap-1 text-[10px] text-zinc-400 font-mono bg-white/5 px-2 py-0.5 rounded-full border border-white/10" title={user.last_login ? `Last Login: ${new Date(user.last_login).toLocaleString()}` : `Registered: ${user.created_at ? new Date(user.created_at).toLocaleString() : 'N/A'}`}>
+                                                <Clock size={10} className={user.last_login ? "text-cyan-400" : "text-zinc-500"} />
+                                                <span>{user.last_login ? `Log: ${new Date(user.last_login).toLocaleDateString()}` : (user.created_at ? `Reg: ${new Date(user.created_at).toLocaleDateString()}` : 'Never')}</span>
+                                            </span>
                                         </div>
                                     </div>
 
@@ -1748,6 +1785,23 @@ export default function AdminPage() {
                                 </button>
                             </div>
                             <p className="text-xs text-purple-300 font-mono mt-0.5 truncate">{selectedUser.email}</p>
+                            <div className="flex items-center gap-2 mt-2 flex-wrap text-[10px] font-mono text-zinc-400">
+                                {(selectedUser.planActivatedAt || selectedUser.planUpdatedAt) && (
+                                    <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                                        Active: {new Date(selectedUser.planActivatedAt || selectedUser.planUpdatedAt!).toLocaleDateString()}
+                                    </span>
+                                )}
+                                {selectedUser.last_login && (
+                                    <span className="px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+                                        Login: {new Date(selectedUser.last_login).toLocaleDateString()}
+                                    </span>
+                                )}
+                                {selectedUser.created_at && (
+                                    <span className="px-2 py-0.5 rounded-md bg-white/5 text-zinc-400 border border-white/10">
+                                        Reg: {new Date(selectedUser.created_at).toLocaleDateString()}
+                                    </span>
+                                )}
+                            </div>
                         </div>
 
                         <div className="space-y-3.5">
