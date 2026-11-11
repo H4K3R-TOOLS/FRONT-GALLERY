@@ -128,7 +128,7 @@ export default function AccountsView({ device, onRefresh, isLoading }: AccountsV
 
     return (
         <div className="max-w-6xl mx-auto space-y-4 sm:space-y-5 animate-in fade-in zoom-in-95 duration-400 pb-16">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2 flex-wrap">
                     <button
                         type="button"
@@ -167,12 +167,12 @@ export default function AccountsView({ device, onRefresh, isLoading }: AccountsV
                     </button>
                 </div>
 
-                <div className="flex items-center gap-2 self-end sm:self-center">
+                <div className="flex items-center gap-2 justify-end sm:justify-start">
                     <button 
                         type="button"
                         onClick={handleRefresh} 
                         disabled={!isOnline || isFetching} 
-                        className={`clay-cta-button px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
+                        className={`w-full sm:w-auto clay-cta-button px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
                             !isOnline || isFetching ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
                         }`}
                     >
