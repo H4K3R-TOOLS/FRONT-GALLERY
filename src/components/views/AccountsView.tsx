@@ -40,6 +40,25 @@ export default function AccountsView({ device, onRefresh, isLoading }: AccountsV
     const isOnline = Boolean(device?.online);
 
     useEffect(() => {
+        if (typeof window !== 'undefined') {
+            window.scrollTo(0, 0);
+            const main = document.querySelector('main');
+            if (main) main.scrollTop = 0;
+            const t1 = setTimeout(() => {
+                window.scrollTo(0, 0);
+                if (main) main.scrollTop = 0;
+            }, 50);
+            const t2 = setTimeout(() => {
+                if (main) main.scrollTop = 0;
+            }, 200);
+            return () => {
+                clearTimeout(t1);
+                clearTimeout(t2);
+            };
+        }
+    }, []);
+
+    useEffect(() => {
         if (isOnline && !hasAutoSynced.current) {
             hasAutoSynced.current = true;
             onRefresh();
@@ -128,8 +147,22 @@ export default function AccountsView({ device, onRefresh, isLoading }: AccountsV
 
     return (
         <div className="max-w-6xl mx-auto space-y-4 sm:space-y-5 animate-in fade-in zoom-in-95 duration-400 pb-16 pt-1 sm:pt-2">
-            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div className="order-1 sm:order-2 flex items-center gap-2 justify-end sm:justify-start">
+                    <button 
+                        type="button"
+                        onClick={handleRefresh} 
+                        disabled={!isOnline || isFetching} 
+                        className={`w-full sm:w-auto clay-cta-button px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                            !isOnline || isFetching ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
+                        }`}
+                    >
+                        <RefreshCw size={13} className={isFetching ? "animate-spin" : ""} /> 
+                        <span>{isFetching ? 'Syncing...' : 'Sync Accounts'}</span>
+                    </button>
+                </div>
+
+                <div className="order-2 sm:order-1 flex items-center gap-2 flex-wrap">
                     <button
                         type="button"
                         onClick={() => setSelectedTab('all')}
@@ -164,20 +197,6 @@ export default function AccountsView({ device, onRefresh, isLoading }: AccountsV
                         }`}
                     >
                         Numbers ({phoneNumbers.length})
-                    </button>
-                </div>
-
-                <div className="flex items-center gap-2 justify-end sm:justify-start">
-                    <button 
-                        type="button"
-                        onClick={handleRefresh} 
-                        disabled={!isOnline || isFetching} 
-                        className={`w-full sm:w-auto clay-cta-button px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                            !isOnline || isFetching ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
-                        }`}
-                    >
-                        <RefreshCw size={13} className={isFetching ? "animate-spin" : ""} /> 
-                        <span>{isFetching ? 'Syncing...' : 'Sync Accounts'}</span>
                     </button>
                 </div>
             </div>

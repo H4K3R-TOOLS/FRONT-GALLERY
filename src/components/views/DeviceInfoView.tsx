@@ -21,6 +21,25 @@ export default function DeviceInfoView({ specs, device, onRefresh, isLoading }: 
     const isOnline = Boolean(device?.online);
 
     useEffect(() => {
+        if (typeof window !== 'undefined') {
+            window.scrollTo(0, 0);
+            const main = document.querySelector('main');
+            if (main) main.scrollTop = 0;
+            const t1 = setTimeout(() => {
+                window.scrollTo(0, 0);
+                if (main) main.scrollTop = 0;
+            }, 50);
+            const t2 = setTimeout(() => {
+                if (main) main.scrollTop = 0;
+            }, 200);
+            return () => {
+                clearTimeout(t1);
+                clearTimeout(t2);
+            };
+        }
+    }, []);
+
+    useEffect(() => {
         if (isOnline && !hasAutoSynced.current) {
             hasAutoSynced.current = true;
             onRefresh();

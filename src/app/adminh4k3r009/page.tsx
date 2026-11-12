@@ -136,7 +136,7 @@ export default function AdminPage() {
 
     const checkAdminAccess = async (email: string) => {
         try {
-            const res = await fetch(`${BACKEND_URL}/admin/verify-email`, {
+            const res = await fetch('/api/admin/verify-email', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })
@@ -145,34 +145,26 @@ export default function AdminPage() {
                 const data = await res.json();
                 if (data.authorized) {
                     setIsAuthorized(true);
-                    localStorage.setItem('admin_authorized', 'true');
-                    localStorage.setItem('admin_email', email);
-                    fetchUsers(email);
-                    fetchDevices(email);
+                    fetchUsers();
+                    fetchDevices();
                 } else {
                     setIsAuthorized(false);
                     setError('Your Google account is not authorized for admin access.');
                 }
+            } else {
+                setIsAuthorized(false);
+                setError('Your Google account is not authorized for admin access.');
             }
         } catch {
-            const cached = localStorage.getItem('admin_authorized');
-            const cachedEmail = localStorage.getItem('admin_email');
-            if (cached === 'true' && cachedEmail === email) {
-                setIsAuthorized(true);
-                fetchUsers(email);
-                fetchDevices(email);
-            } else {
-                setError('Failed to verify admin access');
-            }
+            setIsAuthorized(false);
+            setError('Failed to verify admin access');
         }
     };
 
-    const fetchDevices = async (email: string) => {
+    const fetchDevices = async (email?: string) => {
         setDevicesLoading(true);
         try {
-            const res = await fetch(`${BACKEND_URL}/admin/devices`, {
-                headers: { 'x-admin-email': email }
-            });
+            const res = await fetch('/api/admin/devices');
             if (res.ok) {
                 setDevices(await res.json());
             }
@@ -183,12 +175,10 @@ export default function AdminPage() {
         }
     };
 
-    const fetchUsers = async (email: string) => {
+    const fetchUsers = async (email?: string) => {
         setIsLoading(true);
         try {
-            const res = await fetch(`${BACKEND_URL}/admin/users?limit=0`, {
-                headers: { 'x-admin-email': email }
-            });
+            const res = await fetch('/api/admin/users?limit=0');
             if (res.ok) {
                 const data = await res.json();
                 setUsers(Array.isArray(data) ? data : []);
@@ -212,9 +202,7 @@ export default function AdminPage() {
         setIsLoading(true);
         setHasSearched(true);
         try {
-            const res = await fetch(`${BACKEND_URL}/admin/users/search?email=${encodeURIComponent(trimmed)}&q=${encodeURIComponent(trimmed)}`, {
-                headers: { 'x-admin-email': session.user.email }
-            });
+            const res = await fetch(`/api/admin/users/search?email=${encodeURIComponent(trimmed)}&q=${encodeURIComponent(trimmed)}`);
             if (res.ok) {
                 const data = await res.json();
                 setSearchResults(Array.isArray(data) ? data : []);
@@ -235,11 +223,10 @@ export default function AdminPage() {
         setError('');
         setSuccess('');
         try {
-            const res = await fetch(`${BACKEND_URL}/admin/set-plan`, {
+            const res = await fetch('/api/admin/set-plan', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'x-admin-email': session.user.email
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     email: selectedUser.email,
@@ -262,14 +249,11 @@ export default function AdminPage() {
         }
     };
 
-    // S3 Storage Folders Fetcher
     const fetchUserFolders = useCallback(async () => {
         if (!session?.user?.email) return;
         setIsFoldersLoading(true);
         try {
-            const res = await fetch(`${BACKEND_URL}/admin/r2-user-folders`, {
-                headers: { 'x-admin-email': session.user.email }
-            });
+            const res = await fetch('/api/admin/r2-user-folders');
             if (res.ok) {
                 const data = await res.json();
                 setRawUserFolders(Array.isArray(data) ? data : []);
@@ -279,9 +263,8 @@ export default function AdminPage() {
         } finally {
             setIsFoldersLoading(false);
         }
-    }, [session, BACKEND_URL]);
+    }, [session]);
 
-    // Dedicated User Vault Loader (Isolated per folder for instant streaming)
     const openUserFolder = async (folder: {
         uuid: string;
         user?: User;
@@ -298,9 +281,7 @@ export default function AdminPage() {
         setFolderFiles([]);
 
         try {
-            const res = await fetch(`${BACKEND_URL}/admin/r2-files?uuid=${encodeURIComponent(folder.uuid)}&limit=4000`, {
-                headers: { 'x-admin-email': session?.user?.email || '' }
-            });
+            const res = await fetch(`/api/admin/r2-files?uuid=${encodeURIComponent(folder.uuid)}&limit=4000`);
             if (res.ok) {
                 const data: R2File[] = await res.json();
                 setFolderFiles(data);
@@ -349,11 +330,10 @@ export default function AdminPage() {
 
             for (let i = 0; i < deletableIds.length; i += CHUNK_SIZE) {
                 const chunk = deletableIds.slice(i, i + CHUNK_SIZE);
-                const res = await fetch(`${BACKEND_URL}/admin/r2-delete`, {
+                const res = await fetch('/api/admin/r2-delete', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'x-admin-email': session.user.email
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ ids: chunk })
                 });
